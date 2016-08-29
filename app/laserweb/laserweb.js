@@ -6,7 +6,7 @@
 var laserweb = {
 
     // LaserWeb version
-    version: '4.0.0',
+    version: '0.4.0',
 
     // Modules collection
     modules: {},
