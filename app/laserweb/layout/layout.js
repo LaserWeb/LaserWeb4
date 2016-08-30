@@ -7,6 +7,9 @@
     */
     lw.add_module('layout', {
 
+        // Autoload the module ?
+        autoload: true,
+
         // Module version
         version: '0.0.1',
 
@@ -18,7 +21,8 @@
             this.$.workspace = $('#workspace');
 
             // Notify module setup is done.
-            this.pub('module.setup.done');
+            //this.pub('module.setup.done');
+            setTimeout(function(){lw.modules.layout.pub('module.setup.done');}, 2500);
         }
 
     });

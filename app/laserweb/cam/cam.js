@@ -7,6 +7,9 @@
     */
     lw.add_module('cam', {
 
+        // Autoload the module ?
+        autoload: true,
+
         // Module version
         version: '1.0.0',
 

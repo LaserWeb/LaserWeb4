@@ -7,6 +7,9 @@
     */
     lw.add_module('about', {
 
+        // Autoload the module ?
+        autoload: true,
+
         // Module version
         version: '1.0.0',
 
