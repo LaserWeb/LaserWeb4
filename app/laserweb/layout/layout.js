@@ -21,8 +21,7 @@
             this.$.workspace = $('#workspace');
 
             // Notify module setup is done.
-            //this.pub('module.setup.done');
-            setTimeout(function(){lw.modules.layout.pub('module.setup.done');}, 2500);
+            this.pub('module.setup.done');
         }
 
     });
