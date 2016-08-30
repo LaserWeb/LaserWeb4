@@ -18,10 +18,12 @@
 
         // Setup module
         setup: function() {
-            // Register ui elements
-            this.$.dock      = $('#dock');
-            this.$.panes     = $('#panes');
-            this.$.workspace = $('#workspace');
+            // Create main elements
+            $.extend(this.$, {
+                dock     : $('#dock'),
+                panes    : $('#panes'),
+                workspace: $('#workspace')
+            });
 
             // Notify module setup is done.
             this.pub('module.setup.done');
