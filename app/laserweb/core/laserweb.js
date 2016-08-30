@@ -23,6 +23,16 @@
         // Autoload the module ?
         autoload: false,
 
+        // Debug level
+        debug_level: {
+            all  : true,
+            log  : false,
+            info : false,
+            warn : false,
+            debug: false,
+            error: false
+        },
+
         // Pub/Sub wrapper
         // http://amplifyjs.com/api/pubsub/
         pub: function() {
@@ -48,6 +58,28 @@
 
             // Call vendor lib with custom arguments
             amplify.subscribe.apply(amplify, args);
+        },
+
+        // Console wrapper
+        console: function(type, arg) {
+            // Skip if disabled
+            if (! this.debug_level.all && ! this.debug_level[type]) {
+                return null;
+            }
+
+            // Slice arguments list to array
+            var args = Array.prototype.slice.call(arguments);
+
+            // Replace first argument with the prefixed module name
+            args.splice(0, 1, 'lw.' +  this.name + ':');
+
+            // Call the console function
+            console[type].apply(console, args);
+        },
+
+        // Throw an error message prefixed with the module name
+        error: function(message) {
+            throw 'lw.' +  this.name + ': ' + message;
         }
     };
 
@@ -71,9 +103,12 @@
 
         // Setup
         setup: function() {
+            // Self alias
+            var self = this;
+
             // Subscribe to modules setup topics
             this.sub('module.setup.done', function(module) {
-                console.log('setup.done:', module.name, module);
+                self.console('info', 'setup.done:', module.name, module);
 
                 // Mark module setup
                 module.flags.setup = true;
@@ -81,7 +116,7 @@
 
             // Subscribe to modules init topics
             this.sub('module.init.done', function(module) {
-                console.log('init.done:', module.name, module);
+                self.console('info', 'init.done:', module.name, module);
 
                 // Mark module ready
                 module.flags.ready = true;
@@ -101,7 +136,7 @@
                 // Current module
                 module = this.modules[name];
 
-                // Skiped modules
+                // Skiped disabled modules
                 if (! module.autoload) {
                     continue;
                 }
@@ -117,8 +152,11 @@
 
             // Modules initialization
             for (var name in this.modules) {
-                // Skip core modules
-                if (name === 'core' || name === 'module') {
+                // Current module
+                module = this.modules[name];
+
+                // Skiped disabled modules
+                if (! module.autoload) {
                     continue;
                 }
 
@@ -130,19 +168,19 @@
             this.flags.ready = true;
 
             // debug...
-            console.log('READY:', this);
+            this.console('info', 'ready:', this);
         },
 
         // Add a module (once)
         add_module: function(name, module) {
             // Module has no name
             if (typeof module !== 'object') {
-                throw 'Module [' + name + '] must be an object.';
+                this.error('Module [' + name + '] must be an object.');
             }
 
             // Module already defined
             if (this.modules[name]) {
-                throw 'Module [' + name + '] already defined.';
+                this.error('Module [' + name + '] already defined.');
             }
 
             // Extends from core module (deep)
@@ -165,7 +203,7 @@
         load_module: function(name) {
             // Module not defined
             if (! this.modules[name]) {
-                throw 'Module [' + name + '] not found.';
+                this.error('Module [' + name + '] not found.');
             }
 
             // Module
@@ -173,7 +211,7 @@
 
             // Module already loaded
             if (module.flags.ready !== null) {
-                throw 'Module [' + name + '] already loaded.';
+                this.error('Module [' + name + '] already loaded.');
             }
 
             // Set module flags
