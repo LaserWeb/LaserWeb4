@@ -13,6 +13,9 @@
         // Module version
         version: '0.0.1',
 
+        // Module title
+        title: 'Quote',
+
         // Module icon
         icon: 'money',
 
