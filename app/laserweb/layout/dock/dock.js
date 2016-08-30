@@ -49,6 +49,17 @@
 
             // Append the dock to the layout dock container
             lw.get_module('layout').$.dock.append(this.$.dock);
+
+            // Register events handlers/publishers
+            var self = this;
+
+            this.$.dock.on('click', function(e) {
+                self.pub('layout.dock.click', e);       // global message
+                self.pub(self.name + '.dock.click', e); // targeted message
+            });
+
+            // Subscription...
+            this.sub(self.name + '.dock.click', this, this.on_dock_click);
         },
 
         // Set the dock icon
@@ -67,6 +78,24 @@
 
             // Update icon element
             this.$.label.text(this.label);
+        },
+
+        // Set/Unset dock active
+        set_dock_active: function(active) {
+            // Remove active class on all children
+            lw.get_module('layout').$.dock.children('.active').removeClass('active');
+
+            // Add active class on current entry
+            this.$.dock.addClass('active');
+        },
+
+        // Called on dock click
+        on_dock_click: function() {
+            // Debug message
+            this.console('debug', 'dock: clicked');
+
+            // Set dock active
+            this.set_dock_active(true);
         }
 
     });

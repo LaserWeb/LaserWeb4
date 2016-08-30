@@ -20,7 +20,20 @@
         icon: 'plug',
 
         // Extends
-        extends: ['layout.pane']
+        extends: ['layout.pane'],
+
+        // Module initialization
+        // Called once when all modules are setup.
+        init: function() {
+            // Add the dock entry
+            this.add_dock();
+
+            // Set dock active
+            this.set_dock_active(true);
+
+            // Notify module init is done.
+            this.pub('module.init.done');
+        }
 
     });
 
