@@ -219,7 +219,13 @@
 
             // Initialize the module
             module.init();
+        },
+
+        // Return a module
+        get_module: function(name) {
+            return this.modules[name] || undefined;
         }
+
     });
 
 })(window);
