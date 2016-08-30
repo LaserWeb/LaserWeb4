@@ -1,18 +1,12 @@
-;(function(lw) {
+import Dock from '../dock/dock'
 
-    /**
-    * LaserWeb pane module.
-    *
-    * Description...
-    */
-    lw.add_module('layout.pane', {
-
-        // Module version
-        version: '0.0.1',
-
-        // Extends
-        extends: ['layout.dock']
-
-    });
-
-})(laserweb);
+/**
+* LaserWeb pane module.
+*
+* Description...
+*/
+export default class Pane extends Dock {
+    constructor(name, version) {
+        super(name, version)
+    }
+}

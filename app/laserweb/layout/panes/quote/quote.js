@@ -1,27 +1,24 @@
-;(function(lw) {
+import Pane from '../../pane/pane'
 
-    /**
-    * LaserWeb quote module.
-    *
-    * Description...
-    */
-    lw.add_module('layout.panes.quote', {
+/**
+* LaserWeb quote module.
+*
+* Description...
+*/
+export default class Quote extends Pane {
+    constructor() {
+        super('layout.panes.quote', '0.0.1')
+    }
 
-        // Autoload the module ?
-        autoload: true,
+    // Autoload the module ?
+    autoload = true
 
-        // Module version
-        version: '0.0.1',
+    // Module version
+    version = '0.0.1'
 
-        // Module title
-        title: 'Quote',
+    // Module title
+    title = 'Quote'
 
-        // Module icon
-        icon: 'money',
-
-        // Extends
-        extends: ['layout.pane']
-
-    });
-
-})(laserweb);
+    // Module icon
+    icon = 'money'
+}

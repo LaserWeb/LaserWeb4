@@ -1,27 +1,24 @@
-;(function(lw) {
+import Pane from '../../pane/pane'
 
-    /**
-    * LaserWeb settings module.
-    *
-    * Description...
-    */
-    lw.add_module('layout.panes.settings', {
+/**
+* LaserWeb settings module.
+*
+* Description...
+*/
+export default class Settings extends Pane {
+    constructor() {
+        super('layout.panes.settings', '0.0.1')
+    }
 
-        // Autoload the module ?
-        autoload: true,
+    // Autoload the module ?
+    autoload = true
 
-        // Module version
-        version: '0.0.1',
+    // Module version
+    version = '0.0.1'
 
-        // Module title
-        title: 'Settings',
+    // Module title
+    title = 'Settings'
 
-        // Module icon
-        icon: 'cogs',
-
-        // Extends
-        extends: ['layout.pane']
-
-    });
-
-})(laserweb);
+    // Module icon
+    icon = 'cogs'
+}

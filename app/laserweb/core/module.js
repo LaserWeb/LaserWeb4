@@ -1,38 +1,35 @@
-;(function(lw) {
+import Core from './core'
 
-    /**
-    * LaserWeb base module.
-    *
-    * All LaserWeb modules must extend this module.
-    */
-    lw.modules.module = $.extend(true, {}, lw.modules.core, {
-
-        // Module version
-        version: '0.0.1',
+/**
+* LaserWeb base module.
+*
+* All LaserWeb modules must extend this module.
+*/
+export default class Module extends Core {
+    constructor(name, version) {
+        super(name, version)
 
         // Module name
-        name: 'module',
+        this.name = name
+
+        // Module version
+        this.version = version
 
         // jquery elements
-        $: {},
+        this.$ = {}
+    }
 
-        // Extends
-        extends: ['core'],
+    // Module setup
+    // Called once after the module was added.
+    setup() {
+        // Notify module setup is done.
+        this.pub('module.setup.done');
+    }
 
-        // Module setup
-        // Called once after the module was added.
-        setup: function() {
-            // Notify module setup is done.
-            this.pub('module.setup.done');
-        },
-
-        // Module initialization
-        // Called once when all modules are setup.
-        init: function() {
-            // Notify module init is done.
-            this.pub('module.init.done');
-        }
-
-    });
-
-})(laserweb);
+    // Module initialization
+    // Called once when all modules are setup.
+    init() {
+        // Notify module init is done.
+        this.pub('module.init.done');
+    }
+}

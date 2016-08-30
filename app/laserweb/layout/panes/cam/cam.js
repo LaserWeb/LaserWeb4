@@ -1,27 +1,24 @@
-;(function(lw) {
+import Pane from '../../pane/pane'
 
-    /**
-    * LaserWeb cam module.
-    *
-    * Description...
-    */
-    lw.add_module('layout.panes.cam', {
+/**
+* LaserWeb cam module.
+*
+* Description...
+*/
+export default class Cam extends Pane {
+    constructor() {
+        super('layout.panes.cam', '0.0.1')
+    }
 
-        // Autoload the module ?
-        autoload: true,
+    // Autoload the module ?
+    autoload = true
 
-        // Module version
-        version: '0.0.1',
+    // Module version
+    version = '0.0.1'
 
-        // Module title
-        title: 'CAM',
+    // Module title
+    title = 'CAM'
 
-        // Module icon
-        icon: 'pencil-square-o',
-
-        // Extends
-        extends: ['layout.pane']
-
-    });
-
-})(laserweb);
+    // Module icon
+    icon = 'pencil-square-o'
+}

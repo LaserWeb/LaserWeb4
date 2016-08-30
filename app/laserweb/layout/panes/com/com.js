@@ -1,40 +1,37 @@
-;(function(lw) {
+import Pane from '../../pane/pane'
 
-    /**
-    * LaserWeb com module.
-    *
-    * Description...
-    */
-    lw.add_module('layout.panes.com', {
+/**
+* LaserWeb com module.
+*
+* Description...
+*/
+export default class Com extends Pane {
+    constructor() {
+        super('layout.panes.com', '0.0.1')
+    }
 
-        // Autoload the module ?
-        autoload: true,
+    // Autoload the module ?
+    autoload = true
 
-        // Module version
-        version: '0.0.1',
+    // Module version
+    version = '0.0.1'
 
-        // Module title
-        title: 'Communication',
+    // Module title
+    title = 'Communication'
 
-        // Module icon
-        icon: 'plug',
+    // Module icon
+    icon = 'plug'
 
-        // Extends
-        extends: ['layout.pane'],
+    // Module initialization
+    // Called once when all modules are setup.
+    init() {
+        // Add the dock entry
+        this.add_dock();
 
-        // Module initialization
-        // Called once when all modules are setup.
-        init: function() {
-            // Add the dock entry
-            this.add_dock();
+        // Set dock active
+        this.set_dock_active(true);
 
-            // Set dock active
-            this.set_dock_active(true);
-
-            // Notify module init is done.
-            this.pub('module.init.done');
-        }
-
-    });
-
-})(laserweb);
+        // Notify module init is done.
+        this.pub('module.init.done');
+    }    
+}

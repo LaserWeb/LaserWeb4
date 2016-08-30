@@ -1,32 +1,44 @@
-;(function(lw) {
+import Module from '../core/module'
 
-    /**
-    * LaserWeb layout module.
-    *
-    * Description...
-    */
-    lw.add_module('layout', {
+/**
+* LaserWeb layout module.
+*
+* Description...
+*/
+export default class Layout extends Module {
+    constructor() {
+        super('Layout', '0.0.1')
 
         // Autoload the module ?
-        autoload: true,
+        this.autoload = true
+    }
 
-        // Module version
-        version: '0.0.1',
+    // Setup module
+    setup() {
+        // Register ui elements
+        this.$.dock      = $('#dock');
+        this.$.panes     = $('#panes');
+        this.$.workspace = $('#workspace');
 
-        // Extends
-        extends: ['module'],
+        this.sub('layout.dock.add', this, this.on_dock_add);
+        this.sub('layout.dock.set_active', this, this.on_dock_set_active);
 
-        // Setup module
-        setup: function() {
-            // Register ui elements
-            this.$.dock      = $('#dock');
-            this.$.panes     = $('#panes');
-            this.$.workspace = $('#workspace');
+        // Notify module setup is done.
+        this.pub('module.setup.done');
+    }
 
-            // Notify module setup is done.
-            this.pub('module.setup.done');
-        }
+    on_dock_add(pane) {
+        console.log('on_dock_add: ', pane.name)
+        this.$.dock.append(pane.$.dock);
+    }
 
-    });
+     on_dock_set_active(pane) {
+        console.log('on_dock_set_active: ', pane.name)
 
-})(laserweb);
+        // Remove active class on all children
+        this.$.dock.children('.active').removeClass('active');
+
+        // Add active class on current entry
+        pane.$.dock.addClass('active');
+    }
+}
