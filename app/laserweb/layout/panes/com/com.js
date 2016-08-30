@@ -25,8 +25,11 @@
         // Module initialization
         // Called once when all modules are setup.
         init: function() {
-            // Add the dock entry
+            // Add the dock
             this.add_dock();
+
+            // Add the pane
+            this.add_pane();
 
             // Set dock active
             this.set_dock_active(true);
