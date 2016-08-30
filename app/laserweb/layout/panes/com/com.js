@@ -22,6 +22,9 @@
         // Extends
         extends: ['layout.pane'],
 
+        // Has template (null, false, true or template path)
+        has_template: true,
+
         // Module initialization
         // Called once when all modules are setup.
         init: function() {
@@ -33,6 +36,12 @@
 
             // Set dock active
             this.set_dock_active(true);
+
+            // Get module pane template
+            var pane_template = lw.get_template('layout-com-pane');
+
+            // Add pane template to pane container
+            this.$.pane.append(pane_template());
 
             // Notify module init is done.
             this.pub('module.init.done');

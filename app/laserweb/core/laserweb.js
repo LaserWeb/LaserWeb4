@@ -39,6 +39,9 @@
         // Errors logs (list of Error object)
         errors_log: [],
 
+        // Has template (null, false, true or template path)
+        has_template: false,
+
         // Pub/Sub wrapper
         // http://amplifyjs.com/api/pubsub/
         pub: function() {
@@ -295,8 +298,26 @@
             // Set module flags
             module.flags.setup = false;
 
+            // If module has template
+            if (module.has_template) {
+                // Template path
+                var template_path = module.has_template;
+
+                // Get template path from module name
+                if (typeof template_path !== 'string') {
+                    template_path = module.name.replace(/\./g, '/') + '/template';
+                }
+
+                // Try to load the template and load the module on success
+                this.load_template(template_path, function() {
+                    module.setup();
+                });
+            }
+
             // Setup the module
-            module.setup();
+            else {
+                module.setup();
+            }
         },
 
         // Load a module (once)
@@ -324,6 +345,82 @@
         // Return a module
         get_module: function(name) {
             return this.modules[name] || undefined;
+        },
+
+        // Load a template file
+        load_template: function(path, done, fail) {
+            // Debug message
+            this.console('debug', 'load template:', path);
+
+            // Template URL
+            var url = 'laserweb/' + path + '.tpl';
+
+            // Load the template
+            var load = $.ajax({ url: url, dataType: 'text' });
+
+            // Self alias
+            var self = this;
+
+            // On template loaded
+            load.done(function(text) {
+                // Extract all template parts
+                var $templates = $(text).filter('template');
+
+                // Debug message
+                self.console('debug', 'loaded template:', path, $templates);
+
+                // Variables
+                var id, $template;
+
+                // For each template part...
+                $templates.each(function(i, template) {
+                    // Template as jquery object
+                    $template = $(template);
+
+                    // Get template id
+                    id = $template.attr('id');
+
+                    // No id found
+                    if (! id) {
+                        // Error message
+                        self.warning('Undefined template id in ' + url);
+
+                        // Skip this part...
+                        return true;
+                    }
+
+                    // Create template element
+                    $template = $('<script>').text($template.html());
+                    $template.attr('type', 'text/lw-template');
+                    $template.attr('id', id + '-template');
+
+                    // Append to body
+                    $('body').append($template);
+                });
+
+                // User callback (load = xhr)
+                done && done.call(load);
+            });
+
+            // On template load fail
+            load.fail(fail || function() {
+                self.error('Template [' + this.url + '] not found.');
+            });
+        },
+
+        // Get an loaded template from the DOM
+        // And return an Handlebars compiled template
+        get_template: function(name) {
+            // Try to get the template element
+            var $template = $('#' + name + '-template');
+
+            // Not found...
+            if (! $template.length) {
+                return undefined;
+            }
+
+            // Compile and return the template
+            return Handlebars.compile($template.text());
         }
 
     });

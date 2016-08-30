@@ -16,7 +16,8 @@
         // Extends
         extends: ['module'],
 
-        // Setup module
+        // Module setup
+        // Called once after the module was added.
         setup: function() {
             // Create main elements
             $.extend(this.$, {
