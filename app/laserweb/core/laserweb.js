@@ -124,8 +124,8 @@
 
             // Subscribe to modules setup topics
             this.sub('module.setup.done', function(module) {
-                // Info message
-                self.console('info', 'module.setup.done:', module.name, module);
+                // Debug message
+                self.console('debug', 'module.setup.done:', module.name, module);
 
                 // Mark module setup
                 module.flags.setup = true;
@@ -133,8 +133,8 @@
 
             // Subscribe to modules init topics
             this.sub('module.init.done', function(module) {
-                // Info message
-                self.console('info', 'module.init.done:', module.name, module);
+                // Debug message
+                self.console('debug', 'module.init.done:', module.name, module);
 
                 // Mark module ready
                 module.flags.ready = true;
@@ -227,8 +227,8 @@
             // Mark laserweb ready
             this.flags.ready = true;
 
-            // Info message
-            this.console('info', 'ready:', this);
+            // Debug message
+            this.console('debug', 'ready:', this);
 
             // Notify all modules laserweb is ready.
             this.pub('laserweb.ready');
