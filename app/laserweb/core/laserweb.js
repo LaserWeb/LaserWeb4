@@ -108,7 +108,8 @@
 
             // Subscribe to modules setup topics
             this.sub('module.setup.done', function(module) {
-                self.console('info', 'setup.done:', module.name, module);
+                // Info message
+                self.console('info', 'module.setup.done:', module.name, module);
 
                 // Mark module setup
                 module.flags.setup = true;
@@ -116,7 +117,8 @@
 
             // Subscribe to modules init topics
             this.sub('module.init.done', function(module) {
-                self.console('info', 'init.done:', module.name, module);
+                // Info message
+                self.console('info', 'module.init.done:', module.name, module);
 
                 // Mark module ready
                 module.flags.ready = true;
@@ -126,12 +128,12 @@
             this.flags.setup = true;
         },
 
-        // Initialisation
-        init: function() {
+        // Check if all module has the flag in one state
+        all_module_has_flag: function(flag, state) {
             // Current module
             var module = null;
 
-            // Wait until all modules are setup
+            // For each module
             for (var name in this.modules) {
                 // Current module
                 module = this.modules[name];
@@ -141,16 +143,30 @@
                     continue;
                 }
 
-                // If at least one module was not setup
-                if (! this.modules[name].flags.setup) {
-                    // Retry later and return the timer id
-                    return setTimeout(function() {
-                        root.laserweb.init();
-                    }, 100);
+                // If at least one module is not in the desired state
+                if (module.flags[flag] !== state) {
+                    return false;
                 }
             }
 
-            // Modules initialization
+            // All modules is in the desired state
+            return true;
+        },
+
+        // Initialisation
+        init: function() {
+            // Current module
+            var module = null;
+
+            // Wait until all modules are setup
+            if (! this.all_module_has_flag('setup', true)) {
+                // Retry later and return the timer id
+                return setTimeout(function() {
+                    root.laserweb.init();
+                }, 100);
+            }
+
+            // Load all registrered modules
             for (var name in this.modules) {
                 // Current module
                 module = this.modules[name];
@@ -164,11 +180,28 @@
                 this.load_module(name);
             }
 
+            // Wait until all modules are ready
+            this.ready();
+        },
+
+        // Wait until all modules are ready
+        ready: function() {
+            // If all module are not loaded...
+            if (! this.all_module_has_flag('ready', true)) {
+                // Retry later and return the timer id
+                return setTimeout(function() {
+                    root.laserweb.ready();
+                }, 100);
+            }
+
             // Mark laserweb ready
             this.flags.ready = true;
 
-            // debug...
+            // Info message
             this.console('info', 'ready:', this);
+
+            // Notify all modules laserweb is ready.
+            this.pub('laserweb.ready');
         },
 
         // Add a module (once)
