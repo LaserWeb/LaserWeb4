@@ -7,6 +7,9 @@
     */
     lw.add_module('layout.panes.com', {
 
+        // Autoload the module ?
+        autoload: true,
+
         // Module version
         version: '0.0.1',
 
