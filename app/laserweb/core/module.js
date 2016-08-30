@@ -5,7 +5,7 @@
     *
     * All LaserWeb modules must extend this module.
     */
-    lw.modules.module = {
+    lw.modules.module = $.extend(true, {}, lw.modules.core, {
 
         // Module version
         version: '0.0.1',
@@ -17,15 +17,19 @@
         $: {},
 
         // Module setup
+        // Called once after the module was added.
         setup: function() {
-            // Called once after the module was added.
+            // Notify module setup is done.
+            this.pub('module.setup.done');
         },
 
         // Module initialization
+        // Called once when all modules are setup.
         init: function() {
-            // Called once when all modules are setup.
+            // Notify module init is done.
+            this.pub('module.init.done');
         }
 
-    };
+    });
 
 })(laserweb);

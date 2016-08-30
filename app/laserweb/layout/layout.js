@@ -12,9 +12,13 @@
 
         // Setup module
         setup: function() {
+            // Register ui elements
             this.$.dock      = $('#dock');
             this.$.panes     = $('#panes');
             this.$.workspace = $('#workspace');
+
+            // Notify module setup is done.
+            this.pub('module.setup.done');
         }
 
     });
