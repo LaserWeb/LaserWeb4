@@ -1,23 +1,23 @@
 ;(function(lw) {
 
     /**
-    * LaserWeb cam module.
+    * LaserWeb gcode module.
     *
     * Description...
     */
-    lw.add_module('cam', {
-
-        // Autoload the module ?
-        autoload: true,
+    lw.add_module('layout.panes.gcode', {
 
         // Module version
         version: '0.0.1',
 
         // Module title
-        title: 'CAM',
+        title: 'GCode',
 
         // Module icon
-        icon: 'pencil-square-o'
+        icon: 'file-code-o',
+
+        // Extends
+        extends: ['layout.pane']
 
     });
 

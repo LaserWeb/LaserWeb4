@@ -5,16 +5,16 @@
     *
     * Description...
     */
-    lw.add_module('quote', {
-
-        // Autoload the module ?
-        autoload: true,
+    lw.add_module('layout.panes.quote', {
 
         // Module version
         version: '0.0.1',
 
         // Module icon
-        icon: 'money'
+        icon: 'money',
+
+        // Extends
+        extends: ['layout.pane']
 
     });
 

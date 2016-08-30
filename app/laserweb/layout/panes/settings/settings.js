@@ -5,16 +5,16 @@
     *
     * Description...
     */
-    lw.add_module('settings', {
-
-        // Autoload the module ?
-        autoload: true,
+    lw.add_module('layout.panes.settings', {
 
         // Module version
         version: '0.0.1',
 
         // Module icon
-        icon: 'cogs'
+        icon: 'cogs',
+
+        // Extends
+        extends: ['layout.pane']
 
     });
 

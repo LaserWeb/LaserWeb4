@@ -5,10 +5,7 @@
     *
     * Description...
     */
-    lw.add_module('com', {
-
-        // Autoload the module ?
-        autoload: true,
+    lw.add_module('layout.panes.com', {
 
         // Module version
         version: '0.0.1',
@@ -17,7 +14,10 @@
         title: 'Communication',
 
         // Module icon
-        icon: 'plug'
+        icon: 'plug',
+
+        // Extends
+        extends: ['layout.pane']
 
     });
 

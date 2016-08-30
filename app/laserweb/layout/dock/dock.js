@@ -1,11 +1,11 @@
 ;(function(lw) {
 
     /**
-    * LaserWeb gcode module.
+    * LaserWeb dock module.
     *
     * Description...
     */
-    lw.add_module('gcode', {
+    lw.add_module('layout.dock', {
 
         // Autoload the module ?
         autoload: true,
@@ -13,11 +13,8 @@
         // Module version
         version: '0.0.1',
 
-        // Module title
-        title: 'GCode',
-
-        // Module icon
-        icon: 'file-code-o'
+        // Extends
+        extends: ['module']
 
     });
 

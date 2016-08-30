@@ -16,6 +16,9 @@
         // jquery elements
         $: {},
 
+        // Extends
+        extends: ['core'],
+
         // Module setup
         // Called once after the module was added.
         setup: function() {

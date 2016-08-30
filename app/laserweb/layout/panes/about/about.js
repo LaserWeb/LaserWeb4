@@ -1,20 +1,20 @@
 ;(function(lw) {
 
     /**
-    * LaserWeb jog module.
+    * LaserWeb about module.
     *
     * Description...
     */
-    lw.add_module('jog', {
-
-        // Autoload the module ?
-        autoload: true,
+    lw.add_module('layout.panes.about', {
 
         // Module version
         version: '0.0.1',
 
         // Module icon
-        icon: 'arrows-alt'
+        icon: 'question',
+
+        // Extends
+        extends: ['layout.pane']
 
     });
 

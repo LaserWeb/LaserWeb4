@@ -33,6 +33,12 @@
             error: false
         },
 
+        // Extends
+        extends: ['object'],
+
+        // Errors logs (list of Error object)
+        errors_log: [],
+
         // Pub/Sub wrapper
         // http://amplifyjs.com/api/pubsub/
         pub: function() {
@@ -79,7 +85,14 @@
 
         // Throw an error message prefixed with the module name
         error: function(message) {
-            throw 'lw.' +  this.name + ': ' + message;
+            // Create the error instance
+            var error = new Error('lw.' +  this.name + ': ' + message);
+
+            // Log the error
+            this.errors_log.push(error);
+
+            // Finaly throw the error
+            throw error;
         }
     };
 
@@ -100,6 +113,9 @@
         modules: {
             core: core
         },
+
+        // Extends
+        extends: ['core'],
 
         // Setup
         setup: function() {
@@ -194,6 +210,20 @@
                 }, 100);
             }
 
+            // Already ready
+            if (this.flags.ready) {
+                return null; // exit...
+            }
+
+            // If error...
+            if (this.errors_log.length) {
+                // Notify all modules
+                this.pub('laserweb.error', this.errors_log);
+
+                // Exit...
+                return null;
+            }
+
             // Mark laserweb ready
             this.flags.ready = true;
 
@@ -216,8 +246,45 @@
                 this.error('Module [' + name + '] already defined.');
             }
 
-            // Extends from core module (deep)
-            module = $.extend(true, {}, this.modules.module, module);
+            // Extends list
+            var extends_list  = [];
+            var extend_name   = null;
+            var extend_object = null;
+
+            for (var i = 0, il = module.extends.length; i < il; i++) {
+                // Module name or object
+                extend_name   = module.extends[i];
+                extend_object = extend_name;
+
+                // If module name
+                if (typeof extend_name === 'string') {
+                    // Get the module object
+                    extend_object = this.get_module(extend_name);
+
+                    // Module not defined
+                    if (! extend_object) {
+                        this.error('Module [' + extend_name + '] not found.');
+                    }
+                }
+
+                // Add modules to extends list
+                extends_list.push(extend_object);
+            }
+
+            // If the extends list is empty
+            if (! extends_list.length) {
+                // Add the core module
+                extends_list.push(this.modules.module);
+            }
+
+            // Push current module at the and of the list
+            extends_list.push(module);
+
+            // Push the two first arguments for '$.extend.apply'
+            extends_list.unshift(true, {});
+
+            // Extend the module
+            module = $.extend.apply($, extends_list);
 
             // Add extended module to collection
             this.modules[name] = module;
