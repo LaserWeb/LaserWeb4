@@ -1,0 +1,60 @@
+{
+  "name": "laserweb",
+  "version": "4.0.0",
+  "description": "a fully featured web ui for laser cutter/engravers, reprap and other 3d printers",
+  "contributors": [
+    "Peter van der Walt <peter.plaaswerf@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openhardwarecoza/LaserWeb4.git"
+  },
+  "licenses": [
+    {
+      "type": "AGPL-3.0",
+      "url": "http://www.gnu.org/licenses/agpl-3.0.txt"
+    }
+  ],
+  "dependencies": {
+    "chalk": "*",
+    "dotenv": "*",
+    "node-static": "*",
+    "serialport": "*",
+    "socket.io": "*",
+    "request": "*"
+  },
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/openhardwarecoza/LaserWeb4/issues"
+  },
+  "homepage": "https://github.com/openhardwarecoza/LaserWeb4#readme",
+  "main": "server-smoothie.js",
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-plugin-transform-class-properties": "^6.11.5",
+    "babel-preset-es2015": "^6.14.0",
+    "rollup": "^0.34.10",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-json": "^2.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "laser",
+    "cnc",
+    "laserweb",
+    "cncweb",
+    "grbl",
+    "smoothieware",
+    "threejs",
+    "dxf",
+    "svg",
+    "stl",
+    "raster",
+    "lasercutter",
+    "engrave"
+  ],
+  "author": "Peter van der Walt"
+}
