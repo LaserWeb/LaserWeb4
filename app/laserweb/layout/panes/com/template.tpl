@@ -13,14 +13,14 @@
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-plug"></i></span>
-                <select class="form-control" data-bind="options: available_interfaces"></select>
+                <select class="form-control" data-bind="options: available_interfaces, value: selected_interface, event: { change: select_interface }"></select>
             </div>
         </div>
     </form><!-- #com-interface -->
 
     <hr />
 
-    <form id="com-serial">
+    <form id="com-serial" data-bind="visible: selected_interface() == 'Serial'">
         <h4>Serial</h4>
         <div class="form-group">
             <div class="input-group input-group-sm">
@@ -56,7 +56,7 @@
         </div>
     </form><!-- #com-serial -->
 
-    <form id="com-network" class="hidden">
+    <form id="com-network"  data-bind="visible: selected_interface() == 'Network'">
         <h4>Network</h4>
         <div class="form-group">
             <div class="input-group input-group-sm">
@@ -73,6 +73,24 @@
             </div>
         </div>
     </form><!-- #com-network -->
+
+    <form id="com-new-interface"  data-bind="visible: selected_interface() == 'My new interface'">
+        <h4>My new interface</h4>
+        <div class="form-group">
+            <div class="input-group input-group-sm">
+                <span class="input-group-addon"><i class="fa fa-wifi"></i></span>
+                <input type="text" class="form-control" maxlength="16" placeholder="192.168.1.*" />
+                <span class="input-group-btn">
+                    <button class="btn btn-sm btn-success" type="button">
+                        Connect
+                    </button>
+                    <button class="btn btn-sm btn-info" type="button">
+                        Scan
+                    </button>
+                </span>
+            </div>
+        </div>
+    </form><!-- #com-new-interface -->
 
     <hr />
 
