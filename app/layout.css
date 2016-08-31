@@ -4,6 +4,7 @@ html,
 body,
 #laserweb {
     height: 100%;
+    min-width: 640px;
 }
 
 #dock,
