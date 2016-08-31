@@ -363,11 +363,24 @@
 
             // On template loaded
             load.done(function(text) {
-                // Extract all template parts
-                var $templates = $(text).filter('template');
-
                 // Debug message
                 self.console('debug', 'loaded template:', path, $templates);
+
+                // Extract style tags
+                var $styles = $(text).filter('style');
+
+                if ($styles.length) {
+                    // Force rel and type attributes
+                    $styles.attr('rel', 'stylesheet');
+                    $styles.attr('type', 'text/css');
+
+                    // Append to head
+                    $('head').append('<!-- ' + url + ' -->');
+                    $('head').append($styles);
+                }
+
+                // Extract template tags
+                var $templates = $(text).filter('template');
 
                 // Variables
                 var id, $template;
