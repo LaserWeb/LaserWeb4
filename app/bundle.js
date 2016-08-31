@@ -811,7 +811,7 @@ var Jog = function (_Pane) {
 
         _this.autoload = true;
         _this.version = '0.0.1';
-        _this.title = 'GCode';
+        _this.title = 'Jog';
         _this.icon = 'arrows-alt';
         return _this;
     }
@@ -908,8 +908,8 @@ laserWeb.setup();
 
 // Add modules to LaserWeb
 laserWeb.add_module(new Layout());
-laserWeb.add_module(new Cam());
 laserWeb.add_module(new Com());
+laserWeb.add_module(new Cam());
 laserWeb.add_module(new GCode());
 laserWeb.add_module(new Jog());
 laserWeb.add_module(new Quote());

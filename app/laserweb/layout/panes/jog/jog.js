@@ -17,7 +17,7 @@ export default class Jog extends Pane {
     version = '0.0.1'
 
     // Module title
-    title = 'GCode'
+    title = 'Jog'
 
     // Module icon
     icon = 'arrows-alt'
