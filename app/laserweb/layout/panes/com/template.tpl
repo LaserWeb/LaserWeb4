@@ -4,6 +4,10 @@
     resize: vertical;
     min-height: 100px;
 }
+
+.input-group-btn .btn {
+    border: 1px #ccc solid;
+}
 </style>
 
 <template id="layout-com-pane">
@@ -25,11 +29,9 @@
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-usb"></i></span>
-                <select class="form-control">
-                    <option value="select-port">Select port</option>
-                </select><!-- #com-serial-port -->
+                <select class="form-control" data-bind="optionsCaption: 'Select a port...', options: available_serial_ports, value: selected_serial_port, event: { change: select_serial_port }"></select>
                 <span class="input-group-btn">
-                    <button class="btn btn-sm btn-secondary" type="button">
+                    <button class="btn btn-sm btn-secondary" type="button" data-bind="click: refresh_serial_ports_list">
                         <i class="fa fa-refresh"></i>
                     </button>
                 </span>
@@ -38,15 +40,7 @@
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-tty"></i></span>
-                <select class="form-control input-sm">
-                    <option value="250000">250000</option>
-                    <option value="230400">230400</option>
-                    <option value="115200" selected>115200</option>
-                    <option value="57600">57600</option>
-                    <option value="38400">38400</option>
-                    <option value="19200">19200</option>
-                    <option value="9600">9600</option>
-                </select><!-- #com-serial-baud -->
+                <select class="form-control" data-bind="options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
             </div>
         </div>
         <div class="form-group">
@@ -96,7 +90,7 @@
 
     <div id="com-console">
         <h4>Console</h4>
-        <div class="logs panel panel-default"></div><!-- #com-console-logs -->
+        <div class="logs panel panel-default"></div>
         <form>
             <div class="form-group">
                 <div class="input-group input-group-sm">
