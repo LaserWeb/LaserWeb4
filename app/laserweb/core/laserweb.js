@@ -1,11 +1,11 @@
-import Core from './core'
+import { Core } from './core'
 
 /**
 * LaserWeb global namespace.
 *
 * All stuff related to LaserWeb must be set in this scope.
 */
-export default class LaserWeb extends Core {
+export class LaserWeb extends Core {
 
     constructor() {
         super('laserweb', '0.4.0')

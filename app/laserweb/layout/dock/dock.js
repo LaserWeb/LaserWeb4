@@ -1,12 +1,12 @@
-import LaserWeb from "../../core/laserweb"
-import Module from "../../core/module"
+import { LaserWeb } from "../../core/laserweb"
+import { Module } from "../../core/module"
 
 /**
 * LaserWeb dock module.
 *
 * Description...
 */
-export default class Dock extends Module {
+export class Dock extends Module {
     constructor(name, version) {
         super(name, version)
 

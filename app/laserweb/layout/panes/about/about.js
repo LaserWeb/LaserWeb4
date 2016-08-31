@@ -1,11 +1,11 @@
-import Pane from '../../pane/pane'
+import { Pane } from '../../pane/pane'
 
 /**
 * LaserWeb about module.
 *
 * Description...
 */
-export default class About extends Pane {
+export class About extends Pane {
     constructor() {
         super('layout.panes.about', '0.0.1')
     }

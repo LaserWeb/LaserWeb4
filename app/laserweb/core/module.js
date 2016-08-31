@@ -1,11 +1,11 @@
-import Core from './core'
+import { Core } from './core'
 
 /**
 * LaserWeb base module.
 *
 * All LaserWeb modules must extend this module.
 */
-export default class Module extends Core {
+export class Module extends Core {
     constructor(name, version) {
         super(name, version)
 

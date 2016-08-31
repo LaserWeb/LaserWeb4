@@ -182,7 +182,6 @@ var Core = function () {
 *
 * All stuff related to LaserWeb must be set in this scope.
 */
-
 var LaserWeb = function (_Core) {
     inherits(LaserWeb, _Core);
 
@@ -396,7 +395,6 @@ var LaserWeb = function (_Core) {
 *
 * All LaserWeb modules must extend this module.
 */
-
 var Module = function (_Core) {
     inherits(Module, _Core);
 
@@ -445,7 +443,6 @@ var Module = function (_Core) {
 *
 * Description...
 */
-
 var Layout = function (_Module) {
     inherits(Layout, _Module);
 
@@ -502,7 +499,6 @@ var Layout = function (_Module) {
 *
 * Description...
 */
-
 var Dock = function (_Module) {
     inherits(Dock, _Module);
 
@@ -622,7 +618,6 @@ var Dock = function (_Module) {
 *
 * Description...
 */
-
 var Pane = function (_Dock) {
     inherits(Pane, _Dock);
 
@@ -639,7 +634,6 @@ var Pane = function (_Dock) {
 *
 * Description...
 */
-
 var About = function (_Pane) {
     inherits(About, _Pane);
 
@@ -675,7 +669,6 @@ var About = function (_Pane) {
 *
 * Description...
 */
-
 var Cam = function (_Pane) {
     inherits(Cam, _Pane);
 
@@ -711,7 +704,6 @@ var Cam = function (_Pane) {
 *
 * Description...
 */
-
 var Com = function (_Pane) {
     inherits(Com, _Pane);
 
@@ -764,7 +756,6 @@ var Com = function (_Pane) {
 *
 * Description...
 */
-
 var GCode = function (_Pane) {
     inherits(GCode, _Pane);
 
@@ -800,7 +791,6 @@ var GCode = function (_Pane) {
 *
 * Description...
 */
-
 var Jog = function (_Pane) {
     inherits(Jog, _Pane);
 
@@ -836,7 +826,6 @@ var Jog = function (_Pane) {
 *
 * Description...
 */
-
 var Quote = function (_Pane) {
     inherits(Quote, _Pane);
 
@@ -872,7 +861,6 @@ var Quote = function (_Pane) {
 *
 * Description...
 */
-
 var Settings = function (_Pane) {
     inherits(Settings, _Pane);
 

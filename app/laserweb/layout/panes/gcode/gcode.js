@@ -1,11 +1,11 @@
-import Pane from '../../pane/pane'
+import { Pane } from '../../pane/pane'
 
 /**
 * LaserWeb gcode module.
 *
 * Description...
 */
-export default class GCode extends Pane {
+export class GCode extends Pane {
     constructor() {
         super('layout.panes.gcode', '0.0.1')
     }

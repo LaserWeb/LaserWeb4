@@ -3,7 +3,7 @@
 *
 * All LaserWeb module must extend this object.
 */
-export default class Core {
+export class Core {
     constructor(name, version) {
         // Module name
         this.name = name

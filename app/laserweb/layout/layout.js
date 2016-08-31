@@ -1,11 +1,11 @@
-import Module from '../core/module'
+import { Module } from '../core/module'
 
 /**
 * LaserWeb layout module.
 *
 * Description...
 */
-export default class Layout extends Module {
+export class Layout extends Module {
     constructor() {
         super('Layout', '0.0.1')
 

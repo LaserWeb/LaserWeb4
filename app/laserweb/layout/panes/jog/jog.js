@@ -1,11 +1,11 @@
-import Pane from '../../pane/pane'
+import { Pane } from '../../pane/pane'
 
 /**
 * LaserWeb jog module.
 *
 * Description...
 */
-export default class Jog extends Pane {
+export class Jog extends Pane {
     constructor() {
         super('layout.panes.jog', '0.0.1')
     }

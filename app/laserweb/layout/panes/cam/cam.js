@@ -1,11 +1,11 @@
-import Pane from '../../pane/pane'
+import { Pane } from '../../pane/pane'
 
 /**
 * LaserWeb cam module.
 *
 * Description...
 */
-export default class Cam extends Pane {
+export class Cam extends Pane {
     constructor() {
         super('layout.panes.cam', '0.0.1')
     }

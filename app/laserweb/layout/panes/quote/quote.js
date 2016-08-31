@@ -1,11 +1,11 @@
-import Pane from '../../pane/pane'
+import { Pane } from '../../pane/pane'
 
 /**
 * LaserWeb quote module.
 *
 * Description...
 */
-export default class Quote extends Pane {
+export class Quote extends Pane {
     constructor() {
         super('layout.panes.quote', '0.0.1')
     }
