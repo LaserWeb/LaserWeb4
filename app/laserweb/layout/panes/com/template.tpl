@@ -13,10 +13,7 @@
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-plug"></i></span>
-                <select class="form-control">
-                    <option value="serial" selected>Serial</option>
-                    <option value="network">Network</option>
-                </select>
+                <select class="form-control" data-bind="options: available_interfaces"></select>
             </div>
         </div>
     </form><!-- #com-interface -->
