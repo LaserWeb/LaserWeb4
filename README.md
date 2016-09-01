@@ -4,6 +4,8 @@
 If you'd like Push access to the repo, please just ask @openhardwarecoza (:  
 
 
+Please remember that this is a totally non profit open source project, all contributors and testers are volunteers who share a love of all things making. lasers included. That being said, if history has anything to say about it, this project should advance to a usable state very quickly. Check the LaserWeb/CNCWeb Google+ community (https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.
+
 Other than that, this is early, so check the Issues tab for "details"
 
 
