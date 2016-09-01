@@ -1,2 +1,1 @@
-node server.js
-pause
+cmd /k node server.js
