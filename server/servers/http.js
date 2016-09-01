@@ -35,7 +35,20 @@ var mime_types = {
 * Exports
 */
 exports.server = {
-    run: function(root_path, port, online_callback) {
+    run: function(settings) {
+        // Defaults settings
+        settings           = settings || {};
+        settings.port      = settings.port || 8080;
+        settings.root      = settings.root || __dirname;
+
+        // Defaults headers
+        var headers = { 'Content-Type': 'text/html' };
+
+        // Customs headers
+        if (settings.footprint) {
+            headers['Server'] = settings.footprint;
+        }
+
         // Create http server
         var http_server = http.createServer(function(request, response) {
             // Get the request uri
@@ -46,12 +59,8 @@ exports.server = {
                 uri = '/index.html';
             }
 
-            // Get content type from file extension
-            var ext          = String(path.extname(uri)).toLowerCase();
-            var content_type = mime_types[ext] || 'application/octect-stream';
-
             // Prepend the root path
-            uri = root_path + uri;
+            uri = settings.root + uri;
 
             // Try to read the file
             fs.readFile(uri, function(error, content) {
@@ -59,25 +68,32 @@ exports.server = {
                 if (error) {
                     // File not found
                     if (error.code == 'ENOENT') {
-                        response.writeHead(404, { 'Content-Type': 'text/html' });
+                        response.writeHead(404, headers);
                         response.end('File Not Found', encoding);
                         console.error('http 404:', error);
                         return; // Exit...
                     }
 
-                    response.writeHead(500, { 'Content-Type': 'text/html' });
+                    // Internal server error (read dir, file permision, etc...)
+                    response.writeHead(500, headers);
                     response.end('Internal Server Error', encoding);
                     console.error('http 500:', error);
                     return; // Exit...
                 }
 
+                // Get the file extension
+                var ext = String(path.extname(uri)).toLowerCase();
+
+                // Set content type header from file extension
+                headers['Content-Type'] = mime_types[ext] || 'application/octect-stream';
+
                 // File content ready, sent to client...
-                response.writeHead(200, { 'Content-Type': content_type });
+                response.writeHead(200, headers);
                 response.end(content, encoding);
             });
         });
 
         // Start listening
-        http_server.listen(port, online_callback || null);
+        http_server.listen(settings.port, settings.online || null);
     }
 };
