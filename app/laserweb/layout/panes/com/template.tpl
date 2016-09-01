@@ -13,7 +13,7 @@
 <template id="layout-com-pane">
 
     <form id="com-interface">
-        <h4>Interface</h4>
+        <h4>Interfaces</h4>
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-plug"></i></span>
@@ -25,33 +25,46 @@
     <hr />
 
     <form id="com-serial" data-bind="visible: selected_interface() == 'Serial'">
-        <h4>Serial</h4>
-        <div class="form-group">
-            <div class="input-group input-group-sm">
-                <span class="input-group-addon"><i class="fa fa-usb"></i></span>
-                <select class="form-control" data-bind="optionsCaption: 'Select a port...', options: available_serial_ports, value: selected_serial_port, event: { change: select_serial_port }"></select>
-                <span class="input-group-btn">
-                    <button class="btn btn-sm btn-secondary" type="button" data-bind="click: refresh_serial_ports_list">
-                        <i class="fa fa-refresh"></i>
-                    </button>
-                </span>
+        <div class="panel panel-danger" data-bind="visible: !serial_interface_available()">
+            <div class="panel-heading">
+                <h3 class="panel-title">Unavailable serial interface !</h3>
+            </div>
+            <div class="panel-body">
+                <p>
+                    <strong>You need serial communication ?</strong> Please install the LaserWeb server from the
+                    <a href="https://github.com/openhardwarecoza/LaserWeb4">LaserWeb4</a> git repository.
+                </p>
             </div>
         </div>
-        <div class="form-group">
-            <div class="input-group input-group-sm">
-                <span class="input-group-addon"><i class="fa fa-tty"></i></span>
-                <select class="form-control" data-bind="options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
+        <div data-bind="visible: serial_interface_available()">
+            <h4>Serial interface</h4>
+            <div class="form-group">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon"><i class="fa fa-usb"></i></span>
+                    <select class="form-control" data-bind="optionsCaption: 'Select a port...', options: available_serial_ports, value: selected_serial_port, event: { change: select_serial_port }"></select>
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-secondary" type="button" data-bind="click: refresh_serial_ports_list">
+                            <i class="fa fa-refresh"></i>
+                        </button>
+                    </span>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <button class="btn btn-block btn-success disabled" type="button">
-                Connect
-            </button>
+            <div class="form-group">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon"><i class="fa fa-tty"></i></span>
+                    <select class="form-control" data-bind="options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-success" type="button">
+                            Connect
+                        </button>
+                    </span>
+                </div>
+            </div>
         </div>
     </form><!-- #com-serial -->
 
-    <form id="com-network"  data-bind="visible: selected_interface() == 'Network'">
-        <h4>Network</h4>
+    <form id="com-network"  data-bind="visible: selected_interface() == 'HTTP'">
+        <h4>HTTP interface</h4>
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-wifi"></i></span>

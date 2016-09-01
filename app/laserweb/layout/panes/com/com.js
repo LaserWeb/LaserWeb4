@@ -52,22 +52,27 @@
 
         // Bind model
         bind_model: function() {
-            // Get some initial data for the pane model...
-            // !!! This kinds of data have to be obtained via an external resource (libs/class/api/etc...).
-            // This is just for the test example.
-            var available_interfaces        = ['Serial', 'Network'];
-            var available_serial_baud_rates = [250000,230400,115200,57600,38400,19200,9600];
-            var available_serial_ports      = [];
-
             // Init pane model data
-            this.selected_interface   = ko.observable(available_interfaces[0]);
-            this.available_interfaces = ko.observableArray(available_interfaces);
+            this.selected_interface   = ko.observable(lw.libs.com.interfaces[0]);
+            this.available_interfaces = ko.observableArray(lw.libs.com.interfaces);
 
-            this.selected_serial_baud_rate   = ko.observable(115200);
-            this.available_serial_baud_rates = ko.observableArray(available_serial_baud_rates);
+            this.selected_serial_baud_rate   = ko.observable(lw.libs.com.serial.baud_rate);
+            this.available_serial_baud_rates = ko.observableArray(lw.libs.com.serial.baud_rates);
 
-            this.selected_serial_port   = ko.observable(available_serial_ports[0]);
-            this.available_serial_ports = ko.observableArray(available_serial_ports);
+            this.serial_interface_available = ko.observable(false);
+            this.selected_serial_port       = ko.observable();
+            this.available_serial_ports     = ko.observableArray();
+
+            // Get server footprint
+            var self = this;
+
+            lw.libs.com.http.get_server_footprint(function(footprint, headers) {
+                // LaserWeb server found
+                if (footprint.indexOf('LaserWebServer') === 0) {
+                    // Set serial interface available
+                    self.serial_interface_available(true);
+                }
+            });
 
             // Bind pane model to the panel (DOM)
             ko.applyBindings(this, this.$.pane[0]);

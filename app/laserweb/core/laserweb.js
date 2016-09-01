@@ -117,6 +117,9 @@
             core: core
         },
 
+        // Libraries collection
+        libs: {},
+
         // Extends
         extends: ['core'],
 
