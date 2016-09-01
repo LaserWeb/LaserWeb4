@@ -70,11 +70,11 @@
                 <span class="input-group-addon"><i class="fa fa-wifi"></i></span>
                 <input type="text" class="form-control" maxlength="16" placeholder="192.168.1.*" />
                 <span class="input-group-btn">
-                    <button class="btn btn-sm btn-success" type="button">
-                        Connect
-                    </button>
                     <button class="btn btn-sm btn-info" type="button">
                         Scan
+                    </button>
+                    <button class="btn btn-sm btn-success" type="button">
+                        Connect
                     </button>
                 </span>
             </div>
