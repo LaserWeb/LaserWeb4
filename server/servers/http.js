@@ -1,26 +1,28 @@
 /**
 * Imports
 */
-var http = require('http');
-var fs   = require('fs');
-var path = require('path');
-var url  = require("url");
+var http   = require('http');
+var fs     = require('fs');
+var path   = require('path');
+var url    = require('url');
+var os     = require('os');
+var config = require('../config');
 
 /**
-* Encoding
+* HTTP Handler
 */
-encoding = 'utf-8';
+var hh = exports;
 
-/**
-* Mime types
-*/
-var mime_types = {
+hh.encoding = 'utf-8';
+
+hh.mime_types = {
     '.html': 'text/html',
     '.js'  : 'text/javascript',
     '.css' : 'text/css',
     '.json': 'application/json',
     '.png' : 'image/png',
     '.jpg' : 'image/jpg',
+    '.jpeg': 'image/jpg',
     '.gif' : 'image/gif',
     '.wav' : 'audio/wav',
     '.mp4' : 'video/mp4',
@@ -31,69 +33,62 @@ var mime_types = {
     '.svg' : 'application/image/svg+xml'
 };
 
-/**
-* Exports
-*/
-exports.server = {
-    run: function(settings) {
-        // Defaults settings
-        settings           = settings || {};
-        settings.port      = settings.port || 8080;
-        settings.root      = settings.root || __dirname;
+hh.footprint = config.name + '/' + config.version + ' ' + os.platform() + '/' + os.release();
 
-        // Defaults headers
-        var headers = { 'Content-Type': 'text/html' };
+hh.headers = {};
 
-        // Customs headers
-        if (settings.footprint) {
-            headers['Server'] = settings.footprint;
-        }
+hh.uri = null;
 
-        // Create http server
-        var http_server = http.createServer(function(request, response) {
-            // Get the request uri
-            var uri = url.parse(request.url).pathname;
+hh.get_content_type = function(file) {
+    // Get the file extension
+    var ext = String(path.extname(file)).toLowerCase();
 
-            // Default uri
-            if (uri === '/') {
-                uri = '/index.html';
+    // Return the content type header from file extension
+    return hh.mime_types[ext] || 'application/octect-stream';
+};
+
+hh.handler = function(request, response) {
+    // Get the requested uri
+    hh.uri = url.parse(request.url).pathname;
+
+    // Default uri
+    if (hh.uri === '/') {
+        hh.uri += config.main_file;
+    }
+
+    // Reset headers
+    hh.headers = {
+        'Content-Type': 'text/html',
+        'Server'      : hh.footprint
+    };
+
+    // Make the file path
+    var file_path = config.app_path + hh.uri;
+
+    // Try to read the file
+    fs.readFile(file_path, function(error, content) {
+        // On error
+        if (error) {
+            // File not found
+            if (error.code == 'ENOENT') {
+                response.writeHead(404, hh.headers);
+                response.end('File Not Found', hh.encoding);
+                console.error('Error 404:', error);
+                return; // Exit...
             }
 
-            // Prepend the root path
-            uri = settings.root + uri;
+            // Internal server error (read dir, file permision, etc...)
+            this.response.writeHead(500, hh.headers);
+            this.response.end('Internal Server Error', hh.encoding);
+            console.error('Error 500:', error);
+            return; // Exit...
+        }
 
-            // Try to read the file
-            fs.readFile(uri, function(error, content) {
-                // On error
-                if (error) {
-                    // File not found
-                    if (error.code == 'ENOENT') {
-                        response.writeHead(404, headers);
-                        response.end('File Not Found', encoding);
-                        console.error('http 404:', error);
-                        return; // Exit...
-                    }
+        // Get and set content type header from file extension
+        hh.headers['Content-Type'] = hh.get_content_type(file_path);
 
-                    // Internal server error (read dir, file permision, etc...)
-                    response.writeHead(500, headers);
-                    response.end('Internal Server Error', encoding);
-                    console.error('http 500:', error);
-                    return; // Exit...
-                }
-
-                // Get the file extension
-                var ext = String(path.extname(uri)).toLowerCase();
-
-                // Set content type header from file extension
-                headers['Content-Type'] = mime_types[ext] || 'application/octect-stream';
-
-                // File content ready, sent to client...
-                response.writeHead(200, headers);
-                response.end(content, encoding);
-            });
-        });
-
-        // Start listening
-        http_server.listen(settings.port, settings.online || null);
-    }
+        // File content ready, sent to client...
+        response.writeHead(200, hh.headers);
+        response.end(content, hh.encoding);
+    });
 };
