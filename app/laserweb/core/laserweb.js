@@ -69,6 +69,35 @@
             amplify.subscribe.apply(amplify, args);
         },
 
+        // Storage (local)
+        // http://amplifyjs.com/api/store/
+        store: function(key, data, merge) {
+            // Prefix the key (first argument)
+            key = 'lw.' + key;
+
+            // Get the store
+            var store = amplify.store(key);
+
+            // Getter
+            if (data === undefined) {
+                return store;
+            }
+
+            // Force object if store not defined
+            store = store === undefined ? {} : store;
+
+            // Merge ? (true by default)
+            merge = merge === undefined ? true : !!merge;
+
+            // Merge object with data ?
+            if (merge && typeof store === 'object' && typeof data === 'object') {
+                data = $.extend(true, {}, store, data);
+            }
+
+            // Store the data
+            amplify.store(key, data);
+        },
+
         // Console wrapper
         console: function(type, arg) {
             // Skip if disabled

@@ -158,11 +158,17 @@
 
         // Called when an new serial port is selected
         select_serial_port: function(obj, evt) {
+            // Port name
+            var port = obj.selected_serial_port();
+
+            // Save selected port
+            this.store('serial', { port: port });
+
             // Debug message...
-            this.console('debug', 'serial.port.selected', obj.selected_serial_port());
+            this.console('debug', 'serial.port.selected', port);
 
             // Publish a message to notify all modules
-            this.pub('layout.com.serial.port.selected', obj.selected_serial_port());
+            this.pub('layout.com.serial.port.selected', port);
         },
 
         // Called when refresh serial port list is clicked
