@@ -25,7 +25,7 @@
 
         // Debug level
         debug_level: {
-            all  : true,
+            all  : false,
             log  : false,
             info : false,
             warn : false,
