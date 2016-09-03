@@ -39,7 +39,7 @@
         init: function() {
             // Debug level
             this.debug_level.all = true;
-            
+
             // Add the dock
             this.add_dock();
 
@@ -54,6 +54,15 @@
 
             // Add pane template to pane container
             this.$.pane.append(pane_template());
+
+            // Default stored value
+            var store = this.store('serial');
+
+            if (! store) {
+                this.store('serial', {
+                    port: null
+                });
+            }
 
             // Bind the model
             this.bind_model();
@@ -200,6 +209,9 @@
             for (var i = 0, il = data.ports.length; i < il; i++) {
                 this.available_serial_ports.push(data.ports[i].comName);
             }
+
+            // Set last port selected
+            this.selected_serial_port(this.store('serial').port);
         }
 
     });
