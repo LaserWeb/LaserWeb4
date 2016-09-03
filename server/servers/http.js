@@ -58,8 +58,24 @@ hh.handler = function(request, response) {
 
     // Reset headers
     hh.headers = {
+        // Server signature
+        'Server': hh.footprint,
+
+        // Content type
         'Content-Type': 'text/html',
-        'Server'      : hh.footprint
+
+        // Website you wish to allow to connect
+        'Access-Control-Allow-Origin': '*',
+
+        // Request methods you wish to allow
+        'Access-Control-Allow-Methods': 'GET, POST, HEAD',
+
+        // Request headers you wish to allow
+        'Access-Control-Allow-Headers': 'X-Requested-With,content-type',
+
+        // Set to true if you need the website to include cookies in the requests sent
+        // to the API (e.g. in case you use sessions)
+        'Access-Control-Allow-Credentials': true
     };
 
     // Make the file path
