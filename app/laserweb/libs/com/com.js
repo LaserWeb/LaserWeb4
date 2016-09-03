@@ -30,9 +30,9 @@
             var request = new XMLHttpRequest();
 
             request.onreadystatechange = function() {
-                if (request.readyState === 4) {
+                if (this.readyState === 4) {
                     // Get response headers as text (trim witespaces)
-                    var raw_headers = request.getAllResponseHeaders().trim();
+                    var raw_headers = this.getAllResponseHeaders().trim();
 
                     // Split on new lines
                     var headers_lines = raw_headers.split('\n');
@@ -64,6 +64,27 @@
     };
 
     /**
+    * Communication over socket library.
+    *
+    * Description...
+    */
+    com.socket = {
+        // Socket
+        io: null,
+
+        // IO connection
+        connect: function() {
+            if (this.io) {
+                return this.io;
+            }
+
+            this.io = io.connect(document.location.toString(), {
+                path: '/vendor/socket.io'
+            });
+        }
+    };
+
+    /**
     * Communication over serial library.
     *
     * Description...
@@ -77,7 +98,27 @@
         baud_rate: 115200,
 
         // Available baud rates
-        baud_rates: [250000, 230400, 115200, 57600, 38400, 19200, 9600]
+        baud_rates: [250000, 230400, 115200, 57600, 38400, 19200, 9600],
+
+        // Pub/Sub...
+        emit: function(message, data) {
+            com.socket.io.emit('serial.' + message, data || null);
+        },
+
+        on: function(message, callback) {
+            com.socket.io.on('serial.' + message, callback);
+        },
+
+        command: function(name, args) {
+            this.emit('command', {
+                name: name,
+                args: args
+            });
+        },
+
+        on_command: function(callback) {
+            this.on('command', callback);
+        }
     };
 
     /**

@@ -54,7 +54,7 @@
                     <span class="input-group-addon"><i class="fa fa-tty"></i></span>
                     <select class="form-control" data-bind="options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-success" type="button">
+                        <button data-bind="enable: can_connect" class="btn btn-sm btn-success" type="button">
                             Connect
                         </button>
                     </span>

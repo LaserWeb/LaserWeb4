@@ -25,6 +25,15 @@
         // Has template (null, false, true or template path)
         has_template: true,
 
+        // Socket connection (socket.io)
+        socket: null,
+
+        // Serial interface (socket wrapper)
+        serial: null,
+
+        // Connected
+        connected: false,
+
         // Module initialization
         // Called once when all modules are setup.
         init: function() {
@@ -63,25 +72,77 @@
             this.selected_serial_port       = ko.observable();
             this.available_serial_ports     = ko.observableArray();
 
-            // Get server footprint
+            // Self alias
             var self = this;
 
+            // Get server footprint
+            this.can_connect = ko.computed(function() {
+                return ! self.connected && self.selected_serial_port();
+            });
+
+            // Get server footprint
             lw.libs.com.http.get_server_footprint(function(footprint, headers) {
                 // LaserWeb server found
-                if (footprint.indexOf('LaserWebServer') === 0) {
-                    // Set serial interface available
-                    self.serial_interface_available(true);
+                if (footprint.indexOf('LaserWebServer') !== 0) {
+                    return;
                 }
+
+                // Set serial interface available
+                self.serial_interface_available(true);
+
+                // Debug message...
+                self.console('debug', 'serial_interface.available');
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.serial_interface.available');
+
+                // Bind socket interface
+                self.bind_socket();
             });
 
             // Bind pane model to the panel (DOM)
             ko.applyBindings(this, this.$.pane[0]);
         },
 
+        // Bind socket interface
+        bind_socket: function() {
+            // Socket connection
+            this.socket = lw.libs.com.socket.connect();
+
+            // Serial socket wrapper
+            this.serial = lw.libs.com.serial;
+
+            // Self alias
+            var self = this;
+
+            // On error
+            this.serial.on('error', function(error) {
+                self.error('serial.error:', error);
+            });
+
+            this.serial.on_command(function(command) {
+                // Handler name
+                var name = command.name || 'undefined';
+
+                // Command method found
+                if (self['on_' + name]) {
+                    // Call command method with the Client scope
+                    return self['on_' + name].call(self, command.data || null);
+                }
+
+                // Command handler not found
+                self.error('[' + name + '] serial command handler not found.');
+            });
+
+            // Refresh serial ports list
+            this.refresh_serial_ports_list();
+        },
+
         // Called when a new interface is selected
         select_interface: function(obj, evt) {
             // Debug message...
             this.console('debug', 'interface.selected', obj.selected_interface());
+
             // Publish a message to notify all modules
             this.pub('layout.com.interface.selected', obj.selected_interface());
         },
@@ -90,6 +151,7 @@
         select_serial_baud_rate: function(obj, evt) {
             // Debug message...
             this.console('debug', 'serial.baud_rate.selected', obj.selected_serial_baud_rate());
+
             // Publish a message to notify all modules
             this.pub('layout.com.serial.baud_rate.selected', obj.selected_serial_baud_rate());
         },
@@ -98,6 +160,7 @@
         select_serial_port: function(obj, evt) {
             // Debug message...
             this.console('debug', 'serial.port.selected', obj.selected_serial_port());
+
             // Publish a message to notify all modules
             this.pub('layout.com.serial.port.selected', obj.selected_serial_port());
         },
@@ -106,8 +169,28 @@
         refresh_serial_ports_list: function(obj, evt) {
             // Debug message...
             this.console('debug', 'serial.refresh.ports_list');
+
             // Publish a message to notify all modules
             this.pub('layout.com.serial.refresh.ports_list');
+
+            // Get all available serial ports
+            this.serial.command('list_ports');
+        },
+
+        // On list ports
+        on_list_ports: function(data) {
+            // Debug message...
+            this.console('debug', 'serial.on.list_ports:', data.ports);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.on.list_ports', data.ports);
+
+            // Refresh the select input
+            this.available_serial_ports.removeAll();
+
+            for (var i = 0, il = data.ports.length; i < il; i++) {
+                this.available_serial_ports.push(data.ports[i].comName);
+            }
         }
 
     });
