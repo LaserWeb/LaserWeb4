@@ -37,6 +37,9 @@
         // Module initialization
         // Called once when all modules are setup.
         init: function() {
+            // Debug level
+            this.debug_level.all = true;
+            
             // Add the dock
             this.add_dock();
 
