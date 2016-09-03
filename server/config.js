@@ -3,5 +3,5 @@ module.exports = {
     name     : 'LaserWebServer',
     app_path : __dirname + '/../app',
     main_file: 'index.html',
-    port     : 8080
+    port     : process.env.PORT || 8080
 };
