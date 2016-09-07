@@ -55,21 +55,32 @@
             // Add pane template to pane container
             this.$.pane.append(pane_template());
 
-            // Default stored value
-            var store = this.store('serial');
-
-            if (! store) {
-                this.store('serial', {
-                    port     : null,
-                    baud_rate: null
-                });
-            }
+            // Load stored settings
+            this.load_settings();
 
             // Bind the model
             this.bind_model();
 
             // Notify module init is done.
             this.pub('module.init.done');
+        },
+
+        // Load stored settings
+        load_settings: function() {
+            // Get stored settings or empty object
+            var store = this.store('serial') || {};
+
+            // Defaults settings
+            var settings = {
+                port     : null,
+                baud_rate: null
+            };
+
+            // Extends defaults settings with the stored settings
+            $.extend(true, settings, store);
+
+            // Store the new settings
+            this.store('serial', settings);
         },
 
         // Bind model
