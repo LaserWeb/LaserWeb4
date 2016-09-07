@@ -49,8 +49,8 @@
             // Set dock active
             this.set_dock_active(true);
 
-            // Load module template
-            this.load_template();
+            // Load module pane template
+            this.load_pane_template();
 
             // Load stored settings
             this.load_settings();
@@ -62,8 +62,8 @@
             this.pub('module.init.done');
         },
 
-        // Load the template
-        load_template: function() {
+        // Load the module pane template
+        load_pane_template: function() {
             // Get module pane template
             var pane_template = lw.get_template('layout-com-pane');
 
