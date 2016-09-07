@@ -78,7 +78,7 @@
                 return this.io;
             }
 
-            this.io = io.connect(document.location.toString(), {
+            this.io = io.connect({
                 path: '/vendor/socket.io'
             });
         }
