@@ -133,6 +133,12 @@
                 // Publish a message to notify all modules
                 self.pub('layout.com.serial_interface.available');
 
+                // On window reload/refresh
+                window.onbeforeunload = function(e) {
+                    // Send diconnect command
+                    self.serial.command('disconnect');
+                };
+
                 // Bind socket interface
                 self.bind_socket();
             });
