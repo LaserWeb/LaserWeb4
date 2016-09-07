@@ -49,11 +49,8 @@
             // Set dock active
             this.set_dock_active(true);
 
-            // Get module pane template
-            var pane_template = lw.get_template('layout-com-pane');
-
-            // Add pane template to pane container
-            this.$.pane.append(pane_template());
+            // Load module template
+            this.load_template();
 
             // Load stored settings
             this.load_settings();
@@ -63,6 +60,15 @@
 
             // Notify module init is done.
             this.pub('module.init.done');
+        },
+
+        // Load the template
+        load_template: function() {
+            // Get module pane template
+            var pane_template = lw.get_template('layout-com-pane');
+
+            // Add pane template to pane container
+            this.$.pane.append(pane_template());
         },
 
         // Load stored settings
