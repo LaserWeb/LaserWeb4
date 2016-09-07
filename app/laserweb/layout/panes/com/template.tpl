@@ -1,8 +1,15 @@
 <style>
-#com-console .logs {
-    overflow: auto;
+#com-terminal-logs {
+    overflow-x: auto;
+    overflow-y: scroll;
     resize: vertical;
-    min-height: 100px;
+    height: 100px;
+}
+
+#com-terminal-logs .log-line {
+    padding: 2px 5px;
+    font-size: 0.8em;
+    border-bottom: 1px #ccc solid;
 }
 
 .input-group-btn .btn {
@@ -101,25 +108,30 @@
 
     <hr />
 
-    <div id="com-console">
-        <h4>Console</h4>
-        <div class="logs panel panel-default"></div>
-        <form>
+    <div id="com-terminal">
+        <h4>Terminal</h4>
+        <div id="com-terminal-logs" class="panel panel-default" data-bind="foreach: terminal_logs">
+            <div class="log-line" data-bind="css: 'bg-' + type + ' text-' + type">
+                <i class="fa" data-bind="visible: icon, css: 'fa-' + icon"></i>
+                <span data-bind="text: raw"></span>
+            </div>
+        </div>
+        <form data-bind="submit: terminal_send_command">
             <div class="form-group">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon"><i class="fa fa-terminal"></i></span>
-                    <input type="text" class="form-control" />
+                    <input type="text" class="form-control" data-bind="value: terminal_command_line" />
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-default" type="button">
+                        <button class="btn btn-sm btn-default" type="submit">
                             <i class="fa fa-play"></i> Send
                         </button>
-                        <button class="btn btn-sm btn-default" type="button">
+                        <button class="btn btn-sm btn-default" type="button" data-bind="click: terminal_clear_logs">
                             <i class="fa fa-trash"></i>
                         </button>
                     </span>
                 </div>
             </div>
         </form>
-    </div><!-- #com-console -->
+    </div><!-- #com-terminal -->
 
 </template><!-- #layout-com-pane -->

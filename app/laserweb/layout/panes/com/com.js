@@ -102,6 +102,9 @@
             this.selected_serial_port       = ko.observable();
             this.available_serial_ports     = ko.observableArray();
 
+            this.terminal_logs         = ko.observableArray();
+            this.terminal_command_line = ko.observable();
+
             // Self alias
             var self = this;
 
@@ -238,6 +241,39 @@
 
             // Set last port selected
             this.selected_serial_port(this.store('serial').port);
+        },
+
+        // Terminal send command
+        terminal_send_command: function(obj, evt) {
+            // Get terminal command line (remove trailing whitespaces)
+            var command_line = this.terminal_command_line().trim();
+
+            // Debug message...
+            this.console('debug', 'on.command_line:', command_line);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.on.command_line', command_line);
+
+            // If empty, skip line...
+            if (! command_line.length) {
+                return;
+            }
+
+            // Reset terminal command line
+            this.terminal_command_line('');
+
+            // Send the command
+            this.terminal_logs.push({
+                raw : command_line,
+                icon: 'angle-right',
+                type: 'default'
+            });
+        },
+
+        // Terminal clear logs
+        terminal_clear_logs: function(obj, evt) {
+            // Clear the terminal logs
+            this.terminal_logs.removeAll();
         }
 
     });
