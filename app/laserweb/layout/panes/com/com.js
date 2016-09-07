@@ -31,9 +31,6 @@
         // Serial interface (socket wrapper)
         serial: null,
 
-        // Connected
-        connected: false,
-
         // Module initialization
         // Called once when all modules are setup.
         init: function() {
@@ -103,14 +100,34 @@
             this.available_serial_ports     = ko.observableArray();
 
             this.terminal_logs         = ko.observableArray();
-            this.terminal_command_line = ko.observable();
+            this.terminal_command_line = ko.observable('');
+
+            this.connected       = ko.observable(false);
+            this.wait_connection = ko.observable(false);
 
             // Self alias
             var self = this;
 
-            // Get server footprint
+            // If we can connect ?
             this.can_connect = ko.computed(function() {
-                return ! self.connected && self.selected_serial_port();
+                // If already connected or waiting for a connection
+                if (self.connected() || self.wait_connection()) {
+                    return false;
+                }
+
+                // If serial interface selected
+                if (self.selected_interface() === 'Serial') {
+                    // True if the port is selected...
+                    return !!self.selected_serial_port();
+                }
+
+                // If HTTP interface selected
+                if (self.selected_interface() === 'HTTP') {
+                    return false; // no yet implemented...
+                }
+
+                // Return false by default
+                return false;
             });
 
             // Get server footprint
@@ -150,7 +167,11 @@
 
             // On error
             this.serial.on('error', function(error) {
-                self.error('serial.error:', error);
+                // Publish a message to notify all modules
+                self.pub('layout.com.serial.on.error', error);
+
+                // Throw an error
+                self.error('serial.error: ' + error.name);
             });
 
             this.serial.on_command(function(command) {
@@ -241,6 +262,28 @@
 
             // Set last port selected
             this.selected_serial_port(this.store('serial').port);
+        },
+
+        // Called on serial connect button is clicked
+        serial_connect: function(obj, evt) {
+            // Set wait connection flag (Disable connect button)
+            this.wait_connection(true);
+
+            // Get selected serial port/baud_rate
+            var port      = this.selected_serial_port();
+            var baud_rate = this.selected_serial_baud_rate();
+
+            // Debug message...
+            this.console('debug', 'serial.connect:', port, 'at', baud_rate);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.connect', port, baud_rate);
+
+            // Send serial connect command
+            this.serial.command('connect', {
+                port     : port,
+                baud_rate: baud_rate
+            });
         },
 
         // Terminal send command

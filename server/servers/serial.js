@@ -48,14 +48,18 @@ Client.prototype.on_command = function(command) {
     // Command method found
     if (command.name && this[command.name]) {
         // Call command method with the Client scope
-        return this[command.name].call(this, command);
+        return this[command.name](command.data || null);
     }
 
     // Not found! Emmit an error
-    self.error('command_not_found', command);
+    this.error('undefined_command', command);
 };
 
-Client.prototype.list_ports = function(command) {
+// -----------------------------------------------------------------------------
+// Commands handlers
+// -----------------------------------------------------------------------------
+
+Client.prototype.list_ports = function(data) {
     // Self alias
     var self = this;
 
@@ -70,4 +74,8 @@ Client.prototype.list_ports = function(command) {
             self.error('list_ports', error);
         }
     });
+};
+
+Client.prototype.connect = function(data) {
+    console.log(data);
 };

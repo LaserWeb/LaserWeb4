@@ -109,10 +109,10 @@
             com.socket.io.on('serial.' + message, callback);
         },
 
-        command: function(name, args) {
+        command: function(name, data) {
             this.emit('command', {
                 name: name,
-                args: args
+                data: data
             });
         },
 
