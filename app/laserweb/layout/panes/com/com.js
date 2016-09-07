@@ -89,7 +89,7 @@
             this.selected_interface   = ko.observable(lw.libs.com.interfaces[0]);
             this.available_interfaces = ko.observableArray(lw.libs.com.interfaces);
 
-            this.selected_serial_baud_rate   = ko.observable(lw.libs.com.serial.baud_rate);
+            this.selected_serial_baud_rate   = ko.observable(this.store('serial').baud_rate);
             this.available_serial_baud_rates = ko.observableArray(lw.libs.com.serial.baud_rates);
 
             this.serial_interface_available = ko.observable(false);
