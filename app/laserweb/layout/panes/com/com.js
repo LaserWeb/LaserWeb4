@@ -60,7 +60,8 @@
 
             if (! store) {
                 this.store('serial', {
-                    port: null
+                    port     : null,
+                    baud_rate: null
                 });
             }
 
@@ -94,7 +95,7 @@
 
             // Get server footprint
             lw.libs.com.http.get_server_footprint(function(footprint, headers) {
-                // LaserWeb server found
+                // LaserWeb server not found
                 if (footprint.indexOf('LaserWebServer') !== 0) {
                     return;
                 }
@@ -161,11 +162,17 @@
 
         // Called when an new serial baud rate is selected
         select_serial_baud_rate: function(obj, evt) {
+            // Baud rate
+            var baud_rate = this.selected_serial_baud_rate() || null;
+
+            // Save selected port
+            this.store('serial', { baud_rate: baud_rate });
+
             // Debug message...
-            this.console('debug', 'serial.baud_rate.selected', obj.selected_serial_baud_rate());
+            this.console('debug', 'serial.baud_rate.selected', baud_rate);
 
             // Publish a message to notify all modules
-            this.pub('layout.com.serial.baud_rate.selected', obj.selected_serial_baud_rate());
+            this.pub('layout.com.serial.baud_rate.selected', baud_rate);
         },
 
         // Called when an new serial port is selected
