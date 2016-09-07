@@ -1,7 +1,7 @@
 /**
 * Imports
 */
-var serialport = require('serialport');
+var SerialPort = require('serialport');
 
 /**
 * Serial interface
@@ -21,6 +21,9 @@ var Client = function(socket) {
     // Socket ref
     this.socket = socket;
 
+    // Reset port
+    this._reset();
+
     // Self alias
     var self = this;
 
@@ -30,10 +33,16 @@ var Client = function(socket) {
     });
 };
 
-Client.prototype.error = function(name, data) {
+Client.prototype._reset = function() {
+    this.port      = null;
+    this.path      = null;
+    this.baud_rate = null;
+};
+
+Client.prototype.error = function(name, message) {
     this.socket.emit('serial.error', {
-        name: name,
-        data: data
+        name   : name,
+        message: message
     });
 };
 
@@ -64,18 +73,66 @@ Client.prototype.list_ports = function(data) {
     var self = this;
 
     // List all available ports
-    serialport.list(function(error, ports) {
+    SerialPort.list(function(error, ports) {
         self.command('list_ports', {
             error: error,
             ports: ports
         });
 
         if (error) {
-            self.error('list_ports', error);
+            self.error('list_ports', error.message);
         }
     });
 };
 
+Client.prototype.disconnect = function() {
+    // No port opened
+    if (! this.port) {
+        return;
+    }
+
+    // Self alias
+    var self = this;
+
+    // Close port
+    this.port.close(function() {
+        // Send disconnect message
+        self.command('disconnect', {
+            port     : self.path,
+            baud_rate: self.baud_rate
+        });
+
+        // Reset port
+        self._reset();
+    });
+};
+
 Client.prototype.connect = function(data) {
-    console.log(data);
+    // Self alias
+    var self = this;
+
+    // Disconnect...
+    this.disconnect();
+
+    // New SerialPort instance
+    this.port = new SerialPort(data.port, { baudRate: data.baud_rate });
+
+    // On port opened
+    this.port.on('open', function() {
+        self.path      = data.port;
+        self.baud_rate = data.baud_rate;
+
+        self.command('connect', data);
+    });
+
+    // On port open error
+    this.port.on('error', function(error) {
+        self.error('connect', error.message);
+        self._reset(); // Reset port
+    });
+
+    // On data received
+    this.port.on('data', function(data) {
+        self.command('data', data);
+    });
 };

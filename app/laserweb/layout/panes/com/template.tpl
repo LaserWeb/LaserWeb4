@@ -24,7 +24,7 @@
         <div class="form-group">
             <div class="input-group input-group-sm">
                 <span class="input-group-addon"><i class="fa fa-plug"></i></span>
-                <select class="form-control" data-bind="options: available_interfaces, value: selected_interface, event: { change: select_interface }"></select>
+                <select class="form-control" data-bind="enable: can_connect, options: available_interfaces, value: selected_interface, event: { change: select_interface }"></select>
             </div>
         </div>
     </form><!-- #com-interface -->
@@ -48,9 +48,9 @@
             <div class="form-group">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon"><i class="fa fa-usb"></i></span>
-                    <select class="form-control" data-bind="optionsCaption: 'Select a port...', options: available_serial_ports, value: selected_serial_port, event: { change: select_serial_port }"></select>
+                    <select class="form-control" data-bind="enable: can_connect, optionsCaption: 'Select a port...', options: available_serial_ports, value: selected_serial_port, event: { change: select_serial_port }"></select>
                     <span class="input-group-btn">
-                        <button class="btn btn-sm btn-secondary" type="button" data-bind="click: refresh_serial_ports_list">
+                        <button class="btn btn-sm btn-secondary" type="button" data-bind="enable: can_connect, click: refresh_serial_ports_list">
                             <i class="fa fa-refresh"></i>
                         </button>
                     </span>
@@ -59,10 +59,15 @@
             <div class="form-group">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon"><i class="fa fa-tty"></i></span>
-                    <select class="form-control" data-bind="options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
-                    <span class="input-group-btn">
+                    <select class="form-control" data-bind="enable: can_connect, options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
+                    <span data-bind="visible: !connected()" class="input-group-btn">
                         <button data-bind="enable: can_connect, click: serial_connect" class="btn btn-sm btn-success" type="button">
                             Connect
+                        </button>
+                    </span>
+                    <span data-bind="visible: connected" class="input-group-btn">
+                        <button data-bind="click: serial_disconnect" class="btn btn-sm btn-danger" type="button">
+                            Disconnect
                         </button>
                     </span>
                 </div>
@@ -112,8 +117,8 @@
         <h4>Terminal</h4>
         <div id="com-terminal-logs" class="panel panel-default" data-bind="foreach: terminal_logs">
             <div class="log-line" data-bind="css: 'bg-' + type + ' text-' + type">
-                <i class="fa" data-bind="visible: icon, css: 'fa-' + icon"></i>
-                <span data-bind="text: raw"></span>
+                <i class="fa fa-fw" data-bind="visible: icon, css: 'fa-' + icon"></i>
+                <span data-bind="text: text"></span>
             </div>
         </div>
         <form data-bind="submit: terminal_send_command">

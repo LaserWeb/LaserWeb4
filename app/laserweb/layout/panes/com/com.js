@@ -167,11 +167,18 @@
 
             // On error
             this.serial.on('error', function(error) {
+                // Special cases
+                if (error.name === 'connect') {
+                    // Reset connection flags
+                    self.wait_connection(false);
+                    self.connected(false);
+                }
+
                 // Publish a message to notify all modules
                 self.pub('layout.com.serial.on.error', error);
 
                 // Throw an error
-                self.error('serial.error: ' + error.name);
+                self.error('serial.error: ' + error.message);
             });
 
             this.serial.on_command(function(command) {
@@ -179,9 +186,9 @@
                 var name = command.name || 'undefined';
 
                 // Command method found
-                if (self['on_' + name]) {
+                if (self['on_serial_' + name]) {
                     // Call command method with the Client scope
-                    return self['on_' + name].call(self, command.data || null);
+                    return self['on_serial_' + name].call(self, command.data || null);
                 }
 
                 // Command handler not found
@@ -244,7 +251,7 @@
         },
 
         // On list ports
-        on_list_ports: function(data) {
+        on_serial_list_ports: function(data) {
             // Debug message...
             this.console('debug', 'serial.on.list_ports:', data.ports);
 
@@ -286,6 +293,68 @@
             });
         },
 
+        // On serial connect
+        on_serial_connect: function(data) {
+            // Debug message...
+            this.console('debug', 'on.connect:', data);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.on.connect', data.port, data.baud_rate);
+
+            // Add message to terminal logs
+            this.terminal_logs.push({
+                text: 'Connected to ' + data.port + ' at ' + data.baud_rate + 'BPS',
+                icon: 'info',
+                type: 'info'
+            });
+
+            // Reset waiting connection flag
+            this.wait_connection(false);
+
+            // Set connection flag
+            this.connected(true);
+        },
+
+        // Serial disconnect
+        serial_disconnect: function() {
+            // Debug message...
+            this.console('debug', 'disconnect');
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.disconnect');
+
+            // Send serial diconnect command
+            this.serial.command('disconnect');
+        },
+
+        // On serial disconnect
+        on_serial_disconnect: function(data) {
+            // Debug message...
+            this.console('debug', 'on.disconnect:', data);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.on.disconnect', data.port, data.baud_rate);
+
+            // Add message to terminal logs
+            this.terminal_logs.push({
+                text: 'Disconnected from ' + data.port,
+                icon: 'warning',
+                type: 'warning'
+            });
+
+            // Reset connection flag
+            this.connected(false);
+        },
+
+        // On serial data
+        on_serial_data: function(data) {
+            // Debug message...
+            this.console('debug', 'on.data:', data);
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.serial.on.data', data);
+        },
+
         // Terminal send command
         terminal_send_command: function(obj, evt) {
             // Get terminal command line (remove trailing whitespaces)
@@ -307,7 +376,7 @@
 
             // Send the command
             this.terminal_logs.push({
-                raw : command_line,
+                text: command_line,
                 icon: 'angle-right',
                 type: 'default'
             });
