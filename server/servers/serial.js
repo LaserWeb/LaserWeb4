@@ -115,7 +115,10 @@ Client.prototype.connect = function(data) {
     this.disconnect();
 
     // New SerialPort instance
-    this.port = new SerialPort(data.port, { baudRate: data.baud_rate });
+    this.port = new SerialPort(data.port, {
+        baudRate: data.baud_rate,
+        parser  : SerialPort.parsers.readline('\n')
+    });
 
     // On port opened
     this.port.on('open', function() {
@@ -135,4 +138,13 @@ Client.prototype.connect = function(data) {
     this.port.on('data', function(data) {
         self.command('data', data);
     });
+};
+
+Client.prototype.send = function(data) {
+    // No port opened
+    if (! this.port) {
+        return;
+    }
+
+    this.port.write(data);
 };

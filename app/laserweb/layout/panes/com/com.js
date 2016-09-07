@@ -110,24 +110,11 @@
 
             // If we can connect ?
             this.can_connect = ko.computed(function() {
-                // If already connected or waiting for a connection
-                if (self.connected() || self.wait_connection()) {
-                    return false;
-                }
+                return !self.connected() && !self.wait_connection();
+            });
 
-                // If serial interface selected
-                if (self.selected_interface() === 'Serial') {
-                    // True if the port is selected...
-                    return !!self.selected_serial_port();
-                }
-
-                // If HTTP interface selected
-                if (self.selected_interface() === 'HTTP') {
-                    return false; // no yet implemented...
-                }
-
-                // Return false by default
-                return false;
+            this.serial_can_connect = ko.computed(function() {
+                return self.can_connect() && self.selected_serial_port();
             });
 
             // Get server footprint
@@ -176,6 +163,13 @@
 
                 // Publish a message to notify all modules
                 self.pub('layout.com.serial.on.error', error);
+
+                // Add message to terminal logs
+                self.terminal_logs.push({
+                    text: error.message,
+                    icon: 'warning',
+                    type: 'danger'
+                });
 
                 // Throw an error
                 self.error('serial.error: ' + error.message);
@@ -353,6 +347,13 @@
 
             // Publish a message to notify all modules
             this.pub('layout.com.serial.on.data', data);
+
+            // Add message to terminal logs
+            this.terminal_logs.push({
+                text: data,
+                icon: 'arrow-left',
+                type: 'default'
+            });
         },
 
         // Terminal send command
@@ -371,13 +372,16 @@
                 return;
             }
 
+            // Send the command
+            this.serial.command('send', command_line + '\n');
+
             // Reset terminal command line
             this.terminal_command_line('');
 
-            // Send the command
+            // Log command line
             this.terminal_logs.push({
                 text: command_line,
-                icon: 'angle-right',
+                icon: 'arrow-right',
                 type: 'default'
             });
         },

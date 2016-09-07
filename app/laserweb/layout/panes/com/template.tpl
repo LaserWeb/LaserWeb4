@@ -7,9 +7,14 @@
 }
 
 #com-terminal-logs .log-line {
+    display: flex;
     padding: 2px 5px;
     font-size: 0.8em;
     border-bottom: 1px #ccc solid;
+}
+
+#com-terminal-logs .log-line i {
+    margin-right: 2px;
 }
 
 .input-group-btn .btn {
@@ -61,7 +66,7 @@
                     <span class="input-group-addon"><i class="fa fa-tty"></i></span>
                     <select class="form-control" data-bind="enable: can_connect, options: available_serial_baud_rates, value: selected_serial_baud_rate, event: { change: select_serial_baud_rate }"></select>
                     <span data-bind="visible: !connected()" class="input-group-btn">
-                        <button data-bind="enable: can_connect, click: serial_connect" class="btn btn-sm btn-success" type="button">
+                        <button data-bind="enable: serial_can_connect, click: serial_connect" class="btn btn-sm btn-success" type="button">
                             Connect
                         </button>
                     </span>
@@ -117,8 +122,12 @@
         <h4>Terminal</h4>
         <div id="com-terminal-logs" class="panel panel-default" data-bind="foreach: terminal_logs">
             <div class="log-line" data-bind="css: 'bg-' + type + ' text-' + type">
-                <i class="fa fa-fw" data-bind="visible: icon, css: 'fa-' + icon"></i>
-                <span data-bind="text: text"></span>
+                <div>
+                    <i class="fa fa-fw" data-bind="visible: icon, css: 'fa-' + icon"></i>
+                </div>
+                <div>
+                    <span class="text" data-bind="text: text"></span>
+                </div>
             </div>
         </div>
         <form data-bind="submit: terminal_send_command">
