@@ -171,7 +171,7 @@
         // Called when an new serial port is selected
         select_serial_port: function(obj, evt) {
             // Port name
-            var port = obj.selected_serial_port();
+            var port = this.selected_serial_port() || null;
 
             // Save selected port
             this.store('serial', { port: port });
@@ -203,12 +203,14 @@
             // Publish a message to notify all modules
             this.pub('layout.com.serial.on.list_ports', data.ports);
 
-            // Refresh the select input
-            this.available_serial_ports.removeAll();
+            // Update the select input options
+            var ports = [];
 
             for (var i = 0, il = data.ports.length; i < il; i++) {
-                this.available_serial_ports.push(data.ports[i].comName);
+                ports.push(data.ports[i].comName);
             }
+
+            this.available_serial_ports(ports);
 
             // Set last port selected
             this.selected_serial_port(this.store('serial').port);
