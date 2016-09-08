@@ -74,13 +74,13 @@
 
         // IO connection
         connect: function() {
-            if (this.io) {
-                return this.io;
+            if (! this.io) {
+                this.io = io.connect({
+                    path: '/vendor/socket.io',
+                    reconnection: true
+                });
             }
-
-            this.io = io.connect({
-                path: '/vendor/socket.io'
-            });
+            return this.io;
         }
     };
 

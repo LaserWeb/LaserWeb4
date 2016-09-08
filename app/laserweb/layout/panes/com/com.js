@@ -121,12 +121,19 @@
             // Get server footprint
             lw.libs.com.http.get_server_footprint(function(footprint, headers) {
                 // LaserWeb server not found
+                self.server_footprint    = footprint;
+                self.server_name_version = footprint.split(' ')[0];
+
+                // Add message to terminal logs
+                self.terminal_logs.push({
+                    text: 'UI served by ' + self.server_name_version,
+                    icon: 'info',
+                    type: 'info'
+                });
+
                 if (footprint.indexOf('LaserWebServer') !== 0) {
                     return;
                 }
-
-                // Set serial interface available
-                self.serial_interface_available(true);
 
                 // Debug message...
                 self.console('debug', 'serial_interface.available');
@@ -136,7 +143,7 @@
 
                 // On window reload/refresh
                 window.onbeforeunload = function(e) {
-                    // Send diconnect command
+                    // Send disconnect command
                     self.serial.command('disconnect');
                 };
 
@@ -159,7 +166,69 @@
             // Self alias
             var self = this;
 
-            // On error
+            // -----------------------------------------------------------------
+
+            // On socket (server) connect
+            this.socket.on('connect', function() {
+                // Refresh serial ports list
+                self.refresh_serial_ports_list();
+
+                // Set serial interface available
+                self.serial_interface_available(true);
+            });
+
+            this.socket.on('reconnect', function() {
+                // Add message to terminal logs
+                self.terminal_logs.push({
+                    text: 'Connected to ' + self.server_name_version,
+                    icon: 'server',
+                    type: 'success'
+                });
+
+                // Reconnect serial port
+                if (self.serial_reconnect) {
+                    self.serial_reconnect = false;
+                    self.serial_connect();
+                }
+            });
+
+            this.socket.on('reconnect_attempt', function(attempts) {
+                // Add message to terminal logs
+                self.terminal_logs.push({
+                    text: 'Reconnect attempt: ' + attempts,
+                    icon: 'server',
+                    type: 'warning'
+                });
+            });
+
+            // On socket (server) disconnect
+            this.socket.on('disconnect', function() {
+                // If connected
+                if (self.connected()) {
+                    // reconnection flag
+                    self.serial_reconnect = true;
+
+                    // Reset the UI
+                    self.on_serial_disconnect({
+                        port     : self.selected_serial_port(),
+                        baud_rate: self.select_serial_baud_rate()
+                    });
+                }
+
+                // Add message to terminal logs
+                self.terminal_logs.push({
+                    text: 'Disconnected from ' + self.server_name_version,
+                    icon: 'server',
+                    type: 'danger'
+                });
+
+                // Set serial interface not available
+                self.serial_interface_available(false);
+            });
+
+            // -----------------------------------------------------------------
+
+            // On serial error
             this.serial.on('error', function(error) {
                 // Special cases
                 if (error.name === 'connect') {
@@ -195,9 +264,6 @@
                 // Command handler not found
                 self.error('[' + name + '] serial command handler not found.');
             });
-
-            // Refresh serial ports list
-            this.refresh_serial_ports_list();
         },
 
         // Called when a new interface is selected
