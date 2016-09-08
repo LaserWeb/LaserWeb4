@@ -89,7 +89,7 @@ hh.handler = function(request, response) {
             if (error.code == 'ENOENT') {
                 response.writeHead(404, hh.headers);
                 response.end('File Not Found', hh.encoding);
-                console.error('Error 404:', error);
+                //console.error('Error 404:', error);
                 return; // Exit...
             }
 
