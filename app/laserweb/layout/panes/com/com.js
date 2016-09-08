@@ -377,7 +377,7 @@
             // Add message to terminal logs
             this.terminal_logs.push({
                 text: 'Connected to ' + data.port + ' at ' + data.baud_rate + 'BPS',
-                icon: 'info',
+                icon: 'plug',
                 type: 'info'
             });
 
@@ -411,7 +411,7 @@
             // Add message to terminal logs
             this.terminal_logs.push({
                 text: 'Disconnected from ' + data.port,
-                icon: 'warning',
+                icon: 'plug',
                 type: 'warning'
             });
 
