@@ -76,7 +76,8 @@
             // Defaults settings
             var settings = {
                 port     : null,
-                baud_rate: null
+                baud_rate: null,
+                interface: null
             };
 
             // Extends defaults settings with the stored settings
@@ -89,7 +90,7 @@
         // Bind model
         bind_model: function() {
             // Init pane model data
-            this.selected_interface   = ko.observable(lw.libs.com.interfaces[0]);
+            this.selected_interface   = ko.observable(this.store('serial').interface);
             this.available_interfaces = ko.observableArray(lw.libs.com.interfaces);
 
             this.selected_serial_baud_rate   = ko.observable(this.store('serial').baud_rate);
@@ -201,11 +202,17 @@
 
         // Called when a new interface is selected
         select_interface: function(obj, evt) {
+            // Selected interface
+            var selected_interface = this.selected_interface();
+
             // Debug message...
-            this.console('debug', 'interface.selected', obj.selected_interface());
+            this.console('debug', 'interface.selected', selected_interface);
 
             // Publish a message to notify all modules
-            this.pub('layout.com.interface.selected', obj.selected_interface());
+            this.pub('layout.com.interface.selected', selected_interface);
+
+            // Save selected port
+            this.store('serial', { interface: selected_interface });
         },
 
         // Called when an new serial baud rate is selected
