@@ -71,29 +71,48 @@
         // Load stored settings
         load_settings: function() {
             // Get stored settings or empty object
-            var store = this.store('serial') || {};
+            var serial_store = this.store('serial') || {};
 
             // Defaults settings
-            var settings = {
-                port     : null,
-                baud_rate: null,
-                interface: null
+            var serial_settings = {
+                port        : null,
+                baud_rate   : null,
+                interface   : null
             };
 
             // Extends defaults settings with the stored settings
-            $.extend(true, settings, store);
+            $.extend(true, serial_settings, serial_store);
 
             // Store the new settings
-            this.store('serial', settings);
+            this.store('serial', serial_settings);
+
+            // Get stored settings or empty object
+            var http_store = this.store('http') || {};
+
+            // Defaults settings
+            var http_settings = {
+                last_address: null,
+                scan_address: this.get_http_scanner().input
+            };
+
+            // Extends defaults settings with the stored settings
+            $.extend(true, http_settings, http_store);
+
+            // Store the new settings
+            this.store('http', http_settings);
         },
 
         // Bind model
         bind_model: function() {
+            // Stores
+            var serial_store = this.store('serial');
+            var http_store   = this.store('http');
+
             // Init pane model data
-            this.selected_interface   = ko.observable(this.store('serial').interface);
+            this.selected_interface   = ko.observable(serial_store.interface);
             this.available_interfaces = ko.observableArray(lw.libs.com.interfaces);
 
-            this.selected_serial_baud_rate   = ko.observable(this.store('serial').baud_rate);
+            this.selected_serial_baud_rate   = ko.observable(serial_store.baud_rate);
             this.available_serial_baud_rates = ko.observableArray(lw.libs.com.serial.baud_rates);
 
             this.serial_interface_available = ko.observable(false);
@@ -102,6 +121,13 @@
 
             this.terminal_logs         = ko.observableArray();
             this.terminal_command_line = ko.observable('');
+
+            this.http_board_address     = ko.observable(http_store.last_address);
+            this.http_scan_address      = ko.observable(http_store.scan_address);
+            this.http_scan_run          = ko.observable(false);
+            this.http_scan_aborted      = ko.observable(false);
+            this.http_scann_progression = ko.observable(this.get_http_scanner());
+            this.http_boards            = ko.observableArray();
 
             this.connected       = ko.observable(false);
             this.wait_connection = ko.observable(false);
@@ -166,6 +192,8 @@
             // Self alias
             var self = this;
 
+            // -----------------------------------------------------------------
+            // Socket
             // -----------------------------------------------------------------
 
             // On socket (server) connect
@@ -233,6 +261,8 @@
             });
 
             // -----------------------------------------------------------------
+            // Serial
+            // -----------------------------------------------------------------
 
             // On serial error
             this.serial.on('error', function(error) {
@@ -271,6 +301,10 @@
                 self.error('[' + name + '] serial command handler not found.');
             });
         },
+
+        // ---------------------------------------------------------------------
+        // Serial
+        // ---------------------------------------------------------------------
 
         // Called when a new interface is selected
         select_interface: function(obj, evt) {
@@ -375,7 +409,7 @@
         // On serial connect
         on_serial_connect: function(data) {
             // Debug message...
-            this.console('debug', 'on.connect:', data);
+            this.console('debug', 'on.serial.connect:', data);
 
             // Publish a message to notify all modules
             this.pub('layout.com.serial.on.connect', data.port, data.baud_rate);
@@ -400,7 +434,7 @@
         // Serial disconnect
         serial_disconnect: function() {
             // Debug message...
-            this.console('debug', 'disconnect');
+            this.console('debug', 'serial.disconnect');
 
             // Publish a message to notify all modules
             this.pub('layout.com.serial.disconnect');
@@ -412,7 +446,7 @@
         // On serial disconnect
         on_serial_disconnect: function(data) {
             // Debug message...
-            this.console('debug', 'on.disconnect:', data);
+            this.console('debug', 'on.serial.disconnect:', data);
 
             // Publish a message to notify all modules
             this.pub('layout.com.serial.on.disconnect', data.port, data.baud_rate);
@@ -434,7 +468,7 @@
         // On serial data
         on_serial_data: function(data) {
             // Debug message...
-            this.console('debug', 'on.data:', data);
+            this.console('debug', 'on.serial.data:', data);
 
             // Publish a message to notify all modules
             this.pub('layout.com.serial.on.data', data);
@@ -446,6 +480,160 @@
                 type: 'default'
             });
         },
+
+        // ---------------------------------------------------------------------
+        // HTTP scanner
+        // ---------------------------------------------------------------------
+
+        // Get/init http scanner
+        get_http_scanner: function() {
+            // Already initialized
+            if (this.http_scanner) {
+                // Return scanner instance
+                return this.http_scanner;
+            }
+
+            // Create scanner instance
+            this.http_scanner = sh.network.Scanner();
+
+            // Self alias
+            var self = this;
+
+            // Register callbacks
+            this.http_scanner.on('start', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.start:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.start', scanner);
+
+                // Set scan flags
+                self.http_scan_run(true);
+                self.http_scan_aborted(false);
+
+                // Update store
+                self.store('http', { scan_address: scanner.input });
+            });
+
+            this.http_scanner.on('pause', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.pause:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.pause', scanner);
+
+                // Set scan flags
+                self.http_scan_run(false);
+                self.http_scan_aborted(true);
+            });
+
+            this.http_scanner.on('resume', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.resume:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.resume', scanner);
+
+                // Set scan flags
+                self.http_scan_run(true);
+                self.http_scan_aborted(false);
+            });
+
+            this.http_scanner.on('stop', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.stop:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.stop', scanner);
+
+                // Set scan flags
+                self.http_scan_run(false);
+                self.http_scan_aborted(false);
+            });
+
+            this.http_scanner.on('progress', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.progress:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.progress', scanner);
+
+                // Update progression
+                self.http_scann_progression(scanner);
+            });
+
+            this.http_scanner.on('board', function(scanner, board) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.board:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.board', scanner);
+
+                // Add new board
+                self.http_boards.push(board);
+            });
+
+            this.http_scanner.on('end', function(scanner) {
+                // Debug message...
+                self.console('debug', 'http.scanner.on.end:', scanner);
+
+                // Publish a message to notify all modules
+                self.pub('layout.com.http.scanner.on.end', scanner);
+
+                // Set scan flags
+                self.http_scan_run(false);
+                self.http_scan_aborted(false);
+            });
+
+            // Return scanner instance
+            return this.http_scanner;
+        },
+
+        // Called when the start scan button is clicked.
+        http_start_scan: function(obj, evt) {
+            this.get_http_scanner().start(this.http_scan_address());
+        },
+
+        // Called when the stop scan button is clicked.
+        http_stop_scan: function(obj, evt) {
+            this.get_http_scanner().stop();
+        },
+
+        // Called when the pause scan button is clicked.
+        http_pause_scan: function(obj, evt) {
+            this.get_http_scanner().pause();
+        },
+
+        // Called when the resume scan button is clicked.
+        http_resume_scan: function(obj, evt) {
+            this.get_http_scanner().resume();
+        },
+
+        // ---------------------------------------------------------------------
+        // HTTP connection
+        // ---------------------------------------------------------------------
+
+        // Called when the connect button is clicked.
+        http_connect: function(obj, evt) {
+            // Debug message...
+            this.console('debug', 'http.connect');
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.http.connect');
+        },
+
+        // Called when the disconnect button is clicked.
+        http_disconnect: function(obj, evt) {
+            // Debug message...
+            this.console('debug', 'http.disconnect');
+
+            // Publish a message to notify all modules
+            this.pub('layout.com.http.disconnect');
+        },
+
+        // ---------------------------------------------------------------------
+        // Terminal
+        // ---------------------------------------------------------------------
 
         // Terminal send command
         terminal_send_command: function(obj, evt) {

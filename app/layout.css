@@ -85,6 +85,11 @@ body,
     border-right: 1px #ccc dashed;
 }
 
+#panes .info {
+    font-size: 0.9em;
+    padding: 5px 10px;
+}
+
 /* Workspace */
 
 #workspace {
