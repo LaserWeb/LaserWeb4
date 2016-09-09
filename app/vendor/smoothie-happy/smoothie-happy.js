@@ -409,9 +409,6 @@ var sh = sh || {};
             }
         }
 
-        // force timeout
-        this._xhr.timeout = this._timeout;
-
         /**
         * @protected
         * @property  {Promise}  -  Promise instance.
@@ -434,6 +431,9 @@ var sh = sh || {};
         return new Promise(function(resolve, reject) {
             // open the request (async)
             self._xhr.open(self._method, self._url, true);
+
+            // force timeout
+            self._xhr.timeout = self._timeout;
 
             // on load
             self._xhr.onload = function () {
@@ -670,6 +670,12 @@ var sh = sh || {};
 
         /**
         * @readonly
+        * @property  {String}  id  Board ip or hostname as DOM id.
+        */
+        this.id = address.replace(/[^0-9a-z_\-]+/gi, '-');
+
+        /**
+        * @readonly
         * @property  {Integer}  timeout  Default response timeout in milliseconds.
         * @default   null
         */
@@ -685,6 +691,13 @@ var sh = sh || {};
         * @property  {String}  info.clock   Board clock freqency.
         */
         this.info = null;
+
+        /**
+        * @readonly
+        * @property  {Boolean}  online  Is online.
+        * @default   null
+        */
+        this.online = false;
 
         // self alias
         var self = this;
@@ -748,18 +761,26 @@ var sh = sh || {};
                     mcu   : matches[3],
                     clock : matches[4]
                 };
+
+                // set online flag
+                self.online = true;
             }
 
             // return result for final then
             return { event: event, error: error, data: self.info };
         })
         .catch(function(event) {
+            // set online flag
+            self.online = false;
+
             // return error for final then
             return { event: event, error: true, data: null };
         });
 
         // If final user callback
-        callback && promise.then(callback);
+        callback && promise.then(function(event) {
+            return callback.call(self, event);
+        });
 
         // Return the promise
         return promise;
@@ -1169,7 +1190,7 @@ var sh = sh || {};
             // process queue
             self._processQueue();
         }
-        
+
         // return null
         return null;
     };
