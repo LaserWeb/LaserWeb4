@@ -91,6 +91,7 @@
 
             // Defaults settings
             var http_settings = {
+                addresses   : [],
                 last_address: null,
                 scan_address: this.get_http_scanner().input
             };
@@ -127,7 +128,9 @@
             this.http_scan_run          = ko.observable(false);
             this.http_scan_aborted      = ko.observable(false);
             this.http_scann_progression = ko.observable(this.get_http_scanner());
+            this.http_addresses         = ko.observableArray(http_store.addresses);
             this.http_boards            = ko.observableArray();
+            this.http_scann_percent     = ko.observable(0);
 
             this.connected       = ko.observable(false);
             this.wait_connection = ko.observable(false);
@@ -176,6 +179,26 @@
                 // Bind socket interface
                 self.bind_socket();
             });
+
+            // Load known http boards
+            var i, il, address;
+
+            for (i = 0, il = http_store.addresses.length; i < il; i++) {
+                address = http_store.addresses[i];
+
+                try {
+                    sh.Board({
+                        address : address,
+                        callback: function(result) {
+                            // Add the known board (this = board)
+                            self.http_boards.push(this);
+                        }
+                    });
+                }
+                catch(error) {
+                    // ...
+                }
+            }
 
             // Bind pane model to the panel (DOM)
             ko.applyBindings(this, this.$.pane[0]);
@@ -513,6 +536,10 @@
 
                 // Update store
                 self.store('http', { scan_address: scanner.input });
+
+                // Update progression
+                self.http_scann_progression(scanner);
+                self.http_scann_percent(parseInt(scanner.scanned / scanner.total * 100))
             });
 
             this.http_scanner.on('pause', function(scanner) {
@@ -560,17 +587,27 @@
 
                 // Update progression
                 self.http_scann_progression(scanner);
+                self.http_scann_percent(parseInt(scanner.scanned/scanner.total*100))
             });
 
             this.http_scanner.on('board', function(scanner, board) {
+                // If already added
+                if (self.http_addresses.indexOf(board.address) !== -1) {
+                    return;
+                }
+
                 // Debug message...
                 self.console('debug', 'http.scanner.on.board:', scanner);
 
                 // Publish a message to notify all modules
                 self.pub('layout.com.http.scanner.on.board', scanner);
 
-                // Add new board
+                // Add new board address
                 self.http_boards.push(board);
+                self.http_addresses.push(board.address);
+
+                // Store new addresses array
+                self.store('http', { addresses: self.http_addresses() });
             });
 
             this.http_scanner.on('end', function(scanner) {
