@@ -1,4 +1,14 @@
 <style>
+#dock li.connected,
+#dock li.connected:hover {
+    color: #5cb85c;
+}
+
+#dock li.error,
+#dock li.error:hover {
+    color: #d9534f;
+}
+
 #com-terminal-logs {
     overflow-x: auto;
     overflow-y: scroll;

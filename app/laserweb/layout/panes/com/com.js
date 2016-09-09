@@ -185,6 +185,9 @@
                     type: 'success'
                 });
 
+                // Remove error dock class
+                self.toggle_dock_class('error', false);
+
                 // Reconnect serial port
                 if (self.serial_reconnect) {
                     self.serial_reconnect = false;
@@ -221,6 +224,9 @@
                     icon: 'server',
                     type: 'danger'
                 });
+
+                // Add error dock class
+                self.toggle_dock_class('error', true);
 
                 // Set serial interface not available
                 self.serial_interface_available(false);
@@ -381,6 +387,9 @@
                 type: 'info'
             });
 
+            // Add connected dock class
+            this.toggle_dock_class('connected', true);
+
             // Reset waiting connection flag
             this.wait_connection(false);
 
@@ -414,6 +423,9 @@
                 icon: 'plug',
                 type: 'warning'
             });
+
+            // Remove connected dock class
+            this.toggle_dock_class('connected', false);
 
             // Reset connection flag
             this.connected(false);

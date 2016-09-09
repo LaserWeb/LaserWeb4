@@ -62,6 +62,12 @@
             this.sub(self.name + '.dock.click', this, this.on_dock_click);
         },
 
+        // Toggle the dock class
+        toggle_dock_class: function(name, toggle) {
+            // Update icon element
+            this.$.dock.toggleClass(name, toggle);
+        },
+
         // Set the dock icon
         set_dock_icon: function(icon) {
             // Update icon name
