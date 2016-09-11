@@ -184,7 +184,7 @@
         <hr />
 
         <h4>Smoothie boards</h4>
-        <div class="alert alert-info" data-bind="visible: !http_boards().length">
+        <div class="alert alert-info" data-bind="visible: !http_addresses().length">
             <strong>No boards known at this time...</strong><br />
             Scan the network in order to discover some boards.
         </div>
@@ -216,6 +216,10 @@
                     <!-- /ko -->
                 </div>
             </div>
+        </div>
+        <div class="alert alert-info" data-bind="visible: http_addresses().length && http_boards().length !== http_addresses().length">
+            <i class="fa fa-spinner fa-pulse fa-fw"></i>
+            Loading konown boards (<span data-bind="text: http_boards().length">n/a</span> / <span data-bind="text: http_addresses().length">n/a</span>)
         </div>
 
     </form><!-- #com-http -->
