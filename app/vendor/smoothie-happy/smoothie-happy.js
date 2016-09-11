@@ -2,7 +2,8 @@
 * Smoothie-Happy - A SmoothieBoard network communication API.
 * @author   Sébastien Mischler (skarab) <sebastien@onlfait.ch>
 * @see      {@link https://github.com/lautr3k/Smoothie-Happy}
-* @build    330d371c7fa8e216ffd82be37c5748c9
+* @build    461d6acadbb43da1f14554634d77e958
+* @date     Sun, 11 Sep 2016 06:40:55 +0000
 * @version  0.2.0-dev
 * @license  MIT
 * @namespace
@@ -24,7 +25,7 @@ var sh = sh || {};
     * @readonly
     * @property {String} build API build hash.
     */
-    sh.build = '330d371c7fa8e216ffd82be37c5748c9';
+    sh.build = '461d6acadbb43da1f14554634d77e958';
 
     /**
     * @default
@@ -251,58 +252,6 @@ var sh = sh || {};
     *
     *      console[logType](event.request._url, '>>', logLabel, '>>', event.response);
     *  });
-    *
-    *
-    *  // @example sh.Board - Board class usage :
-    *  // create the board instance
-    *  var board = sh.Board('192.168.1.102', function(result) {
-    *      if (! result.error) {
-    *          // log board info
-    *          console.log(board.info);
-    *      }
-    *      else {
-    *          // log error message
-    *          console.error('Not a smoothieboard!');
-    *      }
-    *  });
-    *
-    *
-    *  // @example sh.network.Scanner - Scanne the network
-    *  // create the scanner instance
-    *  var scanner = sh.network.Scanner();
-    *
-    *  // register events callbacks
-    *  scanner.on('start', function(scan) {
-    *      console.log('scan:', 'start:', scan.total);
-    *  });
-    *
-    *  scanner.on('pause', function(scan) {
-    *      console.log('scan:', 'pause:', scan.scanned, '/', scan.total);
-    *  });
-    *
-    *  scanner.on('resume', function(scan) {
-    *      console.log('scan:', 'resume:', scan.scanned, '/', scan.total);
-    *  });
-    *
-    *  scanner.on('stop', function(scan) {
-    *      console.log('scan:', 'stop:', scan.scanned, '/', scan.total);
-    *  });
-    *
-    *  scanner.on('progress', function(scan) {
-    *      console.log('scan:', 'progress:', scan.scanned, '/', scan.total);
-    *  });
-    *
-    *  scanner.on('board', function(scan, board) {
-    *      console.log('scan:', 'board:', board);
-    *  });
-    *
-    *  scanner.on('end', function(scan) {
-    *      console.log('scan:', 'end:', scan.scanned, '/', scan.total);
-    *      console.log('scan:', 'found:', scan.found, '/', scan.total);
-    *  });
-    *
-    *  // start scan
-    *  scanner.start('192.168.1.100-115');
     * ```
     */
     sh.network.Request = function(settings) {
@@ -621,45 +570,157 @@ var sh = sh || {};
     sh.network.Post.prototype.constructor = sh.network.Post;
 
     /**
-    * On board response.
+    * Custom board event.
     *
-    * @callback sh.Board~onResponse
-    * @param  {object}  result  Request result.
+    * @class
+    * @param  {String}                   name   Event name.
+    * @param  {sh.Board}                 board  Board instance.
+    * @param  {sh.network.RequestEvent}  event  Original `sh.network.RequestEvent` instance.
+    * @param  {Object|null}              data   Event data (depending on the command).
     */
+    sh.BoardEvent = function(name, board, event, data) {
+        // instance factory
+        if (! (this instanceof sh.BoardEvent)) {
+            return new sh.BoardEvent(name, board, event, data);
+        }
+
+        /** @property  {String}  -  Event name. */
+        this.name = name;
+
+        /** @property  {sh.Board}  -  Board instance. */
+        this.board = board;
+
+        /** @property  {Object|null}  -  Event data (depending on the command). */
+        this.data = data || null;
+
+        /** @property  {sh.network.RequestEvent}  -  Original `sh.network.RequestEvent` instance. */
+        this.originalEvent = event;
+    };
 
     /**
     * Board class.
     *
     * @class
-    * @param  {String}               address   Board ip or hostname.
-    * @param  {sh.Board~onResponse}  callback  Function to call on request result.
+    * @param  {String|Object}  address|settings          Board ip or hostname.
+    * @param  {Object}         [settings]                Board settings.
+    * @param  {String}         [settings.address]        Board ip or hostname.
+    * @param  {Integer}        [settings.timeout]        Response timeout in milliseconds.
+    * @param  {Integer}        [settings.watchInterval]  Watch interval in milliseconds.
+    * @param  {Integer}        [settings.watchTimeout]   Watch timeout in milliseconds.
     *
+    * @example
+    * ### Board class usage
+    * ```
+    * // create the board instance
+    *  var board = sh.Board('192.168.1.102');
     *
+    *  // get board version (raw)
+    *  board.Command('version').then(function(event) {
+    *      console.info('board:', event.board);
+    *      console.info('version:', event.originalEvent.response.raw);
+    *  })
+    *  .catch(function(event) {
+    *      console.error('version:', event.name, event);
+    *  });
+    *
+    *  // get board version (parsed)
+    *  board.Version().then(function(event) {
+    *      console.info('board:', event.board);
+    *      console.info('info:', event.data);
+    *  })
+    *  .catch(function(event) {
+    *      console.error('version:', event.name, event);
+    *  });
+    * ```
+    *
+    * @example
+    * ### Board connection
+    * ```
+    * create the board instance
+    * var board = sh.Board('192.168.1.102');
+    *
+    *  register some callbacks
+    * board.on('connect', function(event) {
+    *     console.info('on.connect:', event.board);
+    * })
+    * .on('disconnect', function(event) {
+    *     console.info('on.disconnect:', event.board);
+    * })
+    * .on('reconnect', function(event) {
+    *     console.info('on.reconnect:', event.board);
+    * })
+    * .on('redisconnect', function(event) {
+    *     console.info('on.redisconnect:', event.board);
+    * })
+    * .on('reconnectAttempt', function(event) {
+    *     console.info('on.reconnectAttempt:', event.data.attempts, event.board);
+    *     // disconnect the board after 5 attempts
+    *     if (this.reconnectAttempts == 2) {
+    *         this.Disconnect().then(function(event) {
+    *             console.info('disconnect:', event.board);
+    *         })
+    *         .catch(function(event) {
+    *             console.error('disconnect:', event.name, event);
+    *         });
+    *     }
+    * })
+    * .on('watch', function(event) {
+    *     console.info('on.watch:', event.board);
+    * })
+    * .on('response', function(event) {
+    *     console.info('on.response:', event.board);
+    * })
+    * .on('error', function(event) {
+    *     console.error('on.error:', event.board);
+    * });
+    *
+    *  connect the board
+    * board.Connect().then(function(event) {
+    *     console.info('connect:', event.board);
+    * })
+    * .catch(function(event) {
+    *     console.error('connect:', event.name, event);
+    * });
+    *
+    *  // disconnect the board after 15 seconds
+    *  setTimeout(function() {
+    *
+    *      board.Disconnect().then(function(event) {
+    *          console.info('disconnect:', event.board);
+    *      })
+    *      .catch(function(event) {
+    *          console.error('disconnect:', event.name, event);
+    *      });
+    *
+    *  }, 15000); // 15 sec.
+    * ```
     */
-    sh.Board = function(settings) {
+    sh.Board = function(address, settings) {
         // defaults settings
         settings = settings || {};
 
-        var address  = settings.address;
-        var timeout  = settings.timeout;
-        var callback = settings.callback;
+        // settings provided on first argument
+        if (typeof address === 'object') {
+            settings = address;
+            address  = settings.address;
+        }
 
         // invalid address type
         if (typeof address !== 'string') {
-            throw new Error('Invalid address type.');
+            throw new Error('Address must be a string.');
         }
 
         // Trim whitespaces
         address = address.trim();
 
         // address not provided or too short
-        if (address.length <= 4) {
-            throw new Error('Address too short.');
+        if (!address || address.length <= 4) {
+            throw new Error('Address too short [min.: 4].');
         }
 
         // instance factory
         if (! (this instanceof sh.Board)) {
-            return new sh.Board(settings);
+            return new sh.Board(address, settings);
         }
 
         /**
@@ -677,113 +738,452 @@ var sh = sh || {};
         /**
         * @readonly
         * @property  {Integer}  timeout  Default response timeout in milliseconds.
-        * @default   null
+        * @default   5000
         */
-        this.timeout = timeout;
+        this.timeout = settings.timeout !== undefined ? settings.timeout : 5000;
 
         /**
         * @readonly
-        * @property  {Object}  info         Board info parsed from version command.
-        * @property  {String}  info.branch  Firmware branch.
-        * @property  {String}  info.hash    Firmware hash.
-        * @property  {String}  info.date    Firmware date.
-        * @property  {String}  info.mcu     Board MCU.
-        * @property  {String}  info.clock   Board clock freqency.
+        * @property  {Object|null}  info         Board info parsed from version command.
+        * @property  {String}       info.branch  Firmware branch.
+        * @property  {String}       info.hash    Firmware hash.
+        * @property  {String}       info.date    Firmware date.
+        * @property  {String}       info.mcu     Board MCU.
+        * @property  {String}       info.clock   Board clock freqency.
+        * @default   null
         */
         this.info = null;
 
         /**
         * @readonly
-        * @property  {Boolean}  online  Is online.
-        * @default   null
+        * @property  {Boolean}  online  Is board online.
+        * @default   false
         */
         this.online = false;
+
+        /**
+        * @readonly
+        * @property  {Integer}  lastOnlineTime Last time the board was seen online.
+        * @default   null
+        */
+        this.lastOnlineTime = null;
+
+        /**
+        * @readonly
+        * @property  {Boolean}  online  Is board connected.
+        * @default   false
+        */
+        this.connected = false;
+
+        /**
+        * @readonly
+        * @property  {Integer}  watchTimeoutId Connection timer id.
+        * @default   null
+        */
+        this.watchTimeoutId = null;
+
+        /**
+        * @readonly
+        * @property  {Integer}  watchInterval Connection timer interval.
+        * @default   5000
+        */
+        this.watchInterval = settings.watchInterval || 5000;
+
+        /**
+        * @readonly
+        * @property  {Integer}  watchInterval Connection timeout interval.
+        * @default   5000
+        */
+        this.watchTimeout = settings.watchTimeout || 2000;
+
+        /**
+        * @readonly
+        * @property  {Integer}  reconnectAttempts Number of reconnection attempts.
+        * @default   0
+        */
+        this.reconnectAttempts = 0;
+
+        /**
+        * @readonly
+        * @property  {Integer}  connections Number of successful connections from the first connection.
+        * @default   0
+        */
+        this.connections = 0;
+
+        /**
+        * @readonly
+        * @property  {Integer}  reconnections Number of successful reconnections from the last connection.
+        * @default   0
+        */
+        this.reconnections = 0;
+
+        /**
+        * @protected
+        * @property  {Object}  -  Registred callbacks.
+        */
+        this._on = {};
+    };
+
+    // -------------------------------------------------------------------------
+
+    /**
+    * On request response.
+    *
+    * @callback sh.Board~onResponse
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On request error.
+    *
+    * @callback sh.Board~onError
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On board connect.
+    *
+    * @callback sh.Board~onConnect
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On board disconnect.
+    *
+    * @callback sh.Board~onDisconnect
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On board reconnect.
+    *
+    * @callback sh.Board~onReconnect
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On board redisconnect.
+    *
+    * @callback sh.Board~onRedisconnect
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    /**
+    * On watch board.
+    *
+    * @callback sh.Board~onWatch
+    * @param  {sh.BoardEvent}  event  Board event.
+    */
+
+    // -------------------------------------------------------------------------
+
+    /**
+    * Register an event callback.
+    *
+    * @method
+    * @param  {String}    event     Event name.
+    * @param  {Function}  callback  Function to call on event is fired.
+    * @return {self}
+    *
+    * @callbacks
+    * | Name | Type | Description |
+    * | ---- | ---- | ----------- |
+    * | response      | {@link sh.Board~onResponse|onResponse}         | Called on request response.   |
+    * | error         | {@link sh.Board~onError|onError}               | Called on request error.      |
+    * | connect       | {@link sh.Board~onConnect|onConnect}           | Called on board connect.      |
+    * | disconnect    | {@link sh.Board~onDisconnect|onDisconnect}     | Called on board disconnect.   |
+    * | reconnect     | {@link sh.Board~onReconnect|onReconnect}       | Called on board reconnect.    |
+    * | redisconnect  | {@link sh.Board~onRedisconnect|onRedisconnect} | Called on board redisconnect. |
+    * | watch         | {@link sh.Board~onWatch|onWatch}               | Called on watch board.        |
+    */
+    sh.Board.prototype.on = function(event, callback) {
+        // register callback
+        this._on[event] = callback;
+
+        // chainable
+        return this;
+    };
+
+    /**
+    * Trigger an user defined callback with the scope of this class.
+    *
+    * @method
+    * @protected
+    * @param  {String}  name   Event name.
+    * @param  {String}  event  Original event.
+    * @param  {Mixed}   data   Event data.
+    * @return {sh.BoardEvent}
+    */
+    sh.Board.prototype._trigger = function(name, event, data) {
+        // to board event
+        event = sh.BoardEvent(name, this, event, data);
+
+        // if defined, call user callback with the scope of this instance
+        this._on[name] && this._on[name].call(this, event);
+
+        // return the board event
+        return event;
+    };
+
+    // -------------------------------------------------------------------------
+
+    /**
+    * Send a command to the board.
+    *
+    * @method
+    * @param   {String}           command  Command to send.
+    * @param   {Integer}          timeout  Response timeout.
+    * @return  {sh.network.Post}  Promise
+    */
+    sh.Board.prototype.Command = function(command, timeout) {
+        // default response timeout
+        if (timeout === undefined) {
+            timeout = this.timeout;
+        }
 
         // self alias
         var self = this;
 
-        // Check the board version
-        this.Version(callback);
-    };
-
-    /**
-    * Send command line and return a Promise.
-    *
-    * @method
-    * @param   {String}           command  Command line.
-    * @param   {Integer}          timeout  Connection timeout in milliseconds.
-    * @return  {sh.network.Post}  Promise
-    */
-    sh.Board.prototype.Command = function(command, timeout) {
-        timeout = timeout === undefined ? this.timeout : timeout;
+        // return Post request (promise)
         return sh.network.Post({
             url    : 'http://' + this.address + '/command',
             data   : command.trim() + '\n',
             timeout: timeout
+        })
+        .then(function(event) {
+            // set online flag
+            self.online = true;
+
+            // set last online time
+            self.lastOnlineTime = Date.now();
+
+            // trigger event
+            var board_event = self._trigger('response', event);
+
+            // resolve the promise
+            return Promise.resolve(board_event);
+        })
+        .catch(function(event) {
+            // unset online flag
+            self.online = false;
+
+            // trigger event
+            var board_event = self._trigger('error', event);
+
+            // reject the promise
+            return Promise.reject(board_event);
         });
+    };
+
+    // -------------------------------------------------------------------------
+
+    /**
+    * Send ping command (ok).
+    *
+    * @method
+    * @param   {Integer}          timeout  Response timeout.
+    * @return  {sh.network.Post}  Promise
+    */
+    sh.Board.prototype.Ping = function(timeout) {
+        return this.Command('ok', timeout);
     };
 
     /**
     * Get the board version.
     *
     * @method
-    * @param   {sh.Board~onResponse}  callback  Function to call on request result.
-    * @return  {sh.network.Post}      Promise
+    * @param   {Integer}          timeout  Response timeout.
+    * @return  {sh.network.Post}  Promise
     */
-    sh.Board.prototype.Version = function(callback) {
-        // Self alias
+    sh.Board.prototype.Version = function(timeout) {
+        // self alias
         var self = this;
 
-        // Make the request
-        var promise = this.Command('version').then(function(event) {
-            // error flag true by default
-            var error = true;
+        // get board version (raw)
+        return this.Command('version').then(function(event) {
+            // raw version string
+            // expected : Build version: edge-94de12c, Build date: Oct 28 2014 13:24:47, MCU: LPC1769, System Clock: 120MHz
+            var raw_version = event.originalEvent.response.raw;
 
             // version pattern
-            // expected : Build version: edge-94de12c, Build date: Oct 28 2014 13:24:47, MCU: LPC1769, System Clock: 120MHz
-            var pattern = /Build version: (.*), Build date: (.*), MCU: (.*), System Clock: (.*)/;
+            var version_pattern = /Build version: (.*), Build date: (.*), MCU: (.*), System Clock: (.*)/;
 
             // test the pattern
-            var matches = event.response.raw.match(pattern);
+            var info = raw_version.match(version_pattern);
 
-            if (matches) {
+            if (info) {
                 // split branch-hash on dash
-                var branch = matches[1].split('-');
+                var branch = info[1].split('-');
 
-                // no error
-                error = false;
-
-                // response object
+                // update board info
                 self.info = {
-                    branch: branch[0],
-                    hash  : branch[1],
-                    date  : matches[2],
-                    mcu   : matches[3],
-                    clock : matches[4]
+                    branch: branch[0].trim(),
+                    hash  : branch[1].trim(),
+                    date  : info[2].trim(),
+                    mcu   : info[3].trim(),
+                    clock : info[4].trim()
                 };
-
-                // set online flag
-                self.online = true;
             }
 
-            // return result for final then
-            return { event: event, error: error, data: self.info };
-        })
-        .catch(function(event) {
-            // set online flag
-            self.online = false;
-
-            // return error for final then
-            return { event: event, error: true, data: null };
+            // resolve the promise
+            return Promise.resolve(sh.BoardEvent('version', self, event, self.info));
         });
+    };
 
-        // If final user callback
-        callback && promise.then(function(event) {
-            return callback.call(self, event);
+    // -------------------------------------------------------------------------
+
+    /**
+    * Watch periodicaly if the board is online.
+    *
+    * @protected
+    * @method
+    */
+    sh.Board.prototype._watchConnection = function() {
+        // not connected
+        if (! this.connected) {
+            throw new Error('Not connected.');
+        }
+
+        // next interval offset
+        var intervalOffset = Date.now() - this.lastOnlineTime;
+
+        // next interval timeout
+        var nextInterval = this.watchInterval;
+
+        // adjust interval (save some request, anti flood)
+        if (intervalOffset < this.watchInterval) {
+            nextInterval += intervalOffset;
+        }
+
+        // self alias
+        var self = this;
+
+        // new timeout
+        this.watchTimeoutId = setTimeout(function() {
+            // board online status before ping
+            var online = self.online;
+
+            // send ping command
+            self.Ping(self.watchTimeout).then(function(event) {
+                // if online flag as changed
+                if (! online) {
+                    // reset reconnection attempts
+                    self.reconnectAttempts = 0;
+
+                    // increment reconnections counter
+                    self.reconnections++;
+
+                    // trigger events
+                    self._trigger('connect', event);
+                    self._trigger('reconnect', event);
+                }
+
+                // return the event
+                return event;
+            })
+            .catch(function(event) {
+                // if online flag as changed
+                if (! online) {
+                    // increment reconnection attempts
+                    self.reconnectAttempts++;
+                    self._trigger('reconnectAttempt', event, {
+                        attempts: self.reconnectAttempts
+                    });
+                }
+                else {
+                    // trigger events
+                    self._trigger('disconnect', event);
+
+                    if (self.reconnections > 0) {
+                        self._trigger('redisconnect', event);
+                    }
+                }
+
+                // return the event
+                return event;
+            })
+            .then(function(event) {
+                // not connected
+                if (! self.connected) {
+                    // stop watching
+                    return null;
+                }
+
+                // trigger watch event
+                self._trigger('watch', event);
+
+                // next connection watch
+                self._watchConnection();
+            });
+
+        }, nextInterval);
+    };
+
+    /**
+    * Connect the board (watch periodicaly if the board is online).
+    *
+    * @method
+    * @param   {Integer}          timeout  Connection timeout.
+    * @return  {sh.network.Post}  Promise
+    */
+    sh.Board.prototype.Connect = function(timeout) {
+        // already connected
+        if (this.connected) {
+            throw new Error('Already connected.');
+        }
+
+        // reset reconnection attempts
+        this.reconnectAttempts = 0;
+
+        // self alias
+        var self = this;
+
+        // get board version
+        return this.Version(timeout).then(function(event) {
+            // set connected flag
+            self.connected = true;
+
+            // reset reconnection counter
+            self.reconnections = 0;
+
+            // increment connections counter
+            self.connections++;
+
+            // start watching
+            self._watchConnection();
+
+            // trigger event
+            var board_event = self._trigger('connect', event);
+
+            // resolve the promise
+            return Promise.resolve(board_event);
         });
+    };
 
-        // Return the promise
-        return promise;
+    /**
+    * Disconnect the board (stop watching periodicaly if the board is online).
+    *
+    * @method
+    * @return
+    */
+    sh.Board.prototype.Disconnect = function() {
+        // not connected
+        if (! this.connected) {
+            throw new Error('Not connected.');
+        }
+
+        // stop watching the connection
+        clearTimeout(this.watchTimeoutId);
+        this.watchTimeoutId = null;
+
+        // set connected flag
+        this.connected = false;
+
+        // trigger event
+        var board_event = this._trigger('disconnect');
+
+        // resolve the promise
+        return Promise.resolve(board_event);
     };
 
     /**
@@ -798,44 +1198,40 @@ var sh = sh || {};
     * ### Scanne the network
     * ```
     * // create the scanner instance
-    * var scanner = sh.network.Scanner();
+    *  var scanner = sh.network.Scanner();
     *
-    * // register events callbacks
-    * scanner.on('start', function(scan) {
-    *     console.log('scan:', 'start:', scan.total);
-    * });
+    *  // register events callbacks
+    *  scanner.on('start', function(scan) {
+    *      console.log('scan:', 'start:', scan.total);
+    *  });
     *
-    * scanner.on('pause', function(scan) {
-    *     console.log('scan:', 'pause:', scan.scanned, '/', scan.total);
-    * });
+    *  scanner.on('pause', function(scan) {
+    *      console.log('scan:', 'pause:', scan.scanned, '/', scan.total);
+    *  });
     *
-    * scanner.on('resume', function(scan) {
-    *     console.log('scan:', 'resume:', scan.scanned, '/', scan.total);
-    * });
+    *  scanner.on('resume', function(scan) {
+    *      console.log('scan:', 'resume:', scan.scanned, '/', scan.total);
+    *  });
     *
-    * scanner.on('stop', function(scan) {
-    *     console.log('scan:', 'stop:', scan.scanned, '/', scan.total);
-    * });
+    *  scanner.on('stop', function(scan) {
+    *      console.log('scan:', 'stop:', scan.scanned, '/', scan.total);
+    *  });
     *
-    * scanner.on('progress', function(scan) {
-    *     console.log('scan:', 'progress:', scan.scanned, '/', scan.total);
-    * });
+    *  scanner.on('progress', function(scan) {
+    *      console.log('scan:', 'progress:', scan.scanned, '/', scan.total);
+    *  });
     *
-    * scanner.on('board', function(scan, board) {
-    *     console.log('scan:', 'board:', board);
-    * });
+    *  scanner.on('board', function(scan, board) {
+    *      console.log('scan:', 'board:', board);
+    *  });
     *
-    * scanner.on('end', function(scan) {
-    *     console.log('scan:', 'end:', scan.scanned, '/', scan.total);
-    *     console.log('scan:', 'found:', scan.found, '/', scan.total);
-    * });
+    *  scanner.on('end', function(scan) {
+    *      console.log('scan:', 'end:', scan.scanned, '/', scan.total);
+    *      console.log('scan:', 'found:', scan.found, '/', scan.total);
+    *  });
     *
-    * // start scan
-    * scanner.start('192.168.1.100-105');
-    *
-    * setTimeout(function() {
-    *     scanner.stop();
-    * }, 10000);
+    *  // start scan
+    *  scanner.start('192.168.1.100-115');
     * ```
     */
     sh.network.Scanner = function(settings) {
@@ -868,17 +1264,17 @@ var sh = sh || {};
 
         /**
         * @readonly
-        * @property  {Integer}  timeout  Default response timeout in milliseconds.
+        * @property  {Integer}  timeout  Default scan response timeout in milliseconds.
         * @default 1000
         */
         this.timeout = settings.timeout === undefined ? 1000 : settings.timeout;
 
         /**
         * @readonly
-        * @property  {Integer}  timeout  Default response timeout in milliseconds.
+        * @property  {Integer}  boardTimeout  Default board response timeout in milliseconds.
         * @default 1000
         */
-        this.board_timeout = settings.board_timeout === undefined ? 5000 : settings.board_timeout;
+        this.boardTimeout = settings.boardTimeout === undefined ? 5000 : settings.boardTimeout;
 
         /**
         * @readonly
@@ -974,14 +1370,14 @@ var sh = sh || {};
     * @return {self}
     *
     * @callbacks
-    * | Name    | Type | Description |
-    * | ------- | ---- | ----------- |
-    * | start   | {@link sh.network.Scanner~onStart|onStart}   | Called before scan start.  |
-    * | pause   | {@link sh.network.Scanner~onPause|onPause}   | Called after scan pause.   |
-    * | resume  | {@link sh.network.Scanner~onResume|onResume} | Called before scan resume. |
-    * | stop    | {@link sh.network.Scanner~onStop|onStop}     | Called after scan stop.    |
-    * | stop    | {@link sh.network.Scanner~onBoard|onBoard}   | Called after board found.  |
-    * | stop    | {@link sh.network.Scanner~onEnd|onEnd}       | Called after scan end.     |
+    * | Name | Type | Description |
+    * | -----| ---- | ----------- |
+    * | start  | {@link sh.network.Scanner~onStart|onStart}   | Called before scan start.  |
+    * | pause  | {@link sh.network.Scanner~onPause|onPause}   | Called after scan pause.   |
+    * | resume | {@link sh.network.Scanner~onResume|onResume} | Called before scan resume. |
+    * | stop   | {@link sh.network.Scanner~onStop|onStop}     | Called after scan stop.    |
+    * | stop   | {@link sh.network.Scanner~onBoard|onBoard}   | Called after board found.  |
+    * | stop   | {@link sh.network.Scanner~onEnd|onEnd}       | Called after scan end.     |
     */
     sh.network.Scanner.prototype.on = function(event, callback) {
         // register callback
@@ -1145,45 +1541,46 @@ var sh = sh || {};
             return true;
         }
 
+        // increment scanned counter
+        this.scanned++;
+
         // self alias
         var self  = this;
 
-        // board object
         try {
+            // create board instance
             var board = sh.Board({
-                address : address,
-                timeout : this.timeout,
-                callback: function(result) {
-                    // increment scanned counter
-                    self.scanned++;
+                address: address,
+                timeout: this.timeout
+            });
 
-                    // no error
-                    if (! result.error) {
-                        // increment found counter
-                        self.found++;
+            // get board version
+            board.Version().then(function(event) {
+                // increment counters
+                self.found++;
 
-                        // add the board
-                        self.boards[address] = board;
+                // add the board
+                self.boards[address] = event.board;
 
-                        // set timeout to infinity
-                        board.timeout = self.board_timeout;
+                // set board default timeout
+                event.board.timeout = self.boardTimeout;
 
-                        // trigger board event
-                        self._trigger('board', [self, board]);
-                    }
+                // trigger board event
+                self._trigger('board', [self, event.board]);
+            })
+            .catch(function(event) {
+                // return event
+                return event;
+            })
+            .then(function(event) {
+                // trigger progress event
+                self._trigger('progress', [self]);
 
-                    // trigger progress event
-                    self._trigger('progress', [self]);
-
-                    // process queue
-                    self._processQueue();
-                }
+                // process queue
+                self._processQueue();
             });
         }
         catch(error) {
-            // increment scanned counter
-            self.scanned++;
-
             // trigger progress event
             self._trigger('progress', [self]);
 
