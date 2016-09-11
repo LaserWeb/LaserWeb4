@@ -187,16 +187,21 @@
                 address = http_store.addresses[i];
 
                 try {
-                    sh.Board({
-                        address : address,
-                        callback: function(result) {
-                            // Add the known board (this = board)
-                            self.http_boards.push(this);
-                        }
+                    // Create board instance
+                    var board = sh.Board(address);
+
+                    // Get board version
+                    board.Version().then(function(event) {
+                        // Add the known and found board
+                        self.http_boards.push(event.board);
+                    })
+                    .catch(function(event) {
+                        // Add the known board
+                        self.http_boards.push(event.board);
                     });
                 }
                 catch(error) {
-                    // ...
+                    //console.error(error);
                 }
             }
 
@@ -587,7 +592,7 @@
 
                 // Update progression
                 self.http_scann_progression(scanner);
-                self.http_scann_percent(parseInt(scanner.scanned/scanner.total*100))
+                self.http_scann_percent(parseInt(scanner.scanned / scanner.total * 100))
             });
 
             this.http_scanner.on('board', function(scanner, board) {
@@ -650,6 +655,49 @@
         // HTTP connection
         // ---------------------------------------------------------------------
 
+        // Return an board by address or create new one if online.
+        get_http_board: function(address, callback) {
+            // Boards collection
+            var board, boards = this.http_boards();
+
+            // For each board
+            for (var i = 0, il = boards.length; i < il; i++) {
+                // Current board
+                board = boards[i];
+
+                // If the two address match
+                if (board.address === address) {
+                    // Call user callback
+                    callback.call(this, board);
+                    return;
+                }
+            }
+
+            try {
+                // Self alias
+                var self = this;
+
+                // Create board instance
+                board = sh.Board(address);
+
+                // Get board version
+                board.Version().then(function(event) {
+                    // add found board
+                    self.http_addresses.push(event.board.address);
+                    self.http_boards.push(event.board);
+
+                    // Call user callback
+                    callback.call(self, event.board);
+                })
+                .catch(function(event) {
+                    callback.call(self, null);
+                });
+            }
+            catch(error) {
+                callback.call(this, null);
+            }
+        },
+
         // Called when the connect button is clicked.
         http_connect: function(obj, evt) {
             // Debug message...
@@ -657,6 +705,33 @@
 
             // Publish a message to notify all modules
             this.pub('layout.com.http.connect');
+
+            // Set waiting connection flag
+            this.wait_connection(true);
+
+            // Get input address
+            var address = this.http_board_address();
+
+            // Try to get board index in known boards array
+            var self = this;
+
+            this.get_http_board(address, function(board) {
+                // If not already set
+                if (! board) {
+                    // Reset waiting connection flag
+                    self.wait_connection(false);
+
+                    // Error message
+                    self.error('Invalid board address!');
+                }
+                else {
+                    // Store new address
+                    self.store('http', { last_address: address });
+
+                    // Connect the board
+                    board.Connect();
+                }
+            });
         },
 
         // Called when the disconnect button is clicked.
