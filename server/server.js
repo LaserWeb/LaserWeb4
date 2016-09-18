@@ -4,10 +4,18 @@ var serial = require('./servers/serial');
 var app    = require('http').createServer(http.handler);
 var io     = require('socket.io');
 var os     = require('os');
+var webpack = require('webpack');
+var WebpackDevServer = require('webpack-dev-server');
 
-app.listen(config.port, function() {
-    // Print the server footprint
-    console.log(http.footprint);
+new WebpackDevServer(webpack(config), {
+    contentBase: 'app',
+    publicPath : config.output.publicPath,
+    hot : true,
+    historyApiFallback : true
+}).listen(config.port, '0.0.0.0', function(err, result) {
+    if (err) {
+        return console.log(err);
+    }
 
     // List all available IP
     var interfaces = os.networkInterfaces();
@@ -27,10 +35,4 @@ app.listen(config.port, function() {
 
     // Print default localhost address
     console.log('Listening on http://localhost:%s', config.port);
-
-    // Start the socket io connection
-    var ws = io(app, { path: '/vendor/socket.io' });
-
-    // Attach serial interface on connection
-    ws.on('connection', serial.attach);
 });
