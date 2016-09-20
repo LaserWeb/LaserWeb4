@@ -1,37 +1,42 @@
 {
-    "name": "laserweb",
-    "version": "0.4.0",
-    "license": "AGPL-3.0",
-    "description": "A fully featured web ui for laser cutter/engravers, reprap and other 3d printers.",
-    "keywords": [
+  "name": "laserweb",
+  "version": "0.4.0",
+  "license": "AGPL-3.0",
+  "description": "A fully featured web ui for laser cutter/engravers, reprap and other 3d printers.",
+  "keywords": [
         "laser", "cnc", "laserweb", "cncweb", "grbl", "smoothieware", "threejs",
         "dxf", "svg", "stl", "raster", "lasercutter", "engrave"
-    ],
-    "author": "Peter van der Walt <peter.plaaswerf@gmail.com>",
-    "contributors": [
-        "Peter van der Walt <peter.plaaswerf@gmail.com>",
-        "Sébastien Mischler (skarab/Lautr3k) <sebastien@onlfait.ch>"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/openhardwarecoza/LaserWeb4.git"
-    },
-    "homepage": "https://github.com/openhardwarecoza/LaserWeb4",
-    "bugs": {
-        "url": "https://github.com/openhardwarecoza/LaserWeb4/issues"
-    },
-    "main": "server.js",
-    "dependencies": {
-        "babel-core": "^6.14.0",
-        "babel-loader": "^6.2.5",
-        "babel-preset-es2015": "^6.14.0",
-        "babel-preset-react": "^6.11.1",
-        "babel-preset-stage-0": "^6.5.0",
-        "react": "^15.3.1",
-        "react-hot-loader": "^3.0.0-beta.4",
-        "serialport": "*",
-        "socket.io": "*",
-        "webpack": "^1.13.2",
-        "webpack-dev-server": "^1.16.1"
-    }
+  ],
+  "author": "Peter van der Walt <peter.plaaswerf@gmail.com>",
+  "contributors": [
+    "Peter van der Walt <peter.plaaswerf@gmail.com>",
+    "Sébastien Mischler (skarab/Lautr3k) <sebastien@onlfait.ch>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openhardwarecoza/LaserWeb4.git"
+  },
+  "homepage": "https://github.com/openhardwarecoza/LaserWeb4",
+  "bugs": {
+    "url": "https://github.com/openhardwarecoza/LaserWeb4/issues"
+  },
+  "main": "server.js",
+  "dependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "babel-preset-stage-0": "^6.5.0",
+    "node-uuid": "^1.4.7",
+    "react": "^15.3.1",
+    "react-hot-loader": "^3.0.0-beta.4",
+    "react-redux": "^4.4.5",
+    "redux": "^3.6.0",
+    "redux-logger": "^2.6.1",
+    "redux-undo": "^0.6.1",
+    "serialport": "*",
+    "socket.io": "*",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.16.1"
+  }
 }

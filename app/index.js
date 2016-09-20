@@ -3,28 +3,45 @@
 // hot-reload the main app and know nothing about panes.
 
 import {initCam} from './laserweb/layout/panes/cam/cam.js';
-import React, {Component} from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
+import {connect, Provider} from 'react-redux';
+import {applyMiddleware, createStore} from 'redux';
+import logger from 'redux-logger';
+import undoable, {ActionCreators} from 'redux-undo';
 
-export class CamPaneContainer extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {};
-        this.changed = () => this.forceUpdate();
-    }
+const hotCam = (state, action) => {
+    return require('./laserweb/layout/panes/cam/cam.js').cam(state, action);
+};
 
-    render() {
-        const CamPane = require('./laserweb/layout/panes/cam/cam.js').CamPane;
-        return (<CamPane state={this.state} changed={this.changed}/>);
-    }
+const middleware = applyMiddleware(logger());
+const store = createStore(undoable(hotCam), middleware);
+
+function HotCamPane(props) {
+    console.log('...', props)
+    const CamPane = require('./laserweb/layout/panes/cam/cam.js').CamPane;
+    return (
+        <div>
+            <button onClick={e => props.dispatch(ActionCreators.undo()) }>Undo</button>
+            <button onClick={e => props.dispatch(ActionCreators.redo()) }>Redo</button>
+            <CamPane cam={props.cam}/>
+        </div>
+    );
 }
+HotCamPane = connect(
+    store => ({ cam: store.present })
+)(HotCamPane);
 
 let state = {};
 let camPane;
 function renderCamPane() {
-    const CamPane = require('./laserweb/layout/panes/cam/cam.js').CamPane;
-    ReactDOM.render(<CamPaneContainer/>, camPane);
+    ReactDOM.render((
+        <Provider store={store}>
+            <HotCamPane/>
+        </Provider>
+    ), camPane);
 }
+
 initCam(laserweb, cp => {
     camPane = cp;
     renderCamPane();

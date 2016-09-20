@@ -3,6 +3,11 @@ var webpack = require('webpack');
 
 var port = process.env.PORT || 8080
 
+var babelSettings = {
+    "presets": ["es2015", "stage-0", "react"],
+    "plugins": ["react-hot-loader/babel"]
+};
+
 module.exports = {
     version  : '0.0.1',
     name     : 'LaserWebServer',
@@ -10,7 +15,8 @@ module.exports = {
     main_file: 'index.html',
     port: port,
 
-    devtool: 'eval',
+    devtool: 'source-map',
+    debug: true,
     entry: [
         'webpack-dev-server/client?http://0.0.0.0:' + port,
         'webpack/hot/only-dev-server',
@@ -29,10 +35,7 @@ module.exports = {
             includes: [
                 './index.js',
                 path.join(__dirname, '../app')],
-            query: {
-                "presets": ["es2015", "stage-0", "react"],
-                "plugins": ["react-hot-loader/babel"]
-            },
+            query: babelSettings,
         }]
     }
 };
