@@ -17,36 +17,36 @@ const hotCam = (state, action) => {
 const middleware = applyMiddleware(logger());
 const store = createStore(undoable(hotCam), middleware);
 
-function HotCamPane(props) {
+function HotCam(props) {
     console.log('...', props)
-    const CamPane = require('./laserweb/layout/panes/cam/cam.js').CamPane;
+    const Cam = require('./laserweb/layout/panes/cam/cam.js').Cam;
     return (
         <div>
             <button onClick={e => props.dispatch(ActionCreators.undo()) }>Undo</button>
             <button onClick={e => props.dispatch(ActionCreators.redo()) }>Redo</button>
-            <CamPane cam={props.cam}/>
+            <Cam cam={props.cam}/>
         </div>
     );
 }
-HotCamPane = connect(
+HotCam = connect(
     store => ({ cam: store.present })
-)(HotCamPane);
+)(HotCam);
 
 let state = {};
-let camPane;
-function renderCamPane() {
+let cam;
+function renderCam() {
     ReactDOM.render((
         <Provider store={store}>
-            <HotCamPane/>
+            <HotCam/>
         </Provider>
-    ), camPane);
+    ), cam);
 }
 
 initCam(laserweb, cp => {
-    camPane = cp;
-    renderCamPane();
+    cam = cp;
+    renderCam();
 });
 
 if (module.hot) {
-    module.hot.accept('./laserweb/layout/panes/cam/cam.js', renderCamPane);
+    module.hot.accept('./laserweb/layout/panes/cam/cam.js', renderCam);
 }

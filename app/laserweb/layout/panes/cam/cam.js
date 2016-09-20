@@ -16,17 +16,18 @@ import {connect} from 'react-redux';
 // TODO: There's probably an existing library which does this
 ////////////////////////////////////////////////////////////////////////////////
 
-export const setAttrs = (objectType) => {
+// id is ignored for objects which don't have an id
+export const setAttrs = objectType => {
     let type = 'SET_' + objectType.toUpperCase() + '_ATTRS';
-    return (id, attrs) => ({ type, id, attrs });
+    return (attrs, id) => ({ type, id, attrs });
 };
 
-export const add = (objectType) => {
+export const add = objectType => {
     let type = 'ADD_' + objectType.toUpperCase();
-    return (attrs) => ({ type, id: uuid.v4(), attrs });
+    return (attrs) => ({ type, attrs: {...attrs, id: uuid.v4() } });
 };
 
-export const remove = (objectType) => {
+export const remove = objectType => {
     let type = 'REMOVE_' + objectType.toUpperCase();
     return (id) => ({ type, id });
 };
@@ -38,28 +39,46 @@ export const remove = (objectType) => {
 // TODO: There's probably an existing library which does this
 ////////////////////////////////////////////////////////////////////////////////
 
-export const reduceObjectArray = (objectType, defaultValue) => {
+// Does nothing, except return defaultValue if needed
+export const reduceObject = defaultValue => (state = defaultValue) => state;
+
+export const reduceSetAttrs = (objectType, reducer) => {
+    let add = 'ADD_' + objectType.toUpperCase();
+    let setAttrs = 'SET_' + objectType.toUpperCase() + '_ATTRS';
+    return (state, action) => {
+        if (action.type === add)
+            return Object.assign({}, reducer(undefined, action), action.attrs);
+        else if (action.type === setAttrs)
+            return Object.assign({}, state, action.attrs);
+        else
+            return reducer(state, action);
+    };
+};
+
+export const reduceSetAttrsWithId = (objectType, reducer) => {
+    let add = 'ADD_' + objectType.toUpperCase();
+    let setAttrs = 'SET_' + objectType.toUpperCase() + '_ATTRS';
+    return (state, action) => {
+        if (action.type === add)
+            return Object.assign({}, reducer(undefined, action), action.attrs);
+        else if (action.type === setAttrs && action.id === state.id)
+            return Object.assign({}, state, action.attrs);
+        else
+            return reducer(state, action);
+    };
+};
+
+export const reduceObjectArray = (objectType, reducer) => {
     let add = 'ADD_' + objectType.toUpperCase();
     let remove = 'REMOVE_' + objectType.toUpperCase();
-    let setAttrs = 'SET_' + objectType.toUpperCase() + '_ATTRS';
     return (state = [], action) => {
         switch (action.type) {
             case add:
-                return [
-                    ...state,
-                    Object.assign({}, defaultValue, action.attrs, { id: action.id })
-                ];
+                return [...state, reducer(undefined, action)];
             case remove:
                 return state.filter(o => o.id !== action.id);
-            case setAttrs:
-                return state.map(o => {
-                    if (o.id === action.id)
-                        return Object.assign({}, o, action.attrs);
-                    else
-                        return o;
-                });
             default:
-                return state;
+                return state.map(o => reducer(o, action));
         }
     };
 };
@@ -72,16 +91,23 @@ const setOperationAttrs = setAttrs('operation');
 const addOperation = add('operation');
 const removeOperation = remove('operation');
 
-const operations = reduceObjectArray('operation', {
-    camToolDia: 6.35,
-    camZClearance: 10,
-    camDragOffset: 0.1,
-    camVDia: 10,
-    camVHeight: 10,
-    camVAngle: 90,
-    camLaserPower: 100,
-    camLaserDiameter: 0.1,
-});
+const operation =
+    reduceSetAttrsWithId('operation',
+        reduceObject({
+            camToolDia: 6.35,
+            camZClearance: 10,
+            camDragOffset: 0.1,
+            camVDia: 10,
+            camVHeight: 10,
+            camVAngle: 90,
+            camLaserPower: 100,
+            camLaserDiameter: 0.1,
+            camZStep: 5,
+            camZDepth: 25,
+            camFeedrate: 6,
+            camPlungerate: 2,
+        }));
+export const operations = reduceObjectArray('operation', operation);
 
 export const cam = (state = {}, action) => {
     return {
@@ -100,7 +126,7 @@ function NumberField({object, field, description, units, setAttrs, dispatch, ...
             <input
                 type="number"
                 value={object[field]}
-                onChange={e => dispatch(setAttrs(object.id, { [field]: Number(e.target.value) })) }
+                onChange={e => dispatch(setAttrs({ [field]: Number(e.target.value) }, object.id)) }
                 {...rest}
                 />
             <span className="input-group-addon">{units}</span>
@@ -116,29 +142,40 @@ function Operation({op, dispatch}) {
                 <label className="control-label">Tool Options
                     <button onClick={e => dispatch(removeOperation(op.id)) }>Remove Operation</button>
                 </label>
-                <NumberField field="camToolDia"       units="mm"  description="Endmill Diameter"          step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camZClearance"    units="mm"  description="Z Safe Height"             step="any" min="1"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camDragOffset"    units="mm"  description="Drag Knife: Center Offset" step="0.1" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camVDia"          units="mm"  description="V Bit: Diameter"           step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camVHeight"       units="mm"  description="V Bit: Height"             step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camVAngle"        units="deg" description="V Bit: V Angle"            step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
-                <NumberField field="camLaserPower"    units="%"   description="Laser: Power"              step="any" min="1"   max="100" object={op} setAttrs={setOperationAttrs} className="form-control"/>
-                <NumberField field="camLaserDiameter" units="mm"  description="Laser: Diameter"           step="0.1" min="0.1" max="5"   object={op} setAttrs={setOperationAttrs} className="form-control"/>
+                <NumberField field="camToolDia"       units="mm"   description="Endmill Diameter"          step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camZClearance"    units="mm"   description="Z Safe Height"             step="any" min="1"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camDragOffset"    units="mm"   description="Drag Knife: Center Offset" step="0.1" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camVDia"          units="mm"   description="V Bit: Diameter"           step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camVHeight"       units="mm"   description="V Bit: Height"             step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camVAngle"        units="deg"  description="V Bit: V Angle"            step="any" min="0"             object={op} setAttrs={setOperationAttrs} className="form-control input-sm"/>
+                <NumberField field="camLaserPower"    units="%"    description="Laser: Power"              step="any" min="1"   max="100" object={op} setAttrs={setOperationAttrs} className="form-control"/>
+                <NumberField field="camLaserDiameter" units="mm"   description="Laser: Diameter"           step="0.1" min="0.1" max="5"   object={op} setAttrs={setOperationAttrs} className="form-control"/>
+            </div>
 
+            <div className="form-group inputcnc inputlaser">
+                <label>Operation Depth</label>
+                <NumberField field="camZStep"         units="mm"   description="Cut Depth per pass"        step="1"   min="0"             object={op} setAttrs={setOperationAttrs} className="form-control"/>
+                <NumberField field="camZDepth"        units="mm"   description="Cut Depth Final"           step="1"   min="0"             object={op} setAttrs={setOperationAttrs} className="form-control"/>
+            </div>
+
+            <div className="form-group">
+                <label>Feedrate</label>
+                <NumberField field="camFeedrate"      units="mm/s" description="Feedrate: Cut"             step="1"   min="0"             object={op} setAttrs={setOperationAttrs} className="form-control"/>
+                <NumberField field="camPlungerate"    units="mm/s" description="Feedrate: Plunge"          step="1"   min="0"             object={op} setAttrs={setOperationAttrs} className="form-control"/>
             </div>
         </div>
     );
 }
 Operation = connect()(Operation);
 
-export function CamPane({cam, dispatch}) {
+export function Cam({cam, dispatch}) {
     return (
         <div>
             <button onClick={e => dispatch(addOperation()) }>Add Operation</button>
             {cam.operations.map(op => <Operation key={op.id} op={op}/>) }
         </div>);
 }
-CamPane = connect()(CamPane);
+Cam = connect()(Cam);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Hook up to rest of system; this will probably go away when entire system is
