@@ -18,7 +18,6 @@ const middleware = applyMiddleware(logger());
 const store = createStore(undoable(hotCam), middleware);
 
 function HotCam(props) {
-    console.log('...', props)
     const Cam = require('./laserweb/layout/panes/cam/cam.js').Cam;
     return (
         <div>
@@ -34,10 +33,11 @@ HotCam = connect(
 
 let state = {};
 let cam;
+let updateCounter = 0;  // hack to workaround hot reloading problem
 function renderCam() {
     ReactDOM.render((
         <Provider store={store}>
-            <HotCam/>
+            <HotCam updateCounter={++updateCounter}/>
         </Provider>
     ), cam);
 }

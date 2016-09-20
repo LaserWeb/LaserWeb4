@@ -15,7 +15,9 @@ module.exports = {
     main_file: 'index.html',
     port: port,
 
-    devtool: 'source-map',
+    // 'source-map' full debugging
+    // 'eval'       faster rebuild and hot reload
+    devtool: 'eval',
     debug: true,
     entry: [
         'webpack-dev-server/client?http://0.0.0.0:' + port,
