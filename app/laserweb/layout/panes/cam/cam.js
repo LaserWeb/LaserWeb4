@@ -16,20 +16,20 @@ import {connect} from 'react-redux';
 // TODO: There's probably an existing library which does this
 ////////////////////////////////////////////////////////////////////////////////
 
-// id is ignored for objects which don't have an id
-export const setAttrs = objectType => {
-    let type = 'SET_' + objectType.toUpperCase() + '_ATTRS';
-    return (attrs, id) => ({ type, id, attrs });
-};
-
 export const add = objectType => {
-    let type = 'ADD_' + objectType.toUpperCase();
+    let type = objectType.toUpperCase() + '_ADD';
     return (attrs) => ({ type, attrs: {...attrs, id: uuid.v4() } });
 };
 
 export const remove = objectType => {
-    let type = 'REMOVE_' + objectType.toUpperCase();
+    let type = objectType.toUpperCase() + '_REMOVE';
     return (id) => ({ type, id });
+};
+
+// id is ignored for objects which don't have an id
+export const setAttrs = objectType => {
+    let type = objectType.toUpperCase() + '_SET_ATTRS';
+    return (attrs, id) => ({ type, id, attrs });
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,8 +43,8 @@ export const remove = objectType => {
 export const reduceObject = defaultValue => (state = defaultValue) => state;
 
 export const reduceSetAttrs = (objectType, reducer) => {
-    let add = 'ADD_' + objectType.toUpperCase();
-    let setAttrs = 'SET_' + objectType.toUpperCase() + '_ATTRS';
+    let add = objectType.toUpperCase() + '_ADD';
+    let setAttrs = objectType.toUpperCase() + '_SET_ATTRS';
     return (state, action) => {
         if (action.type === add)
             return Object.assign({}, reducer(undefined, action), action.attrs);
@@ -56,8 +56,8 @@ export const reduceSetAttrs = (objectType, reducer) => {
 };
 
 export const reduceSetAttrsWithId = (objectType, reducer) => {
-    let add = 'ADD_' + objectType.toUpperCase();
-    let setAttrs = 'SET_' + objectType.toUpperCase() + '_ATTRS';
+    let add = objectType.toUpperCase() + '_ADD';
+    let setAttrs = objectType.toUpperCase() + '_SET_ATTRS';
     return (state, action) => {
         if (action.type === add)
             return Object.assign({}, reducer(undefined, action), action.attrs);
@@ -69,8 +69,8 @@ export const reduceSetAttrsWithId = (objectType, reducer) => {
 };
 
 export const reduceObjectArray = (objectType, reducer) => {
-    let add = 'ADD_' + objectType.toUpperCase();
-    let remove = 'REMOVE_' + objectType.toUpperCase();
+    let add = objectType.toUpperCase() + '_ADD';
+    let remove = objectType.toUpperCase() + '_REMOVE';
     return (state = [], action) => {
         switch (action.type) {
             case add:
