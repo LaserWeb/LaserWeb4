@@ -27,6 +27,10 @@
 		this.addMaterial = function() {
 			self.materialList.push(new materialType("paper"));
 		};
+
+		this.removeMaterial = function(material) {
+			self.materialList.remove(material);
+		};
 	};
 
 ;(function(lw) {
