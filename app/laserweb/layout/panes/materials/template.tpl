@@ -3,39 +3,46 @@
 	background-color: green;
 	color: white;
 	border-radius: 3px;
+	border: 1px solid black;
 	font-size: 12px;
 	width: 25px;
+	padding: 2px;
+}
+table {
+	border-collapse: collapse;
 }
 </style>
 
 <template id="layout-materials-pane">
 	<table id="materials-root">
-		<thead><tr> Material Presets</tr></thead>
+		<thead><tr> Material Presets</tr>
 			<tr>
 				<td>Material Name</td>
-				<td><table>
-					<tr>
-						<td>cuts</td>
-						<td>speed</td>
-						<td>power</td>
-					</tr>
-				</table>
+				<td colspan=3>Settings</td>
 			</tr>
-		<tbody data-bind="foreach: materialList">
 			<tr>
-				<td><input data-bind="text: name"></td>
-				<td><table>
-					<tbody class=".mtable" data-bind="foreach: materialSettings">
-					<tr>
-						<td><input class=".mtable" data-bind="text: name"></td>
-                                                <td><input class=".mtable" data-bind="text: speed"></td>
-                                                <td><input class=".mtable" data-bind="text: power"></td>
-                                                <td><button class="mbutton" data-bind="click: $parent.removeLaserSetting">-</button></tr>
-					</tr>
-					<tr><button class="mbutton" data-bind="click: addLaserSetting">+</button></tr>
-				</table></td>
+				<td></td>
+				<td>cuts</td>
+				<td>speed</td>
+				<td>power</td>
 			</tr>
-			<tr><button data-bind="click: addMaterial" class="mbutton">+</button></tr>
+		</thead>
+		<tbody data-bind="foreach: { data: materialList, as: 'material'}">
+
+			<tr>
+				<td data-bind="attr: { rowspan: material.settingCount }"><input data-bind="text: material.name"></td></tr>
+			<!-- ko foreach: {data: materialSettings, as: 'settings'} -->
+			<tr>
+				<td><input class=".mtable" data-bind="text: material.name"></td>
+                                <td><input class=".mtable" data-bind="text: settings.speed"></td>
+                                <td><input class=".mtable" data-bind="text: settings.power"></td>
+                                <td><button class="mbutton" data-bind="click: material.removeLaserSetting">-</button>
+			</tr>
+			<!-- /ko -->
+			<tr>
+				<td><button class="mbutton" data-bind="click: material.addLaserSetting">+</button></td>
+			</tr>
 		</tbody>
 	</table>
-</template>
+	<button data-bind="click: $root.addMaterial" class="mbutton">Add Material</button>
+</template

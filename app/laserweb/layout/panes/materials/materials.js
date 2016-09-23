@@ -9,6 +9,7 @@
 		this.materialName = mtName;
 		this.materialName = ko.observable(mtName);
 		this.materialSettings=ko.observableArray([new materialLaserSetting("cut",10,100)]);
+		this.settingCount=ko.computed(function(){return self.materialSettings().length+1;});
 
 		this.addLaserSetting = function() {
 			self.materialSettings.push(new materialLaserSetting("cut",10,100));
