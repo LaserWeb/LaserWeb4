@@ -1,13 +1,4 @@
 <style>
-.mbutton {
-	background-color: green;
-	color: white;
-	border-radius: 6px;
-	border: 1px solid black;
-	font-size: 12px;
-	padding: 0px;
-	width:100%;
-}
 table {
 	border-collapse: collapse;
 	height: 100%;
@@ -34,7 +25,7 @@ td.percent {
 </style>
 
 <template id="layout-materials-pane">
-	<table id="materials-root">
+	<table id="materials-root" class="table">
 		<thead><tr> Material Presets</tr>
 			<tr>
 				<td rowspan=2>Material Name</td>
@@ -58,18 +49,18 @@ td.percent {
 				<td><input class="matname" data-bind="text: material.name"></td>
                                 <td class="percent"><input class="percentdata" data-bind="text: settings.speed"></td>
                                 <td class="percent"><input class="percentdata" data-bind="text: settings.power"></td>
-                                <td class="buttontd"><button class="mbutton" data-bind="click: material.removeLaserSetting">Remove Cut</button>
+                                <td class="buttontd"><button class="btn btn-xs btn-danger" data-bind="click: material.removeLaserSetting"><i class="fa fa-fw fa-times" aria-hidden="true"></i>Remove Cut</button>
 			</tr>
 			<!-- /ko -->
 			<tr>
 				<td class="buttontd">
-					<button class="mbutton" data-bind="click: $root.removeMaterial">Remove Material</button>
+					<button class="btn btn-xs btn-danger" data-bind="click: $root.removeMaterial"><i class="fa fa-fw fa-times" aria-hidden="true"></i>Remove Material</button>
 				</td>
 				<td>
-					<button class="mbutton" data-bind="click: material.addLaserSetting">Add Cut</button>
+					<button class="btn btn-xs btn-success" data-bind="click: material.addLaserSetting"><i class="fa fa-fw fa-plus" aria-hidden="true"></i>Add Cut</button>
 				</td>
 			</tr>
 		</tbody>
 	</table>
-	<button data-bind="click: $root.addMaterial" class="mbutton">Add Material</button>
+	<button data-bind="click: $root.addMaterial" class="btn btn-xs btn-success"><i class="fa fa-fw fa-plus" aria-hidden="true"></i>Add Material</button>
 </template
