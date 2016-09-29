@@ -11,10 +11,10 @@ Head over **[LaserWeb3](https://github.com/openhardwarecoza/LaserWeb3/)** instea
 
 We'll let you know when LW4 is ready for Prime Time.
 
-## Developers Note!
-We use GitHub Projects https://github.com/openhardwarecoza/LaserWeb4/projects to manage this project!  Since we are now a multiperson team, please consider talking to the team often to avoid duplication, and other issues
+# Developers Note!
+We use [GitHub Projects](https://github.com/openhardwarecoza/LaserWeb4/projects) to manage this project!  Since we are now a multiperson team, please consider talking to the team often to avoid duplication, and other issues
 
-# How to contribute ?
+## How to contribute ?
 Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 
 1. Fork the original repositiory.
