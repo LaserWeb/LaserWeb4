@@ -1,0 +1,118 @@
+/* Global */
+
+body, html, .full-height {
+    height: 100%;
+}
+
+#sidebar, #workspace {
+    overflow: hidden;
+    position: absolute;
+}
+
+#sidebar {
+    min-width: 80px;
+    max-width: 380px;
+}
+
+#sidebar .dock, #sidebar .panes {
+    float: left;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#sidebar .dock {
+    width: 80px;
+}
+
+#sidebar .panes {
+    width: 300px;
+}
+
+#workspace {
+    left: 380px;
+}
+
+#workspace.full-width {
+    left: 80px;
+}
+
+/* Dock */
+
+#sidebar .dock {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-color: #222;
+}
+
+#sidebar .dock li {
+    color: #eee;
+    display: block;
+    cursor: pointer;
+    padding: 10px 5px;
+    text-align: center;
+    line-height: 60px;
+}
+
+#sidebar .dock li div {
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 1.2;
+}
+
+#sidebar .dock li:hover {
+    color:#fdbb30;
+}
+
+#sidebar .dock li.active {
+    color: #000;
+    padding: 4px 5px;
+    background-color: #fff;
+    border-right: solid 6px #fff;
+    border-top: solid 6px #202121;
+    border-left: solid 6px #68AE00;
+    border-bottom: solid 6px #202121;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+#sidebar .dock li.active:hover {
+    color:#000;
+}
+
+#sidebar .dock li i {
+    font-size: 2em;
+}
+
+#sidebar .dock li span {
+    display: block;
+    max-width: 50px;
+    font-size: 0.8em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Panes */
+
+#sidebar .panes .pane {
+    display: none;
+    padding: 10px;
+}
+
+#sidebar .panes .pane.active {
+    display: block;
+}
+
+#sidebar .panes .pane-title {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px #ccc dashed;
+}
+
+/* Workspace */
+
+#workspace {
+    padding: 10px;
+    border-left: 1px #ccc dashed;
+}

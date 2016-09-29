@@ -1,0 +1,27 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+        "include": ["./src/"],
+        "includePattern": ".+\\.js(doc|x)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {
+        "template": "./node_modules/ink-docstrap/template",
+        "package": "./package.json",
+        "destination": "./docs/",
+        "encoding": "utf8",
+        "recurse": true,
+        "private": true
+    },
+    "plugins": ["plugins/markdown"],
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": true,
+        "default": {
+            "outputSourceFiles": true,
+            "useLongnameInNav": true
+        }
+    }
+}
