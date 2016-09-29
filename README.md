@@ -1,4 +1,4 @@
-# LaserWeb4 (0.4.0-alpha)
+# LaserWeb (0.4.0-alpha)
 Work In Progress...
 
 Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.
