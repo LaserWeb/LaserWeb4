@@ -22,8 +22,13 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'babel-loader',
                 query: {
-                    presets: ['es2015', 'react'],
-                    plugins: ['react-hot-loader/babel']
+                    presets: ['react'],
+                    plugins: [
+                        'transform-es2015-destructuring',
+                        'transform-es2015-parameters',
+                        'transform-object-rest-spread',
+                        'transform-es2015-modules-commonjs',
+                        'react-hot-loader/babel']
                 }
             },
             {
