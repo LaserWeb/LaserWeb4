@@ -3,42 +3,17 @@
  * @module
  */
 
-// React
 import React from 'react'
+import { connect } from 'react-redux';
 
-/**
- * CAM component.
- *
- * @extends module:react~React~Component
- * @param {Object} props Component properties.
- */
-class Cam extends React.Component {
-    /**
-     * Render the component.
-     * @return {String}
-     */
-    render() {
-        return (
-            <div>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-                <p>CAM panel...</p>
-            </div>
-        )
-    }
+import { Documents } from './document';
+
+function Cam({documents, dispatch}) {
+    return (
+        <div>
+            <b>Documents</b>
+            <Documents documents={documents} />
+        </div>);
 }
-
-// Exports
-export default Cam
+Cam = connect(state => ({ documents: state.documents }))(Cam);
+export default Cam;
