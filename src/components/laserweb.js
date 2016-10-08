@@ -50,7 +50,7 @@ class LaserWeb extends React.Component {
             <Provider store={store}>
                 <div className="full-height">
                     <Sidebar>
-                        <Com id="com" title="Communication" icon="plug" active={ true } />
+                        <Com id="com" title="Communication" icon="plug" />
                         <Jog id="jog" title="Jog" icon="arrows-alt" />
                         <Cam id="cam" title="CAM" icon="pencil-square-o" />
                         <Gcode id="gcode" title="G-Code" icon="file-code-o" />

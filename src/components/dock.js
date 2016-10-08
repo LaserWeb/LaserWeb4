@@ -11,7 +11,7 @@ import { connect } from 'react-redux'
 import Icon from './font-awesome'
 
 // Actions
-import * as actions from '../actions/dock'
+import * as actions from '../actions/panes'
 
 /**
  * Dock item component.
@@ -68,7 +68,15 @@ class Dock extends React.Component {
     render() {
         return (
             <ul className="dock full-height">
-                { this.props.children.map(item => <Button key={ item.id } onClick={ () => this.props.onButtonClick(item.id) } { ...item } />) }
+                {
+                    React.Children.map(this.props.children, item => (
+                        <Button
+                            {...item.props}
+                            key={item.props.id}
+                            active={item.props.id === this.props.selected}
+                            onClick={() => this.props.onButtonClick(item.props.id)}
+                            />))
+                }
             </ul>
         )
     }
@@ -76,7 +84,7 @@ class Dock extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        children: state.dock.children
+        selected: state.panes.selected,
     }
 }
 
@@ -89,7 +97,7 @@ const mapDispatchToProps = (dispatch) => {
          * @param {Integer} id Clicked item id.
          */
         onButtonClick: (id) => {
-            dispatch(actions.selectButton(id))
+            dispatch(actions.selectPane(id))
         }
     }
 }

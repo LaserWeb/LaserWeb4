@@ -61,7 +61,16 @@ class Panes extends React.Component {
     render() {
         return (
             <div className={ "panes full-height " + (this.props.visible ? "" : "hidden") }>
-                { this.props.children.map(pane => <Pane key={ pane.id } { ...pane } />) }
+                { 
+                    React.Children.map(this.props.children, item => (
+                        <Pane
+                            {...item.props}
+                            key={item.props.id}
+                            active={item.props.id === this.props.selected}
+                            >
+                            {item}
+                        </Pane>)) 
+                }
             </div>
         )
     }
@@ -70,7 +79,7 @@ class Panes extends React.Component {
 const mapStateToProps = (state) => {
     return {
         visible: state.panes.visible,
-        children: state.panes.children
+        selected: state.panes.selected,
     }
 }
 
