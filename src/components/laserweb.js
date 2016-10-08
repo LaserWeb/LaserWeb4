@@ -13,9 +13,6 @@ import '../styles/index.css'
 
 // React/Redux
 import React from 'react'
-import { createStore } from 'redux'
-import { Provider, connect } from 'react-redux'
-import reducers from '../reducers'
 
 // Main components
 import Sidebar from './sidebar'
@@ -29,9 +26,6 @@ import Gcode from './gcode'
 import Quote from './quote'
 import Settings from './settings'
 import About from './about'
-
-// Create redux store
-let store = createStore(reducers)
 
 /**
  * LaserWeb main component (layout).
@@ -47,20 +41,18 @@ class LaserWeb extends React.Component {
      */
     render() {
         return (
-            <Provider store={store}>
-                <div className="full-height">
-                    <Sidebar>
-                        <Com id="com" title="Communication" icon="plug" />
-                        <Jog id="jog" title="Jog" icon="arrows-alt" />
-                        <Cam id="cam" title="CAM" icon="pencil-square-o" />
-                        <Gcode id="gcode" title="G-Code" icon="file-code-o" />
-                        <Quote id="quote" title="Quote" icon="money" />
-                        <Settings id="settings" title="Settings" icon="cogs" />
-                        <About id="about" title="About" icon="question" />
-                    </Sidebar>
-                    <Workspace />
-                </div>
-            </Provider>
+            <div className="full-height">
+                <Sidebar>
+                    <Com id="com" title="Communication" icon="plug" />
+                    <Jog id="jog" title="Jog" icon="arrows-alt" />
+                    <Cam id="cam" title="CAM" icon="pencil-square-o" />
+                    <Gcode id="gcode" title="G-Code" icon="file-code-o" />
+                    <Quote id="quote" title="Quote" icon="money" />
+                    <Settings id="settings" title="Settings" icon="cogs" />
+                    <About id="about" title="About" icon="question" />
+                </Sidebar>
+                <Workspace />
+            </div>
         )
     }
 }
