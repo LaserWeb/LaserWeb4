@@ -8,7 +8,7 @@ import { combineReducers } from 'redux'
 
 // Reducers
 import panes from './panes'
-import {documentsWithSampleData } from './document'
+import { documents } from './document'
 
 // Exports compined reducer
-export default combineReducers({ panes, documents:documentsWithSampleData })
+export default combineReducers({ panes, documents })

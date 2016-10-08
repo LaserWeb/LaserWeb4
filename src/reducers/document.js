@@ -1,3 +1,6 @@
+import Snap from 'snapsvg-cjs';
+import uuid from 'node-uuid';
+
 import { object, forest } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 
@@ -7,7 +10,58 @@ export const document = object('document', {
     children: [],
 });
 
-export const documents = forest('document', document);
+const documentsForest = forest('document', document);
+
+function loadSvg(state, {file, content}) {
+    state = state.slice();
+
+    // TODO catch and report errors
+    let svg = Snap.parse(content);
+
+    let re = /sodipodi|defs|metadata|text/;
+    function addChildren(parent, node) {
+        for (let child of node.children) {
+            if (child.nodeName.match(re))
+                continue;
+            let c = {
+                id: uuid.v4(),
+                type: child.nodeName,
+                name: child.nodeName + ': ' + child.id,
+                children: [],
+            };
+            state.push(c);
+            parent.children.push(c.id);
+            addChildren(c, child)
+        }
+    }
+
+    let doc = {
+        id: uuid.v4(),
+        type: 'document',
+        name: file.name,
+        children: [],
+    };
+    state.push(doc);
+    addChildren(doc, svg.node.children[0]);
+    return state;
+}
+
+export function documents(state, action) {
+    state = documentsForest(state, action);
+    switch (action.type) {
+        case 'DOCUMENT_LOAD':
+            switch (action.payload.file.type) {
+                case 'image/svg+xml':
+                    return loadSvg(state, action.payload);
+                default:
+                    // TODO: show error in gui
+                    console.log('Unsupported file type:', action.payload.file.type)
+                    return state;
+            }
+        default:
+            return state;
+    }
+}
 
 export function documentsWithSampleData(state, action) {
     if (state === undefined) {
