@@ -4,12 +4,16 @@ body, html, .full-height {
     height: 100%;
 }
 
+#laserweb > div {
+    display: flex;
+}
+
 #sidebar, #workspace {
     overflow: hidden;
-    position: absolute;
 }
 
 #sidebar {
+    flex-grow: 0;
     min-width: 80px;
     max-width: 380px;
 }
@@ -29,11 +33,25 @@ body, html, .full-height {
 }
 
 #workspace {
-    left: 380px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-#workspace.full-width {
-    left: 80px;
+.canvas-div {
+    flex-grow: 1;
+    position: relative;
+}
+
+.canvas-div > canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.workspace-controls {
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 /* Dock */
@@ -113,6 +131,5 @@ body, html, .full-height {
 /* Workspace */
 
 #workspace {
-    padding: 10px;
     border-left: 1px #ccc dashed;
 }
