@@ -19,6 +19,24 @@ export function object(objectType, initialState) {
 };
 
 // Actions:
+//      add:        returns a new object with attrs set
+//      addChild:   returns a new object with attrs set
+//      setAttrs:   sets attrs, ignores id
+export function objectNoId(objectType, initialState) {
+    let add = objectType.toUpperCase() + '_ADD';
+    let addChild = objectType.toUpperCase() + '_ADD_CHILD';
+    let setAttrs = objectType.toUpperCase() + '_SET_ATTRS';
+    return (state = initialState, action) => {
+        if (action.type === add || action.type === addChild)
+            return Object.assign({}, initialState, action.payload.attrs);
+        else if (action.type === setAttrs)
+            return Object.assign({}, state, action.payload.attrs);
+        else
+            return state;
+    };
+};
+
+// Actions:
 //      add:        adds a new object to array and sets attrs
 //      remove:     removes object from array
 // baseReducer should be object(objectType, ...)

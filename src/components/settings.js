@@ -1,30 +1,19 @@
-/**
- * Settings module.
- * @module
- */
+import React from 'react';
+import { connect } from 'react-redux';
 
-// React
-import React from 'react'
+import { NumberField } from './forms';
+import { setSettingsAttrs } from '../actions/settings';
 
-/**
- * Settings component.
- *
- * @extends module:react~React~Component
- * @param {Object} props Component properties.
- */
-class Settings extends React.Component {
-    /**
-     * Render the component.
-     * @return {String}
-     */
+export default class Settings extends React.Component {
     render() {
         return (
             <div>
-                <p>Settings panel...</p>
+                <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
+                <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
             </div>
         )
     }
 }
-
-// Exports
-export default Settings
+Settings = connect(
+    state => ({ settings: state.settings })
+)(Settings);
