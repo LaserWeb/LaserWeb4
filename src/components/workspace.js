@@ -17,40 +17,50 @@ import * as THREE from 'three';
  */
 class Workspace extends React.Component {
     setCanvas(canvas) {
-        if (canvas === this.canvas)
+        if (!canvas) {
+            this.haveCanvas = false;
             return;
-        this.canvas = canvas;
-        if (!this.canvas)
-            return;
+        }
+        this.haveCanvas = true;
 
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        this.camera.position.z = 1000;
-        let geometry = new THREE.BoxGeometry(200, 200, 200);
-        let material = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.scene.add(this.mesh);
-        this.renderer = new THREE.WebGLRenderer({ canvas });
+        if (canvas !== this.canvas) {
+            this.canvas = canvas;
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(75, this.canvas.clientWidth / this.canvas.clientHeight, 1, 10000);
+            this.camera.position.z = 1000;
+            let geometry = new THREE.BoxGeometry(200, 200, 200);
+            let material = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true });
+            this.mesh = new THREE.Mesh(geometry, material);
+            this.scene.add(this.mesh);
+            this.renderer = new THREE.WebGLRenderer({ canvas });
+        }
 
-        let animate = () => {
-            if (!this.canvas)
-                return;
-            let w = Math.floor(this.canvas.clientWidth * window.devicePixelRatio);
-            let h = Math.floor(this.canvas.clientHeight * window.devicePixelRatio);
-            if (this.canvas.width != w || this.canvas.height != h) {
-                this.canvas.width = w;
-                this.canvas.height = h;
-                this.needRedraw = true;
-            }
-            if (this.needRedraw) {
-                this.mesh.rotation.x += 0.1;
-                this.mesh.rotation.y += 0.2;
-                this.renderer.render(this.scene, this.camera);
-                this.needRedraw = false;
-            }
-            requestAnimationFrame(animate);
-        };
-        animate();
+        if (!this.animateActive) {
+            let animate = () => {
+                if (!this.haveCanvas) {
+                    this.animateActive = false;
+                    return;
+                }
+                requestAnimationFrame(animate);
+
+                if (this.clientWidth !== this.canvas.clientWidth || this.clientHeight !== this.canvas.clientHeight) {
+                    this.clientWidth = this.canvas.clientWidth;
+                    this.clientHeight = this.canvas.clientHeight;
+                    this.renderer.setSize(this.clientWidth, this.clientHeight, false);
+                    this.camera.aspect = this.clientWidth / this.clientHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.needRedraw = true;
+                }
+                if (this.needRedraw) {
+                    this.mesh.rotation.x += 0.1;
+                    this.mesh.rotation.y += 0.2;
+                    this.renderer.render(this.scene, this.camera);
+                    this.needRedraw = false;
+                }
+            };
+            this.animateActive = true;
+            animate();
+        }
     }
 
     render() {
