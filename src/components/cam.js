@@ -6,10 +6,10 @@
 import React from 'react'
 import { connect } from 'react-redux';
 
-import { loadDocument } from '../actions/document';
+import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { Documents } from './document';
 
-function Cam({documents, onchange}) {
+function Cam({documents, toggleExpanded, onchange}) {
     return (
         <div>
             <div style={{
@@ -22,12 +22,13 @@ function Cam({documents, onchange}) {
                     <input onChange={onchange} type="file" value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                 </span>
             </div>
-            <Documents documents={documents} />
+            <Documents documents={documents} toggleExpanded={toggleExpanded} />
         </div>);
 }
 Cam = connect(
     state => ({ documents: state.documents }),
     dispatch => ({
+        toggleExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         onchange: e => {
             // TODO: report errors
             // TODO: use readAsArrayBuffer() for some file types

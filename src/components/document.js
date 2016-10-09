@@ -23,7 +23,7 @@ function DocumentRight({object, dispatch}) {
 }
 DocumentRight = connect()(DocumentRight);
 
-export function Documents({documents}) {
+export function Documents({documents, toggleExpanded}) {
     let rowNumber = { value: 0 };
     return (
         <div>
@@ -32,7 +32,8 @@ export function Documents({documents}) {
                 .map(document => (
                     <Subtree
                         key={document.id} objects={documents} object={document}
-                        Label={DocumentLabel} Right={DocumentRight} rowNumber={rowNumber} />
+                        Label={DocumentLabel} Right={DocumentRight} rowNumber={rowNumber}
+                        toggleExpanded={object => toggleExpanded(object)} />
                 ))}
         </div>
     );
