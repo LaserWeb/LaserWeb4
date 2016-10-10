@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three';
 
 import SetSize from './setsize';
-import { BufferLineSegments } from './buffergeometry';
+import { BufferLine, BufferLineSegments } from './buffergeometry';
 
 class Grid extends React.Component {
     render() {
@@ -41,6 +41,28 @@ class Grid extends React.Component {
 
 class Workspace3d extends React.Component {
     render() {
+        let content = [];
+
+        let f = document => {
+            if (document.type === 'path') {
+                for (let i = 0; i < document.positions.length; ++i) {
+                    let position = document.positions[i];
+                    content.push(
+                        <BufferLine key={document.id + '/' + i} position={position}>
+                            <lineBasicMaterial color={0x000000} />
+                        </BufferLine>
+                    );
+                }
+            } else {
+                for (let c of document.children)
+                    f(this.props.documents.find(d => d.id === c));
+
+            }
+        }
+        for (let d of this.props.documents)
+            if (d.type === 'document')
+                f(d);
+
         return (
             <React3
                 mainCamera="camera"
@@ -60,13 +82,14 @@ class Workspace3d extends React.Component {
                         position={new THREE.Vector3(100, 100, 300)}
                         />
                     <Grid {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
+                    {content}
                 </scene>
             </React3>
         );
     }
 }
 Workspace3d = connect(
-    state => ({ settings: state.settings })
+    state => ({ settings: state.settings, documents: state.documents })
 )(Workspace3d);
 
 export default class Workspace extends React.Component {

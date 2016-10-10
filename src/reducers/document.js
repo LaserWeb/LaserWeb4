@@ -1,8 +1,11 @@
+"use strict";
+
 import Snap from 'snapsvg-cjs';
 import uuid from 'node-uuid';
 
 import { object, forest } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
+import { getPositionsFromElement, flipY } from '../lib/mesh'
 
 export const document = object('document', {
     type: 'document',
@@ -17,18 +20,25 @@ function loadSvg(state, {file, content}) {
 
     // TODO catch and report errors
     let svg = Snap.parse(content);
+    let allPositions = [];
 
-    let re = /sodipodi|defs|metadata|text/;
     function addChildren(parent, node) {
         for (let child of node.children) {
-            if (child.nodeName.match(re))
-                continue;
             let c = {
                 id: uuid.v4(),
                 type: child.nodeName,
                 name: child.nodeName + ': ' + child.id,
                 children: [],
             };
+            if (child.nodeName === 'path') {
+                // TODO: report errors
+                // TODO: settings for pxPerInch, minNumSegments, minSegmentLength
+                c.positions = getPositionsFromElement(child, 90, 1, .1, error => console.log(error));
+                if (!c.positions)
+                    continue;
+                allPositions.push(c.positions);
+            } else if (child.nodeName !== 'g')
+                continue;
             state.push(c);
             parent.children.push(c.id);
             addChildren(c, child)
@@ -43,6 +53,7 @@ function loadSvg(state, {file, content}) {
     };
     state.push(doc);
     addChildren(doc, svg.node.children[0]);
+    flipY(allPositions);
     return state;
 }
 

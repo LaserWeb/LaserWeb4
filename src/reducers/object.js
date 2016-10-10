@@ -98,7 +98,7 @@ export function forest(objectType, objectReducer) {
                     }),
                     objectReducer(undefined, action)
                 ];
-            case remove:
+            case remove: // TODO: remove children
                 return state.filter(o => o.id !== action.payload)
                     .map(parent => Object.assign({}, parent, {
                         children: parent.children.filter(childId => childId !== action.payload)
