@@ -5,7 +5,7 @@ import uuid from 'node-uuid';
 
 import { object, forest } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
-import { getPositionsFromElement, flipY } from '../lib/mesh'
+import { elementToPositions, flipY } from '../lib/mesh'
 
 export const document = object('document', {
     type: 'document',
@@ -33,7 +33,7 @@ function loadSvg(state, {file, content}) {
             if (child.nodeName === 'path') {
                 // TODO: report errors
                 // TODO: settings for pxPerInch, minNumSegments, minSegmentLength
-                c.positions = getPositionsFromElement(child, 90, 1, .1, error => console.log(error));
+                c.positions = elementToPositions(child, 90, 1, .1, error => console.log(error));
                 if (!c.positions)
                     continue;
                 allPositions.push(c.positions);

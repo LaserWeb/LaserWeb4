@@ -13,11 +13,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import React from 'react'
+import React from 'react';
 import THREE from 'three';
 
+import { triangulatePositions } from '../lib/mesh';
+
 class BufferGeometryWrapper {
-    update({position}) {
+    update({position, triangulate}) {
         if (!this.bufferGeometry)
             this.bufferGeometry = new THREE.BufferGeometry();
         if (position && this.position !== position) {
@@ -26,16 +28,22 @@ class BufferGeometryWrapper {
                 position = new Float32Array(position);
             this.bufferGeometry.addAttribute('position', new THREE.BufferAttribute(position, 3));
         }
+        if (triangulate && this.triangulate !== triangulate) {
+            this.triangulate = triangulate;
+            triangulate = new Float32Array(triangulatePositions(triangulate, -.01));
+            this.bufferGeometry.addAttribute('position', new THREE.BufferAttribute(triangulate, 3));
+        }
     }
 
     filterProps(props) {
         props = {...props };
         delete props.position;
+        delete props.triangulate;
         return props;
     }
 }
 
-// Wraps line and fills with BufferGeometry, since that is currently missing from react-three-renderer.
+// Wraps line and fills with BufferGeometry
 export class BufferLine extends React.Component {
     constructor() {
         super();
@@ -46,7 +54,7 @@ export class BufferLine extends React.Component {
         this.geomWrapper.update(this.props);
         return (
             <line {...{
-                    ...this.geomWrapper.filterProps(this.props),
+                ...this.geomWrapper.filterProps(this.props),
                 ref: object => { if (object) object.geometry = this.geomWrapper.bufferGeometry; }
             }}>
                 {this.props.children}
@@ -55,7 +63,7 @@ export class BufferLine extends React.Component {
     }
 }
 
-// Wraps lineSegments and fills with BufferGeometry, since that is currently missing from react-three-renderer.
+// Wraps lineSegments and fills with BufferGeometry
 export class BufferLineSegments extends React.Component {
     constructor() {
         super();
@@ -66,11 +74,31 @@ export class BufferLineSegments extends React.Component {
         this.geomWrapper.update(this.props);
         return (
             <lineSegments {...{
-                    ...this.geomWrapper.filterProps(this.props),
+                        ...this.geomWrapper.filterProps(this.props),
                 ref: object => { if (object) object.geometry = this.geomWrapper.bufferGeometry; }
             }}>
                 {this.props.children}
             </lineSegments>
+        );
+    }
+}
+
+// Wraps mesh and fills with BufferGeometry
+export class BufferMesh extends React.Component {
+    constructor() {
+        super();
+        this.geomWrapper = new BufferGeometryWrapper();
+    }
+
+    render() {
+        this.geomWrapper.update(this.props);
+        return (
+            <mesh {...{
+                        ...this.geomWrapper.filterProps(this.props),
+                ref: object => { if (object) object.geometry = this.geomWrapper.bufferGeometry; }
+            }}>
+                {this.props.children}
+            </mesh>
         );
     }
 }

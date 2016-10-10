@@ -17,7 +17,10 @@
 
 "use strict";
 
+import ClipperLib from 'clipper-lib';
 import Snap from 'snapsvg-cjs';
+import SweepContext from 'poly2tri/src/sweepcontext';
+import THREE from 'three';
 
 export const inchToClipperScale = 1270000000;
 export const mmToClipperScale = inchToClipperScale / 25.4; // 50000000;
@@ -88,7 +91,7 @@ function linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn) {
 
 // Get a linear path from an element in snap.svg's format. Calls alertFn with an 
 // error message and returns null if there's a problem.
-function getLinearSnapPathFromElement(element, minNumSegments, minSegmentLength, alertFn) {
+function elementToLinearSnapPath(element, minNumSegments, minSegmentLength, alertFn) {
     let path = null;
     let snapElement = Snap(element);
 
@@ -130,7 +133,7 @@ function getLinearSnapPathFromElement(element, minNumSegments, minSegmentLength,
 // Convert a path in snap.svg format to [[x0, y0, 0, x1, y1, 0, ...], ...].
 // Result is in mm. Doesn't close paths. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
-function getPositionsFromSnapPath(path, pxPerInch, alertFn) {
+function snapPathToPositions(path, pxPerInch, alertFn) {
     let factor = 25.4 / pxPerInch;
     if (path.length < 2 || path[0].length != 3 || path[0][0] != 'M') {
         alertFn('Path does not begin with M');
@@ -163,10 +166,10 @@ function closePositions(positions) {
 // Convert a path in an SVG element to [[x0, y0, 0, x1, y1, 0, ...], ...].
 // Result is in mm. Returns multiple paths. Converts curves.
 // Calls alertFn with an error message and returns null if there's a problem.
-export function getPositionsFromElement(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
-    let path = getLinearSnapPathFromElement(element, minNumSegments, minSegmentLength, alertFn);
+export function elementToPositions(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
+    let path = elementToLinearSnapPath(element, minNumSegments, minSegmentLength, alertFn);
     if (path !== null) {
-        let positions = getPositionsFromSnapPath(path, pxPerInch, alertFn);
+        let positions = snapPathToPositions(path, pxPerInch, alertFn);
         if (positions !== null) {
             closePositions(positions);
             return positions;
@@ -186,4 +189,56 @@ export function flipY(allPositions) {
         for (let a of positions)
             for (let i = 0; i < a.length; i += 3)
                 a[i + 1] = maxY - a[i + 1];
+}
+
+export function positionsToClipperPaths(positions) {
+    return positions.map(p => {
+        let path = [];
+        for (let i = 0; i < p.length; i += 3)
+            path.push({ X: p[i] * mmToClipperScale, Y: p[i + 1] * mmToClipperScale });
+        return path;
+    });
+}
+
+function clipperPathsToPolyTree(paths) {
+    let c = new ClipperLib.Clipper();
+    c.AddPaths(paths, ClipperLib.PolyType.ptSubject, true);
+    let polyTree = new ClipperLib.PolyTree();
+    c.Execute(ClipperLib.ClipType.ctUnion, polyTree, ClipperLib.PolyFillType.pftEvenOdd, ClipperLib.PolyFillType.pftEvenOdd);
+    return polyTree;
+}
+
+function triangulatePolyTree(polyTree, z) {
+    let result = [];
+    let pointToVertex = point => ({ x: point.X / mmToClipperScale, y: point.Y / mmToClipperScale });
+    let contourToVertexes = path => path.map(pointToVertex);
+    let nodesToVertexes = nodes => nodes.map(node => contourToVertexes(node.Contour()));
+    let processNode = node => {
+        let vertexes = contourToVertexes(node.Contour());
+        let holes = nodesToVertexes(node.Childs());
+        let context = new SweepContext(vertexes);
+        context.addHoles(holes);
+        context.triangulate();
+        let triangles = context.getTriangles();
+        for (let t of triangles) {
+            let p = t.getPoints();
+            result.push(
+                p[0].x, p[0].y, z,
+                p[1].x, p[1].y, z,
+                p[2].x, p[2].y, z);
+        }
+        for (let hole of node.Childs()) {
+            for (let next of hole.Childs()) {
+                processNode(next);
+            }
+        }
+    };
+    for (let node of polyTree.Childs()) {
+        processNode(node);
+    }
+    return result;
+}
+
+export function triangulatePositions(positions, z) {
+    return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions)), z);
 }

@@ -4,7 +4,7 @@ import React3 from 'react-three-renderer';
 import THREE from 'three';
 
 import SetSize from './setsize';
-import { BufferLine, BufferLineSegments } from './buffergeometry';
+import { BufferLine, BufferLineSegments, BufferMesh } from './buffergeometry';
 
 class Grid extends React.Component {
     render() {
@@ -45,10 +45,14 @@ class Workspace3d extends React.Component {
 
         let f = document => {
             if (document.type === 'path') {
+                content.push(
+                    <BufferMesh key={document.id + '/mesh'} triangulate={document.positions}>
+                        <meshBasicMaterial color={0x00ffff} />
+                    </BufferMesh>
+                );
                 for (let i = 0; i < document.positions.length; ++i) {
-                    let position = document.positions[i];
                     content.push(
-                        <BufferLine key={document.id + '/' + i} position={position}>
+                        <BufferLine key={document.id + '/outline/' + i} position={document.positions[i]}>
                             <lineBasicMaterial color={0x000000} />
                         </BufferLine>
                     );
