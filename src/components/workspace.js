@@ -6,6 +6,7 @@ import TrackballControls from '../lib/trackball'
 
 import SetSize from './setsize';
 import { BufferLine, BufferLineSegments, BufferMesh } from './buffergeometry';
+import { Dom3d, Text3d } from './dom3d';
 
 class Grid extends React.Component {
     render() {
@@ -40,10 +41,22 @@ class Grid extends React.Component {
     }
 };
 
+function GridText(props) {
+    let a = [];
+    for (let x = 50; x <= props.width; x += 50)
+        a.push(<Text3d x={x} y={-5} size={10} style={{ color: 'red' }}>{x}</Text3d>);
+    a.push(<Text3d x={props.width + 15} y={0} size={10} style={{ color: 'red' }}>X</Text3d>);
+    for (let y = 50; y <= props.height; y += 50)
+        a.push(<Text3d x={-10} y={y} size={10} style={{ color: 'green' }}>{y}</Text3d>);
+    a.push(<Text3d x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
+    return <div>{a}</div>;
+}
+
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.setCanvas = this.setCanvas.bind(this);
         this.setCamera = this.setCamera.bind(this);
+        this.setDom3d = this.setDom3d.bind(this);
         this.onAnimate = this.onAnimate.bind(this);
     }
 
@@ -57,6 +70,10 @@ class WorkspaceContent extends React.Component {
         this.initControls();
     }
 
+    setDom3d(dom3d) {
+        this.dom3d = dom3d;
+    }
+
     initControls() {
         if (this.canvas && this.camera) {
             if (!this.trackballControls) {
@@ -65,6 +82,7 @@ class WorkspaceContent extends React.Component {
                 controls.zoomSpeed = .01;
                 controls.panSpeed = .005;
                 controls.dynamicDampingFactor = 0.3;
+                controls.addEventListener('change', () => { if (this.dom3d) this.dom3d.forceUpdate(); });
             }
         } else if (this.trackballControls) {
             this.trackballControls.dispose();
@@ -131,9 +149,9 @@ class WorkspaceContent extends React.Component {
                         </scene>
                     </React3>
                 </div>
-                <div className="workspace-content workspace-overlay">
-                    Overlay info...
-                </div>
+                <Dom3d className="workspace-content workspace-overlay" camera={this.camera} ref={this.setDom3d}>
+                    <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
+                </Dom3d>
             </div>
         );
     }
