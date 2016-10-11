@@ -38,18 +38,22 @@ body, html, .full-height {
     flex-direction: column;
 }
 
-.canvas-div {
+#workspace-top {
     flex-grow: 1;
     position: relative;
 }
 
-.canvas-div > canvas {
+.workspace-content {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-.workspace-controls {
+.workspace-overlay {
+    pointer-events: none;
+}
+
+#workspace-controls {
     flex-grow: 0;
     flex-shrink: 0;
 }

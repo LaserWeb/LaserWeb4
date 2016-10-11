@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import React3 from 'react-three-renderer';
 import THREE from 'three';
+import TrackballControls from '../lib/trackball'
 
 import SetSize from './setsize';
 import { BufferLine, BufferLineSegments, BufferMesh } from './buffergeometry';
@@ -39,7 +40,43 @@ class Grid extends React.Component {
     }
 };
 
-class Workspace3d extends React.Component {
+class WorkspaceContent extends React.Component {
+    componentWillMount() {
+        this.setCanvas = this.setCanvas.bind(this);
+        this.setCamera = this.setCamera.bind(this);
+        this.onAnimate = this.onAnimate.bind(this);
+    }
+
+    setCanvas(canvas) {
+        this.canvas = canvas;
+        this.initControls();
+    }
+
+    setCamera(camera) {
+        this.camera = camera;
+        this.initControls();
+    }
+
+    initControls() {
+        if (this.canvas && this.camera) {
+            if (!this.trackballControls) {
+                let controls = this.trackballControls = new TrackballControls(this.camera, this.canvas);
+                controls.rotateSpeed = .02;
+                controls.zoomSpeed = .01;
+                controls.panSpeed = .005;
+                controls.dynamicDampingFactor = 0.3;
+            }
+        } else if (this.trackballControls) {
+            this.trackballControls.dispose();
+            this.trackballControls = null;
+        }
+    }
+
+    onAnimate() {
+        if (this.trackballControls)
+            this.trackballControls.update();
+    }
+
     render() {
         let content = [];
 
@@ -68,43 +105,52 @@ class Workspace3d extends React.Component {
                 f(d);
 
         return (
-            <React3
-                mainCamera="camera"
-                onAnimate={this.onAnimate}
-                width={this.props.width}
-                height={this.props.height}
-                pixelRatio={window.devicePixelRatio}
-                clearColor={0x00ffffff}
-                >
-                <scene>
-                    <perspectiveCamera
-                        name="camera"
-                        fov={75}
-                        aspect={this.props.width / this.props.height}
-                        near={0.1}
-                        far={1000}
-                        position={new THREE.Vector3(100, 100, 300)}
-                        />
-                    <Grid {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
-                    {content}
-                </scene>
-            </React3>
+            <div className="workspace-content">
+                <div className="workspace-content">
+                    <React3
+                        mainCamera="camera"
+                        canvasRef={this.setCanvas}
+                        onAnimate={this.onAnimate}
+                        width={this.props.width}
+                        height={this.props.height}
+                        pixelRatio={window.devicePixelRatio}
+                        clearColor={0x00ffffff}
+                        >
+                        <scene>
+                            <perspectiveCamera
+                                name="camera"
+                                fov={75}
+                                aspect={this.props.width / this.props.height}
+                                near={0.1}
+                                far={1000}
+                                position={new THREE.Vector3(100, 100, 300)}
+                                ref={this.setCamera}
+                                />
+                            <Grid {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
+                            {content}
+                        </scene>
+                    </React3>
+                </div>
+                <div className="workspace-content workspace-overlay">
+                    Overlay info...
+                </div>
+            </div>
         );
     }
 }
-Workspace3d = connect(
+WorkspaceContent = connect(
     state => ({ settings: state.settings, documents: state.documents })
-)(Workspace3d);
+)(WorkspaceContent);
 
 export default class Workspace extends React.Component {
     render() {
         this.needRedraw = true;
         return (
             <div id="workspace" className="full-height">
-                <SetSize className="canvas-div">
-                    <Workspace3d />
+                <SetSize id="workspace-top">
+                    <WorkspaceContent />
                 </SetSize>
-                <div className="workspace-controls">
+                <div id="workspace-controls">
                     <p />
                     <b>Stuff goes here...</b>
                     <p />
