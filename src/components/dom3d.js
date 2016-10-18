@@ -86,7 +86,6 @@ export function Text3d(props) {
     return (
         <div style={{
             position: 'absolute',
-            pointerEvents: 'all',
             transform: 'translate3d(' + (props.x / window.devicePixelRatio) + 'px,' + (props.y / window.devicePixelRatio) + 'px,0) translate3d(-50%,-50%,0) scale(.1,-.1)',
         }}>
             <div style={Object.assign({}, props.style, {

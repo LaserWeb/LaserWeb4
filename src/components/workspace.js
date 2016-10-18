@@ -44,11 +44,11 @@ class Grid extends React.Component {
 function GridText(props) {
     let a = [];
     for (let x = 50; x <= props.width; x += 50)
-        a.push(<Text3d x={x} y={-5} size={10} style={{ color: 'red' }}>{x}</Text3d>);
-    a.push(<Text3d x={props.width + 15} y={0} size={10} style={{ color: 'red' }}>X</Text3d>);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: 'red' }}>{x}</Text3d>);
+    a.push(<Text3d key="x-label" x={props.width + 15} y={0} size={10} style={{ color: 'red' }}>X</Text3d>);
     for (let y = 50; y <= props.height; y += 50)
-        a.push(<Text3d x={-10} y={y} size={10} style={{ color: 'green' }}>{y}</Text3d>);
-    a.push(<Text3d x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: 'green' }}>{y}</Text3d>);
+    a.push(<Text3d key="y-label" x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
 
