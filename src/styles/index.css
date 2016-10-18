@@ -13,27 +13,31 @@ body, html, .full-height {
 }
 
 #sidebar {
-    flex-grow: 0;
+    flex-grow: 1;
     min-width: 80px;
-    max-width: 380px;
+    /*max-width: 380px;*/
+    display: flex;
 }
 
 #sidebar .dock, #sidebar .panes {
-    float: left;
+    /*float: left;*/
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 #sidebar .dock {
-    width: 80px;
+    min-width: 80px;
+    flex-grow:0;
 }
 
 #sidebar .panes {
-    width: 300px;
+    min-width: 300px;
+    flex-grow:1;
 }
 
 #workspace {
-    flex-grow: 1;
+    flex-grow: 10;
+    min-width:500px;
     display: flex;
     flex-direction: column;
 }
@@ -130,6 +134,10 @@ body, html, .full-height {
     margin-top: 0;
     padding-bottom: 10px;
     border-bottom: 1px #ccc dashed;
+}
+
+#sidebar .panes .pane-content .input-group .input-group-addon {
+    width:auto
 }
 
 /* Workspace */
