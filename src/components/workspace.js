@@ -78,9 +78,9 @@ class WorkspaceContent extends React.Component {
         if (this.canvas && this.camera) {
             if (!this.trackballControls) {
                 let controls = this.trackballControls = new TrackballControls(this.camera, this.canvas);
-                controls.rotateSpeed = .02;
+                controls.rotateSpeed = .007;
                 controls.zoomSpeed = .01;
-                controls.panSpeed = .005;
+                controls.panSpeed = .001;
                 controls.dynamicDampingFactor = 0.3;
                 controls.addEventListener('change', () => { if (this.dom3d) this.dom3d.forceUpdate(); });
             }
