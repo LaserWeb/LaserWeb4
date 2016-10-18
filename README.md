@@ -22,3 +22,25 @@ Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 3. Create a new branch for your bugfix/feature.
 4. Commit your changes and push it back on Github.
 5. Submit your pull request (Only one feature per pull request).
+
+@tbfleming provides the following guidelines 
+
+I can't think of a how-to, but here are some notes that may help.
+
+Application state is in a redux store.
+e.g. document tree, operations, settings, current tab
+State is never modified, only replaced. This is critical for undo/redo support. New state shares objects with old state to save memory.
+Reducers are the only thing which can create new state. Actions tell the reducers what to do. Components render the state. They also install event callbacks which create actions and dispatch them to the store.
+Only objects which can be serialized to/from JSON go in the store, no THREE objects, DOM nodes, image objects, etc. This is critical for state saving and loading.
+e.g. The document tree represents meshes using an array: [x, y, z, x, y, z, ...]
+e.g. The document tree will represent image data in base-64-encoded strings, or some other JSON-compatible form.
+React components convert objects to other forms as needed. Functions in lib/ aid this.
+e.g. The BufferMesh component converts an array of [x, y, z, x, y, z, ...] into a THREE.mesh with a THREE.BufferGeometry. It regenerates things as needed when the state changes.
+
+Example: loading an SVG file.
+
+The Cam component sets up a callback for the file input
+The callback fetches the file, creates a loadDocument action with the file content, and dispatches it to the store
+The documents reducer handles the loadDocument action. It looks at the file type, sees that it's image/svg+xml, and passes it to the loadSvg reducer.
+The loadSvg reducer uses SnapSvg + functions in lib/ to convert the SVG and add it to a new state.
+The store triggers a UI render.
