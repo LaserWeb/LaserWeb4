@@ -54,3 +54,12 @@ e.g. The BufferMesh component converts an array of [x, y, z, x, y, z, ...] into 
 Don't commit changes that webpack makes to **docs/** and **dist/** . You have to keep a very careful eye on git; it keeps wanting to commit those files, which will cause problems viewing diffs.
 
 The package list changes frequently; expect to do an npm install every time you do a git pull until things settle down.
+
+#LaserWeb Development Environment
+-------------------------------------------------------------
+ * npm install          -  Install the development environment.
+ * npm start            -  Start the live development server.
+ * npm run bundle-dev   -  Bundle the project for development.
+ * npm run bundle-prod  -  Bundle the project for production.
+ * npm run build-docs   -  Build the sources documentations.
+-------------------------------------------------------------
