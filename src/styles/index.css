@@ -142,6 +142,13 @@ body, html, .full-height {
 
 /* Workspace */
 
-#workspace {
-    border-left: 1px #ccc dashed;
+
+
+.splitpane >.splitter {
+  flex: 0 0 auto;
+  width: 1px;
+  min-height: 200px;
+  cursor: col-resize;
+  border-left: 1px #ccc dashed;
+  border-right: 1px #ccc dashed;
 }
