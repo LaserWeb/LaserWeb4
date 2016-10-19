@@ -23,7 +23,7 @@ Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 4. Commit your changes and push it back on Github.
 5. Submit your pull request (Only one feature per pull request).
 
-@tbfleming provides the following guidelines 
+# @tbfleming provides the following guidelines 
 
 I can't think of a how-to, but here are some notes that may help.
 
@@ -42,7 +42,7 @@ e.g. The document tree will represent image data in base-64-encoded strings, or 
 e.g. The BufferMesh component converts an array of [x, y, z, x, y, z, ...] into a THREE.mesh with a THREE.BufferGeometry. It regenerates things as needed when the state changes.
 
 
-# Example: loading an SVG file.
+## Example: loading an SVG file.
 
 * The Cam component sets up a callback for the file input
 * The callback fetches the file, creates a loadDocument action with the file content, and dispatches it to the store
@@ -50,7 +50,7 @@ e.g. The BufferMesh component converts an array of [x, y, z, x, y, z, ...] into 
 * The loadSvg reducer uses SnapSvg + functions in lib/ to convert the SVG and add it to a new state.
 * The store triggers a UI render.
 
-# One more note: 
+## One more note: 
 Don't commit changes that webpack makes to **docs/** and **dist/** . You have to keep a very careful eye on git; it keeps wanting to commit those files, which will cause problems viewing diffs.
 
 The package list changes frequently; expect to do an npm install every time you do a git pull until things settle down.
