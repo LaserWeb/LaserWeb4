@@ -10,6 +10,7 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'font-awesome/css/font-awesome.min.css'
 import '../styles/index.css'
+import 'jquery-resizable-dom/dist/jquery-resizable.min.js'
 
 // React/Redux
 import React from 'react'
@@ -41,7 +42,7 @@ class LaserWeb extends React.Component {
      */
     render() {
         return (
-            <div className="full-height">
+            <div className="full-height splitpane">
                 <Sidebar>
                     <Com id="com" title="Communication" icon="plug" />
                     <Jog id="jog" title="Jog" icon="arrows-alt" />
@@ -51,9 +52,17 @@ class LaserWeb extends React.Component {
                     <Settings id="settings" title="Settings" icon="cogs" />
                     <About id="about" title="About" icon="question" />
                 </Sidebar>
+                <div className="splitter"></div>
                 <Workspace />
             </div>
         )
+    }
+    
+    componentDidMount() {
+      $("#sidebar").resizable({
+        handleSelector: ".splitter",
+        resizeHeight: false
+      });
     }
 }
 
