@@ -13,7 +13,7 @@ import '../styles/index.css'
 
 import ReactDOM from 'react-dom'
 
-import 'jquery-resizable-dom/dist/jquery-resizable.js'
+import 'jquery-resizable-dom/dist/jquery-resizable.min.js'
 
 // React/Redux
 import React from 'react'
