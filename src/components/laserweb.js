@@ -69,7 +69,7 @@ class LaserWeb extends React.Component {
     _splitpane() {
         var self=ReactDOM.findDOMNode(this.refs.sidebar);
         $(self).resizable({
-          handleSelector: $(self).siblings(".splitter"),
+          handleSelector: '.splitpane .splitter',
           resizeHeight: false
         })
     }
