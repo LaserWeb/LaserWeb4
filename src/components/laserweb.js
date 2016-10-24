@@ -10,6 +10,7 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'font-awesome/css/font-awesome.min.css'
 import '../styles/index.css'
+import '../styles/resizer.css';
 
 import ReactDOM from 'react-dom'
 
@@ -21,6 +22,8 @@ import React from 'react'
 // Main components
 import Sidebar from './sidebar'
 import Workspace from './workspace'
+
+import SplitPane from 'react-split-pane/lib/SplitPane'
 
 // Inner components
 import Com from './com'
@@ -39,14 +42,23 @@ import About from './about'
  * @param {Object} props Component properties.
  */
 class LaserWeb extends React.Component {
+    
+     constructor(props) {
+        super(props);
+        this.state={visible:true}
+        this.handleVisibleChange = this.handleVisibleChange.bind(this);
+    }
+    
+    
     /**
      * Render the component.
      * @return {String}
      */
     render() {
         return (
-            <div className="full-height splitpane">
-                <Sidebar ref="sidebar">
+            <div className={"full-height "+(this.state.visible? "":"folded")}>
+            <SplitPane  split="vertical" minSize={80} maxSize="50%" defaultSize="30%">
+                <Sidebar ref="sidebar" onVisibleChange={this.handleVisibleChange}>
                     <Com id="com" title="Communication" icon="plug" />
                     <Jog id="jog" title="Jog" icon="arrows-alt" />
                     <Cam id="cam" title="CAM" icon="pencil-square-o" />
@@ -55,15 +67,17 @@ class LaserWeb extends React.Component {
                     <Settings id="settings" title="Settings" icon="cogs" />
                     <About id="about" title="About" icon="question" />
                 </Sidebar>
-                <div className="splitter"></div>
+               
                 <Workspace />
+            </SplitPane>
             </div>
         )
+     /*<div className="splitter"></div>*/
     }
     
     componentDidMount()
     {
-        this._splitpane();
+        //this._splitpane();
     }
     
     _splitpane() {
@@ -72,6 +86,15 @@ class LaserWeb extends React.Component {
           handleSelector: '.splitpane .splitter',
           resizeHeight: false
         })
+    }
+    
+    handleVisibleChange(e) {
+        
+        //if (e!=this.state.visible) {
+            this.setState({visible: e});
+        /*    console.log(this.state);
+        }*/
+       
     }
    
     
