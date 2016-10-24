@@ -133,6 +133,7 @@ class WorkspaceContent extends React.Component {
                         height={this.props.height}
                         pixelRatio={window.devicePixelRatio}
                         clearColor={0x00ffffff}
+                        alpha={true}
                         >
                         <scene>
                             <perspectiveCamera

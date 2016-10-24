@@ -29,18 +29,34 @@ class Sidebar extends React.Component {
      * @property {module:react~React~Component|module:react~React~Component[]} children Component children.
      */
 
+    constructor(props) {
+        super(props);
+        
+        this.state={
+            visible:true
+        }
+        
+        this.handleChange = this.handleChange.bind(this);
+    }
+     
+     
     /**
      * Render the component.
      * @return {String}
      */
     render() {
         return (
-            <div id="sidebar" className="full-height">
+            <div id="sidebar" className={"full-height "+ (this.state.visible ? "" : "folded")} >
                 <Dock>{this.props.children}</Dock>
-                <Panes>{this.props.children}</Panes>
+                <Panes ref="panes" onVisibleChange={this.handleChange} >{this.props.children}</Panes>
             </div>
         )
     }
+    
+    handleChange(e) {
+       this.setState({visible: e});
+    }
+
 }
 
 export default Sidebar

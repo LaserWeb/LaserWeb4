@@ -152,3 +152,8 @@ body, html, .full-height {
   border-left: 1px #ccc dashed;
   border-right: 1px #ccc dashed;
 }
+
+#sidebar.folded {
+    flex-grow:0;
+    max-width:0;
+}
