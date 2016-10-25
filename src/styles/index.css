@@ -153,7 +153,9 @@ body, html, .full-height {
   border-right: 1px #ccc dashed;
 }
 
-#sidebar.folded {
+.folded > .Pane1{
     flex-grow:0;
-    max-width:0;
+    max-width:80px;
 }
+
+.folded #sidebar .dock li.active {border-left-color: #185E00}

@@ -10,17 +10,19 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'font-awesome/css/font-awesome.min.css'
 import '../styles/index.css'
+import '../styles/resizer.css';
 
 import ReactDOM from 'react-dom'
 
-import 'jquery-resizable-dom/dist/jquery-resizable.min.js'
-
 // React/Redux
 import React from 'react'
+import { connect } from 'react-redux'
 
 // Main components
 import Sidebar from './sidebar'
 import Workspace from './workspace'
+
+import SplitPane from 'react-split-pane/lib/SplitPane'
 
 // Inner components
 import Com from './com'
@@ -39,13 +41,17 @@ import About from './about'
  * @param {Object} props Component properties.
  */
 class LaserWeb extends React.Component {
+    
+    
+    
     /**
      * Render the component.
      * @return {String}
      */
     render() {
         return (
-            <div className="full-height splitpane">
+            
+            <SplitPane  split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height "+ (this.props.visible? "":"folded")}>
                 <Sidebar ref="sidebar">
                     <Com id="com" title="Communication" icon="plug" />
                     <Jog id="jog" title="Jog" icon="arrows-alt" />
@@ -55,27 +61,27 @@ class LaserWeb extends React.Component {
                     <Settings id="settings" title="Settings" icon="cogs" />
                     <About id="about" title="About" icon="question" />
                 </Sidebar>
-                <div className="splitter"></div>
+               
                 <Workspace />
-            </div>
+            </SplitPane>
         )
-    }
-    
-    componentDidMount()
-    {
-        this._splitpane();
-    }
-    
-    _splitpane() {
-        var self=ReactDOM.findDOMNode(this.refs.sidebar);
-        $(self).resizable({
-          handleSelector: '.splitpane .splitter',
-          resizeHeight: false
-        })
     }
    
     
 }
 
+
+const mapStateToProps = (state) => {
+    return {
+        visible: state.panes.visible
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {}
+}
+
+
 // Exports
-export default LaserWeb
+export { LaserWeb }
+export default connect(mapStateToProps, mapDispatchToProps)(LaserWeb)
