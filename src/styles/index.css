@@ -157,3 +157,5 @@ body, html, .full-height {
     flex-grow:0;
     max-width:80px;
 }
+
+.folded #sidebar .dock li.active {border-left-color: #185E00}
