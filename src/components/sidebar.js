@@ -38,7 +38,7 @@ class Sidebar extends React.Component {
         return (
             <div id="sidebar" className={"full-height"} >
                 <Dock>{this.props.children}</Dock>
-                <Panes ref="panes" onVisibleChange={this.props.onVisibleChange} >{this.props.children}</Panes>
+                <Panes ref="panes">{this.props.children}</Panes>
             </div>
         )
     }

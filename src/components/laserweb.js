@@ -14,10 +14,9 @@ import '../styles/resizer.css';
 
 import ReactDOM from 'react-dom'
 
-import 'jquery-resizable-dom/dist/jquery-resizable.min.js'
-
 // React/Redux
 import React from 'react'
+import { connect } from 'react-redux'
 
 // Main components
 import Sidebar from './sidebar'
@@ -43,11 +42,6 @@ import About from './about'
  */
 class LaserWeb extends React.Component {
     
-     constructor(props) {
-        super(props);
-        this.state={visible:true}
-        this.handleVisibleChange = this.handleVisibleChange.bind(this);
-    }
     
     
     /**
@@ -56,9 +50,9 @@ class LaserWeb extends React.Component {
      */
     render() {
         return (
-            <div className={"full-height "+(this.state.visible? "":"folded")}>
-            <SplitPane  split="vertical" minSize={80} maxSize="50%" defaultSize="30%">
-                <Sidebar ref="sidebar" onVisibleChange={this.handleVisibleChange}>
+            
+            <SplitPane  split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height "+ (this.props.visible? "":"folded")}>
+                <Sidebar ref="sidebar">
                     <Com id="com" title="Communication" icon="plug" />
                     <Jog id="jog" title="Jog" icon="arrows-alt" />
                     <Cam id="cam" title="CAM" icon="pencil-square-o" />
@@ -70,35 +64,24 @@ class LaserWeb extends React.Component {
                
                 <Workspace />
             </SplitPane>
-            </div>
         )
-     /*<div className="splitter"></div>*/
-    }
-    
-    componentDidMount()
-    {
-        //this._splitpane();
-    }
-    
-    _splitpane() {
-        var self=ReactDOM.findDOMNode(this.refs.sidebar);
-        $(self).resizable({
-          handleSelector: '.splitpane .splitter',
-          resizeHeight: false
-        })
-    }
-    
-    handleVisibleChange(e) {
-        
-        //if (e!=this.state.visible) {
-            this.setState({visible: e});
-        /*    console.log(this.state);
-        }*/
-       
     }
    
     
 }
 
+
+const mapStateToProps = (state) => {
+    return {
+        visible: state.panes.visible
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {}
+}
+
+
 // Exports
-export default LaserWeb
+export { LaserWeb }
+export default connect(mapStateToProps, mapDispatchToProps)(LaserWeb)

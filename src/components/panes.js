@@ -74,10 +74,6 @@ class Panes extends React.Component {
             </div>
         )
     }
-    
-    componentWillUpdate(newProps,newState) {
-         this.props.onVisibleChange(newProps.visible);
-    }
 }
 
 const mapStateToProps = (state) => {
