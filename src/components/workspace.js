@@ -1,43 +1,45 @@
+import { mat4 } from 'gl-matrix';
 import React from 'react'
 import { connect } from 'react-redux'
-import React3 from 'react-three-renderer';
-import THREE from 'three';
-import TrackballControls from '../lib/trackball'
+import ReactDOM from 'react-dom';
 
 import SetSize from './setsize';
-import { BufferLine, BufferLineSegments, BufferMesh } from './buffergeometry';
 import { Dom3d, Text3d } from './dom3d';
+import DrawCommands from '../draw-commands'
+import { triangulatePositions } from '../lib/mesh';
 
-class Grid extends React.Component {
-    render() {
-        if (!this.position || this.width !== this.props.width || this.height !== this.props.height) {
-            this.width = this.props.width;
-            this.height = this.props.height;
+function simpleCamera({viewportWidth, viewportHeight}) {
+    let perspective = mat4.identity([]);
+    let world = mat4.identity([]);
+    world[0] = 8 / viewportWidth;
+    world[5] = 8 / viewportHeight;
+    world[12] = -.8;
+    world[13] = -.9;
+    return { perspective, world };
+}
+
+class Grid {
+    draw(drawCommands, {width, height}) {
+        if (!this.position || this.width !== width || this.height !== height) {
+            this.width = width;
+            this.height = height;
             let a = [];
+            a.push(0, 0, 0, this.width, 0, 0);
+            a.push(0, 0, 0, 0, this.height, 0);
             for (let x = 10; x < this.width; x += 10)
                 a.push(x, 0, 0, x, this.height, 0);
             a.push(this.width, 0, 0, this.width, this.height, 0);
             for (let y = 10; y < this.height; y += 10)
                 a.push(0, y, 0, this.width, y, 0);
             a.push(0, this.height, 0, this.width, this.height, 0);
-            this.position = new Float32Array(a);
+            if (this.position)
+                this.position.destroy();
+            this.position = drawCommands.regl.buffer(new Float32Array(a));
+            this.count = a.length / 3;
         }
-
-        return (
-            <group>
-                <BufferLineSegments position={this.position}>
-                    <lineBasicMaterial color={0x000000} />
-                </BufferLineSegments>
-                <line>
-                    <lineBasicMaterial color={0xff0000} />
-                    <geometry vertices={[new THREE.Vector3(0, 0, 0), new THREE.Vector3(this.props.width + 5, 0, 0)]} />
-                </line>
-                <line>
-                    <lineBasicMaterial color={0x00ff00} />
-                    <geometry vertices={[new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, this.props.height + 5, 0)]} />
-                </line>
-            </group>
-        );
+        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], primitive: 'lines' });
     }
 };
 
@@ -54,116 +56,119 @@ function GridText(props) {
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
+        this.grid = new Grid();
         this.setCanvas = this.setCanvas.bind(this);
-        this.setCamera = this.setCamera.bind(this);
-        this.setDom3d = this.setDom3d.bind(this);
-        this.onAnimate = this.onAnimate.bind(this);
+        this.documentCache = [];
     }
 
     setCanvas(canvas) {
+        if (this.canvas === canvas)
+            return;
         this.canvas = canvas;
-        this.initControls();
-    }
-
-    setCamera(camera) {
-        this.camera = camera;
-        this.initControls();
-    }
-
-    setDom3d(dom3d) {
-        this.dom3d = dom3d;
-    }
-
-    initControls() {
-        if (this.canvas && this.camera) {
-            if (!this.trackballControls) {
-                let controls = this.trackballControls = new TrackballControls(this.camera, this.canvas);
-                controls.rotateSpeed = .007;
-                controls.zoomSpeed = .01;
-                controls.panSpeed = .001;
-                controls.dynamicDampingFactor = 0.3;
-                controls.addEventListener('change', () => { if (this.dom3d) this.dom3d.forceUpdate(); });
+        if (!canvas) {
+            if (this.regl) {
+                this.regl.destroy();
+                this.regl = null;
             }
-        } else if (this.trackballControls) {
-            this.trackballControls.dispose();
-            this.trackballControls = null;
+            return;
         }
+
+        this.regl = require('regl')({
+            canvas: ReactDOM.findDOMNode(canvas)
+        });
+
+        let drawCommands = new DrawCommands(this.regl);
+
+        this.regl.frame(() => {
+            this.regl.clear({
+                color: [1, 1, 1, 1],
+                depth: 1
+            })
+
+            let oldCache = this.documentCache;
+            this.documentCache = [];
+
+            drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
+                this.grid.draw(drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+
+                let cachePos = 0;
+                let f = document => {
+                    while (cachePos < oldCache.length && oldCache[cachePos].id !== document.id)
+                        ++cachePos;
+                    let cache;
+                    if (cachePos < oldCache.length)
+                        cache = oldCache[cachePos];
+                    else
+                        cache = { id: document.id };
+                    this.documentCache.push(cache);
+
+                    if (document.type === 'path') {
+                        if (!cache.positions || cache.positions !== document.positions) {
+                            cache.positions = document.positions;
+                            cache.triangles = new Float32Array(triangulatePositions(document.positions, 0));
+                            cache.outlines = [];
+                            for (let p of document.positions)
+                                cache.outlines.push(new Float32Array(p));
+                        }
+                        drawCommands.simple({
+                            position: cache.triangles,
+                            color: [0, 1, 1, 1],
+                            primitive: 'triangles',
+                            offset: 0,
+                            count: cache.triangles.length / 3,
+                        });
+                        for (let o of cache.outlines)
+                            drawCommands.simple({
+                                position: o,
+                                color: [0, 0, 0, 1],
+                                primitive: 'line strip',
+                                offset: 0,
+                                count: o.length / 3,
+                            });
+                    } else {
+                        for (let c of document.children)
+                            f(this.props.documents.find(d => d.id === c));
+                    }
+                }
+                for (let d of this.props.documents)
+                    if (d.type === 'document')
+                        f(d);
+            });
+        })
     }
 
-    onAnimate() {
-        if (this.trackballControls)
-            this.trackballControls.update();
+    componentWillReceiveProps(nextProps) {
+        this.camera =
+            simpleCamera({
+                viewportWidth: nextProps.width * window.devicePixelRatio,
+                viewportHeight: nextProps.height * window.devicePixelRatio,
+            });
     }
 
     render() {
-        let content = [];
-
-        let f = document => {
-            if (document.type === 'path') {
-                content.push(
-                    <BufferMesh key={document.id + '/mesh'} triangulate={document.positions}>
-                        <meshBasicMaterial color={0x00ffff} />
-                    </BufferMesh>
-                );
-                for (let i = 0; i < document.positions.length; ++i) {
-                    content.push(
-                        <BufferLine key={document.id + '/outline/' + i} position={document.positions[i]}>
-                            <lineBasicMaterial color={0x000000} />
-                        </BufferLine>
-                    );
-                }
-            } else {
-                for (let c of document.children)
-                    f(this.props.documents.find(d => d.id === c));
-
-            }
-        }
-        for (let d of this.props.documents)
-            if (d.type === 'document')
-                f(d);
-
         return (
             <div className="workspace-content">
                 <div className="workspace-content">
-                    <React3
-                        mainCamera="camera"
-                        canvasRef={this.setCanvas}
-                        onAnimate={this.onAnimate}
-                        width={this.props.width}
-                        height={this.props.height}
-                        pixelRatio={window.devicePixelRatio}
-                        clearColor={0x00ffffff}
-                        alpha={true}
-                        >
-                        <scene>
-                            <perspectiveCamera
-                                name="camera"
-                                fov={75}
-                                aspect={this.props.width / this.props.height}
-                                near={0.1}
-                                far={1000}
-                                position={new THREE.Vector3(100, 100, 300)}
-                                ref={this.setCamera}
-                                />
-                            <Grid {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
-                            {content}
-                        </scene>
-                    </React3>
+                    <canvas
+                        style={{ width: this.props.width, height: this.props.height }}
+                        width={Math.round(this.props.width * window.devicePixelRatio)}
+                        height={Math.round(this.props.height * window.devicePixelRatio)}
+                        ref={this.setCanvas} />
                 </div>
-                <Dom3d className="workspace-content workspace-overlay" camera={this.camera} ref={this.setDom3d}>
+                <Dom3d className="workspace-content workspace-overlay" camera={this.camera}>
                     <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
                 </Dom3d>
             </div>
         );
     }
 }
+
 WorkspaceContent = connect(
     state => ({ settings: state.settings, documents: state.documents })
 )(WorkspaceContent);
 
 export default class Workspace extends React.Component {
     render() {
-        this.needRedraw = true;
         return (
             <div id="workspace" className="full-height">
                 <SetSize id="workspace-top">

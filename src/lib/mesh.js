@@ -20,7 +20,6 @@
 import ClipperLib from 'clipper-lib';
 import Snap from 'snapsvg-cjs';
 import SweepContext from 'poly2tri/src/sweepcontext';
-import THREE from 'three';
 
 export const inchToClipperScale = 1270000000;
 export const mmToClipperScale = inchToClipperScale / 25.4; // 50000000;

@@ -17,33 +17,35 @@
 //      Author mrdoob / http://mrdoob.com/
 //      Based on http://www.emagix.net/academic/mscs-project/item/camera-sync-with-css3-and-webgl-threejs
 
+import { mat4 } from 'gl-matrix';
 import React from 'react'
 import ReactDOM from 'react-dom';
-import THREE from 'three';
 
 function epsilon(value) {
     return Math.abs(value) < Number.EPSILON ? 0 : value;
 };
 
-function getCameraCSSMatrix(matrix) {
-    var elements = matrix.elements;
+function getCameraCSSMatrix(clientWidth, clientHeight, matrix) {
     return 'matrix3d(' +
-        epsilon(elements[0]) + ',' +
-        epsilon(- elements[1]) + ',' +
-        epsilon(elements[2]) + ',' +
-        epsilon(elements[3]) + ',' +
-        epsilon(elements[4]) + ',' +
-        epsilon(-elements[5]) + ',' +
-        epsilon(elements[6]) + ',' +
-        epsilon(elements[7]) + ',' +
-        epsilon(elements[8]) + ',' +
-        epsilon(-elements[9]) + ',' +
-        epsilon(elements[10]) + ',' +
-        epsilon(elements[11]) + ',' +
-        epsilon(elements[12] / window.devicePixelRatio) + ',' +
-        epsilon(- elements[13] / window.devicePixelRatio) + ',' +
-        epsilon(elements[14]) + ',' +
-        epsilon(elements[15]) +
+        epsilon(matrix[0] * clientWidth / 2) + ',' +
+        epsilon(- matrix[1] * clientHeight / 2) + ',' +
+        epsilon(matrix[2]) + ',' +
+        epsilon(matrix[3]) + ',' +
+
+        epsilon(matrix[4] * clientWidth / 2) + ',' +
+        epsilon(-matrix[5] * clientHeight / 2) + ',' +
+        epsilon(matrix[6]) + ',' +
+        epsilon(matrix[7]) + ',' +
+
+        epsilon(matrix[8] * clientWidth / 2) + ',' +
+        epsilon(-matrix[9] * clientHeight / 2) + ',' +
+        epsilon(matrix[10]) + ',' +
+        epsilon(matrix[11]) + ',' +
+
+        epsilon(matrix[12] * clientWidth / 2) + ',' +
+        epsilon(- matrix[13] * clientHeight / 2) + ',' +
+        epsilon(matrix[14]) + ',' +
+        epsilon(matrix[15]) +
         ')';
 };
 
@@ -55,9 +57,8 @@ export class Dom3d extends React.Component {
         let node = ReactDOM.findDOMNode(this);
         this.width = node.clientWidth;
         this.height = node.clientHeight;
-        this.fov = 0.5 / Math.tan(THREE.Math.degToRad(camera.getEffectiveFOV() * 0.5)) * node.clientHeight;
-        camera.matrixWorldInverse.getInverse(camera.matrixWorld);
-        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(camera.matrixWorldInverse) +
+        this.fov = 0;
+        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(node.clientWidth, node.clientHeight, camera.world) +
             " translate3d(" + node.clientWidth / 2 + "px," + node.clientHeight / 2 + "px, 0)";
     }
 
@@ -86,12 +87,12 @@ export function Text3d(props) {
     return (
         <div style={{
             position: 'absolute',
-            transform: 'translate3d(' + (props.x / window.devicePixelRatio) + 'px,' + (props.y / window.devicePixelRatio) + 'px,0) translate3d(-50%,-50%,0) scale(.1,-.1)',
+            transform: 'translate3d(' + props.x + 'px,' + props.y + 'px,0) translate3d(-50%,-50%,0) scale(.1,-.1)',
         }}>
             <div style={Object.assign({}, props.style, {
                 left: 0,
                 top: 0,
-                fontSize: props.size * 10 / window.devicePixelRatio,
+                fontSize: props.size * 10,
             })}>
                 {props.children}
             </div>
