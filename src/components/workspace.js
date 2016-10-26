@@ -8,14 +8,10 @@ import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { triangulatePositions } from '../lib/mesh';
 
-function simpleCamera({viewportWidth, viewportHeight}) {
-    let perspective = mat4.identity([]);
-    let world = mat4.identity([]);
-    world[0] = 8 / viewportWidth;
-    world[5] = 8 / viewportHeight;
-    world[12] = -.8;
-    world[13] = -.9;
-    return { perspective, world };
+function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
+    let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
+    let world = mat4.lookAt([], eye, center, up);
+    return { fovy, perspective, world };
 }
 
 class Grid {
@@ -139,9 +135,15 @@ class WorkspaceContent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.camera =
-            simpleCamera({
+            perspectiveCamera({
                 viewportWidth: nextProps.width * window.devicePixelRatio,
                 viewportHeight: nextProps.height * window.devicePixelRatio,
+                fovy: Math.PI / 2,
+                near: .1,
+                far: 1000,
+                eye: [150, 150, 200],
+                center: [150, 150, 0],
+                up: [0, 1, 0],
             });
     }
 

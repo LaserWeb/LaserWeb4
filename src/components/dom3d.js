@@ -24,25 +24,25 @@ function epsilon(value) {
     return Math.abs(value) < Number.EPSILON ? 0 : value;
 };
 
-function getCameraCSSMatrix(clientWidth, clientHeight, matrix) {
+function getCameraCSSMatrix(matrix) {
     return 'matrix3d(' +
-        epsilon(matrix[0] * clientWidth / 2) + ',' +
-        epsilon(- matrix[1] * clientHeight / 2) + ',' +
+        epsilon(matrix[0]) + ',' +
+        epsilon(- matrix[1]) + ',' +
         epsilon(matrix[2]) + ',' +
         epsilon(matrix[3]) + ',' +
 
-        epsilon(matrix[4] * clientWidth / 2) + ',' +
-        epsilon(-matrix[5] * clientHeight / 2) + ',' +
+        epsilon(matrix[4]) + ',' +
+        epsilon(-matrix[5]) + ',' +
         epsilon(matrix[6]) + ',' +
         epsilon(matrix[7]) + ',' +
 
-        epsilon(matrix[8] * clientWidth / 2) + ',' +
-        epsilon(-matrix[9] * clientHeight / 2) + ',' +
+        epsilon(matrix[8]) + ',' +
+        epsilon(-matrix[9]) + ',' +
         epsilon(matrix[10]) + ',' +
         epsilon(matrix[11]) + ',' +
 
-        epsilon(matrix[12] * clientWidth / 2) + ',' +
-        epsilon(- matrix[13] * clientHeight / 2) + ',' +
+        epsilon(matrix[12]) + ',' +
+        epsilon(- matrix[13]) + ',' +
         epsilon(matrix[14]) + ',' +
         epsilon(matrix[15]) +
         ')';
@@ -53,8 +53,8 @@ export class Dom3d extends React.Component {
         if (!nextProps.camera)
             return;
         let camera = nextProps.camera;
-        this.fov = 0;
-        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(nextProps.width, nextProps.height, camera.world) +
+        this.fov = 0.5 / window.devicePixelRatio * nextProps.height * Math.tan(camera.fovy * 0.5);
+        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(camera.world) +
             " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
     }
 
