@@ -155,7 +155,7 @@ class WorkspaceContent extends React.Component {
                         height={Math.round(this.props.height * window.devicePixelRatio)}
                         ref={this.setCanvas} />
                 </div>
-                <Dom3d className="workspace-content workspace-overlay" camera={this.camera}>
+                <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
                     <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
                 </Dom3d>
             </div>

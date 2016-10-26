@@ -19,7 +19,6 @@
 
 import { mat4 } from 'gl-matrix';
 import React from 'react'
-import ReactDOM from 'react-dom';
 
 function epsilon(value) {
     return Math.abs(value) < Number.EPSILON ? 0 : value;
@@ -50,16 +49,13 @@ function getCameraCSSMatrix(clientWidth, clientHeight, matrix) {
 };
 
 export class Dom3d extends React.Component {
-    componentWillUpdate() {
-        if (!this.props.camera)
+    componentWillUpdate(nextProps) {
+        if (!nextProps.camera)
             return;
-        let camera = this.props.camera;
-        let node = ReactDOM.findDOMNode(this);
-        this.width = node.clientWidth;
-        this.height = node.clientHeight;
+        let camera = nextProps.camera;
         this.fov = 0;
-        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(node.clientWidth, node.clientHeight, camera.world) +
-            " translate3d(" + node.clientWidth / 2 + "px," + node.clientHeight / 2 + "px, 0)";
+        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(nextProps.width, nextProps.height, camera.world) +
+            " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
     }
 
     render() {
@@ -71,8 +67,8 @@ export class Dom3d extends React.Component {
             }}>
                 <div style={{
                     position: 'absolute',
-                    width: this.width,
-                    height: this.height,
+                    width: this.props.width,
+                    height: this.props.height,
                     transformStyle: 'preserve-3d',
                     transform: this.transform,
                 }}>
