@@ -53,7 +53,7 @@ export class Dom3d extends React.Component {
         if (!nextProps.camera)
             return;
         let camera = nextProps.camera;
-        this.fov = 0.5 / window.devicePixelRatio * nextProps.height * Math.tan(camera.fovy * 0.5);
+        this.fov = 0.5 * nextProps.height * Math.tan(camera.fovy * 0.5);
         this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(camera.world) +
             " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
     }

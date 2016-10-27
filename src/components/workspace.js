@@ -1,12 +1,13 @@
-import { mat4 } from 'gl-matrix';
+import { mat4, vec3, vec4 } from 'gl-matrix';
 import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
-import SetSize from './setsize';
+import { setCameraAttrs } from '../actions/camera'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { triangulatePositions } from '../lib/mesh';
+import SetSize from './setsize';
 
 function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
     let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
@@ -55,6 +56,12 @@ class WorkspaceContent extends React.Component {
         this.grid = new Grid();
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
+        this.mouseDown = this.mouseDown.bind(this);
+        this.mouseUp = this.mouseUp.bind(this);
+        this.mouseLeave = this.mouseLeave.bind(this);
+        this.mouseMove = this.mouseMove.bind(this);
+        this.contextMenu = this.contextMenu.bind(this);
+        this.wheel = this.wheel.bind(this);
     }
 
     setCanvas(canvas) {
@@ -136,25 +143,89 @@ class WorkspaceContent extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.camera =
             perspectiveCamera({
-                viewportWidth: nextProps.width * window.devicePixelRatio,
-                viewportHeight: nextProps.height * window.devicePixelRatio,
+                viewportWidth: nextProps.width,
+                viewportHeight: nextProps.height,
                 fovy: Math.PI / 2,
                 near: .1,
                 far: 1000,
-                eye: [150, 150, 200],
-                center: [150, 150, 0],
-                up: [0, 1, 0],
+                eye: nextProps.camera.eye,
+                center: nextProps.camera.center,
+                up: nextProps.camera.up,
             });
+    }
+
+    mouseDown(e) {
+        console.log('down', e.button)
+        this.mouseIsDown = true;
+        this.mouseButton = e.button;
+        this.mouseX = e.screenX;
+        this.mouseY = e.screenY;
+    }
+
+    mouseUp(e) {
+        console.log('up', this.mouseButton, e.button, this.mouseButton === e.button)
+        if (this.mouseButton === e.button)
+            this.mouseIsDown = false;
+    }
+
+    mouseLeave(e) {
+        console.log('leave')
+        this.mouseIsDown = false;
+    }
+
+    mouseMove(e) {
+        if (!this.mouseIsDown)
+            return;
+        let dx = e.screenX - this.mouseX;
+        let dy = this.mouseY - e.screenY;
+        let camera = this.props.camera;
+        if (this.mouseButton === 0) {
+            let rot =
+                mat4.mul([],
+                    mat4.fromXRotation([], dy / 200),
+                    mat4.fromYRotation([], -dx / 200));
+            this.props.dispatch(setCameraAttrs({
+                eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
+                up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
+            }));
+        } else if (this.mouseButton === 1) {
+            this.props.dispatch(setCameraAttrs({
+                eye: vec3.add([], vec3.scale([], vec3.sub([], camera.eye, camera.center), Math.exp(-dy / 100)), camera.center),
+            }));
+        } else if (this.mouseButton === 2) {
+            let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
+            this.props.dispatch(setCameraAttrs({
+                eye: vec3.add([], camera.eye,
+                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                center: vec3.add([], camera.center,
+                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+            }));
+        }
+        this.mouseX = e.screenX;
+        this.mouseY = e.screenY;
+    }
+
+    wheel(e) {
+        let camera = this.props.camera;
+        this.props.dispatch(setCameraAttrs({
+            eye: vec3.add([], vec3.scale([], vec3.sub([], camera.eye, camera.center), Math.exp(e.deltaY / 1000)), camera.center),
+        }));
+    }
+
+    contextMenu(e) {
+        e.preventDefault();
     }
 
     render() {
         return (
-            <div className="workspace-content">
+            <div
+                className="workspace-content" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp} onMouseLeave={this.mouseLeave}
+                onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
                 <div className="workspace-content">
                     <canvas
                         style={{ width: this.props.width, height: this.props.height }}
-                        width={Math.round(this.props.width * window.devicePixelRatio)}
-                        height={Math.round(this.props.height * window.devicePixelRatio)}
+                        width={Math.round(this.props.width)}
+                        height={Math.round(this.props.height)}
                         ref={this.setCanvas} />
                 </div>
                 <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
@@ -163,17 +234,17 @@ class WorkspaceContent extends React.Component {
             </div>
         );
     }
-}
+} // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera })
 )(WorkspaceContent);
 
 export default class Workspace extends React.Component {
     render() {
         return (
             <div id="workspace" className="full-height">
-                <SetSize id="workspace-top">
+                <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
                     <WorkspaceContent />
                 </SetSize>
                 <div id="workspace-controls">

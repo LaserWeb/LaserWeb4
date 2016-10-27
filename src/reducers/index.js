@@ -7,9 +7,10 @@
 import { combineReducers } from 'redux'
 
 // Reducers
+import { camera } from './camera'
+import { documents } from './document'
 import panes from './panes'
 import { settings } from './settings'
-import { documents } from './document'
 
 // Exports compined reducer
-export default combineReducers({ panes, settings, documents })
+export default combineReducers({ camera, documents, panes, settings })
