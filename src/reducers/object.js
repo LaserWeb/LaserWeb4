@@ -108,3 +108,24 @@ export function forest(objectType, objectReducer) {
         }
     };
 };
+
+export function getSubtreeIds(forest, rootId) {
+    let ids = [rootId];
+    for (let i = 0; i < ids.length; ++i) {
+        let o = forest.find(o => o.id === ids[i]);
+        if (o)
+            for (let id of o.children)
+                ids.push(id);
+    }
+    return ids;
+}
+
+export function reduceSubtree(forest, rootId, includeRoot, reduce) {
+    let ids = getSubtreeIds(forest, rootId);
+    return forest.map(o => {
+        if ((includeRoot || o.id !== rootId) && ids.includes(o.id))
+            return reduce(o);
+        else
+            return o;
+    })
+}

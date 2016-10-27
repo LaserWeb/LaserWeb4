@@ -3,7 +3,7 @@
 import Snap from 'snapsvg-cjs';
 import uuid from 'node-uuid';
 
-import { object, forest } from '../reducers/object'
+import { forest, getSubtreeIds, object, reduceSubtree } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToPositions, flipY } from '../lib/mesh'
 
@@ -69,6 +69,18 @@ export function documents(state, action) {
                     console.log('Unsupported file type:', action.payload.file.type)
                     return state;
             }
+        case 'DOCUMENT_SELECT': {
+            let ids = getSubtreeIds(state, action.payload.id);
+            return state.map(o => Object.assign({}, o, { selected: ids.includes(o.id) }));
+        }
+        case 'DOCUMENT_TOGGLE_SELECT': {
+            let parent = state.find(o => o.id === action.payload.id);
+            if (!parent)
+                return state;
+            let selected = !parent.selected;
+            console.log('sss', parent.id, parent.selected, parent)
+            return reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { selected }));
+        }
         default:
             return state;
     }

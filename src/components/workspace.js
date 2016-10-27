@@ -116,7 +116,7 @@ class WorkspaceContent extends React.Component {
                         drawCommands.noDepth(() => {
                             drawCommands.simple({
                                 position: cache.triangles,
-                                color: [0, 1, 1, 1],
+                                color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
                                 primitive: 'triangles',
                                 offset: 0,
                                 count: cache.triangles.length / 3,
@@ -157,7 +157,6 @@ class WorkspaceContent extends React.Component {
     }
 
     mouseDown(e) {
-        console.log('down', e.button)
         this.mouseIsDown = true;
         this.mouseButton = e.button;
         this.mouseX = e.screenX;
@@ -165,13 +164,11 @@ class WorkspaceContent extends React.Component {
     }
 
     mouseUp(e) {
-        console.log('up', this.mouseButton, e.button, this.mouseButton === e.button)
         if (this.mouseButton === e.button)
             this.mouseIsDown = false;
     }
 
     mouseLeave(e) {
-        console.log('leave')
         this.mouseIsDown = false;
     }
 

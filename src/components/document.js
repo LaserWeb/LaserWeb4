@@ -2,15 +2,34 @@ import React from 'react'
 import { connect } from 'react-redux';
 
 import Subtree from './subtree';
-import { removeDocument } from '../actions/document';
+import { removeDocument, selectDocument, toggleSelectDocument } from '../actions/document';
 
-function DocumentLabel({object}) {
-    return (
-        <span>
-            {object.name}
-        </span>
-    );
-}
+class DocumentLabel extends React.Component {
+    componentWillMount() {
+        this.onMouseDown = this.onMouseDown.bind(this);
+    }
+
+    onMouseDown(e) {
+        if (e.ctrlKey)
+            this.props.dispatch(toggleSelectDocument(this.props.object.id));
+        else
+            this.props.dispatch(selectDocument(this.props.object.id));
+    }
+
+    render() {
+        let style;
+        if (this.props.object.selected)
+            style = { userSelect: 'none', cursor: 'default', backgroundColor: 'blue', color: 'white' };
+        else
+            style = { userSelect: 'none', cursor: 'default' };
+        return (
+            <span style={style} onMouseDown={this.onMouseDown}>
+                {this.props.object.name}
+            </span>
+        );
+    }
+};
+DocumentLabel = connect()(DocumentLabel);
 
 function DocumentRight({object, dispatch}) {
     return (
