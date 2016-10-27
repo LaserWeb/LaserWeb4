@@ -3,7 +3,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
-import { setCameraAttrs } from '../actions/camera'
+import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { triangulatePositions } from '../lib/mesh';
@@ -239,7 +239,7 @@ WorkspaceContent = connect(
     state => ({ settings: state.settings, documents: state.documents, camera: state.camera })
 )(WorkspaceContent);
 
-export default class Workspace extends React.Component {
+class Workspace extends React.Component {
     render() {
         return (
             <div id="workspace" className="full-height">
@@ -247,11 +247,16 @@ export default class Workspace extends React.Component {
                     <WorkspaceContent />
                 </SetSize>
                 <div id="workspace-controls">
-                    <p />
-                    <b>Stuff goes here...</b>
-                    <p />
+                    <button onClick={this.props.reset}>Reset View</button>
                 </div>
             </div>
         )
     }
 }
+Workspace = connect(
+    undefined,
+    dispatch => ({
+        reset: () => dispatch(resetCamera())
+    })
+)(Workspace);
+export default Workspace;

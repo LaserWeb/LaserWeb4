@@ -1,16 +1,17 @@
-/**
- * Combined reducers.
- * @module reducers
- */
-
-// Redux reducers combiner
 import { combineReducers } from 'redux'
 
-// Reducers
-import { camera } from './camera'
+import { camera, resetCamera } from './camera'
 import { documents } from './document'
 import panes from './panes'
 import { settings } from './settings'
 
-// Exports compined reducer
-export default combineReducers({ camera, documents, panes, settings })
+const combined = combineReducers({ camera, documents, panes, settings });
+
+export default function reducer(state, action) {
+    switch (action.type) {
+        case 'CAMERA_RESET':
+            return {...state, camera: resetCamera(state.camera, state.settings) };
+        default:
+            return combined(state, action);
+    }
+}
