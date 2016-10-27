@@ -113,21 +113,23 @@ class WorkspaceContent extends React.Component {
                             for (let p of document.positions)
                                 cache.outlines.push(new Float32Array(p));
                         }
-                        drawCommands.simple({
-                            position: cache.triangles,
-                            color: [0, 1, 1, 1],
-                            primitive: 'triangles',
-                            offset: 0,
-                            count: cache.triangles.length / 3,
-                        });
-                        for (let o of cache.outlines)
+                        drawCommands.noDepth(() => {
                             drawCommands.simple({
-                                position: o,
-                                color: [0, 0, 0, 1],
-                                primitive: 'line strip',
+                                position: cache.triangles,
+                                color: [0, 1, 1, 1],
+                                primitive: 'triangles',
                                 offset: 0,
-                                count: o.length / 3,
+                                count: cache.triangles.length / 3,
                             });
+                            for (let o of cache.outlines)
+                                drawCommands.simple({
+                                    position: o,
+                                    color: [0, 0, 0, 1],
+                                    primitive: 'line strip',
+                                    offset: 0,
+                                    count: o.length / 3,
+                                });
+                        });
                     } else {
                         for (let c of document.children)
                             f(this.props.documents.find(d => d.id === c));

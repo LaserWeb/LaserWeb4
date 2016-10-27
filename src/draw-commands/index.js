@@ -19,7 +19,15 @@ function camera(regl) {
             perspective: regl.prop('perspective'),
             world: regl.prop('world'),
         }
-    })
+    });
+}
+
+function noDepth(regl) {
+    return regl({
+        depth: {
+            enable: false,
+        }
+    });
 }
 
 function simple(regl) {
@@ -54,6 +62,7 @@ export default class DrawCommands {
     constructor(regl) {
         this.regl = regl;
         this.camera = camera(regl);
+        this.noDepth = noDepth(regl);
         this.simple = simple(regl);
     }
 };
