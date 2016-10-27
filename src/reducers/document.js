@@ -3,7 +3,7 @@
 import Snap from 'snapsvg-cjs';
 import uuid from 'node-uuid';
 
-import { forest, getSubtreeIds, object, reduceSubtree } from '../reducers/object'
+import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToPositions, flipY } from '../lib/mesh'
 
@@ -79,7 +79,10 @@ export function documents(state, action) {
                 return state;
             let selected = !parent.selected;
             console.log('sss', parent.id, parent.selected, parent)
-            return reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { selected }));
+            state = reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { selected }));
+            if (!selected)
+                state = reduceParents(state, action.payload.id, false, o => Object.assign({}, o, { selected: false }));
+            return state;
         }
         default:
             return state;

@@ -129,3 +129,23 @@ export function reduceSubtree(forest, rootId, includeRoot, reduce) {
             return o;
     })
 }
+
+export function getParentIds(forest, childId) {
+    let ids = [childId];
+    for (let i = 0; i < ids.length; ++i) {
+        let o = forest.find(o => o.children.includes(ids[i]));
+        if (o)
+            ids.push(o.id);
+    }
+    return ids;
+}
+
+export function reduceParents(forest, rootId, includeRoot, reduce) {
+    let ids = getParentIds(forest, rootId);
+    return forest.map(o => {
+        if ((includeRoot || o.id !== rootId) && ids.includes(o.id))
+            return reduce(o);
+        else
+            return o;
+    })
+}
