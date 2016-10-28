@@ -31,15 +31,17 @@ export class DocumentCacheHolder extends React.Component {
         return { documentCacheHolder: this };
     }
 
-    render() {
-        if (this.documents !== this.props.documents) {
-            this.documents = this.props.documents;
+    componentWillReceiveProps(nextProps) {
+        if (this.documents !== nextProps.documents) {
+            this.documents = nextProps.documents;
             let oldCache = this.cache;
             this.cache = new Map();
-            for (let document of this.props.documents)
+            for (let document of nextProps.documents)
                 this.cache.set(document.id, oldCache.get(document.id) || {});
         }
+    }
 
+    render() {
         let p = { ...this.props };
         delete p.documents;
         return (
@@ -57,7 +59,7 @@ export function withDocumentCache(Component) {
     class Wrapper extends React.Component {
         render() {
             return (
-                <Component {...{...this.props, documentCache: this.context.documentCacheHolder.cache }} />
+                <Component {...{...this.props, documentCacheHolder: this.context.documentCacheHolder }} />
             );
         }
     };

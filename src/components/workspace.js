@@ -106,8 +106,10 @@ class WorkspaceContent extends React.Component {
             drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
 
-                let f = document => {
-                    let cache = this.props.documentCache.get(document.id) || {};
+                for (let document of this.props.documents) {
+                    let cache = this.props.documentCacheHolder.cache.get(document.id);
+                    if (!cache)
+                        continue;
                     if (document.type === 'path') {
                         if (!cache.positions || cache.positions !== document.positions) {
                             cache.positions = document.positions;
@@ -133,14 +135,8 @@ class WorkspaceContent extends React.Component {
                                     count: o.length / 3,
                                 });
                         });
-                    } else {
-                        for (let c of document.children)
-                            f(this.props.documents.find(d => d.id === c));
                     }
                 }
-                for (let d of this.props.documents)
-                    if (d.type === 'document')
-                        f(d);
             });
         })
     }

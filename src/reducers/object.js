@@ -98,8 +98,9 @@ export function forest(objectType, objectReducer) {
                     }),
                     objectReducer(undefined, action)
                 ];
-            case remove: // TODO: remove children
-                return state.filter(o => o.id !== action.payload)
+            case remove:
+                let ids = getSubtreeIds(state, action.payload);
+                return state.filter(o => !ids.includes(o.id))
                     .map(parent => Object.assign({}, parent, {
                         children: parent.children.filter(childId => childId !== action.payload)
                     }));
