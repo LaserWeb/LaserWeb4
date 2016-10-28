@@ -1,9 +1,25 @@
+// Copyright 2016 Todd Fleming
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
+import Capture from './capture';
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { triangulatePositions } from '../lib/mesh';
@@ -57,8 +73,6 @@ class WorkspaceContent extends React.Component {
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
         this.mouseDown = this.mouseDown.bind(this);
-        this.mouseUp = this.mouseUp.bind(this);
-        this.mouseLeave = this.mouseLeave.bind(this);
         this.mouseMove = this.mouseMove.bind(this);
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
@@ -157,28 +171,15 @@ class WorkspaceContent extends React.Component {
     }
 
     mouseDown(e) {
-        this.mouseIsDown = true;
-        this.mouseButton = e.button;
         this.mouseX = e.screenX;
         this.mouseY = e.screenY;
     }
 
-    mouseUp(e) {
-        if (this.mouseButton === e.button)
-            this.mouseIsDown = false;
-    }
-
-    mouseLeave(e) {
-        this.mouseIsDown = false;
-    }
-
     mouseMove(e) {
-        if (!this.mouseIsDown)
-            return;
         let dx = e.screenX - this.mouseX;
         let dy = this.mouseY - e.screenY;
         let camera = this.props.camera;
-        if (this.mouseButton === 0) {
+        if (e.button === 0) {
             let rot =
                 mat4.mul([],
                     mat4.fromXRotation([], dy / 200),
@@ -187,11 +188,11 @@ class WorkspaceContent extends React.Component {
                 eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
                 up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
             }));
-        } else if (this.mouseButton === 1) {
+        } else if (e.button === 1) {
             this.props.dispatch(setCameraAttrs({
                 eye: vec3.add([], vec3.scale([], vec3.sub([], camera.eye, camera.center), Math.exp(-dy / 100)), camera.center),
             }));
-        } else if (this.mouseButton === 2) {
+        } else if (e.button === 2) {
             let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
             this.props.dispatch(setCameraAttrs({
                 eye: vec3.add([], camera.eye,
@@ -217,8 +218,8 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <div
-                className="workspace-content" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp} onMouseLeave={this.mouseLeave}
+            <Capture
+                className="workspace-content" onMouseDown={this.mouseDown}
                 onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
                 <div className="workspace-content">
                     <canvas
@@ -230,7 +231,7 @@ class WorkspaceContent extends React.Component {
                 <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
                     <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
                 </Dom3d>
-            </div>
+            </Capture>
         );
     }
 } // WorkspaceContent

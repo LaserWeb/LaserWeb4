@@ -33,6 +33,8 @@ import Quote from './quote'
 import Settings from './settings'
 import About from './about'
 
+import { AllowCapture } from './capture'
+
 /**
  * LaserWeb main component (layout).
  * - Create the main layout.
@@ -41,35 +43,30 @@ import About from './about'
  * @param {Object} props Component properties.
  */
 class LaserWeb extends React.Component {
-    
-    
-    
     /**
      * Render the component.
      * @return {String}
      */
     render() {
         return (
-            
-            <SplitPane  split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height "+ (this.props.visible? "":"folded")}>
-                <Sidebar ref="sidebar">
-                    <Com id="com" title="Communication" icon="plug" />
-                    <Jog id="jog" title="Jog" icon="arrows-alt" />
-                    <Cam id="cam" title="CAM" icon="pencil-square-o" />
-                    <Gcode id="gcode" title="G-Code" icon="file-code-o" />
-                    <Quote id="quote" title="Quote" icon="money" />
-                    <Settings id="settings" title="Settings" icon="cogs" />
-                    <About id="about" title="About" icon="question" />
-                </Sidebar>
-               
-                <Workspace />
-            </SplitPane>
+            <AllowCapture>
+                <SplitPane split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height " + (this.props.visible ? "" : "folded")}>
+                    <Sidebar ref="sidebar">
+                        <Com id="com" title="Communication" icon="plug" />
+                        <Jog id="jog" title="Jog" icon="arrows-alt" />
+                        <Cam id="cam" title="CAM" icon="pencil-square-o" />
+                        <Gcode id="gcode" title="G-Code" icon="file-code-o" />
+                        <Quote id="quote" title="Quote" icon="money" />
+                        <Settings id="settings" title="Settings" icon="cogs" />
+                        <About id="about" title="About" icon="question" />
+                    </Sidebar>
+
+                    <Workspace />
+                </SplitPane>
+            </AllowCapture>
         )
     }
-   
-    
 }
-
 
 const mapStateToProps = (state) => {
     return {
@@ -80,7 +77,6 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {}
 }
-
 
 // Exports
 export { LaserWeb }
