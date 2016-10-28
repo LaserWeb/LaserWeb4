@@ -159,3 +159,11 @@ body, html, .full-height {
 }
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
+
+.operations tr {
+    background-color:cyan;
+}
+
+.operations tr:nth-child(even) {
+    background-color: lightcyan;
+}
