@@ -180,10 +180,9 @@ class WorkspaceContent extends React.Component {
         let dy = this.mouseY - e.screenY;
         let camera = this.props.camera;
         if (e.button === 0) {
-            let rot =
-                mat4.mul([],
-                    mat4.fromXRotation([], dy / 200),
-                    mat4.fromYRotation([], -dx / 200));
+            let rot = mat4.mul([],
+                mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
+                mat4.fromRotation([], -dx / 200, camera.up));
             this.props.dispatch(setCameraAttrs({
                 eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
                 up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
