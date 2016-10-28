@@ -1,20 +1,16 @@
-/**
- * CAM module.
- * @module
- */
-
 import React from 'react'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { Documents } from './document';
+import Splitter from './splitter';
 
 function Cam({documents, toggleExpanded, onchange}) {
     return (
-        <div>
+        <div style={{ overflow: 'hidden' }}>
             <div style={{
                 display: 'flex',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
             }}>
                 <b>Documents</b>
                 <span style={{ float: 'right', position: 'relative' }}>
@@ -22,7 +18,18 @@ function Cam({documents, toggleExpanded, onchange}) {
                     <input onChange={onchange} type="file" value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                 </span>
             </div>
-            <Documents documents={documents} toggleExpanded={toggleExpanded} />
+            <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
+                <div style={{ overflowY: 'auto' }}>
+                    <Documents documents={documents} toggleExpanded={toggleExpanded} />
+                </div>
+            </Splitter>
+            <b>Operations</b>
+            <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-operations">
+                <div style={{ overflowY: 'auto' }}>
+                    ...
+                </div>
+            </Splitter>
+            <b>Operation Diagram goes here...</b>
         </div>);
 }
 Cam = connect(

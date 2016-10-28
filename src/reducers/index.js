@@ -4,8 +4,9 @@ import { camera, resetCamera } from './camera'
 import { documents } from './document'
 import panes from './panes'
 import { settings } from './settings'
+import { splitters } from './splitters'
 
-const combined = combineReducers({ camera, documents, panes, settings });
+const combined = combineReducers({ camera, documents, panes, settings, splitters });
 
 export default function reducer(state, action) {
     switch (action.type) {
