@@ -77,7 +77,7 @@ AllowCapture.childContextTypes = {
 };
 
 export default class Capture extends React.Component {
-    componentDidMount() {
+    componentWillMount() {
         this.onMouseDown = this.onMouseDown.bind(this);
     }
 

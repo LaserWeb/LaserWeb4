@@ -34,6 +34,7 @@ import Settings from './settings'
 import About from './about'
 
 import { AllowCapture } from './capture'
+import { DocumentCacheHolder } from './document-cache'
 
 /**
  * LaserWeb main component (layout).
@@ -43,26 +44,23 @@ import { AllowCapture } from './capture'
  * @param {Object} props Component properties.
  */
 class LaserWeb extends React.Component {
-    /**
-     * Render the component.
-     * @return {String}
-     */
     render() {
         return (
             <AllowCapture>
-                <SplitPane split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height " + (this.props.visible ? "" : "folded")}>
-                    <Sidebar ref="sidebar">
-                        <Com id="com" title="Communication" icon="plug" />
-                        <Jog id="jog" title="Jog" icon="arrows-alt" />
-                        <Cam id="cam" title="CAM" icon="pencil-square-o" />
-                        <Gcode id="gcode" title="G-Code" icon="file-code-o" />
-                        <Quote id="quote" title="Quote" icon="money" />
-                        <Settings id="settings" title="Settings" icon="cogs" />
-                        <About id="about" title="About" icon="question" />
-                    </Sidebar>
-
-                    <Workspace />
-                </SplitPane>
+                <DocumentCacheHolder documents={this.props.documents}>
+                    <SplitPane split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height " + (this.props.visible ? "" : "folded")}>
+                        <Sidebar ref="sidebar">
+                            <Com id="com" title="Communication" icon="plug" />
+                            <Jog id="jog" title="Jog" icon="arrows-alt" />
+                            <Cam id="cam" title="CAM" icon="pencil-square-o" />
+                            <Gcode id="gcode" title="G-Code" icon="file-code-o" />
+                            <Quote id="quote" title="Quote" icon="money" />
+                            <Settings id="settings" title="Settings" icon="cogs" />
+                            <About id="about" title="About" icon="question" />
+                        </Sidebar>
+                        <Workspace />
+                    </SplitPane>
+                </DocumentCacheHolder>
             </AllowCapture>
         )
     }
@@ -70,7 +68,8 @@ class LaserWeb extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        visible: state.panes.visible
+        visible: state.panes.visible,
+        documents: state.documents,
     }
 }
 
