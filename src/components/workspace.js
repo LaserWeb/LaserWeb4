@@ -161,9 +161,9 @@ class WorkspaceContent extends React.Component {
             perspectiveCamera({
                 viewportWidth: nextProps.width,
                 viewportHeight: nextProps.height,
-                fovy: Math.PI / 2,
+                fovy: nextProps.camera.fovy,
                 near: .1,
-                far: 1000,
+                far: 2000,
                 eye: nextProps.camera.eye,
                 center: nextProps.camera.center,
                 up: nextProps.camera.up,
@@ -189,7 +189,7 @@ class WorkspaceContent extends React.Component {
             }));
         } else if (e.button === 1) {
             this.props.dispatch(setCameraAttrs({
-                eye: vec3.add([], vec3.scale([], vec3.sub([], camera.eye, camera.center), Math.exp(-dy / 100)), camera.center),
+                fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
             }));
         } else if (e.button === 2) {
             let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
@@ -207,7 +207,7 @@ class WorkspaceContent extends React.Component {
     wheel(e) {
         let camera = this.props.camera;
         this.props.dispatch(setCameraAttrs({
-            eye: vec3.add([], vec3.scale([], vec3.sub([], camera.eye, camera.center), Math.exp(e.deltaY / 1000)), camera.center),
+            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(e.deltaY / 2000))),
         }));
     }
 
