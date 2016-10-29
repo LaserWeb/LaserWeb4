@@ -227,7 +227,7 @@ WorkspaceContent = connect(
 class Workspace extends React.Component {
     render() {
         return (
-            <div id="workspace" className="full-height">
+            <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
                     <WorkspaceContent />
                 </SetSize>

@@ -31,13 +31,11 @@ body, html, .full-height {
 }
 
 #sidebar .panes {
-    min-width: 300px;
     flex-grow:1;
 }
 
 #workspace {
     flex-grow: 10;
-    min-width:500px;
     display: flex;
     flex-direction: column;
 }
@@ -120,6 +118,11 @@ body, html, .full-height {
 }
 
 /* Panes */
+
+#sidebar .pane, #sidebar .pane-content {
+    height: 100%;
+    overflow: hidden;
+}
 
 #sidebar .panes .pane {
     display: none;

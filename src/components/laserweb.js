@@ -22,8 +22,6 @@ import { connect } from 'react-redux'
 import Sidebar from './sidebar'
 import Workspace from './workspace'
 
-import SplitPane from 'react-split-pane/lib/SplitPane'
-
 // Inner components
 import Com from './com'
 import Jog from './jog'
@@ -46,10 +44,10 @@ import { DocumentCacheHolder } from './document-cache'
 class LaserWeb extends React.Component {
     render() {
         return (
-            <AllowCapture>
-                <DocumentCacheHolder documents={this.props.documents}>
-                    <SplitPane split="vertical" minSize={80} maxSize="50%" defaultSize="30%" className={"full-height " + (this.props.visible ? "" : "folded")}>
-                        <Sidebar ref="sidebar">
+            <AllowCapture style={{ height: '100%' }}>
+                <DocumentCacheHolder style={{ width: '100%' }} documents={this.props.documents}>
+                    <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                        <Sidebar ref="sidebar" style={{ flexGrow: 0 }}>
                             <Com id="com" title="Communication" icon="plug" />
                             <Jog id="jog" title="Jog" icon="arrows-alt" />
                             <Cam id="cam" title="CAM" icon="pencil-square-o" />
@@ -58,8 +56,8 @@ class LaserWeb extends React.Component {
                             <Settings id="settings" title="Settings" icon="cogs" />
                             <About id="about" title="About" icon="question" />
                         </Sidebar>
-                        <Workspace />
-                    </SplitPane>
+                        <Workspace style={{ flexGrow: 1 }} />
+                    </div>
                 </DocumentCacheHolder>
             </AllowCapture>
         )

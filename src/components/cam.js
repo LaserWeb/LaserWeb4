@@ -23,11 +23,8 @@ import Splitter from './splitter';
 
 function Cam({documents, operations, toggleDocumentExpanded, loadDocument}) {
     return (
-        <div style={{ overflow: 'hidden' }}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-            }}>
+        <div style={{ overflow: 'hidden', height: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', }}>
                 <b>Documents</b>
                 <span style={{ float: 'right', position: 'relative' }}>
                     <button className="btn btn-xs"><i className="fa fa-upload" /></button>
