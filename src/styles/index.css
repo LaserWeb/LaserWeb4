@@ -163,10 +163,20 @@ body, html, .full-height {
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
 
-.operations tr {
+.operations {
+    width:100%;
+}
+
+.operation-row {
     background-color:cyan;
 }
 
-.operations tr:nth-child(even) {
+.operation-row:nth-child(even) {
     background-color: lightcyan;
+}
+
+.operations td {
+    padding-left: 4px;
+    padding-right: 4px;
+    white-space: nowrap;
 }

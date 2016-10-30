@@ -48,7 +48,7 @@ export function objectArray(objectType, baseReducer) {
             case add:
                 return [...state, baseReducer(undefined, action)];
             case remove:
-                return state.filter(o => o.id !== action.payload.id);
+                return state.filter(o => o.id !== action.payload);
             default:
                 return state.map(o => baseReducer(o, action));
         }
