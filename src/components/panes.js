@@ -50,7 +50,6 @@ class Panes extends React.Component {
     /**
      * @type {Object}
      * @member module:components/pane~Panes.prototype#props
-     * @property {Boolean} visible True if visible.
      * @property {module:react~React~Component|module:react~React~Component[]} children Component children.
      */
 
@@ -60,8 +59,8 @@ class Panes extends React.Component {
      */
     render() {
         return (
-            <div className={ "panes full-height " + (this.props.visible ? "" : "hidden") }>
-                { 
+            <div className={"panes full-height"} style={this.props.style}>
+                {
                     React.Children.map(this.props.children, item => (
                         <Pane
                             {...item.props}
@@ -69,7 +68,7 @@ class Panes extends React.Component {
                             active={item.props.id === this.props.selected}
                             >
                             {item}
-                        </Pane>)) 
+                        </Pane>))
                 }
             </div>
         )
@@ -78,7 +77,6 @@ class Panes extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        visible: state.panes.visible,
         selected: state.panes.selected,
     }
 }

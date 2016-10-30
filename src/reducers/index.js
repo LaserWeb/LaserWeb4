@@ -2,10 +2,12 @@ import { combineReducers } from 'redux'
 
 import { camera, resetCamera } from './camera'
 import { documents } from './document'
+import { operations } from './operation'
 import panes from './panes'
 import { settings } from './settings'
+import { splitters } from './splitters'
 
-const combined = combineReducers({ camera, documents, panes, settings });
+const combined = combineReducers({ camera, documents, operations, panes, settings, splitters });
 
 export default function reducer(state, action) {
     switch (action.type) {

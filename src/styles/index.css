@@ -31,13 +31,11 @@ body, html, .full-height {
 }
 
 #sidebar .panes {
-    min-width: 300px;
     flex-grow:1;
 }
 
 #workspace {
     flex-grow: 10;
-    min-width:500px;
     display: flex;
     flex-direction: column;
 }
@@ -121,6 +119,11 @@ body, html, .full-height {
 
 /* Panes */
 
+#sidebar .pane, #sidebar .pane-content {
+    height: 100%;
+    overflow: hidden;
+}
+
 #sidebar .panes .pane {
     display: none;
     padding: 10px;
@@ -160,3 +163,21 @@ body, html, .full-height {
 }
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
+
+.operations {
+    width:100%;
+}
+
+.operation-row {
+    background-color:cyan;
+}
+
+.operation-row:nth-child(even) {
+    background-color: lightcyan;
+}
+
+.operations td {
+    padding-left: 4px;
+    padding-right: 4px;
+    white-space: nowrap;
+}

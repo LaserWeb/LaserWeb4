@@ -48,7 +48,7 @@ export function objectArray(objectType, baseReducer) {
             case add:
                 return [...state, baseReducer(undefined, action)];
             case remove:
-                return state.filter(o => o.id !== action.payload.id);
+                return state.filter(o => o.id !== action.payload);
             default:
                 return state.map(o => baseReducer(o, action));
         }
@@ -98,8 +98,9 @@ export function forest(objectType, objectReducer) {
                     }),
                     objectReducer(undefined, action)
                 ];
-            case remove: // TODO: remove children
-                return state.filter(o => o.id !== action.payload)
+            case remove:
+                let ids = getSubtreeIds(state, action.payload);
+                return state.filter(o => !ids.includes(o.id))
                     .map(parent => Object.assign({}, parent, {
                         children: parent.children.filter(childId => childId !== action.payload)
                     }));

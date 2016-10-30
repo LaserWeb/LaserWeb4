@@ -20,6 +20,7 @@ import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
 import Capture from './capture';
+import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { triangulatePositions } from '../lib/mesh';
@@ -102,23 +103,13 @@ class WorkspaceContent extends React.Component {
                 depth: 1
             })
 
-            let oldCache = this.documentCache;
-            this.documentCache = [];
-
             drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
 
-                let cachePos = 0;
-                let f = document => {
-                    while (cachePos < oldCache.length && oldCache[cachePos].id !== document.id)
-                        ++cachePos;
-                    let cache;
-                    if (cachePos < oldCache.length)
-                        cache = oldCache[cachePos];
-                    else
-                        cache = { id: document.id };
-                    this.documentCache.push(cache);
-
+                for (let document of this.props.documents) {
+                    let cache = this.props.documentCacheHolder.cache.get(document.id);
+                    if (!cache)
+                        continue;
                     if (document.type === 'path') {
                         if (!cache.positions || cache.positions !== document.positions) {
                             cache.positions = document.positions;
@@ -144,14 +135,8 @@ class WorkspaceContent extends React.Component {
                                     count: o.length / 3,
                                 });
                         });
-                    } else {
-                        for (let c of document.children)
-                            f(this.props.documents.find(d => d.id === c));
                     }
                 }
-                for (let d of this.props.documents)
-                    if (d.type === 'document')
-                        f(d);
             });
         })
     }
@@ -237,12 +222,12 @@ class WorkspaceContent extends React.Component {
 
 WorkspaceContent = connect(
     state => ({ settings: state.settings, documents: state.documents, camera: state.camera })
-)(WorkspaceContent);
+)(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
     render() {
         return (
-            <div id="workspace" className="full-height">
+            <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
                     <WorkspaceContent />
                 </SetSize>

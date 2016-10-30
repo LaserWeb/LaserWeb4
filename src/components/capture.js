@@ -66,7 +66,7 @@ export class AllowCapture extends React.Component {
 
     render() {
         return (
-            <div {...this.events}>
+            <div {...this.events} style={this.props.style}>
                 {this.props.children}
             </div>
         );
@@ -77,7 +77,7 @@ AllowCapture.childContextTypes = {
 };
 
 export default class Capture extends React.Component {
-    componentDidMount() {
+    componentWillMount() {
         this.onMouseDown = this.onMouseDown.bind(this);
     }
 
