@@ -127,6 +127,7 @@ body, html, .full-height {
 #sidebar .panes .pane {
     display: none;
     padding: 10px;
+    margin-right:15px;
 }
 
 #sidebar .panes .pane.active {
