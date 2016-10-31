@@ -2,7 +2,7 @@
 
 import { object, objectArray } from '../reducers/object'
 
-export const operation = object('operation', {
+const operationBase = object('operation', {
     documents: [],
     expanded: false,
     type: 'Laser Engrave',
@@ -18,6 +18,16 @@ export const operation = object('operation', {
     plungeRate: 0,
     cutRate: 0,
 });
+
+export function operation(state, action) {
+    state = operationBase(state, action);
+    switch (action.type) {
+        case 'OPERATION_REMOVE_DOCUMENT':
+            if (action.payload.id === state.id)
+                return {...state, documents: state.documents.filter(d => d !== action.payload.document) }
+    }
+    return state;
+}
 
 export const operations = objectArray('operation', operation);
 
