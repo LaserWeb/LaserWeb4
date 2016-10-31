@@ -20,3 +20,14 @@ export const operation = object('operation', {
 });
 
 export const operations = objectArray('operation', operation);
+
+export function fixupOperations(state, documents) {
+    return state.map(
+        operation => Object.assign(
+            {},
+            operation,
+            {
+                documents: operation.documents.filter(
+                    id => documents.find(d => d.id === id))
+            }));
+}
