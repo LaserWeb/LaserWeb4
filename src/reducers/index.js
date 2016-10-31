@@ -2,7 +2,7 @@ import { combineReducers } from 'redux'
 
 import { camera, resetCamera } from './camera'
 import { documents } from './document'
-import { operations, fixupOperations } from './operation'
+import { operations, operationsAddDocuments, fixupOperations } from './operation'
 import panes from './panes'
 import { settings } from './settings'
 import { splitters } from './splitters'
@@ -16,6 +16,8 @@ export default function reducer(state, action) {
         case 'DOCUMENT_REMOVE':
             state = combined(state, action);
             return {...state, operations: fixupOperations(state.operations, state.documents) };
+        case 'OPERATION_ADD_DOCUMENTS':
+            return {...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         default:
             return combined(state, action);
     }

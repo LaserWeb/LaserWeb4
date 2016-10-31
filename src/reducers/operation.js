@@ -1,6 +1,6 @@
 "use strict";
 
-import { object, objectArray } from '../reducers/object'
+import { getParentIds, object, objectArray } from '../reducers/object'
 
 const operationBase = object('operation', {
     documents: [],
@@ -30,6 +30,28 @@ export function operation(state, action) {
 }
 
 export const operations = objectArray('operation', operation);
+
+export function operationsAddDocuments(state, documents, action) {
+    return state.map(operation => {
+        if (operation.id !== action.payload.id)
+            return operation;
+        let combined = [...operation.documents];
+        for (let id of action.payload.documents)
+            if (!combined.includes(id))
+                combined.push(id);
+        let result = [];
+        for (let id of combined) {
+            let ok = true;
+            let parents = getParentIds(documents, id);
+            for (let i = 1; i < parents.length; ++i)
+                if (combined.includes(parents[i]))
+                    ok = false;
+            if (ok)
+                result.push(id);
+        }
+        return Object.assign({}, operation, { documents: result });
+    });
+}
 
 export function fixupOperations(state, documents) {
     return state.map(

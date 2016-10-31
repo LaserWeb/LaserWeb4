@@ -16,7 +16,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 
-import { addOperation, removeOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { addOperation, removeOperation, operationAddDocuments, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 
 function NumberInput({op, field, onChange}) {
     return (
@@ -109,13 +109,30 @@ const types = {
 
 class Operation extends React.Component {
     componentWillMount() {
+        this.onDragOver = this.onDragOver.bind(this);
+        this.onDrop = this.onDrop.bind(this);
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
     }
 
+    onDragOver(e) {
+        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
+            e.nativeEvent.dataTransfer.dropEffect = "copy";
+            e.preventDefault();
+        }
+    }
+
+    onDrop(e) {
+        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
+            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
+            this.props.dispatch(operationAddDocuments(this.props.op.id, documents));
+            e.preventDefault();
+        }
+    }
+
     render() {
-        let {op, documents, dispatch} = this.props;
+        let {op, documents, onDragOver, dispatch} = this.props;
         let rows = [
             <div key="header" style={{ display: 'table-row' }}>
                 <div style={{ display: 'table-cell' }}>
@@ -163,7 +180,7 @@ class Operation extends React.Component {
                     </div>
                 </div>
             );
-        return <div className="operation-row">{rows}</div>;
+        return <div className="operation-row" onDragOver={this.onDragOver} onDrop={this.onDrop}>{rows}</div>;
     }
 };
 
