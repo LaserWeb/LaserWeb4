@@ -241,3 +241,43 @@ function triangulatePolyTree(polyTree, z) {
 export function triangulatePositions(positions, z) {
     return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions)), z);
 }
+
+// Clip Clipper geometry. clipType is a ClipperLib.ClipType constant. Returns new geometry.
+export function clip(paths1, paths2, clipType) {
+    var clipper = new ClipperLib.Clipper();
+    clipper.AddPaths(paths1, ClipperLib.PolyType.ptSubject, true);
+    clipper.AddPaths(paths2, ClipperLib.PolyType.ptClip, true);
+    var result = [];
+    clipper.Execute(clipType, result, ClipperLib.PolyFillType.pftEvenOdd, ClipperLib.PolyFillType.pftEvenOdd);
+    return result;
+}
+
+// Return union of two Clipper geometries. Returns new geometry.
+export function union(paths1, paths2) {
+    return clip(paths1, paths2, ClipperLib.ClipType.ctUnion);
+}
+
+// Return difference between two Clipper geometries. Returns new geometry.
+export function diff(paths1, paths2) {
+    return clip(paths1, paths2, ClipperLib.ClipType.ctDifference);
+}
+
+// Offset Clipper geometries by amount (positive expands, negative shrinks). Returns new geometry.
+export function offset(paths, amount, joinType, endType) {
+    if (joinType === undefined)
+        joinType = ClipperLib.JoinType.jtRound;
+    if (endType === undefined)
+        endType = ClipperLib.EndType.etClosedPolygon;
+
+    // bug workaround: join types are swapped in ClipperLib 6.1.3.2
+    if (joinType === ClipperLib.JoinType.jtSquare)
+        joinType = ClipperLib.JoinType.jtMiter;
+    else if (joinType === ClipperLib.JoinType.jtMiter)
+        joinType = ClipperLib.JoinType.jtSquare;
+
+    var co = new ClipperLib.ClipperOffset(2, arcTolerance);
+    co.AddPaths(paths, joinType, endType);
+    var offsetted = [];
+    co.Execute(offsetted, amount);
+    return offsetted;
+}

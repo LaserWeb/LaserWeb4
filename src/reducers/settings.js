@@ -69,8 +69,8 @@ export const settings = objectNoId('settings', {
     toolSafetyLockDisabled:false,
     toolCncMode:false,
     
-    gcodeStart:"",
-    gcodeEnd:"",
+    gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
+    gcodeEnd: "M2          ; End\r\n",
     gcodeHoming:"",
     gcodeLaserOn:"",
     gcodeLaserOff:"",
