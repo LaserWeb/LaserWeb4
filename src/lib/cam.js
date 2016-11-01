@@ -118,7 +118,7 @@ export function pocket(geometry, cutterDia, stepover, climb) {
     let bounds = current.slice(0);
     let allPaths = [];
     while (current.length !== 0) {
-        if (climb)
+        if (!climb)
             for (let i = 0; i < current.length; ++i)
                 current[i].reverse();
         allPaths = current.concat(allPaths);
@@ -146,12 +146,12 @@ export function insideOutside(geometry, cutterDia, isInside, width, stepover, cl
         current = offset(geometry, -cutterDia / 2);
         bounds = diff(current, offset(geometry, -(width - cutterDia / 2)));
         eachOffset = -eachWidth;
-        needReverse = climb;
+        needReverse = !climb;
     } else {
         current = offset(geometry, cutterDia / 2);
         bounds = diff(offset(geometry, width - cutterDia / 2), current);
         eachOffset = eachWidth;
-        needReverse = !climb;
+        needReverse = climb;
     }
 
     while (currentWidth <= width) {
@@ -181,7 +181,7 @@ export function engrave(geometry, climb) {
     let allPaths = [];
     for (let i = 0; i < geometry.length; ++i) {
         let path = geometry[i].slice(0);
-        if (!climb)
+        if (climb)
             path.reverse();
         path.push(path[0]);
         allPaths.push(path);

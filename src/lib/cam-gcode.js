@@ -64,11 +64,11 @@ export function getMillGcode(props) {
     }
 
     function getY(p) {
-        return -p.Y * scale + offsetY;
+        return p.Y * scale + offsetY;
     }
 
     function convertPoint(p, useZ) {
-        let result = ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' Y' + (-p.Y * scale + offsetY).toFixed(decimal);
+        let result = ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' Y' + (p.Y * scale + offsetY).toFixed(decimal);
         if (useZ)
             result += ' Z' + (p.Z * scale + topZ).toFixed(decimal);
         return result;
