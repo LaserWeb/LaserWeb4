@@ -15,6 +15,8 @@
 
 'use strict';
 
+import ClipperLib from 'clipper-lib';
+
 import { diff, offset } from './mesh';
 
 export function dist(x1, y1, x2, y2) {
@@ -53,7 +55,7 @@ function crosses(bounds, p1, p2) {
 // Try to merge paths. A merged path doesn't cross outside of bounds. Returns array of CamPath.
 function mergePaths(bounds, paths) {
     if (paths.length === 0)
-        return null;
+        return [];
 
     let currentPath = paths[0];
     currentPath.push(currentPath[0]);
@@ -67,7 +69,7 @@ function mergePaths(bounds, paths) {
         let closestPointIndex = null;
         let closestPointDist = null;
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
-            path = paths[pathIndex];
+            let path = paths[pathIndex];
             for (let pointIndex = 0; pointIndex < path.length; ++pointIndex) {
                 let point = path[pointIndex];
                 let dist = (currentPoint.X - point.X) * (currentPoint.X - point.X) + (currentPoint.Y - point.Y) * (currentPoint.Y - point.Y);
@@ -79,7 +81,7 @@ function mergePaths(bounds, paths) {
             }
         }
 
-        path = paths[closestPathIndex];
+        let path = paths[closestPathIndex];
         paths[closestPathIndex] = [];
         numLeft -= 1;
         let needNew = crosses(bounds, currentPoint, path[closestPointIndex]);
@@ -167,7 +169,8 @@ export function insideOutside(geometry, cutterDia, isInside, width, stepover, cl
             break;
         }
         currentWidth = nextWidth;
-        current = offset(current, eachOffset);
+        if (currentWidth <= width)
+            current = offset(current, eachOffset);
     }
     return mergePaths(bounds, allPaths);
 };

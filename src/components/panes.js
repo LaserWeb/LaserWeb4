@@ -32,7 +32,6 @@ class Pane extends React.Component {
     render() {
         return (
             <div className={ "pane" + (this.props.active ? " active" : "") }>
-                <h4 className="pane-title">{ this.props.title }</h4>
                 <div className="pane-content">{ this.props.children }</div>
             </div>
         )

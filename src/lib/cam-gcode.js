@@ -179,6 +179,85 @@ export function getMillGcode(props) {
     return gcode;
 }; // getMillGcode
 
+function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
+    let ok = true;
+    if (op.passDepth <= 0) {
+        showAlert("Pass Depth must be greater than 0", "alert-danger");
+        ok = false;
+    }
+    if (op.cutDepth <= 0) {
+        showAlert("Final Cut Depth must be greater than 0", "alert-danger");
+        ok = false;
+    }
+    if (op.toolDiameter <= 0) {
+        showAlert("Tool Diameter must be greater than 0", "alert-danger");
+        ok = false;
+    }
+    if (op.stepOver <= 0 || op.stepOver > 1) {
+        showAlert("Step Over must be in range (0,1]", "alert-danger");
+        ok = false;
+    }
+    if (op.plungeRate <= 0) {
+        showAlert("Plunge Rate must be greater than 0", "alert-danger");
+        ok = false;
+    }
+    if (op.cutRate <= 0) {
+        showAlert("Cut Rate must be greater than 0", "alert-danger");
+        ok = false;
+    }
+    if (!ok)
+        return '';
+
+    let camPaths = [];
+    if (op.type === 'Mill Pocket') {
+        if (op.margin)
+            geometry = offset(geometry, -op.margin);
+        camPaths = pocket(geometry, op.toolDiameter * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+    } else if (op.type === 'Mill Engrave') {
+        camPaths = engrave(geometry, op.direction === 'Climb');
+    } else if (op.type === 'Mill Inside') {
+        if (op.margin)
+            geometry = offset(geometry, -op.margin);
+        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+    } else if (op.type === 'Mill Outside') {
+        if (op.margin)
+            geometry = offset(geometry, op.margin);
+        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+    }
+
+    let gcode =
+        "\r\n;" +
+        "\r\n; Operation:    " + opIndex +
+        "\r\n; Type:         " + op.type +
+        "\r\n; Paths:        " + camPaths.length +
+        "\r\n; Direction:    " + op.direction +
+        "\r\n; Cut Depth:    " + op.cutDepth +
+        "\r\n; Pass Depth:   " + op.passDepth +
+        "\r\n; Plunge rate:  " + op.plungeRate +
+        "\r\n; Cut rate:     " + op.cutRate +
+        "\r\n;\r\n";
+
+    gcode += getMillGcode({
+        paths: camPaths,
+        ramp: false,
+        scale: 1 / mmToClipperScale,
+        useZ: false,
+        offsetX: 0,
+        offsetY: 0,
+        decimal: 4,
+        topZ: 0,
+        botZ: -op.cutDepth,
+        safeZ: 1, // TODO
+        passDepth: op.passDepth,
+        plungeFeed: op.plungeRate,
+        cutFeed: op.cutRate,
+        tabGeometry: [],
+        tabZ: 0,
+    });
+
+    return gcode;
+} // getMillGcodeFromOp
+
 export function getGcode(settings, documents, operations, showAlert) {
     "use strict";
 
@@ -192,76 +271,18 @@ export function getGcode(settings, documents, operations, showAlert) {
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
                 geometry = union(geometry, positionsToClipperPaths(doc.positions));
-            fetchGeometry(doc.children);
+            for (let child of doc.children)
+                fetchGeometry(child);
         }
         for (let id of op.documents)
             fetchGeometry(id);
 
         if (op.type.substring(0, 5) === 'Mill ') {
-            if (op.passDepth <= 0) {
-                showAlert("An operation has a pass depth which is not greater than 0", "alert-danger");
+            let g = getMillGcodeFromOp(opIndex, op, geometry, showAlert);
+            if (!g)
                 return '';
-            }
-            if (op.cutDepth <= 0) {
-                showAlert("An operation has a cut depth which is not greater than 0", "alert-danger");
-                return '';
-            }
-            if (op.toolDiameter <= 0) {
-                showAlert("An operation has a tool diameter which is not greater than 0", "alert-danger");
-                return '';
-            }
-            if (op.stepOver <= 0 || op.stepOver > 1) {
-                showAlert("An operation has a cut depth which is not in range (0,1]", "alert-danger");
-                return '';
-            }
-
-            let camPaths = [];
-            if (op.type === 'Mill Pocket') {
-                if (op.margin)
-                    geometry = offset(geometry, -op.margin);
-                camPaths = pocket(geometry, op.toolDiameter, op.stepOver, op.direction === 'Climb');
-            } else if (op.type === 'Mill Engrave') {
-                camPaths = engrave(geometry, op.direction === 'Climb');
-            } else if (op.type === 'Mill Inside') {
-                if (op.margin)
-                    geometry = offset(geometry, -op.margin);
-                camPaths = insideOutside(geometry, op.toolDiameter, true, op.cutWidth, op.stepOver, op.direction === 'Climb');
-            } else if (op.type === 'Mill Outside') {
-                if (op.margin)
-                    geometry = offset(geometry, op.margin);
-                camPaths = insideOutside(geometry, op.toolDiameter, false, op.cutWidth, op.stepOver, op.direction === 'Climb');
-            }
-
-            gcode +=
-                "\r\n;" +
-                "\r\n; Operation:    " + opIndex +
-                "\r\n; Type:         " + op.type +
-                "\r\n; Paths:        " + op.toolPaths().length +
-                "\r\n; Direction:    " + op.direction +
-                "\r\n; Cut Depth:    " + op.cutDepth +
-                "\r\n; Pass Depth:   " + op.passDepth +
-                "\r\n; Plunge rate:  " + op.plungeRate +
-                "\r\n; Cut rate:     " + op.cutRate +
-                "\r\n;\r\n";
-
-            gcode += jscut.priv.cam.getGcode({
-                paths: op.toolPaths(),
-                ramp: false,
-                scale: 1 / mmToClipperScale,
-                useZ: false,
-                offsetX: 0,
-                offsetY: 0,
-                decimal: 4,
-                topZ: 0,
-                botZ: -op.cutDepth,
-                safeZ: 1, // TODO
-                passDepth: op.passDepth,
-                plungeFeed: plungeRate,
-                cutFeed: cutRate,
-                tabGeometry: [],
-                tabZ: tabZ,
-            });
-        } // Mill
+            gcode += g;
+        }
     } // opIndex
 
     gcode += settings.gcodeEnd;

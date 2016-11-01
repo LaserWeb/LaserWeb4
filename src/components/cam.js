@@ -20,34 +20,50 @@ import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { Documents } from './document';
 import { Operations } from './operation';
 import Splitter from './splitter';
+import { getGcode } from '../lib/cam-gcode';
 
-function Cam({documents, operations, toggleDocumentExpanded, loadDocument}) {
-    return (
-        <div style={{ overflow: 'hidden', height: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', }}>
-                <b>Documents</b>
-                <span style={{ float: 'right', position: 'relative' }}>
-                    <button className="btn btn-xs"><i className="fa fa-upload" /></button>
-                    <input onChange={loadDocument} type="file" value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
-                </span>
-            </div>
-            <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
-                <div style={{ overflowY: 'auto' }}>
-                    <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
+class Cam extends React.Component {
+    componentWillMount() {
+        this.generate = e => {
+            let {settings, documents, operations} = this.props;
+            // TODO: show errors
+            let gcode = getGcode(settings, documents, operations, msg => console.log(msg));
+            console.log(gcode);
+        }
+    }
+
+    render() {
+        let {documents, toggleDocumentExpanded, loadDocument} = this.props;
+        return (
+            <div style={{ overflow: 'hidden', height: '100%' }}>
+                <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
+                    <button onClick={this.generate}>Generate</button>
                 </div>
-            </Splitter>
-            <b>Operations</b>
-            <Splitter split="horizontal" initialSize={400} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-operations">
-                <div style={{ overflowY: 'auto' }}>
-                    <Operations />
+                <div style={{ display: 'flex', justifyContent: 'space-between', }}>
+                    <b>Documents</b>
+                    <span style={{ float: 'right', position: 'relative' }}>
+                        <button className="btn btn-xs"><i className="fa fa-upload" /></button>
+                        <input onChange={loadDocument} type="file" value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
+                    </span>
                 </div>
-            </Splitter>
-            <b>Operation Diagram goes here...</b>
-        </div>);
-}
-// TODO: move connect() to Documents
+                <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
+                    <div style={{ overflowY: 'auto' }}>
+                        <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
+                    </div>
+                </Splitter>
+                <b>Operations</b>
+                <Splitter split="horizontal" initialSize={400} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-operations">
+                    <div style={{ overflowY: 'auto' }}>
+                        <Operations />
+                    </div>
+                </Splitter>
+                <b>Operation Diagram goes here...</b>
+            </div>);
+    }
+};
+
 Cam = connect(
-    state => ({ documents: state.documents }),
+    state => ({ settings: state.settings, documents: state.documents, operations: state.operations }),
     dispatch => ({
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         loadDocument: e => {
