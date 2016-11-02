@@ -1,7 +1,7 @@
 import React from 'react';
 import { dispatch, connect } from 'react-redux';
 
-import { NumberField, TextField, ToggleField } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings } from '../actions/settings';
 
 import Collapse from 'rc-collapse';
@@ -51,7 +51,11 @@ class Settings extends React.Component {
                 <Panel header="Tool">
                     <ToggleField {... {object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
-                  
+                    <ToggleField {... {object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
+                    <ToggleField {... {object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay'}} />
+                    <TextField   {... {object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url'}} />
+                    <hr/>
+                    <QuadrantField {... {object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </Panel>
           </Collapse>
           </div>

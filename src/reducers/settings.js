@@ -68,6 +68,11 @@ export const settings = objectNoId('settings', {
     
     toolSafetyLockDisabled:false,
     toolCncMode:false,
+    toolImagePosition: "BL",
+    toolUseNumpad: false,
+    toolUseVideo: false,
+    toolWebcamUrl:"",
+    
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M2          ; End\r\n",
