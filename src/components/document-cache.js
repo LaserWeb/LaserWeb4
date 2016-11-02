@@ -15,16 +15,17 @@
 
 import React from 'react';
 
+import { triangulatePositions } from '../lib/mesh';
+
 // * This holds document data which
 //   * doesn't belong in the store,
 //   * is computed from data in the store, and
 //   * is too expensive to recompute every render.
-// * This maintains the cache's structure; other 
-//   components fill in the data.  
 export class DocumentCacheHolder extends React.Component {
     constructor() {
         super();
         this.cache = new Map();
+        this.lastHitTestId = 0;
     }
 
     getChildContext() {
@@ -36,8 +37,28 @@ export class DocumentCacheHolder extends React.Component {
             this.documents = nextProps.documents;
             let oldCache = this.cache;
             this.cache = new Map();
-            for (let document of nextProps.documents)
-                this.cache.set(document.id, oldCache.get(document.id) || {});
+            for (let document of nextProps.documents) {
+                let cachedDocument = oldCache.get(document.id);
+                if (cachedDocument)
+                    cachedDocument.document = document;
+                else
+                    cachedDocument = { id: document.id, document, hitTestId: ++this.lastHitTestId };
+                this.update(cachedDocument);
+                this.cache.set(document.id, cachedDocument);
+            }
+        }
+    }
+
+    update(cachedDocument) {
+        let {document} = cachedDocument;
+        if (document.type === 'path') {
+            if (!cachedDocument.positions || cachedDocument.positions !== document.positions) {
+                cachedDocument.positions = document.positions;
+                cachedDocument.triangles = new Float32Array(triangulatePositions(document.positions, 0));
+                cachedDocument.outlines = [];
+                for (let p of document.positions)
+                    cachedDocument.outlines.push(new Float32Array(p));
+            }
         }
     }
 
