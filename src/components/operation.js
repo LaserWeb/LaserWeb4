@@ -16,7 +16,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 
-import { addOperation, removeOperation, setOperationAttrs } from '../actions/operation';
+import { addOperation, removeOperation, operationAddDocuments, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 
 function NumberInput({op, field, onChange}) {
     return (
@@ -54,6 +54,32 @@ class Field extends React.Component {
 };
 Field = connect()(Field);
 
+class Doc extends React.Component {
+    componentWillMount() {
+        this.remove = e => {
+            this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.id));
+        }
+    }
+
+    render() {
+        let {op, documents, id} = this.props;
+        return (
+            <tr>
+                <td style={{ width: '100%' }}>
+                    {documents.find(d => d.id === id).name}
+                </td>
+                <td>
+                    <button className="btn btn-danger btn-xs" onClick={this.remove}>
+                        <i className="fa fa-times"></i>
+                    </button>
+                </td>
+                <td style={{ paddingLeft: 15 }} ></td>
+            </tr>
+        );
+    }
+}
+Doc = connect()(Doc);
+
 const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
@@ -83,15 +109,32 @@ const types = {
 
 class Operation extends React.Component {
     componentWillMount() {
+        this.onDragOver = this.onDragOver.bind(this);
+        this.onDrop = this.onDrop.bind(this);
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
     }
 
+    onDragOver(e) {
+        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
+            e.nativeEvent.dataTransfer.dropEffect = "copy";
+            e.preventDefault();
+        }
+    }
+
+    onDrop(e) {
+        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
+            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
+            this.props.dispatch(operationAddDocuments(this.props.op.id, documents));
+            e.preventDefault();
+        }
+    }
+
     render() {
-        let {op} = this.props;
+        let {op, documents, onDragOver, dispatch} = this.props;
         let rows = [
-            <div key="1" style={{ display: 'table-row' }}>
+            <div key="header" style={{ display: 'table-row' }}>
                 <div style={{ display: 'table-cell' }}>
                     <i
                         onClick={this.toggleExpanded}
@@ -111,7 +154,20 @@ class Operation extends React.Component {
         ];
         if (op.expanded)
             rows.push(
-                <div key="2" style={{ display: 'table-row' }}>
+                <div key="docs" style={{ display: 'table-row' }}>
+                    <div style={{ display: 'table-cell' }} />
+                    <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                        <table style={{ width: '100%' }}>
+                            <tbody>
+                                {op.documents.map(id => {
+                                    return <Doc key={id} op={op} documents={documents} id={id} dispatch={dispatch} />
+                                })}
+                                <tr><td>&nbsp;</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>,
+                <div key="attrs" style={{ display: 'table-row' }}>
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
@@ -124,7 +180,7 @@ class Operation extends React.Component {
                     </div>
                 </div>
             );
-        return <div className="operation-row">{rows}</div>;
+        return <div className="operation-row" onDragOver={this.onDragOver} onDrop={this.onDrop}>{rows}</div>;
     }
 };
 
@@ -150,6 +206,7 @@ class Operations extends React.Component {
     }
 
     render() {
+        let {operations, documents, dispatch } = this.props;
         return (
             <div>
                 <div style={{ backgroundColor: 'cyan', padding: '20px' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
@@ -157,8 +214,8 @@ class Operations extends React.Component {
                 </div>
                 <br />
                 <div className="operations" style={{ display: 'table' }}>
-                    {this.props.operations.map(o =>
-                        <Operation key={o.id} op={o} dispatch={this.props.dispatch} />
+                    {operations.map(o =>
+                        <Operation key={o.id} op={o} documents={documents} dispatch={dispatch} />
                     )}
                 </div>
             </div>
@@ -166,6 +223,6 @@ class Operations extends React.Component {
     }
 };
 Operations = connect(
-    state => ({ operations: state.operations }),
+    ({operations, documents}) => ({ operations, documents }),
 )(Operations);
 export { Operations };

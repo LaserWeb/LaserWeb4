@@ -33,7 +33,7 @@ function loadSvg(state, {file, content}) {
             if (child.nodeName === 'path') {
                 // TODO: report errors
                 // TODO: settings for pxPerInch, minNumSegments, minSegmentLength
-                c.positions = elementToPositions(child, 90, 1, .1, error => console.log(error));
+                c.positions = elementToPositions(child, 90, 1, .01 * 90, error => console.log(error));
                 if (!c.positions)
                     continue;
                 allPositions.push(c.positions);
