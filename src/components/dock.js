@@ -35,8 +35,11 @@ class Button extends React.Component {
      * @return {String}
      */
     render() {
+        let styleClasses=[];
+        if (this.props.active) styleClasses.push('active');
+        if (this.props.dimmed) styleClasses.push('dimmed');
         return (
-            <li className={ this.props.active ? "active" : null } onClick={ this.props.onClick } >
+            <li className={ styleClasses.length ? styleClasses.join(" ") : null  } onClick={ this.props.onClick } >
                 <div>
                     <Icon name={ this.props.icon } fw={ true } />
                     <span>{ this.props.title }</span>
@@ -74,6 +77,7 @@ class Dock extends React.Component {
                             {...item.props}
                             key={item.props.id}
                             active={item.props.id === this.props.selected}
+                            dimmed={this.props.dimmed}
                             onClick={() => this.props.onButtonClick(item.props.id)}
                             />))
                 }
@@ -85,6 +89,7 @@ class Dock extends React.Component {
 const mapStateToProps = (state) => {
     return {
         selected: state.panes.selected,
+        dimmed: !state.panes.visible,
     }
 }
 

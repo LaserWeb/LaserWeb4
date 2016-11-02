@@ -100,6 +100,10 @@ body, html, .full-height {
     border-top-left-radius: 5px;
 }
 
+#sidebar .dock li.active.dimmed {
+     border-left: solid 6px #388E00;
+}
+
 #sidebar .dock li.active:hover {
     color:#000;
 }
@@ -124,10 +128,11 @@ body, html, .full-height {
     overflow: hidden;
 }
 
+#sidebar .pane-content {overflow-y:auto}
+
 #sidebar .panes .pane {
     display: none;
-    padding: 10px;
-    margin-right:15px;
+    padding: 10px 0px 10px 10px;
 }
 
 #sidebar .panes .pane.active {

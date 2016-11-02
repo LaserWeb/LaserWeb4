@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import Toggle from "react-toggle";
 import 'react-toggle/style.css';
+import '../styles/forms.css';
 
 export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
     return (
@@ -24,7 +25,7 @@ export function TextField({object, field, description, units="", setAttrs, dispa
     
     return (
         <div className="input-group" style={(isTextArea)? {width: "100%"}:{}}>
-            {(!isTextArea) ? (<span className="input-group-addon">{description}</span>): ( <h6>{description}</h6>)}
+            {(!isTextArea) ? (<span className="input-group-addon">{description}</span>): ( <label htmlFor={field}>{description}</label>)}
             {(!isTextArea) ? (
             <input
                 type="text"
@@ -34,7 +35,7 @@ export function TextField({object, field, description, units="", setAttrs, dispa
                 />
             ) : (
                
-                <textarea style={{width:"100%"}}
+                <textarea style={{width:"100%"}} id={field}
                 onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                 value={object[field]}
                 {...rest}
@@ -56,8 +57,28 @@ export function ToggleField({object, field, description, units="", setAttrs, dis
     )    
 }
 
+export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
+    let radios=["TL","TR","C","BL","BR"];
+    let available= new Set(rest.available ? rest.available : radios);
+    let fields=radios.map((radio) =>
+       <label  key={radio} className={radio}><input type="radio"  value={radio} name={"quadrant_"+field}
+       checked={(object[field]==radio)? "checked":""}
+       disabled={available.has(radio)? "":"disabled"}
+       onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))} />
+       </label>
+    );
+    
+    return (
+        <div className="input-group">
+            <label>{description}</label>
+            <div className="quadrantField">{fields}</div>
+        </div>
+    )
+}
+
 
 
 NumberField = connect()(NumberField);
 TextField = connect()(TextField);
 ToggleField = connect()(ToggleField);
+QuadrantField = connect()(QuadrantField);
