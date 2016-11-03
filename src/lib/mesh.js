@@ -190,11 +190,11 @@ export function flipY(allPositions) {
                 a[i + 1] = maxY - a[i + 1];
 }
 
-export function positionsToClipperPaths(positions) {
+export function positionsToClipperPaths(positions, translateX, translateY) {
     return positions.map(p => {
         let path = [];
         for (let i = 0; i < p.length; i += 3)
-            path.push({ X: p[i] * mmToClipperScale, Y: p[i + 1] * mmToClipperScale });
+            path.push({ X: (p[i] + translateX) * mmToClipperScale, Y: (p[i + 1] + translateY) * mmToClipperScale });
         return path;
     });
 }
@@ -239,7 +239,7 @@ function triangulatePolyTree(polyTree, z) {
 }
 
 export function triangulatePositions(positions, z) {
-    return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions)), z);
+    return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions, 0, 0)), z);
 }
 
 // Clip Clipper geometry. clipType is a ClipperLib.ClipType constant. Returns new geometry.

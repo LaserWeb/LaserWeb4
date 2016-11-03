@@ -32,12 +32,20 @@ export class DocumentCacheHolder extends React.Component {
         return { documentCacheHolder: this };
     }
 
+    componentWillMount() {
+        this.setDocuments(this.props.documents);
+    }
+
     componentWillReceiveProps(nextProps) {
-        if (this.documents !== nextProps.documents) {
-            this.documents = nextProps.documents;
+        this.setDocuments(nextProps.documents);
+    }
+
+    setDocuments(documents) {
+        if (this.documents !== documents) {
+            this.documents = documents;
             let oldCache = this.cache;
             this.cache = new Map();
-            for (let document of nextProps.documents) {
+            for (let document of documents) {
                 let cachedDocument = oldCache.get(document.id);
                 if (cachedDocument)
                     cachedDocument.document = document;

@@ -102,7 +102,7 @@ const types = {
     'Laser Inside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Laser Outside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Mill Pocket': { fields: ['direction', 'margin', 'cutDepth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Engrave': { fields: ['direction', 'cutDepth', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Engrave': { fields: ['direction', 'cutDepth', 'passDepth', 'plungeRate', 'cutRate'] },
     'Mill Inside': { fields: ['direction', 'margin', 'cutDepth', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Outside': { fields: ['direction', 'margin', 'cutDepth', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
 };
