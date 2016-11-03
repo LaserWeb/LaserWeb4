@@ -19,7 +19,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
-import { selectDocument, toggleSelectDocument } from '../actions/document';
+import { selectDocument, toggleSelectDocument, translateSelectedDocuments } from '../actions/document';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -29,7 +29,8 @@ import SetSize from './setsize';
 function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
     let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
     let world = mat4.lookAt([], eye, center, up);
-    return { fovy, perspective, world };
+    let worldInv = mat4.invert([], world);
+    return { fovy, perspective, world, worldInv };
 }
 
 class Grid {
@@ -51,9 +52,9 @@ class Grid {
             this.position = drawCommands.regl.buffer(new Float32Array(a));
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
     }
 };
 
@@ -114,6 +115,7 @@ class WorkspaceContent extends React.Component {
                         this.drawCommands.noDepth(() => {
                             this.drawCommands.simple({
                                 position: cachedDocument.triangles,
+                                translate: document.translate,
                                 color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
                                 primitive: 'triangles',
                                 offset: 0,
@@ -122,6 +124,7 @@ class WorkspaceContent extends React.Component {
                             for (let o of cachedDocument.outlines)
                                 this.drawCommands.simple({
                                     position: o,
+                                    translate: document.translate,
                                     color: [0, 0, 0, 1],
                                     primitive: 'line strip',
                                     offset: 0,
@@ -148,6 +151,24 @@ class WorkspaceContent extends React.Component {
             });
     }
 
+    rayFromPoint(pageX, pageY) {
+        let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
+        let x = 2 * (pageX * window.devicePixelRatio - r.left) / (this.props.width) - 1;
+        let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
+        let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
+        let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
+        let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
+        return { origin, direction };
+    }
+
+    xyInterceptFromPoint(pageX, pageY) {
+        let {origin, direction} = this.rayFromPoint(pageX, pageY);
+        if (!direction[2])
+            return;
+        let t = -origin[2] / direction[2];
+        return [origin[0] + t * direction[0], origin[1] + t * direction[1], 0];
+    }
+
     hitTest(pageX, pageY) {
         if (!this.canvas || !this.regl || !this.drawCommands)
             return;
@@ -167,6 +188,7 @@ class WorkspaceContent extends React.Component {
                         this.drawCommands.noDepth(() => {
                             this.drawCommands.simple({
                                 position: cachedDocument.triangles,
+                                translate: document.translate,
                                 color: [
                                     ((hitTestId >> 24) & 0xff) / 0xff,
                                     ((hitTestId >> 16) & 0xff) / 0xff,
@@ -193,52 +215,80 @@ class WorkspaceContent extends React.Component {
     }
 
     mouseDown(e) {
+        this.mouseX = e.pageX;
+        this.mouseY = e.pageY;
+        this.movingObjects = false;
+        this.adjustingCamera = false;
+        this.needToSelect = null;
+        this.toggle = e.ctrlKey || e.shiftKey;
+        this.moveStarted = false;
+
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
         if (cachedDocument && e.button === 0) {
-            if (e.ctrlKey || e.shiftKey)
-                this.props.dispatch(toggleSelectDocument(cachedDocument.id));
-            else
-                this.props.dispatch(selectDocument(cachedDocument.id));
+            this.movingObjects = true;
+            if (cachedDocument.document.selected)
+                this.needToSelect = cachedDocument.document.id;
+            else {
+                if (this.toggle)
+                    this.props.dispatch(toggleSelectDocument(cachedDocument.id));
+                else
+                    this.props.dispatch(selectDocument(cachedDocument.id));
+            }
         } else {
             this.adjustingCamera = true;
-            this.mouseX = e.screenX;
-            this.mouseY = e.screenY;
         }
     }
 
     mouseUp(e) {
-        this.adjustingCamera = false;
+        if (this.needToSelect) {
+            if (this.toggle)
+                this.props.dispatch(toggleSelectDocument(this.needToSelect));
+            else
+                this.props.dispatch(selectDocument(this.needToSelect));
+        }
     }
 
     mouseMove(e) {
-        if (!this.adjustingCamera)
-            return;
-        let dx = e.screenX - this.mouseX;
-        let dy = this.mouseY - e.screenY;
-        let camera = this.props.camera;
-        if (e.button === 0) {
-            let rot = mat4.mul([],
-                mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
-                mat4.fromRotation([], -dx / 200, camera.up));
-            this.props.dispatch(setCameraAttrs({
-                eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
-                up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
-            }));
-        } else if (e.button === 1) {
-            this.props.dispatch(setCameraAttrs({
-                fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
-            }));
-        } else if (e.button === 2) {
-            let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
-            this.props.dispatch(setCameraAttrs({
-                eye: vec3.add([], camera.eye,
-                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-                center: vec3.add([], camera.center,
-                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-            }));
+        let dx = e.pageX - this.mouseX;
+        let dy = this.mouseY - e.pageY;
+        if (this.movingObjects) {
+            if (Math.abs(dx) >= 10 || Math.abs(dy) >= 10)
+                this.moveStarted = true;
+            if (this.moveStarted) {
+                this.needToSelect = null;
+                let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
+                let p2 = this.xyInterceptFromPoint(this.mouseX, this.mouseY);
+                if (p1 && p2)
+                    this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
+                this.mouseX = e.pageX;
+                this.mouseY = e.pageY;
+            }
+        } else if (this.adjustingCamera) {
+            let camera = this.props.camera;
+            if (e.button === 0) {
+                let rot = mat4.mul([],
+                    mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
+                    mat4.fromRotation([], -dx / 200, camera.up));
+                this.props.dispatch(setCameraAttrs({
+                    eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
+                    up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
+                }));
+            } else if (e.button === 1) {
+                this.props.dispatch(setCameraAttrs({
+                    fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
+                }));
+            } else if (e.button === 2) {
+                let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
+                this.props.dispatch(setCameraAttrs({
+                    eye: vec3.add([], camera.eye,
+                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                    center: vec3.add([], camera.center,
+                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                }));
+            }
+            this.mouseX = e.pageX;
+            this.mouseY = e.pageY;
         }
-        this.mouseX = e.screenX;
-        this.mouseY = e.screenY;
     }
 
     wheel(e) {

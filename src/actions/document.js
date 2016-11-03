@@ -13,6 +13,10 @@ export function toggleSelectDocument(id) {
     return { type: 'DOCUMENT_TOGGLE_SELECT', payload: { id } };
 };
 
+export function translateSelectedDocuments(amount) {
+    return { type: 'DOCUMENT_TRANSLATE_SELECTED', payload: amount };
+}
+
 export function loadDocument(file, content) {
     return { type: 'DOCUMENT_LOAD', payload: { file, content } };
 }
