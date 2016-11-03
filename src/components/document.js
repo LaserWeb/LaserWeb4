@@ -95,7 +95,7 @@ export function Documents({documents, toggleExpanded}) {
     return (
         <div>
             {documents
-                .filter(document => document.type === 'document')
+                .filter(document => document.isRoot)
                 .map(document => (
                     <Subtree
                         key={document.id} objects={documents} object={document}

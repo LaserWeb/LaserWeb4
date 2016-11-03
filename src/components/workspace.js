@@ -101,6 +101,7 @@ class WorkspaceContent extends React.Component {
             height: this.props.height,
         });
         this.drawCommands = new DrawCommands(this.regl);
+        this.props.documentCacheHolder.regl = this.regl;
 
         this.regl.frame(() => {
             this.regl.clear({
@@ -111,26 +112,39 @@ class WorkspaceContent extends React.Component {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
                     let {document} = cachedDocument;
-                    if (document.type === 'path') {
-                        this.drawCommands.noDepth(() => {
-                            this.drawCommands.simple({
-                                position: cachedDocument.triangles,
-                                translate: document.translate,
-                                color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
-                                primitive: 'triangles',
-                                offset: 0,
-                                count: cachedDocument.triangles.length / 3,
-                            });
-                            for (let o of cachedDocument.outlines)
+                    switch (document.type) {
+                        case 'path':
+                            this.drawCommands.noDepth(() => {
                                 this.drawCommands.simple({
-                                    position: o,
+                                    position: cachedDocument.triangles,
                                     translate: document.translate,
-                                    color: [0, 0, 0, 1],
-                                    primitive: 'line strip',
+                                    color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
+                                    primitive: 'triangles',
                                     offset: 0,
-                                    count: o.length / 3,
+                                    count: cachedDocument.triangles.length / 3,
                                 });
-                        });
+                                for (let o of cachedDocument.outlines)
+                                    this.drawCommands.simple({
+                                        position: o,
+                                        translate: document.translate,
+                                        color: [0, 0, 0, 1],
+                                        primitive: 'line strip',
+                                        offset: 0,
+                                        count: o.length / 3,
+                                    });
+                            });
+                            break;
+                        case 'image':
+                            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl)
+                                this.drawCommands.noDepth(() => {
+                                    this.drawCommands.image({
+                                        translate: document.translate,
+                                        size: [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4],
+                                        texture: cachedDocument.texture,
+                                        selected: document.selected,
+                                    });
+                                });
+                            break;
                     }
                 }
             });
@@ -197,6 +211,27 @@ class WorkspaceContent extends React.Component {
                                 primitive: 'triangles',
                                 offset: 0,
                                 count: cachedDocument.triangles.length / 3,
+                            });
+                        });
+                    } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {
+                        this.drawCommands.noDepth(() => {
+                            this.drawCommands.simple({
+                                position: [
+                                    [0, 0, 0],
+                                    [cachedDocument.image.width / document.dpi * 25.4, 0, 0],
+                                    [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                    [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                    [0, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                    [0, 0, 0]],
+                                translate: document.translate,
+                                color: [
+                                    ((hitTestId >> 24) & 0xff) / 0xff,
+                                    ((hitTestId >> 16) & 0xff) / 0xff,
+                                    ((hitTestId >> 8) & 0xff) / 0xff,
+                                    (hitTestId & 0xff) / 0xff],
+                                primitive: 'triangles',
+                                offset: 0,
+                                count: 6,
                             });
                         });
                     }

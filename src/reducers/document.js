@@ -9,9 +9,11 @@ import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToPositions, flipY } from '../lib/mesh'
 
 const documentBase = object('document', {
-    type: 'document',
+    type: '?',
     name: '',
+    isRoot: false,
     children: [],
+    selected: false,
 });
 
 export function document(state, action) {
@@ -41,7 +43,9 @@ function loadSvg(state, {file, content}) {
                 id: uuid.v4(),
                 type: child.nodeName,
                 name: child.nodeName + ': ' + child.id,
+                isRoot: false,
                 children: [],
+                selected: false,
                 translate: [0, 0, 0],
             };
             if (child.nodeName === 'path') {
@@ -63,7 +67,9 @@ function loadSvg(state, {file, content}) {
         id: uuid.v4(),
         type: 'document',
         name: file.name,
+        isRoot: true,
         children: [],
+        selected: false,
     };
     state.push(doc);
     addChildren(doc, svg.node.children[0]);
@@ -71,17 +77,36 @@ function loadSvg(state, {file, content}) {
     return state;
 }
 
+function loadImage(state, {file, content}) {
+    let doc = {
+        id: uuid.v4(),
+        type: 'image',
+        name: file.name,
+        isRoot: true,
+        children: [],
+        selected: false,
+        translate: [0, 0, 0],
+        mimeType: file.type,
+        dataURL: content,
+        dpi: 96, // TODO
+    };
+    state.push(doc);
+    console.log(doc);
+    return state;
+}
+
 export function documents(state, action) {
     state = documentsForest(state, action);
     switch (action.type) {
         case 'DOCUMENT_LOAD':
-            switch (action.payload.file.type) {
-                case 'image/svg+xml':
-                    return loadSvg(state, action.payload);
-                default:
-                    // TODO: show error in gui
-                    console.log('Unsupported file type:', action.payload.file.type)
-                    return state;
+            if (action.payload.file.type === 'image/svg+xml')
+                return loadSvg(state, action.payload);
+            else if (action.payload.file.type.substring(0, 6) === 'image/')
+                return loadImage(state, action.payload);
+            else {
+                // TODO: show error in gui
+                console.log('Unsupported file type:', action.payload.file.type)
+                return state;
             }
         case 'DOCUMENT_SELECT': {
             let ids = getSubtreeIds(state, action.payload.id);
