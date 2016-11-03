@@ -6,8 +6,13 @@ import 'react-toggle/style.css';
 import '../styles/forms.css';
 
 export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
+    
+    let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+    let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
+    
+   
     return (
-        <div className="input-group">
+        <div className={"input-group "+ (hasErrors? 'has-error':'')}>
             <span className="input-group-addon">{description}</span>
             <input
                 type="number"
@@ -16,15 +21,18 @@ export function NumberField({object, field, description, units, setAttrs, dispat
                 {...rest}
                 />
             <span className="input-group-addon">{units}</span>
+            <p className="help-block">{errors}</p>
         </div>
     );
 }
 
 export function TextField({object, field, description, units="", setAttrs, dispatch, ...rest}) {
     let isTextArea=typeof(rest.rows)!="undefined";
+    let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+    let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
     
     return (
-        <div className="input-group" style={(isTextArea)? {width: "100%"}:{}}>
+        <div className={"input-group "+ (hasErrors? 'has-error':'')} style={(isTextArea)? {width: "100%"}:{}}>
             {(!isTextArea) ? (<span className="input-group-addon">{description}</span>): ( <label htmlFor={field}>{description}</label>)}
             {(!isTextArea) ? (
             <input
@@ -44,20 +52,28 @@ export function TextField({object, field, description, units="", setAttrs, dispa
             {(units!=="")? (
                 <span className="input-group-addon">{units}</span>
             ):(false)}
+                <p className="help-block">{errors}</p>
         </div>
     );
 }
 
 export function ToggleField({object, field, description, units="", setAttrs, dispatch, ...rest}) {
+    let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+    let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
+        
     return (
         <div className="input-group">
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
+        <p className="help-block">{errors}</p>
         </div>
     )    
 }
 
 export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
+    let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+    let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors        ;
+        
     let radios=["TL","TR","C","BL","BR"];
     let available= new Set(rest.available ? rest.available : radios);
     let fields=radios.map((radio) =>
@@ -72,6 +88,7 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
         <div className="input-group">
             <label>{description}</label>
             <div className="quadrantField">{fields}</div>
+            <p className="help-block">{errors}</p>
         </div>
     )
 }
