@@ -19,17 +19,18 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
+import { selectDocument, toggleSelectDocument, translateSelectedDocuments } from '../actions/document';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
-import { triangulatePositions } from '../lib/mesh';
 import SetSize from './setsize';
 
 function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
     let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
     let world = mat4.lookAt([], eye, center, up);
-    return { fovy, perspective, world };
+    let worldInv = mat4.invert([], world);
+    return { fovy, perspective, world, worldInv };
 }
 
 class Grid {
@@ -51,9 +52,9 @@ class Grid {
             this.position = drawCommands.regl.buffer(new Float32Array(a));
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
     }
 };
 
@@ -75,6 +76,7 @@ class WorkspaceContent extends React.Component {
         this.documentCache = [];
         this.mouseDown = this.mouseDown.bind(this);
         this.mouseMove = this.mouseMove.bind(this);
+        this.mouseUp = this.mouseUp.bind(this);
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
     }
@@ -94,41 +96,35 @@ class WorkspaceContent extends React.Component {
         this.regl = require('regl')({
             canvas: ReactDOM.findDOMNode(canvas)
         });
-
-        let drawCommands = new DrawCommands(this.regl);
+        this.hitTestFrameBuffer = this.regl.framebuffer({
+            width: this.props.width,
+            height: this.props.height,
+        });
+        this.drawCommands = new DrawCommands(this.regl);
 
         this.regl.frame(() => {
             this.regl.clear({
                 color: [1, 1, 1, 1],
                 depth: 1
             })
-
-            drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
-                this.grid.draw(drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-
-                for (let document of this.props.documents) {
-                    let cache = this.props.documentCacheHolder.cache.get(document.id);
-                    if (!cache)
-                        continue;
+            this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
+                this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+                for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
+                    let {document} = cachedDocument;
                     if (document.type === 'path') {
-                        if (!cache.positions || cache.positions !== document.positions) {
-                            cache.positions = document.positions;
-                            cache.triangles = new Float32Array(triangulatePositions(document.positions, 0));
-                            cache.outlines = [];
-                            for (let p of document.positions)
-                                cache.outlines.push(new Float32Array(p));
-                        }
-                        drawCommands.noDepth(() => {
-                            drawCommands.simple({
-                                position: cache.triangles,
+                        this.drawCommands.noDepth(() => {
+                            this.drawCommands.simple({
+                                position: cachedDocument.triangles,
+                                translate: document.translate,
                                 color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
                                 primitive: 'triangles',
                                 offset: 0,
-                                count: cache.triangles.length / 3,
+                                count: cachedDocument.triangles.length / 3,
                             });
-                            for (let o of cache.outlines)
-                                drawCommands.simple({
+                            for (let o of cachedDocument.outlines)
+                                this.drawCommands.simple({
                                     position: o,
+                                    translate: document.translate,
                                     color: [0, 0, 0, 1],
                                     primitive: 'line strip',
                                     offset: 0,
@@ -138,7 +134,7 @@ class WorkspaceContent extends React.Component {
                     }
                 }
             });
-        })
+        });
     }
 
     componentWillReceiveProps(nextProps) {
@@ -155,38 +151,144 @@ class WorkspaceContent extends React.Component {
             });
     }
 
+    rayFromPoint(pageX, pageY) {
+        let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
+        let x = 2 * (pageX * window.devicePixelRatio - r.left) / (this.props.width) - 1;
+        let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
+        let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
+        let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
+        let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
+        return { origin, direction };
+    }
+
+    xyInterceptFromPoint(pageX, pageY) {
+        let {origin, direction} = this.rayFromPoint(pageX, pageY);
+        if (!direction[2])
+            return;
+        let t = -origin[2] / direction[2];
+        return [origin[0] + t * direction[0], origin[1] + t * direction[1], 0];
+    }
+
+    hitTest(pageX, pageY) {
+        if (!this.canvas || !this.regl || !this.drawCommands)
+            return;
+        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
+
+        let result;
+        this.regl({ framebuffer: this.hitTestFrameBuffer })(() => {
+            this.regl.clear({
+                color: [0, 0, 0, 0],
+                depth: 1
+            })
+            this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
+                this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+                for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
+                    let {document, hitTestId} = cachedDocument;
+                    if (document.type === 'path') {
+                        this.drawCommands.noDepth(() => {
+                            this.drawCommands.simple({
+                                position: cachedDocument.triangles,
+                                translate: document.translate,
+                                color: [
+                                    ((hitTestId >> 24) & 0xff) / 0xff,
+                                    ((hitTestId >> 16) & 0xff) / 0xff,
+                                    ((hitTestId >> 8) & 0xff) / 0xff,
+                                    (hitTestId & 0xff) / 0xff],
+                                primitive: 'triangles',
+                                offset: 0,
+                                count: cachedDocument.triangles.length / 3,
+                            });
+                        });
+                    }
+                }
+            });
+            let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
+            let x = Math.round(pageX * window.devicePixelRatio - r.left);
+            let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
+            let pixel = this.regl.read({ x, y, width: 1, height: 1 });
+            let hitTestId = (pixel[0] << 24) | (pixel[1] << 16) | (pixel[2] << 8) | pixel[3];
+            for (let cachedDocument of this.props.documentCacheHolder.cache.values())
+                if (cachedDocument.hitTestId === hitTestId)
+                    result = cachedDocument;
+        });
+        return result;
+    }
+
     mouseDown(e) {
-        this.mouseX = e.screenX;
-        this.mouseY = e.screenY;
+        this.mouseX = e.pageX;
+        this.mouseY = e.pageY;
+        this.movingObjects = false;
+        this.adjustingCamera = false;
+        this.needToSelect = null;
+        this.toggle = e.ctrlKey || e.shiftKey;
+        this.moveStarted = false;
+
+        let cachedDocument = this.hitTest(e.pageX, e.pageY);
+        if (cachedDocument && e.button === 0) {
+            this.movingObjects = true;
+            if (cachedDocument.document.selected)
+                this.needToSelect = cachedDocument.document.id;
+            else {
+                if (this.toggle)
+                    this.props.dispatch(toggleSelectDocument(cachedDocument.id));
+                else
+                    this.props.dispatch(selectDocument(cachedDocument.id));
+            }
+        } else {
+            this.adjustingCamera = true;
+        }
+    }
+
+    mouseUp(e) {
+        if (this.needToSelect) {
+            if (this.toggle)
+                this.props.dispatch(toggleSelectDocument(this.needToSelect));
+            else
+                this.props.dispatch(selectDocument(this.needToSelect));
+        }
     }
 
     mouseMove(e) {
-        let dx = e.screenX - this.mouseX;
-        let dy = this.mouseY - e.screenY;
-        let camera = this.props.camera;
-        if (e.button === 0) {
-            let rot = mat4.mul([],
-                mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
-                mat4.fromRotation([], -dx / 200, camera.up));
-            this.props.dispatch(setCameraAttrs({
-                eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
-                up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
-            }));
-        } else if (e.button === 1) {
-            this.props.dispatch(setCameraAttrs({
-                fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
-            }));
-        } else if (e.button === 2) {
-            let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
-            this.props.dispatch(setCameraAttrs({
-                eye: vec3.add([], camera.eye,
-                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-                center: vec3.add([], camera.center,
-                    vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-            }));
+        let dx = e.pageX - this.mouseX;
+        let dy = this.mouseY - e.pageY;
+        if (this.movingObjects) {
+            if (Math.abs(dx) >= 10 || Math.abs(dy) >= 10)
+                this.moveStarted = true;
+            if (this.moveStarted) {
+                this.needToSelect = null;
+                let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
+                let p2 = this.xyInterceptFromPoint(this.mouseX, this.mouseY);
+                if (p1 && p2)
+                    this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
+                this.mouseX = e.pageX;
+                this.mouseY = e.pageY;
+            }
+        } else if (this.adjustingCamera) {
+            let camera = this.props.camera;
+            if (e.button === 0) {
+                let rot = mat4.mul([],
+                    mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
+                    mat4.fromRotation([], -dx / 200, camera.up));
+                this.props.dispatch(setCameraAttrs({
+                    eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
+                    up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
+                }));
+            } else if (e.button === 1) {
+                this.props.dispatch(setCameraAttrs({
+                    fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
+                }));
+            } else if (e.button === 2) {
+                let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
+                this.props.dispatch(setCameraAttrs({
+                    eye: vec3.add([], camera.eye,
+                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                    center: vec3.add([], camera.center,
+                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                }));
+            }
+            this.mouseX = e.pageX;
+            this.mouseY = e.pageY;
         }
-        this.mouseX = e.screenX;
-        this.mouseY = e.screenY;
     }
 
     wheel(e) {
@@ -203,7 +305,7 @@ class WorkspaceContent extends React.Component {
     render() {
         return (
             <Capture
-                className="workspace-content" onMouseDown={this.mouseDown}
+                className="workspace-content" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
                 onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
                 <div className="workspace-content">
                     <canvas

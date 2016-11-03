@@ -1,17 +1,30 @@
 "use strict";
 
-import Snap from 'snapsvg-cjs';
+import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
+import Snap from 'snapsvg-cjs';
 
 import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToPositions, flipY } from '../lib/mesh'
 
-export const document = object('document', {
+const documentBase = object('document', {
     type: 'document',
     name: '',
     children: [],
 });
+
+export function document(state, action) {
+    switch (action.type) {
+        case 'DOCUMENT_TRANSLATE_SELECTED':
+            if (state.selected && state.translate) {
+                return {...state, translate: vec3.add([], state.translate, action.payload) };
+            } else
+                return state;
+        default:
+            return documentBase(state, action)
+    }
+}
 
 const documentsForest = forest('document', document);
 
@@ -29,6 +42,7 @@ function loadSvg(state, {file, content}) {
                 type: child.nodeName,
                 name: child.nodeName + ': ' + child.id,
                 children: [],
+                translate: [0, 0, 0],
             };
             if (child.nodeName === 'path') {
                 // TODO: report errors
@@ -78,7 +92,6 @@ export function documents(state, action) {
             if (!parent)
                 return state;
             let selected = !parent.selected;
-            console.log('sss', parent.id, parent.selected, parent)
             state = reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { selected }));
             if (!selected)
                 state = reduceParents(state, action.payload.id, false, o => Object.assign({}, o, { selected: false }));

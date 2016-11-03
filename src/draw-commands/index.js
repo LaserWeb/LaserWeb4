@@ -36,9 +36,10 @@ function simple(regl) {
             precision mediump float;
             uniform mat4 perspective; 
             uniform mat4 world; 
+            uniform vec3 translate; 
             attribute vec3 position;
             void main() {
-                gl_Position = perspective * world * vec4(position, 1);
+                gl_Position = perspective * world * vec4(position + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -47,10 +48,11 @@ function simple(regl) {
                 gl_FragColor = color;
             }`,
         attributes: {
-            position: regl.prop('position')
+            position: regl.prop('position'),
         },
         uniforms: {
-            color: regl.prop('color')
+            translate: regl.prop('translate'),
+            color: regl.prop('color'),
         },
         primitive: regl.prop('primitive'),
         offset: regl.prop('offset'),

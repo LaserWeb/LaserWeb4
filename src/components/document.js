@@ -28,11 +28,11 @@ class DocumentLabel extends React.Component {
 
     onMouseDown(e) {
         this.needToSelect = false;
-        this.ctrlKey = e.ctrlKey;
+        this.isToggle = e.ctrlKey || e.shiftKey;
         if (this.props.object.selected)
             this.needToSelect = true;
         else {
-            if (e.ctrlKey)
+            if (this.isToggle)
                 this.props.dispatch(toggleSelectDocument(this.props.object.id));
             else
                 this.props.dispatch(selectDocument(this.props.object.id));
@@ -41,7 +41,7 @@ class DocumentLabel extends React.Component {
 
     onMouseUp(e) {
         if (this.needToSelect) {
-            if (this.ctrlKey)
+            if (this.isToggle)
                 this.props.dispatch(toggleSelectDocument(this.props.object.id));
             else
                 this.props.dispatch(selectDocument(this.props.object.id));
