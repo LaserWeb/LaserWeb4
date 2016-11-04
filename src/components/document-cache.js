@@ -45,14 +45,25 @@ export class DocumentCacheHolder extends React.Component {
             this.documents = documents;
             let oldCache = this.cache;
             this.cache = new Map();
+            for (let cachedDocument of oldCache.values())
+                cachedDocument.used = false;
             for (let document of documents) {
                 let cachedDocument = oldCache.get(document.id);
                 if (cachedDocument)
                     cachedDocument.document = document;
                 else
                     cachedDocument = { id: document.id, document, hitTestId: ++this.lastHitTestId };
+                cachedDocument.used = true;
                 this.update(cachedDocument);
                 this.cache.set(document.id, cachedDocument);
+            }
+            for (let cachedDocument of oldCache.values()) {
+                if (!cachedDocument.used) {
+                    cachedDocument.image = null;
+                    cachedDocument.regl = null;
+                    if (cachedDocument.texture)
+                        cachedDocument.texture.destroy();
+                }
             }
         }
     }
@@ -72,6 +83,8 @@ export class DocumentCacheHolder extends React.Component {
             case 'image': {
                 let updateTexture = () => {
                     if (this.regl && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.regl !== this.regl)) {
+                        if (cachedDocument.texture)
+                            cachedDocument.texture.destroy();
                         cachedDocument.regl = this.regl;
                         cachedDocument.texture = this.regl.texture(cachedDocument.image);
                     }

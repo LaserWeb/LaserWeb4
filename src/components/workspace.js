@@ -85,13 +85,12 @@ class WorkspaceContent extends React.Component {
         if (this.canvas === canvas)
             return;
         this.canvas = canvas;
-        if (!canvas) {
-            if (this.regl) {
-                this.regl.destroy();
-                this.regl = null;
-            }
-            return;
+        if (this.regl) {
+            this.regl.destroy();
+            this.regl = null;
         }
+        if (!canvas)
+            return;
 
         this.regl = require('regl')({
             canvas: ReactDOM.findDOMNode(canvas)
@@ -100,6 +99,7 @@ class WorkspaceContent extends React.Component {
             width: this.props.width,
             height: this.props.height,
         });
+        this.useHitTestFrameBuffer = this.regl({ framebuffer: this.hitTestFrameBuffer })
         this.drawCommands = new DrawCommands(this.regl);
         this.props.documentCacheHolder.regl = this.regl;
 
@@ -189,7 +189,7 @@ class WorkspaceContent extends React.Component {
         this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
 
         let result;
-        this.regl({ framebuffer: this.hitTestFrameBuffer })(() => {
+        this.useHitTestFrameBuffer(() => {
             this.regl.clear({
                 color: [0, 0, 0, 0],
                 depth: 1
