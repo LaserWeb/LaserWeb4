@@ -43,7 +43,7 @@ class Cam extends React.Component {
                     <b>Documents</b>
                     <span style={{ float: 'right', position: 'relative' }}>
                         <button className="btn btn-xs"><i className="fa fa-upload" /></button>
-                        <input onChange={loadDocument} type="file" value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
+                        <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>
                 <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
@@ -68,11 +68,14 @@ Cam = connect(
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         loadDocument: e => {
             // TODO: report errors
-            // TODO: use readAsArrayBuffer() for some file types
-            let file = e.target.files[0];
-            let reader = new FileReader;
-            reader.onload = () => dispatch(loadDocument(file, reader.result));
-            reader.readAsText(file);
+            for (let file of e.target.files) {
+                let reader = new FileReader;
+                reader.onload = () => dispatch(loadDocument(file, reader.result));
+                if (file.name.substr(-4) === '.svg')
+                    reader.readAsText(file);
+                else
+                    reader.readAsDataURL(file);
+            }
         }
     }),
 )(Cam);

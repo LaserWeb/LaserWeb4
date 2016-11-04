@@ -270,7 +270,7 @@ export function getGcode(settings, documents, operations, showAlert) {
         function fetchGeometry(id) {
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
-                geometry = union(geometry, positionsToClipperPaths(doc.positions));
+                geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
             for (let child of doc.children)
                 fetchGeometry(child);
         }

@@ -60,11 +60,52 @@ function simple(regl) {
     });
 }
 
+function image(regl) {
+    return regl({
+        vert: `
+            precision mediump float;
+            uniform mat4 perspective; 
+            uniform mat4 world;
+            uniform vec3 translate;
+            uniform vec2 size;
+            attribute vec2 position;
+            varying vec2 coord;
+            void main() {
+                coord = position;
+                gl_Position = perspective * world * vec4(vec3(position * size, 0) + translate, 1);
+            }`,
+        frag: `
+            precision mediump float;
+            uniform sampler2D texture;
+            uniform bool selected;
+            varying vec2 coord;
+            void main() {
+                vec4 tex = texture2D(texture, vec2(coord.x, 1.0 - coord.y), 0.0);
+                if(selected)
+                    tex = mix(tex, vec4(0.0, 0.0, 1.0, 1.0), .5);
+                gl_FragColor = tex;
+            }`,
+        attributes: {
+            position: [[0, 0], [1, 0], [1, 1], [1, 1], [0, 1], [0, 0]],
+        },
+        uniforms: {
+            translate: regl.prop('translate'),
+            size: regl.prop('size'),
+            texture: regl.prop('texture'),
+            selected: regl.prop('selected'),
+        },
+        primitive: 'triangles',
+        offset: 0,
+        count: 6,
+    });
+}
+
 export default class DrawCommands {
     constructor(regl) {
         this.regl = regl;
         this.camera = camera(regl);
         this.noDepth = noDepth(regl);
         this.simple = simple(regl);
+        this.image = image(regl);
     }
 };

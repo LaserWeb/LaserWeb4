@@ -32,12 +32,20 @@ export class DocumentCacheHolder extends React.Component {
         return { documentCacheHolder: this };
     }
 
+    componentWillMount() {
+        this.setDocuments(this.props.documents);
+    }
+
     componentWillReceiveProps(nextProps) {
-        if (this.documents !== nextProps.documents) {
-            this.documents = nextProps.documents;
+        this.setDocuments(nextProps.documents);
+    }
+
+    setDocuments(documents) {
+        if (this.documents !== documents) {
+            this.documents = documents;
             let oldCache = this.cache;
             this.cache = new Map();
-            for (let document of nextProps.documents) {
+            for (let document of documents) {
                 let cachedDocument = oldCache.get(document.id);
                 if (cachedDocument)
                     cachedDocument.document = document;
@@ -51,13 +59,39 @@ export class DocumentCacheHolder extends React.Component {
 
     update(cachedDocument) {
         let {document} = cachedDocument;
-        if (document.type === 'path') {
-            if (!cachedDocument.positions || cachedDocument.positions !== document.positions) {
-                cachedDocument.positions = document.positions;
-                cachedDocument.triangles = new Float32Array(triangulatePositions(document.positions, 0));
-                cachedDocument.outlines = [];
-                for (let p of document.positions)
-                    cachedDocument.outlines.push(new Float32Array(p));
+        switch (document.type) {
+            case 'path':
+                if (cachedDocument.positions !== document.positions) {
+                    cachedDocument.positions = document.positions;
+                    cachedDocument.triangles = new Float32Array(triangulatePositions(document.positions, 0));
+                    cachedDocument.outlines = [];
+                    for (let p of document.positions)
+                        cachedDocument.outlines.push(new Float32Array(p));
+                }
+                break;
+            case 'image': {
+                let updateTexture = () => {
+                    if (this.regl && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.regl !== this.regl)) {
+                        cachedDocument.regl = this.regl;
+                        cachedDocument.texture = this.regl.texture(cachedDocument.image);
+                    }
+                }
+                if (cachedDocument.dataURL !== document.dataURL) {
+                    cachedDocument.dataURL = document.dataURL;
+                    cachedDocument.texture = null;
+                    cachedDocument.imageLoaded = false;
+                    let image = cachedDocument.image = new Image();
+                    cachedDocument.image.src = document.dataURL;
+                    cachedDocument.image.onload = () => {
+                        if (cachedDocument.image === image) {
+                            cachedDocument.imageLoaded = true;
+                            updateTexture();
+                        }
+                    }
+                }
+                else
+                    updateTexture();
+                break;
             }
         }
     }
