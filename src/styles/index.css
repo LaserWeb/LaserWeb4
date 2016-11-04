@@ -186,3 +186,31 @@ body, html, .full-height {
     padding-right: 4px;
     white-space: nowrap;
 }
+
+.error-bubble {
+    position: fixed;
+    z-index: 100;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.error-bubble::before {
+    content: ' ';
+    color: white;
+    width: 0px;
+    height: 0px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid red;
+    display: inline-block;
+}
+
+.error-bubble:after {
+    content: attr(data-error);
+    background-color: red;
+    color: white;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 4px;
+}

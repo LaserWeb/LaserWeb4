@@ -43,11 +43,15 @@ class Field extends React.Component {
     render() {
         let {op, field} = this.props;
         let Input = field.input;
+        let error;
+        if (field.check && !field.check(op[field.name]))
+            error = <td className='error-bubble' data-error={field.error} />;
         return (
             <tr>
                 <td>{field.label}</td>
                 <td><Input op={op} field={field} onChange={this.onChange} /></td>
                 <td>{field.units}</td>
+                {error}
             </tr>
         );
     }
@@ -80,21 +84,36 @@ class Doc extends React.Component {
 }
 Doc = connect()(Doc);
 
+const checkPositive = {
+    check: v => v > 0,
+    error: 'Must be > 0',
+};
+
+const checkPercent = {
+    check: v => v >= 0 && v <= 100,
+    error: 'Must be between 0 and 100',
+};
+
+const checkStepOver = {
+    check: v => v > 0 && v <= 1,
+    error: 'Must be in range (0, 1]',
+};
+
 const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
-    laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput },
-    laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput },
-    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput },
+    laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
+    laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
-    stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput },
-    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput },
-    cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput },
+    stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput, ...checkStepOver },
+    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
 
-    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput },
-    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput },
+    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
+    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 };
 
 const types = {
@@ -133,6 +152,15 @@ class Operation extends React.Component {
 
     render() {
         let {op, documents, onDragOver, dispatch} = this.props;
+        let showError = false;
+        if (!op.expanded) {
+            for (let fieldName of types[op.type].fields) {
+                let field = fields[fieldName];
+                if (field.check && !field.check(op[fieldName]))
+                    showError = true;
+            }
+        }
+
         let rows = [
             <div key="header" style={{ display: 'table-row' }}>
                 <div style={{ display: 'table-cell' }}>
@@ -150,6 +178,7 @@ class Operation extends React.Component {
                         </button>
                     </span>
                 </div>
+                {showError ? <div className="error-bubble" data-error="Expand to setup operation" /> : undefined}
             </div>
         ];
         if (op.expanded)
