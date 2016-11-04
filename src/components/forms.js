@@ -10,18 +10,21 @@ export function NumberField({object, field, description, units, setAttrs, dispat
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
     
-   
     return (
-        <div className={"input-group "+ (hasErrors? 'has-error':'')}>
-            <span className="input-group-addon">{description}</span>
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
+        <div className={"input-group "}>
+            <div className="input-group-addon">{description}</div>
             <input
+                className="form-control"
                 type="number"
                 value={object[field]}
                 onChange={e => dispatch(setAttrs({ [field]: Number(e.target.value) }, object.id))}
                 {...rest}
                 />
-            <span className="input-group-addon">{units}</span>
-            <p className="help-block">{errors}</p>
+            <div className="input-group-addon">{units}</div>
+        </div>
+        
+        <p className="help-block">{errors}</p>
         </div>
     );
 }
@@ -32,11 +35,13 @@ export function TextField({object, field, description, units="", setAttrs, dispa
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
     
     return (
-        <div className={"input-group "+ (hasErrors? 'has-error':'')} style={(isTextArea)? {width: "100%"}:{}}>
-            {(!isTextArea) ? (<span className="input-group-addon">{description}</span>): ( <label htmlFor={field}>{description}</label>)}
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
+        <div className={"input-group "} style={(isTextArea)? {width: "100%"}:{}}>
+            {(!isTextArea) ? (<div className="input-group-addon">{description}</div>): ( <label htmlFor={field}>{description}</label>)}
             {(!isTextArea) ? (
             <input
                 type="text"
+                className="form-control"
                 value={object[field]}
                 onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                 {...rest}
@@ -46,13 +51,16 @@ export function TextField({object, field, description, units="", setAttrs, dispa
                 <textarea style={{width:"100%"}} id={field}
                 onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                 value={object[field]}
+                className="form-control"
                 {...rest}
                 ></textarea>
             )}
             {(units!=="")? (
-                <span className="input-group-addon">{units}</span>
+                <div className="input-group-addon">{units}</div>
             ):(false)}
-                <p className="help-block">{errors}</p>
+                
+        </div>
+        <p className="help-block">{errors}</p>
         </div>
     );
 }
@@ -62,9 +70,11 @@ export function ToggleField({object, field, description, units="", setAttrs, dis
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
         
     return (
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
         <div className="input-group">
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
+        </div>
         <p className="help-block">{errors}</p>
         </div>
     )    
@@ -85,10 +95,13 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
     );
     
     return (
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
         <div className="input-group">
             <label>{description}</label>
             <div className="quadrantField">{fields}</div>
-            <p className="help-block">{errors}</p>
+            
+        </div>
+        <p className="help-block">{errors}</p>
         </div>
     )
 }

@@ -50,7 +50,7 @@ class Settings extends React.Component {
     render() {
         
         return (
-            <div>
+            <div className="form">
             <div className="well well-sm">
             <button onClick={() => this.props.handleDownload(this.props.settings)} type="button" className="btn btn-default btn-success" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
                 <div style={{position:"relative", display:"inline-block"}}>
