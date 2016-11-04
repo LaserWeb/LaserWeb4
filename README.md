@@ -23,6 +23,10 @@ Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 4. Commit your changes and push it back on Github.
 5. Submit your pull request (Only one feature per pull request).
 
+# Developer Resources of interest:
+
+* https://camjackson.net/post/9-things-every-reactjs-beginner-should-know
+
 # @tbfleming provides the following guidelines 
 
 I can't think of a how-to, but here are some notes that may help.

@@ -148,6 +148,9 @@ body, html, .full-height {
 #sidebar .panes .pane-content .input-group .input-group-addon {
     width:auto
 }
+.form-group .input-group-addon ,
+.form-group label { text-transform: uppercase; font-size: smaller}
+
 
 /* Workspace */
 
