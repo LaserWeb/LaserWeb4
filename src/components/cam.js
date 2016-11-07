@@ -19,6 +19,7 @@ import { connect } from 'react-redux';
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { Documents } from './document';
 import { Operations } from './operation';
+import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 
@@ -33,9 +34,9 @@ class Cam extends React.Component {
     }
 
     render() {
-        let {documents, toggleDocumentExpanded, loadDocument} = this.props;
+        let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
         return (
-            <div style={{ overflow: 'hidden', height: '100%' }}>
+            <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <button onClick={this.generate}>Generate</button>
                 </div>
@@ -51,19 +52,17 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <b>Operations</b>
-                <Splitter split="horizontal" initialSize={400} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-operations">
-                    <div style={{ overflowY: 'auto' }}>
-                        <Operations />
-                    </div>
-                </Splitter>
-                <b>Operation Diagram goes here...</b>
+                <OperationDiagram {...{ operations, currentOperation }} />
+                <div style={{ marginTop: 10 }}><b>Operations</b></div>
+                <div style={{ flexGrow: 2, overflowY: 'auto' }}>
+                    <Operations />
+                </div>
             </div>);
     }
 };
 
 Cam = connect(
-    state => ({ settings: state.settings, documents: state.documents, operations: state.operations }),
+    state => ({ settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation }),
     dispatch => ({
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         loadDocument: e => {

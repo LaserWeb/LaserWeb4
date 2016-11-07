@@ -11,3 +11,7 @@ export function operationAddDocuments(id, documents) {
 export function operationRemoveDocument(id, document) {
     return { type: 'OPERATION_REMOVE_DOCUMENT', payload: { id, document } };
 }
+
+export function setCurrentOperation(id) {
+    return { type: 'OPERATION_SET_CURRENT', payload: id };
+}
