@@ -16,17 +16,17 @@
 import React from 'react'
 import { connect } from 'react-redux';
 
-import { addOperation, removeOperation, operationAddDocuments, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 
-function NumberInput({op, field, onChange}) {
+function NumberInput({op, field, onChange, onFocus}) {
     return (
-        <input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} onChange={onChange} />
+        <input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} onChange={onChange} onFocus={onFocus} />
     );
 }
 
-function DirectionInput({op, field, onChange}) {
+function DirectionInput({op, field, onChange, onFocus}) {
     return (
-        <select value={op[field.name]} style={{ width: "100%" }} onChange={onChange} >
+        <select value={op[field.name]} style={{ width: "100%" }} onChange={onChange} onFocus={onFocus} >
             <option>Conventional</option>
             <option>Climb</option>
         </select>
@@ -37,7 +37,11 @@ class Field extends React.Component {
     componentWillMount() {
         this.onChange = e => {
             this.props.dispatch(setOperationAttrs({ [this.props.field.name]: e.target.value }, this.props.op.id));
-        }
+        };
+        this.onFocus = e => {
+            if (!this.props.selected)
+                this.props.dispatch(setCurrentOperation(this.props.op.id));
+        };
     }
 
     render() {
@@ -49,14 +53,13 @@ class Field extends React.Component {
         return (
             <tr>
                 <td>{field.label}</td>
-                <td><Input op={op} field={field} onChange={this.onChange} /></td>
+                <td><Input op={op} field={field} onChange={this.onChange} onFocus={this.onFocus} /></td>
                 <td>{field.units}</td>
                 {error}
             </tr>
         );
     }
 };
-Field = connect()(Field);
 
 class Doc extends React.Component {
     componentWillMount() {
@@ -151,7 +154,7 @@ class Operation extends React.Component {
     }
 
     render() {
-        let {op, documents, onDragOver, dispatch} = this.props;
+        let {op, documents, onDragOver, selected, dispatch} = this.props;
         let showError = false;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
@@ -161,8 +164,15 @@ class Operation extends React.Component {
             }
         }
 
+        let leftStyle;
+        if (selected)
+            leftStyle = { display: 'table-cell', borderLeft: '4px solid blue', borderRight: '4px solid transparent' };
+        else
+            leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
+
         let rows = [
             <div key="header" style={{ display: 'table-row' }}>
+                <div style={leftStyle} />
                 <div style={{ display: 'table-cell' }}>
                     <i
                         onClick={this.toggleExpanded}
@@ -184,6 +194,7 @@ class Operation extends React.Component {
         if (op.expanded)
             rows.push(
                 <div key="docs" style={{ display: 'table-row' }}>
+                    <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table style={{ width: '100%' }}>
@@ -197,12 +208,13 @@ class Operation extends React.Component {
                     </div>
                 </div>,
                 <div key="attrs" style={{ display: 'table-row' }}>
+                    <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
                             <tbody>
                                 {types[op.type].fields.map(fieldName => {
-                                    return <Field key={fieldName} op={op} field={fields[fieldName]} />
+                                    return <Field key={fieldName} op={op} field={fields[fieldName]} selected={selected} dispatch={dispatch} />
                                 })}
                             </tbody>
                         </table>
@@ -235,7 +247,7 @@ class Operations extends React.Component {
     }
 
     render() {
-        let {operations, documents, dispatch } = this.props;
+        let {operations, currentOperation, documents, dispatch } = this.props;
         return (
             <div>
                 <div style={{ backgroundColor: 'cyan', padding: '20px' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
@@ -244,7 +256,7 @@ class Operations extends React.Component {
                 <br />
                 <div className="operations" style={{ display: 'table' }}>
                     {operations.map(o =>
-                        <Operation key={o.id} op={o} documents={documents} dispatch={dispatch} />
+                        <Operation key={o.id} op={o} selected={currentOperation === o.id} documents={documents} dispatch={dispatch} />
                     )}
                 </div>
             </div>
@@ -252,6 +264,6 @@ class Operations extends React.Component {
     }
 };
 Operations = connect(
-    ({operations, documents}) => ({ operations, documents }),
+    ({operations, currentOperation, documents}) => ({ operations, currentOperation, documents }),
 )(Operations);
 export { Operations };

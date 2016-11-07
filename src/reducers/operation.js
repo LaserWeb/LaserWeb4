@@ -31,6 +31,17 @@ export function operation(state, action) {
 
 export const operations = objectArray('operation', operation);
 
+export function currentOperation(state = '', action) {
+    if (action.type === 'OPERATION_SET_CURRENT')
+        return action.payload;
+    else if (action.type === 'OPERATION_ADD')
+        return action.payload.attrs.id;
+    else if (action.type === 'OPERATION_SET_ATTRS' || action.type === 'OPERATION_ADD_DOCUMENTS')
+        return action.payload.id;
+    else
+        return state;
+}
+
 export function operationsAddDocuments(state, documents, action) {
     return state.map(operation => {
         if (operation.id !== action.payload.id)

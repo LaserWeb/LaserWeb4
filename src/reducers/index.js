@@ -2,12 +2,12 @@ import {combineReducers} from './undo'
 
 import { camera, resetCamera } from './camera'
 import { documents } from './document'
-import { operations, operationsAddDocuments, fixupOperations } from './operation'
+import { operations, currentOperation, operationsAddDocuments, fixupOperations } from './operation'
 import panes from './panes'
 import { settings } from './settings'
 import { splitters } from './splitters'
 
-const combined = combineReducers({ camera, documents, operations, panes, settings, splitters });
+const combined = combineReducers({ camera, documents, operations, currentOperation, panes, settings, splitters });
 
 export default function reducer(state, action) {
     switch (action.type) {
@@ -17,6 +17,7 @@ export default function reducer(state, action) {
             state = combined(state, action);
             return {...state, operations: fixupOperations(state.operations, state.documents) };
         case 'OPERATION_ADD_DOCUMENTS':
+            state = combined(state, action);
             return {...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         default:
             return combined(state, action);
