@@ -34,6 +34,10 @@ import About from './about'
 import { AllowCapture } from './capture'
 import { DocumentCacheHolder } from './document-cache'
 
+import {keyboardUndoAction} from '../actions/laserweb';
+
+import keydown, { Keys } from 'react-keydown';
+
 /**
  * LaserWeb main component (layout).
  * - Create the main layout.
@@ -42,6 +46,13 @@ import { DocumentCacheHolder } from './document-cache'
  * @param {Object} props Component properties.
  */
 class LaserWeb extends React.Component {
+    
+    
+    @keydown( 'ctrl+z' )
+    keylogger( event ) {
+        this.props.handleKeypress(event);
+    }
+    
     render() {
         return (
             <AllowCapture style={{ height: '100%' }}>
@@ -72,7 +83,12 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    return {}
+    return {
+         handleKeypress: e => {
+            dispatch(keyboardUndoAction(event))
+         },
+        
+    }
 }
 
 // Exports
