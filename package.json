@@ -58,6 +58,7 @@
     "react": "^15.3.1",
     "react-dom": "^15.3.1",
     "react-hot-loader": "^3.0.0-beta.4",
+    "react-keydown": "^1.6.3",
     "react-redux": "^4.4.5",
     "react-toggle": "^2.1.1",
     "redux": "^3.6.0",
@@ -73,6 +74,7 @@
   "dependencies": {
     "immutability-helper": "^2.0.0",
     "redux-localstorage": "^1.0.0-rc5",
-    "redux-localstorage-filter": "^0.1.1"
+    "redux-localstorage-filter": "^0.1.1",
+    "redux-undo": "^1.0.0-beta9"
   }
 }

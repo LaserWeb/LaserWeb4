@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux'
+import {combineReducers} from './undo'
 
 import { camera, resetCamera } from './camera'
 import { documents } from './document'
