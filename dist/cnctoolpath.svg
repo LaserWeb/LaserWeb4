@@ -23,17 +23,17 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-width="1506"
+     inkscape:window-height="1002"
      id="namedview61"
      showgrid="false"
-     inkscape:zoom="4"
-     inkscape:cx="69.858429"
-     inkscape:cy="127.38938"
-     inkscape:window-x="1912"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svgLaserGrp" />
+     inkscape:zoom="2"
+     inkscape:cx="226.99083"
+     inkscape:cy="92.340033"
+     inkscape:window-x="668"
+     inkscape:window-y="210"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svgCNCVbit" />
   <defs
      id="defs4165">
     <marker
@@ -87,9 +87,6 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g
-     id="g4810"
-     transform="translate(0,-212.59843)" />
   <text
      sodipodi:linespacing="125%"
      xml:space="preserve"
@@ -101,8 +98,10 @@
        x="396.09375"
        y="-122.33018" /></text>
   <g
+     inkscape:groupmode="layer"
      id="svgZGrp"
-     transform="translate(228.3526,-110.26577)">
+     transform="translate(228.3526,-110.26577)"
+     style="display:inline">
     <text
        id="svgZFinal"
        y="217.55241"
@@ -126,8 +125,10 @@
        inkscape:connector-curvature="0" />
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgzmulti"
-     transform="translate(483.61815,-112.13709)">
+     transform="translate(483.61815,-112.13709)"
+     style="display:inline">
     <path
        id="path4871"
        d="m -381.91876,239.72157 -12.08162,-0.066"
@@ -166,8 +167,10 @@
        inkscape:connector-curvature="0" />
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgCNCFlatBit"
-     transform="translate(380.52125,247.87751)">
+     transform="translate(380.52125,247.87751)"
+     style="display:inline">
     <path
        inkscape:connector-curvature="0"
        id="path4823"
@@ -219,33 +222,50 @@
        d="m -350.64552,-223.77034 38.11747,-13.81068"
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
   </g>
-  <rect
-     style="fill:#ff0000;fill-opacity:0;stroke:#ff0000;stroke-width:1.84457076;stroke-miterlimit:4;stroke-dasharray:none"
-     id="svgToolpath"
-     width="114.21847"
-     height="89.590302"
-     x="308.72006"
-     y="18.14473"
-     ry="13.272638" />
-  <rect
-     style="fill:#ff0000;fill-opacity:0;stroke:#0000ff;stroke-width:2.23900008;stroke-miterlimit:4;stroke-dasharray:2.23900015, 2.23900015;stroke-dashoffset:0"
-     id="svgOutside"
-     width="138.17609"
-     height="109.13578"
-     x="297.19955"
-     y="8.7037497"
-     ry="16.168264" />
-  <rect
-     style="fill:#ff0000;fill-opacity:0;stroke:#0000ff;stroke-width:1.51533973;stroke-miterlimit:4;stroke-dasharray:1.51533978, 1.51533978;stroke-dashoffset:0"
-     id="svgInside"
-     width="95.214546"
-     height="72.530975"
-     x="318.30536"
-     y="26.197523"
-     ry="10.74533" />
   <g
+     id="svgToolpath"
+     inkscape:groupmode="layer"
+     style="display:inline">
+    <rect
+       style="fill:#ff0000;fill-opacity:0;stroke:#ff0000;stroke-width:1.84457076;stroke-miterlimit:4;stroke-dasharray:none"
+       width="114.21847"
+       height="89.590302"
+       x="308.72006"
+       y="18.14473"
+       ry="13.272638"
+       id="rect4596" />
+  </g>
+  <g
+     id="svgOutside"
+     inkscape:groupmode="layer"
+     style="display:none">
+    <rect
+       style="fill:#ff0000;fill-opacity:0;stroke:#0000ff;stroke-width:2.23900008;stroke-miterlimit:4;stroke-dasharray:2.23900015, 2.23900015;stroke-dashoffset:0"
+       width="138.17609"
+       height="109.13578"
+       x="297.19955"
+       y="8.7037497"
+       ry="16.168264"
+       id="rect4599" />
+  </g>
+  <g
+     id="svgInside"
+     inkscape:groupmode="layer"
+     style="display:none">
+    <rect
+       style="fill:#ff0000;fill-opacity:0;stroke:#0000ff;stroke-width:1.51533973;stroke-miterlimit:4;stroke-dasharray:1.51533978, 1.51533978;stroke-dashoffset:0"
+       width="95.214546"
+       height="72.530975"
+       x="318.30536"
+       y="26.197523"
+       ry="10.74533"
+       id="rect4602" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="svgPocket"
-     transform="matrix(1.0013674,0,0,0.84944881,-276.34691,-849.99524)">
+     transform="matrix(1.0013674,0,0,0.84944881,-276.34691,-849.99524)"
+     style="display:none">
     <g
        id="g4380"
        transform="translate(-4.9096098,90.563331)">
@@ -334,9 +354,10 @@
        x="343.36798"
        y="137.31038">Pocket</tspan></text>
   <g
+     inkscape:groupmode="layer"
      id="svgKnifeGrp"
-     inkscape:label="#g4341"
-     transform="translate(173.4606,-127.16365)">
+     transform="translate(173.4606,-127.16365)"
+     style="display:none">
     <path
        inkscape:connector-curvature="0"
        id="path4195"
@@ -385,9 +406,10 @@
        sodipodi:nodetypes="cc" />
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgKnifeView"
-     inkscape:label="#g4402"
-     transform="translate(135.50001,-165.5)">
+     transform="translate(135.50001,-165.5)"
+     style="display:none">
     <rect
        ry="0"
        y="182.39397"
@@ -404,8 +426,10 @@
        style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:2.50000007, 2.50000007;stroke-dashoffset:0;stroke-opacity:1" />
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgzClearance"
-     transform="translate(306.39066,44.191344)">
+     transform="translate(306.39066,44.191344)"
+     style="display:inline">
     <g
        id="svgzC">
       <path
@@ -433,9 +457,10 @@
     </g>
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgLaserGrp"
-     inkscape:label="#g4259"
-     transform="translate(-322.75,49.5)">
+     transform="translate(-322.75,49.5)"
+     style="display:none">
     <g
        id="g4378"
        inkscape:label="#svgLaserGrp"
@@ -495,8 +520,10 @@
     </g>
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgLaserRasterToolpath"
-     transform="translate(-29.5,182.5)">
+     transform="translate(-29.5,182.5)"
+     style="display:none">
     <path
        inkscape:connector-curvature="0"
        id="path5020"
@@ -594,8 +621,10 @@
        style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:1, 1;stroke-dashoffset:0;stroke-opacity:1" />
   </g>
   <g
+     inkscape:groupmode="layer"
      id="svgCNCVbit"
-     transform="translate(-30.5,14.5)">
+     transform="translate(-30.5,14.5)"
+     style="display:none">
     <g
        id="g4235"
        inkscape:label="#svgCNCVbit"
