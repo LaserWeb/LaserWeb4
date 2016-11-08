@@ -25,7 +25,9 @@ class Settings extends React.Component {
     rules() {
         return {
             machineWidth:'min:100',
-            machineHeight:'min:100' 
+            machineHeight:'min:100',
+            gcodeLaserOn:'required',
+            gcodeLaserOff:'required'
         }
     }
     

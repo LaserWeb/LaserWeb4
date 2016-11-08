@@ -5,14 +5,15 @@ import Toggle from "react-toggle";
 import 'react-toggle/style.css';
 import '../styles/forms.css';
 
+import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+
 export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
     
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
     
-    return (
-        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
-        <div className={"input-group "}>
+    let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+    let input = <div className={"input-group "}>
             <div className="input-group-addon">{description}</div>
             <input
                 className="form-control"
@@ -22,9 +23,12 @@ export function NumberField({object, field, description, units, setAttrs, dispat
                 {...rest}
                 />
             <div className="input-group-addon">{units}</div>
-        </div>
-        
-        <p className="help-block">{errors}</p>
+            
+        </div>;
+                
+    return (
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
+        {errors? <OverlayTrigger placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
         </div>
     );
 }
@@ -33,10 +37,8 @@ export function TextField({object, field, description, units="", setAttrs, dispa
     let isTextArea=typeof(rest.rows)!="undefined";
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
-    
-    return (
-        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
-        <div className={"input-group "} style={(isTextArea)? {width: "100%"}:{}}>
+    let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+    let input = <div className={"input-group "} style={(isTextArea)? {width: "100%"}:{}}>
             {(!isTextArea) ? (<div className="input-group-addon">{description}</div>): ( <label htmlFor={field}>{description}</label>)}
             {(!isTextArea) ? (
             <input
@@ -59,8 +61,10 @@ export function TextField({object, field, description, units="", setAttrs, dispa
                 <div className="input-group-addon">{units}</div>
             ):(false)}
                 
-        </div>
-        <p className="help-block">{errors}</p>
+        </div>;
+    return (
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
+        {errors? <OverlayTrigger placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
         </div>
     );
 }
@@ -68,14 +72,14 @@ export function TextField({object, field, description, units="", setAttrs, dispa
 export function ToggleField({object, field, description, units="", setAttrs, dispatch, ...rest}) {
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
-        
-    return (
-        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
-        <div className="input-group">
+    let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+    let input = <div className="input-group">
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
         </div>
-        <p className="help-block">{errors}</p>
+    return (
+        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
+        {errors? <OverlayTrigger placement="right" overlay={tooltip}  trigger={[]}>{input}</OverlayTrigger> : input}
         </div>
     )    
 }
