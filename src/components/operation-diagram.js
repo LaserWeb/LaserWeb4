@@ -25,8 +25,10 @@ const hide = [
     'svgKnifeView',
     'svgLaserGrp',
     'svgLaserRasterToolpath',
+    'svgOpName',
     'svgOutside',
     'svgPocket',
+    'svgToolDiaGrp',
     'svgToolpath',
     'svgzClearance',
     'svgZGrp',
@@ -34,13 +36,13 @@ const hide = [
 ];
 
 const types = {
-    'Laser Engrave': { show: ['svgLaserGrp', 'svgToolpath'] },
-    'Laser Inside': { show: ['svgLaserGrp', 'svgToolpath', 'svgInside'] },
-    'Laser Outside': { show: ['svgLaserGrp', 'svgToolpath', 'svgOutside'] },
-    'Mill Pocket': { show: ['svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgPocket'] },
-    'Mill Engrave': { show: ['svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti'] },
-    'Mill Inside': { show: ['svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgInside'] },
-    'Mill Outside': { show: ['svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgOutside'] },
+    'Laser Engrave': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath'] },
+    'Laser Inside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgInside'] },
+    'Laser Outside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgOutside'] },
+    'Mill Pocket': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgPocket', 'svgToolDiaGrp'] },
+    'Mill Engrave': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti'] },
+    'Mill Inside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgInside', 'svgToolDiaGrp'] },
+    'Mill Outside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgOutside', 'svgToolDiaGrp'] },
 };
 
 export class OperationDiagram extends React.Component {
@@ -70,6 +72,11 @@ export class OperationDiagram extends React.Component {
             return;
         for (let id of type.show)
             document.getElementById(id).style.display = 'inline';
+        document.getElementById('svgOpName').textContent = op.type;
+        document.getElementById('svgToolDia').textContent = op.toolDiameter + 'mm';
+        document.getElementById('svgZClear-8').textContent = ''; // TODO
+        document.getElementById('svgZDepth').textContent = op.passDepth + 'mm per pass';
+        document.getElementById('svgZFinal').textContent = op.cutDepth + ' mm';
     }
 
     render() {
