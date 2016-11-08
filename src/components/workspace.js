@@ -25,6 +25,7 @@ import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import SetSize from './setsize';
+import { parseGcode } from '../lib/tmpParseGcode';
 
 function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
     let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
@@ -69,9 +70,43 @@ function GridText(props) {
     return <div>{a}</div>;
 }
 
+class GcodePreview {
+    draw(drawCommands, {gcode}) {
+        if (this.gcode !== gcode) {
+            this.gcode = gcode;
+            let parsed = parseGcode(gcode);
+            const stride = 5;
+            if (parsed.length < 2 * stride)
+                this.array = null;
+            else {
+                let array = new Float32Array((parsed.length - stride) * 2);
+                for (let i = 0; i < parsed.length / stride - 1; ++i) {
+                    array[i * stride * 2 + 0] = parsed[i * stride + 0];
+                    array[i * stride * 2 + 1] = parsed[i * stride + 1];
+                    array[i * stride * 2 + 2] = parsed[i * stride + 2];
+                    array[i * stride * 2 + 3] = parsed[i * stride + 8];
+                    array[i * stride * 2 + 4] = parsed[i * stride + 9];
+                    array[i * stride * 2 + 5] = parsed[i * stride + 5];
+                    array[i * stride * 2 + 6] = parsed[i * stride + 6];
+                    array[i * stride * 2 + 7] = parsed[i * stride + 7];
+                    array[i * stride * 2 + 8] = parsed[i * stride + 8];
+                    array[i * stride * 2 + 9] = parsed[i * stride + 9];
+                }
+                this.array = array;
+            }
+        }
+        if (this.array)
+            drawCommands.gcode({
+                position: this.array,
+                count: this.array.length / 5,
+            });
+    }
+};
+
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.grid = new Grid();
+        this.gcodePreview = new GcodePreview();
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
         this.mouseDown = this.mouseDown.bind(this);
@@ -147,6 +182,7 @@ class WorkspaceContent extends React.Component {
                             break;
                     }
                 }
+                this.gcodePreview.draw(this.drawCommands, { gcode: this.props.gcode });
             });
         });
     }
@@ -358,7 +394,7 @@ class WorkspaceContent extends React.Component {
 } // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents, camera: state.camera })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, gcode: state.gcode })
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {

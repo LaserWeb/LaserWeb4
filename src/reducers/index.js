@@ -1,13 +1,14 @@
-import {combineReducers} from './undo'
+import { combineReducers } from './undo'
 
 import { camera, resetCamera } from './camera'
 import { documents } from './document'
+import { gcode } from './gcode'
 import { operations, currentOperation, operationsAddDocuments, fixupOperations } from './operation'
 import panes from './panes'
 import { settings } from './settings'
 import { splitters } from './splitters'
 
-const combined = combineReducers({ camera, documents, operations, currentOperation, panes, settings, splitters });
+const combined = combineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters });
 
 export default function reducer(state, action) {
     switch (action.type) {

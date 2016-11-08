@@ -1,30 +1,17 @@
-/**
- * Gcode module.
- * @module
- */
-
-// React
 import React from 'react'
+import { connect } from 'react-redux'
 
-/**
- * Gcode component.
- *
- * @extends module:react~React~Component
- * @param {Object} props Component properties.
- */
 class Gcode extends React.Component {
-    /**
-     * Render the component.
-     * @return {String}
-     */
     render() {
         return (
-            <div>
-                <p>Gcode panel...</p>
+            <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <textarea style={{ flexGrow: 2 }} value={this.props.gcode} />
             </div>
         )
     }
-}
+};
+Gcode = connect(
+    state => ({ gcode: state.gcode })
+)(Gcode);
 
-// Exports
-export default Gcode
+export default Gcode;
