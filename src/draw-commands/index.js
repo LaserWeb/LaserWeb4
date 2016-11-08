@@ -100,6 +100,45 @@ function image(regl) {
     });
 }
 
+function gcode(regl) {
+    return regl({
+        vert: `
+            precision mediump float;
+            uniform mat4 perspective; 
+            uniform mat4 world; 
+            attribute vec3 position;
+            attribute float g;
+            varying vec4 color;
+            void main() {
+                gl_Position = perspective * world * vec4(position, 1);
+                if(g == 0.0)
+                    color = vec4(0.0, 1.0, 0.0, 1.0);
+                else
+                    color = vec4(0.0, 0.0, 1.0, 1.0);
+            }`,
+        frag: `
+            precision mediump float;
+            varying vec4 color;
+            void main() {
+                gl_FragColor = color;
+            }`,
+        attributes: {
+            position: {
+                buffer: regl.prop('position'),
+                stride: 20,
+            },
+            g: {
+                buffer: regl.prop('position'),
+                offset: 12,
+                stride: 20,
+            },
+        },
+        primitive: 'line',
+        offset: 0,
+        count: regl.prop('count')
+    });
+}
+
 export default class DrawCommands {
     constructor(regl) {
         this.regl = regl;
@@ -107,5 +146,6 @@ export default class DrawCommands {
         this.noDepth = noDepth(regl);
         this.simple = simple(regl);
         this.image = image(regl);
+        this.gcode = gcode(regl);
     }
 };

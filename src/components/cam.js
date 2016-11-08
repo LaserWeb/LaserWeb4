@@ -17,6 +17,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
+import { setGcode } from '../actions/gcode';
 import { Documents } from './document';
 import { Operations } from './operation';
 import { OperationDiagram } from './operation-diagram';
@@ -29,7 +30,7 @@ class Cam extends React.Component {
             let {settings, documents, operations} = this.props;
             // TODO: show errors
             let gcode = getGcode(settings, documents, operations, msg => console.log(msg));
-            console.log(gcode);
+            this.props.dispatch(setGcode(gcode));
         }
     }
 
@@ -64,6 +65,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({ settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation }),
     dispatch => ({
+        dispatch,
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         loadDocument: e => {
             // TODO: report errors
