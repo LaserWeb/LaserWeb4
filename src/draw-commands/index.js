@@ -105,33 +105,62 @@ function gcode(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world; 
+            uniform mat4 world;
             attribute vec3 position;
             attribute float g;
+            attribute float g0Dist;
+            attribute float g1Time;  
             varying vec4 color;
+            varying float vg0Dist;
+            varying float vg1Time;  
             void main() {
                 gl_Position = perspective * world * vec4(position, 1);
                 if(g == 0.0)
                     color = vec4(0.0, 1.0, 0.0, 1.0);
                 else
-                    color = vec4(0.0, 0.0, 1.0, 1.0);
+                    color = vec4(1.0, 0.0, 0.0, 1.0);
+                vg0Dist = g0Dist;
+                vg1Time = g1Time;
             }`,
         frag: `
             precision mediump float;
+            uniform float g0Rate;
+            uniform float simTime;
             varying vec4 color;
+            varying float vg0Dist;
+            varying float vg1Time;
             void main() {
-                gl_FragColor = color;
+                float time = vg1Time + vg0Dist / g0Rate;
+                if(time > simTime)
+                    discard;
+                else
+                    gl_FragColor = color;
             }`,
         attributes: {
             position: {
-                buffer: regl.prop('position'),
-                stride: 20,
+                buffer: regl.prop('buffer'),
+                offset: 0,
+                stride: 24,
             },
             g: {
-                buffer: regl.prop('position'),
+                buffer: regl.prop('buffer'),
                 offset: 12,
-                stride: 20,
+                stride: 24,
             },
+            g0Dist: {
+                buffer: regl.prop('buffer'),
+                offset: 16,
+                stride: 24,
+            },
+            g1Time: {
+                buffer: regl.prop('buffer'),
+                offset: 20,
+                stride: 24,
+            },
+        },
+        uniforms: {
+            g0Rate: regl.prop('g0Rate'),
+            simTime: regl.prop('simTime'),
         },
         primitive: 'line',
         offset: 0,
