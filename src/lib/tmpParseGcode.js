@@ -66,7 +66,7 @@ export function parseGcode(gcode) {
             }
             if (!isNaN(f)) {
                 if (isNaN(lastF))
-                    for (let j = 3; j < path.length; j += stride)
+                    for (let j = 4; j < path.length; j += stride)
                         path[j] = f;
                 lastF = f;
             }

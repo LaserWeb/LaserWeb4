@@ -7,8 +7,9 @@ import { operations, currentOperation, operationsAddDocuments, fixupOperations }
 import panes from './panes'
 import { settings } from './settings'
 import { splitters } from './splitters'
+import { workspace } from './workspace'
 
-const combined = combineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters });
+const combined = combineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace });
 
 export default function reducer(state, action) {
     switch (action.type) {

@@ -20,6 +20,8 @@ import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, translateSelectedDocuments } from '../actions/document';
+import { setWorkspaceAttrs } from '../actions/workspace';
+
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -70,43 +72,85 @@ function GridText(props) {
     return <div>{a}</div>;
 }
 
+const parsedStride = 5;
+const drawStride = 6;
+
 class GcodePreview {
-    draw(drawCommands, {gcode}) {
-        if (this.gcode !== gcode) {
-            this.gcode = gcode;
-            let parsed = parseGcode(gcode);
-            const stride = 5;
-            if (parsed.length < 2 * stride)
-                this.array = null;
-            else {
-                let array = new Float32Array((parsed.length - stride) * 2);
-                for (let i = 0; i < parsed.length / stride - 1; ++i) {
-                    array[i * stride * 2 + 0] = parsed[i * stride + 0];
-                    array[i * stride * 2 + 1] = parsed[i * stride + 1];
-                    array[i * stride * 2 + 2] = parsed[i * stride + 2];
-                    array[i * stride * 2 + 3] = parsed[i * stride + 8];
-                    array[i * stride * 2 + 4] = parsed[i * stride + 9];
-                    array[i * stride * 2 + 5] = parsed[i * stride + 5];
-                    array[i * stride * 2 + 6] = parsed[i * stride + 6];
-                    array[i * stride * 2 + 7] = parsed[i * stride + 7];
-                    array[i * stride * 2 + 8] = parsed[i * stride + 8];
-                    array[i * stride * 2 + 9] = parsed[i * stride + 9];
-                }
-                this.array = array;
+    setGcode(gcode) {
+        if (this.gcode === gcode)
+            return;
+        this.gcode = gcode;
+        let parsed = parseGcode(gcode);
+        if (parsed.length < 2 * parsedStride) {
+
+            this.array = null;
+            this.g0Dist = 0;
+            this.g1Time = 0;
+            this.regl = null;
+        } else {
+            let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
+
+            let g0Dist = 0, g1Time = 0;
+            for (let i = 0; i < parsed.length / parsedStride - 1; ++i) {
+
+                let x1 = parsed[i * parsedStride + 0];
+                let y1 = parsed[i * parsedStride + 1];
+                let z1 = parsed[i * parsedStride + 2];
+                let x2 = parsed[i * parsedStride + 5];
+                let y2 = parsed[i * parsedStride + 6];
+                let z2 = parsed[i * parsedStride + 7];
+                let g = parsed[i * parsedStride + 8];
+                let f = parsed[i * parsedStride + 9];
+
+                array[i * drawStride * 2 + 0] = x1;
+                array[i * drawStride * 2 + 1] = y1;
+                array[i * drawStride * 2 + 2] = z1;
+                array[i * drawStride * 2 + 3] = g;
+                array[i * drawStride * 2 + 4] = g0Dist;
+                array[i * drawStride * 2 + 5] = g1Time;
+
+                let dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
+                if (g)
+                    g1Time += dist / f;
+                else
+                    g0Dist += dist;
+
+                array[i * drawStride * 2 + 6] = x2;
+                array[i * drawStride * 2 + 7] = y2;
+                array[i * drawStride * 2 + 8] = z2;
+                array[i * drawStride * 2 + 9] = g;
+                array[i * drawStride * 2 + 10] = g0Dist;
+                array[i * drawStride * 2 + 11] = g1Time;
             }
+            this.array = array;
+            this.g0Dist = g0Dist;
+            this.g1Time = g1Time;
+            this.regl = null;
         }
-        if (this.array)
+    }
+
+    draw(drawCommands, {g0Rate, simTime}) {
+        if (this.regl !== drawCommands.regl || !this.buffer) {
+            this.regl = drawCommands.regl;
+            if (this.buffer)
+                this.buffer.destroy();
+            this.buffer = drawCommands.regl.buffer(this.array);
+        }
+
+        if (this.array) {
             drawCommands.gcode({
-                position: this.array,
-                count: this.array.length / 5,
+                buffer: this.buffer,
+                count: this.array.length / drawStride,
+                g0Rate,
+                simTime,
             });
+        }
     }
 };
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.grid = new Grid();
-        this.gcodePreview = new GcodePreview();
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
         this.mouseDown = this.mouseDown.bind(this);
@@ -145,45 +189,48 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
-                    let {document} = cachedDocument;
-                    switch (document.type) {
-                        case 'path':
-                            this.drawCommands.noDepth(() => {
-                                this.drawCommands.simple({
-                                    position: cachedDocument.triangles,
-                                    translate: document.translate,
-                                    color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
-                                    primitive: 'triangles',
-                                    offset: 0,
-                                    count: cachedDocument.triangles.length / 3,
-                                });
-                                for (let o of cachedDocument.outlines)
-                                    this.drawCommands.simple({
-                                        position: o,
-                                        translate: document.translate,
-                                        color: [0, 0, 0, 1],
-                                        primitive: 'line strip',
-                                        offset: 0,
-                                        count: o.length / 3,
-                                    });
-                            });
-                            break;
-                        case 'image':
-                            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl)
+                if (this.props.workspace.showDocuments) {
+                    for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
+                        let {document} = cachedDocument;
+                        switch (document.type) {
+                            case 'path':
                                 this.drawCommands.noDepth(() => {
-                                    this.drawCommands.image({
+                                    this.drawCommands.simple({
+                                        position: cachedDocument.triangles,
                                         translate: document.translate,
-                                        size: [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4],
-                                        texture: cachedDocument.texture,
-                                        selected: document.selected,
+                                        color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
+                                        primitive: 'triangles',
+                                        offset: 0,
+                                        count: cachedDocument.triangles.length / 3,
                                     });
+                                    for (let o of cachedDocument.outlines)
+                                        this.drawCommands.simple({
+                                            position: o,
+                                            translate: document.translate,
+                                            color: [0, 0, 0, 1],
+                                            primitive: 'line strip',
+                                            offset: 0,
+                                            count: o.length / 3,
+                                        });
                                 });
-                            break;
+                                break;
+                            case 'image':
+                                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl)
+                                    this.drawCommands.noDepth(() => {
+                                        this.drawCommands.image({
+                                            translate: document.translate,
+                                            size: [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4],
+                                            texture: cachedDocument.texture,
+                                            selected: document.selected,
+                                        });
+                                    });
+                                break;
+                        }
                     }
                 }
-                this.gcodePreview.draw(this.drawCommands, { gcode: this.props.gcode });
+                this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
             });
+            //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
         });
     }
 
@@ -232,44 +279,46 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
-                    let {document, hitTestId} = cachedDocument;
-                    if (document.type === 'path') {
-                        this.drawCommands.noDepth(() => {
-                            this.drawCommands.simple({
-                                position: cachedDocument.triangles,
-                                translate: document.translate,
-                                color: [
-                                    ((hitTestId >> 24) & 0xff) / 0xff,
-                                    ((hitTestId >> 16) & 0xff) / 0xff,
-                                    ((hitTestId >> 8) & 0xff) / 0xff,
-                                    (hitTestId & 0xff) / 0xff],
-                                primitive: 'triangles',
-                                offset: 0,
-                                count: cachedDocument.triangles.length / 3,
+                if (this.props.workspace.showDocuments) {
+                    for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
+                        let {document, hitTestId} = cachedDocument;
+                        if (document.type === 'path') {
+                            this.drawCommands.noDepth(() => {
+                                this.drawCommands.simple({
+                                    position: cachedDocument.triangles,
+                                    translate: document.translate,
+                                    color: [
+                                        ((hitTestId >> 24) & 0xff) / 0xff,
+                                        ((hitTestId >> 16) & 0xff) / 0xff,
+                                        ((hitTestId >> 8) & 0xff) / 0xff,
+                                        (hitTestId & 0xff) / 0xff],
+                                    primitive: 'triangles',
+                                    offset: 0,
+                                    count: cachedDocument.triangles.length / 3,
+                                });
                             });
-                        });
-                    } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {
-                        this.drawCommands.noDepth(() => {
-                            this.drawCommands.simple({
-                                position: [
-                                    [0, 0, 0],
-                                    [cachedDocument.image.width / document.dpi * 25.4, 0, 0],
-                                    [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
-                                    [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
-                                    [0, cachedDocument.image.height / document.dpi * 25.4, 0],
-                                    [0, 0, 0]],
-                                translate: document.translate,
-                                color: [
-                                    ((hitTestId >> 24) & 0xff) / 0xff,
-                                    ((hitTestId >> 16) & 0xff) / 0xff,
-                                    ((hitTestId >> 8) & 0xff) / 0xff,
-                                    (hitTestId & 0xff) / 0xff],
-                                primitive: 'triangles',
-                                offset: 0,
-                                count: 6,
+                        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {
+                            this.drawCommands.noDepth(() => {
+                                this.drawCommands.simple({
+                                    position: [
+                                        [0, 0, 0],
+                                        [cachedDocument.image.width / document.dpi * 25.4, 0, 0],
+                                        [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                        [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                        [0, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                        [0, 0, 0]],
+                                    translate: document.translate,
+                                    color: [
+                                        ((hitTestId >> 24) & 0xff) / 0xff,
+                                        ((hitTestId >> 16) & 0xff) / 0xff,
+                                        ((hitTestId >> 8) & 0xff) / 0xff,
+                                        (hitTestId & 0xff) / 0xff],
+                                    primitive: 'triangles',
+                                    offset: 0,
+                                    count: 6,
+                                });
                             });
-                        });
+                        }
                     }
                 }
             });
@@ -394,27 +443,57 @@ class WorkspaceContent extends React.Component {
 } // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, gcode: state.gcode })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace })
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
+    componentWillMount() {
+        this.gcodePreview = new GcodePreview();
+    }
+
     render() {
+        let {gcode, workspace, setG0Rate, setSimTime, setShowDocuments} = this.props;
+        this.gcodePreview.setGcode(gcode);
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
-                    <WorkspaceContent />
+                    <WorkspaceContent gcodePreview={this.gcodePreview} />
                 </SetSize>
                 <div id="workspace-controls">
-                    <button onClick={this.props.reset}>Reset View</button>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td />
+                                <td><button onClick={this.props.reset}>Reset View</button></td>
+                            </tr>
+                            <tr>
+                                <td>Show Documents</td>
+                                <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
+                                <td>mm/min</td>
+                            </tr>
+                            <tr>
+                                <td>g0 rate</td>
+                                <td><input value={workspace.g0Rate} onChange={setG0Rate} type="number" step="any" /></td>
+                                <td>mm/min</td>
+                            </tr>
+                            <tr>
+                                <td>Sim time</td>
+                                <td><input value={workspace.simTime} onChange={setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         )
     }
 }
 Workspace = connect(
-    undefined,
+    state => ({ gcode: state.gcode, workspace: state.workspace }),
     dispatch => ({
-        reset: () => dispatch(resetCamera())
+        reset: () => dispatch(resetCamera()),
+        setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
+        setSimTime: e => dispatch(setWorkspaceAttrs({ simTime: +e.target.value })),
+        setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
     })
 )(Workspace);
 export default Workspace;
