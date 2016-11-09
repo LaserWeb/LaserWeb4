@@ -26,15 +26,15 @@ class Splitter extends React.Component {
     }
 
     mouseDown(e) {
-        this.mouseX = e.screenX;
-        this.mouseY = e.screenY;
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
     }
 
     mouseMove(e) {
-        let delta = this.props.split === 'horizontal' ? e.screenY - this.mouseY : e.screenX - this.mouseX;
-        this.mouseX = e.screenX;
-        this.mouseY = e.screenY;
-        this.props.dispatch(splitterSetSize(this.props.splitterId, this.size + delta * window.devicePixelRatio));
+        let delta = this.props.split === 'horizontal' ? e.clientY - this.mouseY : e.clientX - this.mouseX;
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+        this.props.dispatch(splitterSetSize(this.props.splitterId, this.size + delta));
         this.forceUpdate();
     }
 
