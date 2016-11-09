@@ -53,9 +53,15 @@ export class Dom3d extends React.Component {
         if (!nextProps.camera)
             return;
         let camera = nextProps.camera;
-        this.fov = 0.5 * nextProps.height / Math.tan(camera.fovy * 0.5);
-        this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(camera.world) +
-            " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
+        if (camera.fovy) {
+            this.fov = 0.5 * nextProps.height / Math.tan(camera.fovy * 0.5);
+            this.transform = "translate3d(0,0," + this.fov + "px)" + getCameraCSSMatrix(camera.world) +
+                " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
+        } else {
+            this.transform = "scale(" + this.props.width / 2 + "," + this.props.height / 2 + ") " + getCameraCSSMatrix(camera.world) +
+                " translate3d(" + nextProps.width / 2 + "px," + nextProps.height / 2 + "px, 0)";
+            this.fov = 'none';
+        }
     }
 
     render() {
