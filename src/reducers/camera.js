@@ -8,5 +8,6 @@ export function resetCamera(camera, settings) {
         center: [settings.machineWidth / 2, settings.machineHeight / 2, 0],
         up: [0, 1, 0],
         fovy: Math.PI / 2.6,
+        showPerspective: false,
     };
 }

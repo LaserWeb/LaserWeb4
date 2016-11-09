@@ -29,9 +29,19 @@ import DrawCommands from '../draw-commands'
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
-function perspectiveCamera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up}) {
-    let perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
+function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
+    let perspective;
     let world = mat4.lookAt([], eye, center, up);
+    if (showPerspective)
+        perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
+    else {
+        let yBound = vec3.distance(eye, center) * Math.tan(fovy / 2);
+        perspective = mat4.identity([]);
+        world = mat4.mul([],
+            mat4.ortho([], -yBound * viewportWidth / viewportHeight, yBound * viewportWidth / viewportHeight, -yBound, yBound, near, far),
+            world);
+        fovy = 0;
+    }
     let worldInv = mat4.invert([], world);
     return { fovy, perspective, world, worldInv };
 }
@@ -236,7 +246,7 @@ class WorkspaceContent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.camera =
-            perspectiveCamera({
+            camera({
                 viewportWidth: nextProps.width,
                 viewportHeight: nextProps.height,
                 fovy: nextProps.camera.fovy,
@@ -245,6 +255,7 @@ class WorkspaceContent extends React.Component {
                 eye: nextProps.camera.eye,
                 center: nextProps.camera.center,
                 up: nextProps.camera.up,
+                showPerspective: nextProps.camera.showPerspective,
             });
     }
 
@@ -452,7 +463,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let {gcode, workspace, setG0Rate, setSimTime, setShowDocuments} = this.props;
+        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setSimTime, setShowDocuments} = this.props;
         this.gcodePreview.setGcode(gcode);
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
@@ -467,9 +478,12 @@ class Workspace extends React.Component {
                                 <td><button onClick={this.props.reset}>Reset View</button></td>
                             </tr>
                             <tr>
+                                <td>Perspective</td>
+                                <td><input checked={camera.showPerspective} onChange={setShowPerspective} type="checkbox" /></td>
+                            </tr>
+                            <tr>
                                 <td>Show Documents</td>
                                 <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
-                                <td>mm/min</td>
                             </tr>
                             <tr>
                                 <td>g0 rate</td>
@@ -488,10 +502,11 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ gcode: state.gcode, workspace: state.workspace }),
+    state => ({ camera: state.camera, gcode: state.gcode, workspace: state.workspace }),
     dispatch => ({
         reset: () => dispatch(resetCamera()),
         setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
+        setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setSimTime: e => dispatch(setWorkspaceAttrs({ simTime: +e.target.value })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
     })
