@@ -189,7 +189,7 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showOperations) {
+                if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
                         let {document} = cachedDocument;
                         switch (document.type) {
@@ -279,7 +279,7 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showOperations) {
+                if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
                         let {document, hitTestId} = cachedDocument;
                         if (document.type === 'path') {
@@ -452,7 +452,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let {gcode, workspace, setG0Rate, setSimTime, setShowOperations} = this.props;
+        let {gcode, workspace, setG0Rate, setSimTime, setShowDocuments} = this.props;
         this.gcodePreview.setGcode(gcode);
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
@@ -467,8 +467,8 @@ class Workspace extends React.Component {
                                 <td><button onClick={this.props.reset}>Reset View</button></td>
                             </tr>
                             <tr>
-                                <td>Show Operations</td>
-                                <td><input checked={workspace.showOperations} onChange={setShowOperations} type="checkbox" /></td>
+                                <td>Show Documents</td>
+                                <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
                                 <td>mm/min</td>
                             </tr>
                             <tr>
@@ -493,7 +493,7 @@ Workspace = connect(
         reset: () => dispatch(resetCamera()),
         setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
         setSimTime: e => dispatch(setWorkspaceAttrs({ simTime: +e.target.value })),
-        setShowOperations: e => dispatch(setWorkspaceAttrs({ showOperations: e.target.checked })),
+        setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
     })
 )(Workspace);
 export default Workspace;
