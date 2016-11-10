@@ -15,6 +15,7 @@ const operationBase = object('operation', {
     stepOver: 0.4,
     passDepth: 0,
     cutDepth: 0,
+    clearance: 0,
     plungeRate: 0,
     cutRate: 0,
 });

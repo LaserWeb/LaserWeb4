@@ -211,17 +211,17 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
     let camPaths = [];
     if (op.type === 'Mill Pocket') {
         if (op.margin)
-            geometry = offset(geometry, -op.margin);
+            geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = pocket(geometry, op.toolDiameter * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     } else if (op.type === 'Mill Engrave') {
         camPaths = engrave(geometry, op.direction === 'Climb');
     } else if (op.type === 'Mill Inside') {
         if (op.margin)
-            geometry = offset(geometry, -op.margin);
+            geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     } else if (op.type === 'Mill Outside') {
         if (op.margin)
-            geometry = offset(geometry, op.margin);
+            geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     }
 
@@ -233,6 +233,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         "\r\n; Direction:    " + op.direction +
         "\r\n; Cut Depth:    " + op.cutDepth +
         "\r\n; Pass Depth:   " + op.passDepth +
+        "\r\n; clearance:    " + op.clearance +
         "\r\n; Plunge rate:  " + op.plungeRate +
         "\r\n; Cut rate:     " + op.cutRate +
         "\r\n;\r\n";
@@ -247,7 +248,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         decimal: 4,
         topZ: 0,
         botZ: -op.cutDepth,
-        safeZ: 1, // TODO
+        safeZ: +op.clearance,
         passDepth: op.passDepth,
         plungeFeed: op.plungeRate,
         cutFeed: op.cutRate,
