@@ -258,7 +258,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
     return gcode;
 } // getMillGcodeFromOp
 
-export function getGcode(settings, documents, operations, showAlert) {
+export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
     "use strict";
 
     var gcode = settings.gcodeStart;
@@ -267,15 +267,21 @@ export function getGcode(settings, documents, operations, showAlert) {
         var op = operations[opIndex];
 
         let geometry = [];
-        function fetchGeometry(id) {
+        let docsWithImages = [];
+        function examineDocTree(id) {
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
                 geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+            if (doc.isRoot && doc.type === 'image') {
+                let cache = documentCacheHolder.cache.get(doc.id);
+                if (cache && cache.imageLoaded)
+                    docsWithImages.push(Object.assign([], doc, { image: cache.image }));
+            }
             for (let child of doc.children)
-                fetchGeometry(child);
+                examineDocTree(child);
         }
         for (let id of op.documents)
-            fetchGeometry(id);
+            examineDocTree(id);
 
         if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(opIndex, op, geometry, showAlert);

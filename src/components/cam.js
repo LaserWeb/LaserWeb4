@@ -19,6 +19,7 @@ import { connect } from 'react-redux';
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { setGcode } from '../actions/gcode';
 import { Documents } from './document';
+import { withDocumentCache } from './document-cache'
 import { Operations } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
@@ -29,7 +30,7 @@ class Cam extends React.Component {
         this.generate = e => {
             let {settings, documents, operations} = this.props;
             // TODO: show errors
-            let gcode = getGcode(settings, documents, operations, msg => console.log(msg));
+            let gcode = getGcode(settings, documents, operations, this.props.documentCacheHolder, msg => console.log(msg));
             this.props.dispatch(setGcode(gcode));
         }
     }
@@ -80,4 +81,7 @@ Cam = connect(
         }
     }),
 )(Cam);
+
+Cam = withDocumentCache(Cam);
+
 export default Cam;
