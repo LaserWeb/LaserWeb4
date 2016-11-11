@@ -145,12 +145,30 @@ body, html, .full-height {
     border-bottom: 1px #ccc dashed;
 }
 
-#sidebar .panes .pane-content .input-group .input-group-addon {
-    width:auto
-}
 .form-group .input-group-addon ,
 .form-group label { text-transform: uppercase; font-size: smaller}
 
+.form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
+
+.form-compact .form-group {
+  font-size: 0.8em;
+}
+
+.form-compact .form-control {
+  padding-left: 2px;
+  height: 24px;
+  font-size:1em;
+}
+.form-compact label {
+  margin-bottom: 1px;
+}
+.form-compact .form-group
+{
+  margin-bottom:1px;
+}
+
+.form-compact .has-feedback .form-control {padding-right: 36px}
+.form-compact .form-control-feedback  {line-height: 26px}
 
 /* Workspace */
 
@@ -216,4 +234,10 @@ body, html, .full-height {
     padding-left: 4px;
     padding-right: 4px;
     border-radius: 4px;
+}
+
+/*Collapsing*/
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
 }
