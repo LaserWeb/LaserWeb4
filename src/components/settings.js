@@ -4,9 +4,8 @@ import { dispatch, connect } from 'react-redux';
 import { NumberField, TextField, ToggleField, QuadrantField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings } from '../actions/settings';
 
-import Collapse from 'rc-collapse';
-import {Panel} from 'rc-collapse';
-import 'rc-collapse/assets/index.css';
+
+import {PanelGroup, Panel} from 'react-bootstrap';
 
 import Validator from 'validatorjs';
 
@@ -61,13 +60,14 @@ class Settings extends React.Component {
                 </div>
             
             </div>
-           <Collapse accordion={false} onChange={this.handleChange} >
-                <Panel header="Machine">
+            <PanelGroup>
+           
+                <Panel collapsible header="Machine" eventKey="1">
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
                 </Panel>
-                <Panel header="File Settings">
+                <Panel collapsible header="File Settings" eventKey="2">
                    <h5>SVG</h5>
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiDefault', setAttrs: setSettingsAttrs, description: 'Default DPI', units: 'dpi' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiIllustrator', setAttrs: setSettingsAttrs, description: 'Illustrator DPI', units: 'dpi' }} />
@@ -75,7 +75,7 @@ class Settings extends React.Component {
                    <h5>BMP</h5>
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
                 </Panel>
-                <Panel header="Gcode">
+                <Panel collapsible header="Gcode" eventKey="3">
                   <h5>Gcode generation</h5>
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5}} />
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
@@ -84,7 +84,7 @@ class Settings extends React.Component {
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
                 </Panel>
-                <Panel header="Tool">
+                <Panel collapsible header="Tool" eventKey="4">
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
@@ -93,7 +93,8 @@ class Settings extends React.Component {
                     <hr/>
                     <QuadrantField {... {errors: this.state.errors, object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </Panel>
-          </Collapse>
+        
+            </PanelGroup>
           </div>
         );
     
