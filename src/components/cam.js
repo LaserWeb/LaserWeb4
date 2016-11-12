@@ -42,14 +42,14 @@ class Cam extends React.Component {
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <button onClick={this.generate}>Generate</button>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', }}>
+                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
                     <span style={{ float: 'right', position: 'relative' }}>
                         <button className="btn btn-xs"><i className="fa fa-upload" /></button>
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>
-                <Splitter split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
+                <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
                     <div style={{ overflowY: 'auto' }}>
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
