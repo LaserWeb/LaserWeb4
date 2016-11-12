@@ -17,6 +17,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { withBounds } from './get-bounds.js';
 
 function NumberInput({op, field, onChange, onFocus}) {
     return (
@@ -33,6 +34,24 @@ function DirectionInput({op, field, onChange, onFocus}) {
     );
 }
 
+function Error(props) {
+    let {bounds, operationsBounds, message} = props;
+    return (
+        <span>
+            &nbsp;
+            <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
+                <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
+                    <div className='error-bubble' style={{ top: (bounds.top + bounds.bottom) / 2 - operationsBounds.top }}>
+                        <div className='error-bubble-arrow' />
+                        <div className='error-bubble-message'>{message}</div>
+                    </div>
+                </div>
+            </div>
+        </span>
+    );
+}
+Error = withBounds(Error);
+
 class Field extends React.Component {
     componentWillMount() {
         this.onChange = e => {
@@ -45,11 +64,11 @@ class Field extends React.Component {
     }
 
     render() {
-        let {op, field} = this.props;
+        let {op, field, operationsBounds} = this.props;
         let Input = field.input;
         let error;
         if (field.check && !field.check(op[field.name]))
-            error = <td className='error-bubble' data-error={field.error} />;
+            error = <td><Error operationsBounds={operationsBounds} message={field.error} /></td>;
         return (
             <tr>
                 <td>{field.label}</td>
@@ -155,13 +174,19 @@ class Operation extends React.Component {
     }
 
     render() {
-        let {op, documents, onDragOver, selected, dispatch} = this.props;
-        let showError = false;
+        let {op, documents, onDragOver, selected, operationsBounds, dispatch} = this.props;
+        let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
-                if (field.check && !field.check(op[fieldName]))
-                    showError = true;
+                if (field.check && !field.check(op[fieldName])) {
+                    error = (
+                        <span style={{ display: 'table-cell' }}>
+                            <Error operationsBounds={operationsBounds} message="Expand to setup operation" />
+                        </span>
+                    );
+                    break;
+                }
             }
         }
 
@@ -189,7 +214,7 @@ class Operation extends React.Component {
                         </button>
                     </span>
                 </div>
-                {showError ? <div className="error-bubble" data-error="Expand to setup operation" /> : undefined}
+                {error}
             </div>
         ];
         if (op.expanded)
@@ -215,7 +240,7 @@ class Operation extends React.Component {
                         <table>
                             <tbody>
                                 {types[op.type].fields.map(fieldName => {
-                                    return <Field key={fieldName} op={op} field={fields[fieldName]} selected={selected} dispatch={dispatch} />
+                                    return <Field key={fieldName} op={op} field={fields[fieldName]} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
                                 })}
                             </tbody>
                         </table>
@@ -248,23 +273,23 @@ class Operations extends React.Component {
     }
 
     render() {
-        let {operations, currentOperation, documents, dispatch } = this.props;
+        let {operations, currentOperation, documents, dispatch, bounds } = this.props;
         return (
-            <div>
+            <div style={this.props.style}>
                 <div style={{ backgroundColor: 'cyan', padding: '20px' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                     <b>Drag document(s) here</b>
                 </div>
                 <br />
                 <div className="operations" style={{ display: 'table' }}>
                     {operations.map(o =>
-                        <Operation key={o.id} op={o} selected={currentOperation === o.id} documents={documents} dispatch={dispatch} />
+                        <Operation key={o.id} op={o} selected={currentOperation === o.id} documents={documents} operationsBounds={bounds} dispatch={dispatch} />
                     )}
                 </div>
-            </div>
+            </div >
         );
     }
 };
 Operations = connect(
     ({operations, currentOperation, documents}) => ({ operations, currentOperation, documents }),
-)(Operations);
+)(withBounds(Operations));
 export { Operations };

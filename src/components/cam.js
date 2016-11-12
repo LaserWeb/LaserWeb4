@@ -56,9 +56,7 @@ class Cam extends React.Component {
                 </Splitter>
                 <OperationDiagram {...{ operations, currentOperation }} />
                 <div style={{ marginTop: 10 }}><b>Operations</b></div>
-                <div style={{ flexGrow: 2, overflowY: 'auto' }}>
-                    <Operations />
-                </div>
+                <Operations style={{ flexGrow: 2, overflowY: 'auto' }} />
             </div>);
     }
 };
