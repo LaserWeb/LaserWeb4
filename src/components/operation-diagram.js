@@ -74,9 +74,9 @@ export class OperationDiagram extends React.Component {
             document.getElementById(id).style.display = 'inline';
         document.getElementById('svgOpName').textContent = op.type;
         document.getElementById('svgToolDia').textContent = op.toolDiameter + 'mm';
-        document.getElementById('svgZClear-8').textContent = ''; // TODO
+        document.getElementById('svgZClear-8').textContent = op.clearance + 'mm';
         document.getElementById('svgZDepth').textContent = op.passDepth + 'mm per pass';
-        document.getElementById('svgZFinal').textContent = op.cutDepth + ' mm';
+        document.getElementById('svgZFinal').textContent = op.cutDepth + 'mm';
     }
 
     render() {

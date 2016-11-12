@@ -31,27 +31,42 @@ Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 
 I can't think of a how-to, but here are some notes that may help.
 
-Application state is in a redux store.
-e.g. document tree, operations, settings, current tab
+* Application state is in a redux store.
+  * e.g. document tree, operations, settings, camera position, current tab
 
-* State is never modified, only replaced. This is critical for undo/redo support. New state shares objects with old state to save memory.
+* State is never modified, only replaced. This is critical for undo/redo support.
+  New state shares objects with old state to save memory.
 
-* Reducers are the only thing which can create new state. Actions tell the reducers what to do. Components render the state. They also install event callbacks which create actions and dispatch them to the store.
+* Reducers are the only thing which can create new state. Actions tell the reducers
+  what to do. Components render the state. They also install event callbacks which
+  create actions and dispatch them to the store.
 
-* Only objects which can be serialized to/from JSON go in the store, no THREE objects, DOM nodes, image objects, etc. This is critical for state saving and loading.
-e.g. The document tree represents meshes using an array: [x, y, z, x, y, z, ...]
-e.g. The document tree will represent image data in base-64-encoded strings, or some other JSON-compatible form.
+* Only objects which can be serialized to/from JSON go in the store, no regl objects,
+  DOM nodes, image objects, etc. This is critical for state saving and loading.
+  * e.g. Polygons are in a 2d arrays: [[x, y, z, x, y, z, ...], ...]
+  * e.g. Images are in base-64-encoded strings
 
 * React components convert objects to other forms as needed. Functions in lib/ aid this.
-e.g. The BufferMesh component converts an array of [x, y, z, x, y, z, ...] into a THREE.mesh with a THREE.BufferGeometry. It regenerates things as needed when the state changes.
 
+* The ```DocumentCacheHolder``` component converts document data into more usable forms.
+  * It converts:
+    * Polygon data [[x, y, z, x, y, z, ...], ...] into:
+      * ```outlines```: array of Float32Array. This draws polygon outlines in regl.
+      * ```triangles```: single Float32Array, This draws polygon filled areas in regl.
+    * Base-64-encoded image data into:
+      * Browser's Image class
+      * A regl texture
+  * It monitors the store and regenerates cache data when needed.
+  * It installs itself in React's context like react-redux's ```Provider```.
+  * ```withDocumentCache()``` wraps other React components like react-redux's ```connect()```.
+    It sets the component's ```props.documentCacheHolder```.
 
 ## Example: loading an SVG file.
 
 * The Cam component sets up a callback for the file input
 * The callback fetches the file, creates a loadDocument action with the file content, and dispatches it to the store
 * The documents reducer handles the loadDocument action. It looks at the file type, sees that it's image/svg+xml, and passes it to the loadSvg reducer.
-* The loadSvg reducer uses SnapSvg + functions in lib/ to convert the SVG and add it to a new state.
+* The loadSvg reducer uses SnapSvg and functions in lib/ to convert the SVG and add it to a new state.
 * The store triggers a UI render.
 
 ## One more note: 
@@ -59,7 +74,8 @@ Don't commit changes that webpack makes to **docs/** and **dist/** . You have to
 
 The package list changes frequently; expect to do an **npm install** every time you do a git pull until things settle down.
 
-#LaserWeb Development Environment
+# LaserWeb Development Environment
+```
 -------------------------------------------------------------
  * npm install          -  Install the development environment.
  * npm start            -  Start the live development server.
@@ -67,3 +83,4 @@ The package list changes frequently; expect to do an **npm install** every time 
  * npm run bundle-prod  -  Bundle the project for production.
  * npm run build-docs   -  Build the sources documentations.
 -------------------------------------------------------------
+```

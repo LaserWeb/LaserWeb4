@@ -211,17 +211,17 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
     let camPaths = [];
     if (op.type === 'Mill Pocket') {
         if (op.margin)
-            geometry = offset(geometry, -op.margin);
+            geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = pocket(geometry, op.toolDiameter * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     } else if (op.type === 'Mill Engrave') {
         camPaths = engrave(geometry, op.direction === 'Climb');
     } else if (op.type === 'Mill Inside') {
         if (op.margin)
-            geometry = offset(geometry, -op.margin);
+            geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     } else if (op.type === 'Mill Outside') {
         if (op.margin)
-            geometry = offset(geometry, op.margin);
+            geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     }
 
@@ -233,6 +233,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         "\r\n; Direction:    " + op.direction +
         "\r\n; Cut Depth:    " + op.cutDepth +
         "\r\n; Pass Depth:   " + op.passDepth +
+        "\r\n; clearance:    " + op.clearance +
         "\r\n; Plunge rate:  " + op.plungeRate +
         "\r\n; Cut rate:     " + op.cutRate +
         "\r\n;\r\n";
@@ -247,7 +248,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         decimal: 4,
         topZ: 0,
         botZ: -op.cutDepth,
-        safeZ: 1, // TODO
+        safeZ: +op.clearance,
         passDepth: op.passDepth,
         plungeFeed: op.plungeRate,
         cutFeed: op.cutRate,
@@ -258,7 +259,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
     return gcode;
 } // getMillGcodeFromOp
 
-export function getGcode(settings, documents, operations, showAlert) {
+export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
     "use strict";
 
     var gcode = settings.gcodeStart;
@@ -267,15 +268,21 @@ export function getGcode(settings, documents, operations, showAlert) {
         var op = operations[opIndex];
 
         let geometry = [];
-        function fetchGeometry(id) {
+        let docsWithImages = [];
+        function examineDocTree(id) {
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
                 geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+            if (doc.isRoot && doc.type === 'image') {
+                let cache = documentCacheHolder.cache.get(doc.id);
+                if (cache && cache.imageLoaded)
+                    docsWithImages.push(Object.assign([], doc, { image: cache.image }));
+            }
             for (let child of doc.children)
-                fetchGeometry(child);
+                examineDocTree(child);
         }
         for (let id of op.documents)
-            fetchGeometry(id);
+            examineDocTree(id);
 
         if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(opIndex, op, geometry, showAlert);
