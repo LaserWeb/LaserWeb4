@@ -263,10 +263,17 @@ class WorkspaceContent extends React.Component {
         let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
         let x = 2 * (pageX * window.devicePixelRatio - r.left) / (this.props.width) - 1;
         let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
-        let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
-        let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
-        let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
-        return { origin, direction };
+        if (this.props.camera.showPerspective) {
+            let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
+            let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
+            let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
+            return { origin, direction };
+        } else {
+            let cursor = vec3.transformMat4([], [x, y, -1], this.camera.worldInv);
+            let origin = vec3.transformMat4([], [x, y, 0], this.camera.worldInv);
+            let direction = vec3.sub([], cursor, origin);
+            return { origin, direction };
+        }
     }
 
     xyInterceptFromPoint(pageX, pageY) {
