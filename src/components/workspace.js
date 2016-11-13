@@ -90,13 +90,12 @@ class GcodePreview {
         if (this.gcode === gcode)
             return;
         this.gcode = gcode;
+        this.arrayChanged = true;
         let parsed = parseGcode(gcode);
         if (parsed.length < 2 * parsedStride) {
-
             this.array = null;
             this.g0Dist = 0;
             this.g1Time = 0;
-            this.regl = null;
         } else {
             let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
 
@@ -135,17 +134,22 @@ class GcodePreview {
             this.array = array;
             this.g0Dist = g0Dist;
             this.g1Time = g1Time;
-            this.regl = null;
         }
     }
 
     draw(drawCommands, {g0Rate, simTime}) {
-        if (this.regl !== drawCommands.regl || !this.buffer) {
+        if (this.regl !== drawCommands.regl) {
             this.regl = drawCommands.regl;
             if (this.buffer)
                 this.buffer.destroy();
-            this.buffer = drawCommands.regl.buffer(this.array);
+            this.buffer = null;
         }
+
+        if (!this.buffer)
+            this.buffer = drawCommands.regl.buffer(this.array);
+        else if (this.arrayChanged)
+            this.buffer({ data: this.array });
+        this.arrayChanged = false;
 
         if (this.array) {
             drawCommands.gcode({
