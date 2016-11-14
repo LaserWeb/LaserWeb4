@@ -90,13 +90,12 @@ class GcodePreview {
         if (this.gcode === gcode)
             return;
         this.gcode = gcode;
+        this.arrayChanged = true;
         let parsed = parseGcode(gcode);
         if (parsed.length < 2 * parsedStride) {
-
             this.array = null;
             this.g0Dist = 0;
             this.g1Time = 0;
-            this.regl = null;
         } else {
             let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
 
@@ -135,17 +134,22 @@ class GcodePreview {
             this.array = array;
             this.g0Dist = g0Dist;
             this.g1Time = g1Time;
-            this.regl = null;
         }
     }
 
     draw(drawCommands, {g0Rate, simTime}) {
-        if (this.regl !== drawCommands.regl || !this.buffer) {
+        if (this.regl !== drawCommands.regl) {
             this.regl = drawCommands.regl;
             if (this.buffer)
                 this.buffer.destroy();
-            this.buffer = drawCommands.regl.buffer(this.array);
+            this.buffer = null;
         }
+
+        if (!this.buffer)
+            this.buffer = drawCommands.regl.buffer(this.array);
+        else if (this.arrayChanged)
+            this.buffer({ data: this.array });
+        this.arrayChanged = false;
 
         if (this.array) {
             drawCommands.gcode({
@@ -263,10 +267,17 @@ class WorkspaceContent extends React.Component {
         let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
         let x = 2 * (pageX * window.devicePixelRatio - r.left) / (this.props.width) - 1;
         let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
-        let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
-        let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
-        let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
-        return { origin, direction };
+        if (this.props.camera.showPerspective) {
+            let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
+            let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
+            let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
+            return { origin, direction };
+        } else {
+            let cursor = vec3.transformMat4([], [x, y, -1], this.camera.worldInv);
+            let origin = vec3.transformMat4([], [x, y, 0], this.camera.worldInv);
+            let direction = vec3.sub([], cursor, origin);
+            return { origin, direction };
+        }
     }
 
     xyInterceptFromPoint(pageX, pageY) {

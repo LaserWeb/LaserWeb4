@@ -23,6 +23,7 @@ import SweepContext from 'poly2tri/src/sweepcontext';
 
 export const inchToClipperScale = 1270000000;
 export const mmToClipperScale = inchToClipperScale / 25.4; // 50000000;
+export const clipperToCppScale = 1 / 128; // Prevent overflow for coordinates up to ~1000 mm
 export const cleanPolyDist = 100;
 export const arcTolerance = 10000;
 
@@ -240,6 +241,79 @@ function triangulatePolyTree(polyTree, z) {
 
 export function triangulatePositions(positions, z) {
     return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions, 0, 0)), z);
+}
+
+// Convert Clipper paths to C format. Returns [double** cPaths, int cNumPaths, int* cPathSizes].
+export function pathsToCpp(memoryBlocks, paths) {
+    let doubleSize = 8;
+
+    let cPaths = Module._malloc(paths.length * 4);
+    memoryBlocks.push(cPaths);
+    let cPathsBase = cPaths >> 2;
+
+    let cPathSizes = Module._malloc(paths.length * 4);
+    memoryBlocks.push(cPathSizes);
+    let cPathSizesBase = cPathSizes >> 2;
+
+    for (let i = 0; i < paths.length; ++i) {
+        let path = paths[i];
+
+        let cPath = Module._malloc(path.length * 2 * doubleSize + 4);
+        memoryBlocks.push(cPath);
+        if (cPath & 4)
+            cPath += 4;
+        //console.log("-> " + cPath.toString(16));
+        let pathArray = new Float64Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + cPath);
+
+        for (let j = 0; j < path.length; ++j) {
+            let point = path[j];
+            pathArray[j * 2] = point.X * clipperToCppScale;
+            pathArray[j * 2 + 1] = point.Y * clipperToCppScale;
+        }
+
+        Module.HEAPU32[cPathsBase + i] = cPath;
+        Module.HEAPU32[cPathSizesBase + i] = path.length;
+    }
+
+    return [cPaths, paths.length, cPathSizes];
+}
+
+// Convert C format paths to array of CamPath. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
+// Each point has X, Y, Z (stride = 3).
+export function cppToCamPath(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {
+    let cPaths = Module.HEAPU32[cPathsRef >> 2];
+    memoryBlocks.push(cPaths);
+    let cPathsBase = cPaths >> 2;
+
+    let cNumPaths = Module.HEAPU32[cNumPathsRef >> 2];
+
+    let cPathSizes = Module.HEAPU32[cPathSizesRef >> 2];
+    memoryBlocks.push(cPathSizes);
+    let cPathSizesBase = cPathSizes >> 2;
+
+    let convertedPaths = [];
+    for (let i = 0; i < cNumPaths; ++i) {
+        let pathSize = Module.HEAPU32[cPathSizesBase + i];
+        let cPath = Module.HEAPU32[cPathsBase + i];
+        // cPath contains value to pass to Module._free(). The aligned version contains the actual data.
+        memoryBlocks.push(cPath);
+        if (cPath & 4)
+            cPath += 4;
+        let pathArray = new Float64Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + cPath);
+
+        let convertedPath = [];
+        convertedPaths.push({ path: convertedPath, safeToClose: false });
+        for (let j = 0; j < pathSize; ++j)
+            convertedPath.push({
+                X: pathArray[j * 3] / clipperToCppScale,
+                Y: pathArray[j * 3 + 1] / clipperToCppScale,
+                Z: pathArray[j * 3 + 2] / clipperToCppScale,
+            });
+
+        //console.log('got: path', i, ':', pathArray[0], pathArray[1], pathArray[2]);
+    }
+
+    return convertedPaths;
 }
 
 // Clip Clipper geometry. clipType is a ClipperLib.ClipType constant. Returns new geometry.

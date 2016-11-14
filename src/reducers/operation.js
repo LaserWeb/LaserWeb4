@@ -18,6 +18,7 @@ const operationBase = object('operation', {
     clearance: 0,
     plungeRate: 0,
     cutRate: 0,
+    toolAngle: 0,
 });
 
 export function operation(state, action) {

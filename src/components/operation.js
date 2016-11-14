@@ -121,12 +121,18 @@ const checkStepOver = {
     error: 'Must be in range (0, 1]',
 };
 
+const checkToolAngle = {
+    check: v => v > 0 && v < 180,
+    error: 'Must be in range (0, 180)',
+};
+
 const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
@@ -147,6 +153,7 @@ const types = {
     'Mill Engrave': { fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
     'Mill Inside': { fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Outside': { fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill V Carve': { fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
 };
 
 class Operation extends React.Component {
