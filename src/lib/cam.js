@@ -17,7 +17,9 @@
 
 import ClipperLib from 'clipper-lib';
 
-import { diff, offset } from './mesh';
+import { diff, offset, cppToCamPath, pathsToCpp, clipperToCppScale } from './mesh';
+
+require('script!web-cam-cpp');
 
 export function dist(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -192,14 +194,12 @@ export function engrave(geometry, climb) {
     return result;
 };
 
-export function vPocket(geometry, cutterAngle, passDepth, maxDepth) {
+export function vCarve(geometry, cutterAngle, passDepth) {
     if (cutterAngle <= 0 || cutterAngle >= 180)
         return [];
 
     let memoryBlocks = [];
-
-    let cGeometry = jscut.priv.path.convertPathsToCpp(memoryBlocks, geometry);
-
+    let cGeometry = pathsToCpp(memoryBlocks, geometry);
     let resultPathsRef = Module._malloc(4);
     let resultNumPathsRef = Module._malloc(4);
     let resultPathSizesRef = Module._malloc(4);
@@ -207,17 +207,23 @@ export function vPocket(geometry, cutterAngle, passDepth, maxDepth) {
     memoryBlocks.push(resultNumPathsRef);
     memoryBlocks.push(resultPathSizesRef);
 
-    //extern "C" void vPocket(
+    let debugArg0 = 0, debugArg1 = 0;
+
+    //extern "C" void vCarve(
     //    int debugArg0, int debugArg1,
     //    double** paths, int numPaths, int* pathSizes,
-    //    double cutterAngle, double passDepth, double maxDepth,
+    //    double cutterAngle, double passDepth,
     //    double**& resultPaths, int& resultNumPaths, int*& resultPathSizes)
     Module.ccall(
-        'vPocket',
+        'vCarve',
         'void', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number'],
-        [miscViewModel.debugArg0(), miscViewModel.debugArg1(), cGeometry[0], cGeometry[1], cGeometry[2], cutterAngle, passDepth, maxDepth, resultPathsRef, resultNumPathsRef, resultPathSizesRef]);
+        [
+            debugArg0, debugArg1, cGeometry[0], cGeometry[1], cGeometry[2],
+            cutterAngle, passDepth * clipperToCppScale,
+            resultPathsRef, resultNumPathsRef, resultPathSizesRef
+        ]);
 
-    let result = jscut.priv.path.convertPathsFromCppToCamPath(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
+    let result = cppToCamPath(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
 
     for (let i = 0; i < memoryBlocks.length; ++i)
         Module._free(memoryBlocks[i]);

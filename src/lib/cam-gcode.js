@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, engrave, insideOutside, pocket, separateTabs } from './cam';
+import { dist, engrave, insideOutside, pocket, separateTabs, vCarve } from './cam';
 import { clip, mmToClipperScale, offset, positionsToClipperPaths, union } from './mesh';
 
 // Convert paths to gcode (mill only).
@@ -87,7 +87,7 @@ export function getMillGcode(props) {
 
         let currentZ = safeZ;
         let finishedZ = topZ;
-        while (finishedZ > botZ) {
+        while (finishedZ > botZ || useZ) {
             let nextZ = Math.max(finishedZ - passDepth, botZ);
             if (currentZ < safeZ && (!path.safeToClose || tabGeometry.length > 0)) {
                 gcode += retractGcode;
@@ -185,17 +185,24 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         showAlert("Pass Depth must be greater than 0", "alert-danger");
         ok = false;
     }
-    if (op.cutDepth <= 0) {
-        showAlert("Final Cut Depth must be greater than 0", "alert-danger");
-        ok = false;
-    }
-    if (op.toolDiameter <= 0) {
-        showAlert("Tool Diameter must be greater than 0", "alert-danger");
-        ok = false;
-    }
-    if (op.stepOver <= 0 || op.stepOver > 1) {
-        showAlert("Step Over must be in range (0,1]", "alert-danger");
-        ok = false;
+    if (op.type === 'Mill V Carve') {
+        if (op.toolAngle <= 0 || op.toolAngle >= 180) {
+            showAlert("Tool Angle must be in range (0, 180)", "alert-danger");
+            ok = false;
+        }
+    } else {
+        if (op.cutDepth <= 0) {
+            showAlert("Final Cut Depth must be greater than 0", "alert-danger");
+            ok = false;
+        }
+        if (op.toolDiameter <= 0) {
+            showAlert("Tool Diameter must be greater than 0", "alert-danger");
+            ok = false;
+        }
+        if (op.stepOver <= 0 || op.stepOver > 1) {
+            showAlert("Step Over must be in range (0,1]", "alert-danger");
+            ok = false;
+        }
     }
     if (op.plungeRate <= 0) {
         showAlert("Plunge Rate must be greater than 0", "alert-danger");
@@ -223,6 +230,8 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         if (op.margin)
             geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+    } else if (op.type === 'Mill V Carve') {
+        camPaths = vCarve(geometry, op.toolAngle, op.passDepth * mmToClipperScale);
     }
 
     let gcode =
@@ -242,7 +251,7 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         paths: camPaths,
         ramp: false,
         scale: 1 / mmToClipperScale,
-        useZ: false,
+        useZ: op.type === 'Mill V Carve',
         offsetX: 0,
         offsetY: 0,
         decimal: 4,
