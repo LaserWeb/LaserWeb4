@@ -2,7 +2,7 @@ import React from 'react';
 import { dispatch, connect } from 'react-redux';
 import {FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon} from 'react-bootstrap'
 
-import { setMachineProfileAttrs, delMachineProfileId } from '../actions/machineProfiles';
+import { addMachineProfile, delMachineProfileId } from '../actions/machineProfiles';
 
 import stringify from 'json-stringify-pretty-compact';
 import slug from 'slug'
@@ -15,7 +15,7 @@ class MachineProfile extends React.Component {
         this.handleApply.bind(this);
         this.handleSelect.bind(this);
         this.handleInput.bind(this);
-        this.state={selected:"", disabledDelete:true, newLabel: '', newSlug:''}
+        this.state={selected:"", newLabel: '', newSlug:''}
     }
     
     handleApply(e) {
@@ -28,16 +28,19 @@ class MachineProfile extends React.Component {
     
     handleSelect(e){
         let value=e.target.value
-        this.setState({selected: value, disabledDelete: value.substr(0,1)=='*'});
+        this.setState({selected: value});
         
     }
     
     handleDelete(e){
         this.props.dispatch(delMachineProfileId(this.state.selected));
+        this.setState({selected: '', newLabel:'', newSlug:''})
     }
     
     handleAppend(e){
-        this.props.dispatch(setMachineProfileAttrs({[this.state.newSlug]: {machineLabel: this.state.newLabel, settings: this.props.settings}}))
+        this.props.dispatch(addMachineProfile(this.state.newSlug, {machineLabel: this.state.newLabel, settings: this.props.settings}))
+        this.setState({selected: this.state.newSlug})
+        
     }
     
     handleInput(e){
@@ -57,9 +60,13 @@ class MachineProfile extends React.Component {
         let profileOptions=[];
         let description;
         let selected;
+        let disabledDelete=!this.state.selected.length || this.state.selected.substr(0,1)=='*';
+        
+        
         Object.keys(this.props.profiles).forEach((key) => {
             let profile=this.props.profiles[key];
-            profileOptions.push(<option key={key} value={key}>{profile.machineLabel}</option>);
+            
+            profileOptions.push(<option key={key} value={key} >{profile.machineLabel}</option>);
         });
         
         
@@ -78,7 +85,7 @@ class MachineProfile extends React.Component {
                     <h5>Apply predefined machine profile</h5>
                     {this.state.selected ? (<small>Machine Id: <code>{this.state.selected}</code></small>):undefined}
                     <InputGroup>
-                    <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}}>
+                    <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}} value={this.state.selected} ref="select">
                       <option value="">Select a Machine Profile</option>
                       {profileOptions}
                       
@@ -86,7 +93,7 @@ class MachineProfile extends React.Component {
                     
                     <InputGroup.Button>
                         <Button bsClass="btn btn-info" onClick={(e)=>{this.handleApply(e)}}><Glyphicon glyph="share-alt" /></Button>
-                        <Button bsClass="btn btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={this.state.disabledDelete}><Glyphicon glyph="trash" /></Button>
+                        <Button bsClass="btn btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /></Button>
                     </InputGroup.Button>
                     </InputGroup>
                     
@@ -103,7 +110,7 @@ class MachineProfile extends React.Component {
                     {this.state.newSlug ? (<small>Machine Id: <code>{this.state.newSlug}</code></small>):undefined}
                      <InputGroup>
                         
-                        <FormControl type="text" onChange={(e)=>{this.handleInput(e)}} ref="newLabel"/>
+                        <FormControl type="text" onChange={(e)=>{this.handleInput(e)}} ref="newLabel" value={this.state.newLabel}/>
                         <InputGroup.Button>
                         <Button bsClass="btn btn-success" onClick={(e)=>{this.handleAppend(e)}}><Glyphicon glyph="plus-sign" /></Button>
                         </InputGroup.Button>

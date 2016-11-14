@@ -1,54 +1,29 @@
 import { objectNoId } from '../reducers/object'
+import omit from 'object.omit'
 
 
-export const machineProfiles = objectNoId('machineProfiles', {
-    "*gen_grbl": {
-        machineLabel: "Generic GRBL machine",
-        machineDescription: "Use this if you have a GRBL machine",
-        settings: {
-            machineWidth: 300,
-            machineHeight: 300,
-            machineBeamDiameter: 0.2,
+const initialState = require("../data/machine-profiles.json");
+
+
+export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
+
+    
+        switch (action.type) {
+            case "MACHINEPROFILES_ADD":
+                if (!lock.exec(action.payload.id)) 
+                    return Object.assign({}, state, {[action.payload.id]:  action.payload.machine});
+                return state;
+                
+            case "MACHINEPROFILES_REMOVE":
+                return omit(state,(val,key)=>{return key!==action.payload.id && (!lock || !action.payload.id.match(lock))});
             
-            toolSafetyLockDisabled:false,
-            toolCncMode:false,
-            toolImagePosition: "BL",
-            toolUseNumpad: false,
-            toolUseVideo: false,
-            toolWebcamUrl:"",
-            
-            
-            gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-            gcodeEnd: "M2          ; End\r\n",
-            gcodeHoming:"",
-            gcodeLaserOn:"M3",
-            gcodeLaserOff:"M5",
+            case "MACHINEPROFILES_LOAD":
+                let allowed=omit(action.payload.machines,(val,key) => { return !key.match(lock)});
+                return Object.assign({}, state, allowed);
+                
+                
+            default:
+                return state;
         }
-    },
-    "*gen_smoothie": {
-        machineLabel: "Generic SMOOTHIE machine",
-        machineDescription: "Use this if you have a SMOOTHIE machine",
-        settings: {
-            machineWidth: 300,
-            machineHeight: 300,
-            machineBeamDiameter: 0.2,
-            
-            toolSafetyLockDisabled:false,
-            toolCncMode:false,
-            toolImagePosition: "BL",
-            toolUseNumpad: false,
-            toolUseVideo: false,
-            toolWebcamUrl:"",
-            
-            
-            gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-            gcodeEnd: "M2          ; End\r\n",
-            gcodeHoming:"",
-            gcodeLaserOn:"M3",
-            gcodeLaserOff:"M5",
-        }
-                                                              
-    }
-});
-
-
+    
+}

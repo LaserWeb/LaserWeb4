@@ -3,6 +3,7 @@ import { dispatch, connect } from 'react-redux';
 
 import { NumberField, TextField, ToggleField, QuadrantField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings } from '../actions/settings';
+import { uploadMachineProfiles, downloadMachineProfiles } from '../actions/machineProfiles';
 
 import MachineProfile from './MachineProfile';
 
@@ -13,6 +14,8 @@ import Validator from 'validatorjs';
 import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup } from 'react-bootstrap';
 
 import update from 'immutability-helper';
+
+import stringify from 'json-stringify-pretty-compact';
 
 
 class Settings extends React.Component {
@@ -96,10 +99,16 @@ class Settings extends React.Component {
             
             <h4>Settings tools</h4>
             <div className="well well-sm">
-                <button onClick={() => this.props.handleDownload(this.props.settings)} type="button" className="btn btn-default btn-success" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
+                <button onClick={() => this.props.handleDownload("settings",this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
+                <button onClick={() => this.props.handleDownload("profiles", this.props.profiles)} type="button" className="btn btn-info btn-sm" aria-label="Download Profiles">Backup Profiles <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
                 <div style={{position:"relative", display:"inline-block"}}>
-                <button type="button" className="btn btn-default btn-danger" aria-label="Upload Settings">Restore Settings <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
-                <input onChange={(e) => this.props.handleUpload(e)} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
+                <button type="button" className="btn  btn-danger btn-sm" aria-label="Upload Settings">Restore Settings <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
+                <input onChange={(e) => this.props.handleUpload(e,uploadSettings)} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
+                </div>
+                
+                <div style={{position:"relative", display:"inline-block"}}>
+                <button type="button" className="btn  btn-danger btn-sm" aria-label="Upload Settings">Restore Profiles <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
+                <input onChange={(e) => this.props.handleUpload(e,uploadMachineProfiles)} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
                 </div>
                 
             </div>
@@ -112,29 +121,30 @@ class Settings extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  return { settings: state.settings }
+  return { settings: state.settings, profiles: state.machineProfiles }
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    handleDownload: (settings) => {
-        /* Do I need to move this to a reducer or action?*/
-        let json = JSON.stringify(settings);
+    handleDownload: (name, settings) => {
+        
+        let json = stringify(settings);
         let blob = new Blob([json], {type: "application/json"});
 
         let tempLink = document.createElement('a');
             tempLink.href = window.URL.createObjectURL(blob);
-            tempLink.setAttribute('download', 'laserweb-settings.json');
+            tempLink.setAttribute('download', 'laserweb-'+name+'.json');
             tempLink.click();
         
         dispatch(downloadSettings(settings));
     },
-    handleUpload: e => {
+    handleUpload: (e,action) => {
        let file = e.target.files[0];
        let reader = new FileReader;
-            reader.onload = () => dispatch(uploadSettings(file, reader.result));
+            reader.onload = () => dispatch(action(file, reader.result));
             reader.readAsText(file);
     },
+    
     handleApplyProfile: (settings) => {
         dispatch(setSettingsAttrs(settings));
     }
