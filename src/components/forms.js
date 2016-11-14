@@ -25,7 +25,7 @@ export function NumberField({object, field, description, units, setAttrs, dispat
     
     return (
         <FormGroup validationState={errors? "error": undefined }>
-        {errors? <OverlayTrigger trigger="hover" placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
+        {errors? <OverlayTrigger  placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
         </FormGroup>
     );
 }
@@ -57,7 +57,7 @@ export function TextField({object, field, description, units="", setAttrs, dispa
         </InputGroup>;
     return (
         <FormGroup validationState={errors? "error": undefined }>
-        {errors? <OverlayTrigger trigger="hover" placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
+        {errors? <OverlayTrigger  placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
         </FormGroup>
     );
 }

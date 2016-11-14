@@ -19,6 +19,7 @@ import ClipperLib from 'clipper-lib';
 
 import { diff, offset, cppToCamPath, pathsToCpp, clipperToCppScale } from './mesh';
 
+
 require('script!web-cam-cpp');
 
 export function dist(x1, y1, x2, y2) {
