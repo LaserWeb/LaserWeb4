@@ -1,7 +1,7 @@
 import React from 'react';
 import { dispatch, connect } from 'react-redux';
 
-import { NumberField, TextField, ToggleField, QuadrantField } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings } from '../actions/settings';
 import { uploadMachineProfiles, downloadMachineProfiles } from '../actions/machineProfiles';
 
@@ -11,7 +11,7 @@ import {PanelGroup, Panel} from 'react-bootstrap';
 
 import Validator from 'validatorjs';
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup } from 'react-bootstrap';
+import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup } from 'react-bootstrap';
 
 import update from 'immutability-helper';
 
@@ -58,17 +58,20 @@ class Settings extends React.Component {
         
         return (
             <div className="form">
-            <h4>Machine profiles</h4>
-            <MachineProfile onApply={this.props.handleApplyProfile}/>
-            <h4>Custom Machine Settings</h4>
+            
+            
+            
             <PanelGroup>
-                
-                <Panel collapsible header="Machine" eventKey="1">
+                <Panel header="Machine Profiles"  bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
+                <MachineProfile onApply={this.props.handleApplyProfile}/>
+                </Panel>
+                <Panel collapsible header="Machine" eventKey="1" bsStyle="info">
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
                 </Panel>
-                <Panel collapsible header="File Settings" eventKey="2">
+                
+                <Panel collapsible header="File Settings" eventKey="2"  bsStyle="info">
                    <h4>SVG</h4>
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiDefault', setAttrs: setSettingsAttrs, description: 'Default DPI', units: 'dpi' }} />
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiIllustrator', setAttrs: setSettingsAttrs, description: 'Illustrator DPI', units: 'dpi' }} />
@@ -76,7 +79,7 @@ class Settings extends React.Component {
                    <h4>BMP</h4>
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
                 </Panel>
-                <Panel collapsible header="Gcode" eventKey="3">
+                <Panel collapsible header="Gcode" eventKey="3"  bsStyle="info">
                   <h4>Gcode generation</h4>
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5}} />
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
@@ -85,7 +88,7 @@ class Settings extends React.Component {
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
                   <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
                 </Panel>
-                <Panel collapsible header="Application" eventKey="4">
+                <Panel collapsible header="Application" eventKey="4"  bsStyle="info">
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
                     <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
@@ -94,24 +97,18 @@ class Settings extends React.Component {
                     <hr/>
                     <QuadrantField {... {errors: this.state.errors, object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </Panel>
-        
+                <Panel collapsible header="Tools" bsStyle="danger" eventKey="5">
+                    <h5>Settings</h5>
+                    <button onClick={() => this.props.handleDownload("settings",this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
+                    <FileField label="Upload Settings" dispatch={(e) => this.props.handleUpload(e,uploadSettings)}   buttonClass="btn btn-danger btn-sm"/>
+                    <h5>Profiles</h5>
+                    
+                        <button onClick={() => this.props.handleDownload("profiles", this.props.profiles)} type="button" className="btn btn-success btn-sm"  aria-label="Download Profiles">Backup Profiles <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
+                    <FileField label="Upload Machine Profiles" dispatch={(e) => this.props.handleUpload(e,uploadMachineProfiles)}   buttonClass="btn btn-danger btn-sm "/>
+                </Panel>
             </PanelGroup>
+                
             
-            <h4>Settings tools</h4>
-            <div className="well well-sm">
-                <button onClick={() => this.props.handleDownload("settings",this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
-                <button onClick={() => this.props.handleDownload("profiles", this.props.profiles)} type="button" className="btn btn-info btn-sm" aria-label="Download Profiles">Backup Profiles <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
-                <div style={{position:"relative", display:"inline-block"}}>
-                <button type="button" className="btn  btn-danger btn-sm" aria-label="Upload Settings">Restore Settings <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
-                <input onChange={(e) => this.props.handleUpload(e,uploadSettings)} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
-                </div>
-                
-                <div style={{position:"relative", display:"inline-block"}}>
-                <button type="button" className="btn  btn-danger btn-sm" aria-label="Upload Settings">Restore Profiles <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
-                <input onChange={(e) => this.props.handleUpload(e,uploadMachineProfiles)} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
-                </div>
-                
-            </div>
             
           </div>
         );

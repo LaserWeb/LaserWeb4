@@ -79,8 +79,8 @@ class MachineProfile extends React.Component {
         
         
         return (
-            <div className="form well well-sm">
-                
+            
+                <div>
                 <FormGroup controlId="formControlsSelect">
                     <h5>Apply predefined machine profile</h5>
                     {this.state.selected ? (<small>Machine Id: <code>{this.state.selected}</code></small>):undefined}
@@ -118,8 +118,8 @@ class MachineProfile extends React.Component {
                      
                     <small className="help-block">Use this dialog to add the current settings to a new profile.</small>
                 </FormGroup>
-                
-            </div>
+                </div>
+            
             
            
             

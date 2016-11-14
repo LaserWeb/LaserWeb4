@@ -104,6 +104,16 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
 }
 
 
+export function FileField({label, dispatch, buttonClass="btn", ...rest}) {
+    return(
+        
+        <div style={{position:"relative", display:"inline-block", margin:0, padding:0, border:"none"}} {...rest}>
+                <button type="button" className={buttonClass} >{label} <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
+                <input onChange={dispatch} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
+        </div>
+    )
+}
+
 
 NumberField = connect()(NumberField);
 TextField = connect()(TextField);
