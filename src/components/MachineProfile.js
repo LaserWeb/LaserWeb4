@@ -2,7 +2,7 @@ import React from 'react';
 import { dispatch, connect } from 'react-redux';
 import {FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon} from 'react-bootstrap'
 
-import { addMachineProfile, delMachineProfileId } from '../actions/machineProfiles';
+import { addMachineProfile, delMachineProfileId } from '../actions/settings';
 
 import stringify from 'json-stringify-pretty-compact';
 import slug from 'slug'

@@ -5,3 +5,6 @@
 .quadrantField > label > input:disabled:before {opacity: 0.5}
 .quadrantField > label { width:50%; text-align: center; line-height: 30px}
 .quadrantField > label.C{ margin: 0 25% 0 25% }
+
+.checkboxListField { display:flex; flex-wrap: wrap; align-items: flex-start }
+.checkboxListField > .checkbox {flex-grow:1; margin:0; padding:3px}

@@ -1,9 +1,9 @@
 import React from 'react';
+import ReactDOM from 'react-dom'
 import { dispatch, connect } from 'react-redux';
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField } from './forms';
-import { setSettingsAttrs, uploadSettings, downloadSettings } from '../actions/settings';
-import { uploadMachineProfiles, downloadMachineProfiles } from '../actions/machineProfiles';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField } from './forms';
+import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot  } from '../actions/settings';
 
 import MachineProfile from './MachineProfile';
 
@@ -11,11 +11,74 @@ import {PanelGroup, Panel} from 'react-bootstrap';
 
 import Validator from 'validatorjs';
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup } from 'react-bootstrap';
+import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label } from 'react-bootstrap';
 
 import update from 'immutability-helper';
 
 import stringify from 'json-stringify-pretty-compact';
+
+import {sendAsFile} from '../lib/helpers';
+
+export class ApplicationSnapshot extends React.Component {
+    
+    constructor(props) {
+        super(props);
+        this.state={keys:[]}
+        this.handleChange.bind(this)
+        this.handleDownload.bind(this)
+        this.handleUpload.bind(this)
+        this.handleStore.bind(this)
+        this.handleRecover.bind(this)
+    }
+    
+    handleChange(data)
+    {
+        this.setState({keys:data})
+    }
+    
+    handleDownload()
+    {
+        let keys=this.state.keys;
+        let state = this.props.state;
+        let exp={}
+            keys.forEach((o)=>{exp[o]=state[o]})
+        
+        this.props.onDownload(exp)
+    }
+    
+    handleUpload()
+    {
+        this.setState({keys:data})
+    }
+    
+    handleStore()
+    {
+        //to implement
+    }
+    
+    handleRecover()
+    {
+        //to implement
+    }
+    
+    render(){
+        
+        let data = Object.keys(this.props.state);
+        
+        return (
+        <div>
+            <CheckBoxListField onChange={(data)=>this.handleChange(data)} data={data}/>
+            <button onClick={() => this.handleDownload()} type="button" className="btn btn-success btn-sm" aria-label="Download Snapshot">Download Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>&nbsp;
+            <FileField label="Upload Snapshot" dispatch={(e) => this.props.handleUpload(e,uploadSnapshot)}   buttonClass="btn btn-danger btn-sm " icon="fa-camera"/>&nbsp;
+                 
+            <button onClick={() => this.handleStore()} type="button" className="btn btn-success btn-sm" aria-label="Store Snapshot">Store Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>&nbsp;
+            <button onClick={() => this.handleRecover()} type="button" className="btn btn-danger btn-sm" aria-label="Recover Snapshot">Recover Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>
+            
+        </div>
+        )
+    }
+    
+}
 
 
 class Settings extends React.Component {
@@ -53,6 +116,8 @@ class Settings extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState({errors:this.validate(nextProps.settings,this.rules())})
     }
+    
+    
    
     render() {
         
@@ -105,6 +170,11 @@ class Settings extends React.Component {
                     
                         <button onClick={() => this.props.handleDownload("profiles", this.props.profiles)} type="button" className="btn btn-success btn-sm"  aria-label="Download Profiles">Backup Profiles <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
                     <FileField label="Upload Machine Profiles" dispatch={(e) => this.props.handleUpload(e,uploadMachineProfiles)}   buttonClass="btn btn-danger btn-sm "/>
+                        
+                    <h5>Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
+                    
+                    <ApplicationSnapshot onDownload={(state)=>this.props.handleDownload("snapshot",state)} onUpload={(e) => this.props.handleUpload(e,uploadSnapshot)}/>
+                    
                 </Panel>
             </PanelGroup>
                 
@@ -118,20 +188,15 @@ class Settings extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  return { settings: state.settings, profiles: state.machineProfiles }
+    
+  return { settings: state.settings, profiles: state.machineProfiles}
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     handleDownload: (name, settings) => {
         
-        let json = stringify(settings);
-        let blob = new Blob([json], {type: "application/json"});
-
-        let tempLink = document.createElement('a');
-            tempLink.href = window.URL.createObjectURL(blob);
-            tempLink.setAttribute('download', 'laserweb-'+name+'.json');
-            tempLink.click();
+        sendAsFile('laserweb-'+name+'.json', stringify(settings),"application/json");
         
         dispatch(downloadSettings(settings));
     },
@@ -144,12 +209,20 @@ const mapDispatchToProps = (dispatch) => {
     
     handleApplyProfile: (settings) => {
         dispatch(setSettingsAttrs(settings));
-    }
+    },
     
+    handleSnapshot: (ref) => {
+        console.log(ref.getChecked())
+    }
     
     
   };
 };
 
 export {Settings}
+
+ApplicationSnapshot = connect((state) => {
+  return { state: state}
+})(ApplicationSnapshot);;
+
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);

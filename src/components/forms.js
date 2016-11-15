@@ -5,7 +5,7 @@ import Toggle from "react-toggle";
 import 'react-toggle/style.css';
 import '../styles/forms.css';
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup } from 'react-bootstrap';
+import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox } from 'react-bootstrap';
 
 export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
     
@@ -104,14 +104,50 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
 }
 
 
-export function FileField({label, dispatch, buttonClass="btn", ...rest}) {
+export function FileField({label, dispatch, buttonClass="btn", icon="fa-upload", ...rest}) {
     return(
         
         <div style={{position:"relative", display:"inline-block", margin:0, padding:0, border:"none"}} {...rest}>
-                <button type="button" className={buttonClass} >{label} <span className="fa fa-upload fa-fw" aria-hidden="true"></span></button>
+                <button type="button" className={buttonClass} >{label} <span className={"fa fa-fw "+icon} aria-hidden="true"></span></button>
                 <input onChange={dispatch} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
         </div>
     )
+}
+
+export class CheckBoxListField extends React.Component{
+    
+    constructor(props) {
+        super(props);
+        this.state={checked:[]}
+        this.handleChange.bind(this);
+        
+    }
+    
+    render(){
+        let checks=[];
+        let checked = this.state.checked;
+        this.props.data.forEach(o => {checks.push(<Checkbox key={o} value={checked.indexOf(o)!==false} onChange={(e)=>{this.handleChange(e,o)}}>{o}</Checkbox>)})
+        return (
+            <div className="checkboxListField">{checks}</div>
+        )
+    }
+    
+    handleChange(e,key){
+        let value=e.target.checked;
+        let state=this.state.checked.filter((o)=>{return o!==key});
+        if (value) {
+            state.push(key);
+        }
+        this.setState({checked:state})
+        
+        if (this.props.onChange) 
+            this.props.onChange(state);
+        
+        
+        
+    }
+    
+   
 }
 
 
@@ -119,3 +155,4 @@ NumberField = connect()(NumberField);
 TextField = connect()(TextField);
 ToggleField = connect()(ToggleField);
 QuadrantField = connect()(QuadrantField);
+CheckBoxListField = connect()(CheckBoxListField);
