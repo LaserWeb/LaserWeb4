@@ -137,14 +137,14 @@ function gcode(regl) {
                     gl_FragColor = color;
             }`,
         attributes: {
-            position: {
+            g: {
                 buffer: regl.prop('buffer'),
                 offset: 0,
                 stride: 24,
             },
-            g: {
+            position: {
                 buffer: regl.prop('buffer'),
-                offset: 12,
+                offset: 4,
                 stride: 24,
             },
             g0Dist: {

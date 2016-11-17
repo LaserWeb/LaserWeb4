@@ -82,7 +82,7 @@ function GridText(props) {
     return <div>{a}</div>;
 }
 
-const parsedStride = 5;
+const parsedStride = 7;
 const drawStride = 6;
 
 class GcodePreview {
@@ -101,20 +101,26 @@ class GcodePreview {
 
             let g0Dist = 0, g1Time = 0;
             for (let i = 0; i < parsed.length / parsedStride - 1; ++i) {
+                // g
+                let x1 = parsed[i * parsedStride + 1];
+                let y1 = parsed[i * parsedStride + 2];
+                let z1 = parsed[i * parsedStride + 3];
+                // f
+                // a
+                // s
 
-                let x1 = parsed[i * parsedStride + 0];
-                let y1 = parsed[i * parsedStride + 1];
-                let z1 = parsed[i * parsedStride + 2];
-                let x2 = parsed[i * parsedStride + 5];
-                let y2 = parsed[i * parsedStride + 6];
-                let z2 = parsed[i * parsedStride + 7];
-                let g = parsed[i * parsedStride + 8];
-                let f = parsed[i * parsedStride + 9];
+                let g = parsed[i * parsedStride + 7];
+                let x2 = parsed[i * parsedStride + 8];
+                let y2 = parsed[i * parsedStride + 9];
+                let z2 = parsed[i * parsedStride + 10];
+                let f = parsed[i * parsedStride + 11];
+                // a
+                // s
 
-                array[i * drawStride * 2 + 0] = x1;
-                array[i * drawStride * 2 + 1] = y1;
-                array[i * drawStride * 2 + 2] = z1;
-                array[i * drawStride * 2 + 3] = g;
+                array[i * drawStride * 2 + 0] = g;
+                array[i * drawStride * 2 + 1] = x1;
+                array[i * drawStride * 2 + 2] = y1;
+                array[i * drawStride * 2 + 3] = z1;
                 array[i * drawStride * 2 + 4] = g0Dist;
                 array[i * drawStride * 2 + 5] = g1Time;
 
@@ -124,10 +130,10 @@ class GcodePreview {
                 else
                     g0Dist += dist;
 
-                array[i * drawStride * 2 + 6] = x2;
-                array[i * drawStride * 2 + 7] = y2;
-                array[i * drawStride * 2 + 8] = z2;
-                array[i * drawStride * 2 + 9] = g;
+                array[i * drawStride * 2 + 6] = g;
+                array[i * drawStride * 2 + 7] = x2;
+                array[i * drawStride * 2 + 8] = y2;
+                array[i * drawStride * 2 + 9] = z2;
                 array[i * drawStride * 2 + 10] = g0Dist;
                 array[i * drawStride * 2 + 11] = g1Time;
             }
