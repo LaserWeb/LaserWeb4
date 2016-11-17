@@ -1,10 +1,8 @@
-function shouldSaveUndo(action){
-  const blacklist = ['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'];
 
-  return !blacklist.includes(action.type);
-}
-
-export function combineReducers(reducers, initialState={}){
+export function undoCombineReducers(reducers, initialState={},
+                                    shouldSaveUndo= (action)=>{return !['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','SPLITTER_SET_SIZE'].includes(action.type)}
+                    ){
+  
   return (state = {}, action) => {
     if (action.type == "UNDO" && state.history.length > 0){
       // Load previous state and pop the history
