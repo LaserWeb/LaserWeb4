@@ -1,17 +1,19 @@
 
-export function undoCombineReducers(reducers, initialState={},
-                                    shouldSaveUndo= (action)=>{return !['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','SPLITTER_SET_SIZE'].includes(action.type)}
+export function undoCombineReducers(reducers,
+                                    initialState={},
+                                    shouldSaveUndo= (action)=>{return !['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','SPLITTER_SET_SIZE'].includes(action.type);},
+                                    undoStateKey='history'
                     ){
   
   return (state = {}, action) => {
-    if (action.type == "UNDO" && state.history.length > 0){
+    if (action.type == "UNDO" && state[undoStateKey].length > 0){
       // Load previous state and pop the history
       return {
         ...Object.keys(reducers).reduce((stateKeys, key) => {
-          stateKeys[key] = state.history[0][key];
+          stateKeys[key] = state[undoStateKey][0][key];
           return stateKeys || initialState;
         }, {}),
-        history: state.history.slice(1)
+        [undoStateKey]: state[undoStateKey].slice(1)
       }
     } else {
       // Save a new undo unless the action is blacklisted
@@ -29,9 +31,9 @@ export function undoCombineReducers(reducers, initialState={},
           stateKeys[key] = reducers[key](state[key], action);
           return stateKeys;
         }, {}),
-        history: [
+        [undoStateKey]: [
           ...(newHistory || []),
-          ...(state.history || [])
+          ...(state[undoStateKey] || [])
         ].slice(0, 10)
       };
     }
