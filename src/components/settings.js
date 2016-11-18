@@ -5,7 +5,7 @@ import { dispatch, connect } from 'react-redux';
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
-import MachineProfile from './MachineProfile';
+import MachineProfile from './machine-profile';
 
 import {PanelGroup, Panel} from 'react-bootstrap';
 
