@@ -29,6 +29,8 @@ import DrawCommands from '../draw-commands'
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
+import  CommandHistory  from './command-history'
+
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
     let world = mat4.lookAt([], eye, center, up);
@@ -513,7 +515,9 @@ class Workspace extends React.Component {
                             </tr>
                         </tbody>
                     </table>
+                    <CommandHistory/>
                 </div>
+                
             </div>
         )
     }

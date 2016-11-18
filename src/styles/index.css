@@ -248,3 +248,11 @@ body, html, .full-height {
     -webkit-transition: none;
     transition: none;
 }
+
+/*Command History*/
+.commandHistory {padding-top: 4px; position:relative; margin-bottom: 4px; padding-bottom:2em; background: #fffafa; border: 1px solid #faa; border-radius:4px}
+.commandHistory code:empty:before { font-size: 0.8em; content:"empty command history"; color: #c99;}
+.commandHistory code { height: 10em; display:block;  overflow:auto;  white-space: pre; background: none}
+.commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #fcc}
+.commandHistory input[type="text"] {width: 100%; background: none; border:none}
+.commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
