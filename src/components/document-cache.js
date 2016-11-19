@@ -72,12 +72,12 @@ export class DocumentCacheHolder extends React.Component {
         let {document} = cachedDocument;
         switch (document.type) {
             case 'path':
-                if (cachedDocument.positions !== document.positions) {
-                    cachedDocument.positions = document.positions;
-                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(document.positions, 0));
+                if (cachedDocument.rawPaths !== document.rawPaths) {
+                    cachedDocument.rawPaths = document.rawPaths;
+                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(document.rawPaths));
                     cachedDocument.outlines = [];
-                    for (let p of document.positions)
-                        cachedDocument.outlines.push(new Float32Array(p));
+                    for (let rawPath of document.rawPaths)
+                        cachedDocument.outlines.push(new Float32Array(rawPath));
                 }
                 break;
             case 'image': {

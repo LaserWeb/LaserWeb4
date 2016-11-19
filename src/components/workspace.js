@@ -217,22 +217,22 @@ class WorkspaceContent extends React.Component {
                         switch (document.type) {
                             case 'path':
                                 this.drawCommands.noDepth(() => {
-                                    this.drawCommands.simple({
+                                    this.drawCommands.simple2d({
                                         position: cachedDocument.triangles,
                                         translate: document.translate,
                                         color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
                                         primitive: 'triangles',
                                         offset: 0,
-                                        count: cachedDocument.triangles.length / 3,
+                                        count: cachedDocument.triangles.length / 2,
                                     });
                                     for (let o of cachedDocument.outlines)
-                                        this.drawCommands.simple({
+                                        this.drawCommands.simple2d({
                                             position: o,
                                             translate: document.translate,
                                             color: [0, 0, 0, 1],
                                             primitive: 'line strip',
                                             offset: 0,
-                                            count: o.length / 3,
+                                            count: o.length / 2,
                                         });
                                 });
                                 break;
@@ -314,7 +314,7 @@ class WorkspaceContent extends React.Component {
                         let {document, hitTestId} = cachedDocument;
                         if (document.type === 'path') {
                             this.drawCommands.noDepth(() => {
-                                this.drawCommands.simple({
+                                this.drawCommands.simple2d({
                                     position: cachedDocument.triangles,
                                     translate: document.translate,
                                     color: [
@@ -324,7 +324,7 @@ class WorkspaceContent extends React.Component {
                                         (hitTestId & 0xff) / 0xff],
                                     primitive: 'triangles',
                                     offset: 0,
-                                    count: cachedDocument.triangles.length / 3,
+                                    count: cachedDocument.triangles.length / 2,
                                 });
                             });
                         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {

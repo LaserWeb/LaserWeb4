@@ -130,7 +130,7 @@ function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, ale
     return path;
 };
 
-// Convert a path in snap.svg format to [[x0, y0, 0, x1, y1, 0, ...], ...].
+// Convert a path in snap.svg format to [[x0, y0, x1, y1, ...], ...].
 // Result is in mm. Doesn't close paths. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
 function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
@@ -139,16 +139,16 @@ function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
         alertFn('Path does not begin with M');
         return null;
     }
-    let currentPath = [snapPath[0][1] * factor, snapPath[0][2] * factor, 0];
+    let currentPath = [snapPath[0][1] * factor, snapPath[0][2] * factor];
     let result = [currentPath];
     for (let i = 1; i < snapPath.length; ++i) {
         let subpath = snapPath[i];
         if (subpath[0] == 'M' && subpath.length == 3) {
-            currentPath = [subpath[1] * factor, subpath[2] * factor, 0];
+            currentPath = [subpath[1] * factor, subpath[2] * factor];
             result.push(currentPath);
         } else if (subpath[0] == 'L') {
             for (let j = 0; j < (subpath.length - 1) / 2; ++j)
-                currentPath.push(subpath[1 + j * 2] * factor, subpath[2 + j * 2] * factor, 0);
+                currentPath.push(subpath[1 + j * 2] * factor, subpath[2 + j * 2] * factor);
         } else {
             alertFn('Subpath has a non-linear prefix: ' + subpath[0]);
             return null;
@@ -160,10 +160,10 @@ function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
 // Closes each path in paths.
 function closeRawPaths(paths) {
     for (let path of paths)
-        path.push(path[0], path[1], path[2]);
+        path.push(path[0], path[1]);
 }
 
-// Convert a path in an SVG element to [[x0, y0, 0, x1, y1, 0, ...], ...].
+// Convert a path in an SVG element to [[x0, y0, x1, y1, ...], ...].
 // Result is in mm. Returns multiple paths. Converts curves.
 // Calls alertFn with an error message and returns null if there's a problem.
 export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
@@ -178,23 +178,23 @@ export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegment
     return null;
 }
 
-// [[[x0, y0, 0, x1, y1, 0, ...], ...], ...]
+// [[[x0, y0, x1, y1, ...], ...], ...]
 export function flipY(allRawPaths) {
     let maxY = Number.MIN_VALUE;
     for (let rawPaths of allRawPaths)
         for (let rawPath of rawPaths)
-            for (let i = 0; i < rawPath.length; i += 3)
+            for (let i = 0; i < rawPath.length; i += 2)
                 maxY = Math.max(maxY, rawPath[i + 1]);
     for (let rawPaths of allRawPaths)
         for (let rawPath of rawPaths)
-            for (let i = 0; i < rawPath.length; i += 3)
+            for (let i = 0; i < rawPath.length; i += 2)
                 rawPath[i + 1] = maxY - rawPath[i + 1];
 }
 
 export function rawPathsToClipperPaths(rawPaths, translateX, translateY) {
     return rawPaths.map(p => {
         let result = [];
-        for (let i = 0; i < p.length; i += 3)
+        for (let i = 0; i < p.length; i += 2)
             result.push({ X: (p[i] + translateX) * mmToClipperScale, Y: (p[i + 1] + translateY) * mmToClipperScale });
         return result;
     });
@@ -208,7 +208,7 @@ function clipperPathsToPolyTree(paths) {
     return polyTree;
 }
 
-function triangulatePolyTree(polyTree, z) {
+function triangulatePolyTree(polyTree) {
     let result = [];
     let pointToVertex = point => ({ x: point.X / mmToClipperScale, y: point.Y / mmToClipperScale });
     let contourToVertexes = path => path.map(pointToVertex);
@@ -223,9 +223,9 @@ function triangulatePolyTree(polyTree, z) {
         for (let t of triangles) {
             let p = t.getPoints();
             result.push(
-                p[0].x, p[0].y, z,
-                p[1].x, p[1].y, z,
-                p[2].x, p[2].y, z);
+                p[0].x, p[0].y,
+                p[1].x, p[1].y,
+                p[2].x, p[2].y);
         }
         for (let hole of node.Childs()) {
             for (let next of hole.Childs()) {
@@ -239,12 +239,12 @@ function triangulatePolyTree(polyTree, z) {
     return result;
 }
 
-export function triangulateRawPaths(rawPaths, z) {
-    return triangulatePolyTree(clipperPathsToPolyTree(rawPathsToClipperPaths(rawPaths, 0, 0)), z);
+export function triangulateRawPaths(rawPaths) {
+    return triangulatePolyTree(clipperPathsToPolyTree(rawPathsToClipperPaths(rawPaths, 0, 0)));
 }
 
 // Convert Clipper paths to C. Returns [double** cPaths, int cNumPaths, int* cPathSizes].
-export function rawPathsToCPaths(memoryBlocks, clipperPaths) {
+export function clipperPathsToCPaths(memoryBlocks, clipperPaths) {
     let doubleSize = 8;
 
     let cPaths = Module._malloc(clipperPaths.length * 4);

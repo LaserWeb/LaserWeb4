@@ -60,6 +60,36 @@ function simple(regl) {
     });
 }
 
+function simple2d(regl) {
+    return regl({
+        vert: `
+            precision mediump float;
+            uniform mat4 perspective; 
+            uniform mat4 world; 
+            uniform vec3 translate; 
+            attribute vec2 position;
+            void main() {
+                gl_Position = perspective * world * vec4(vec3(position, 0.0) + translate, 1);
+            }`,
+        frag: `
+            precision mediump float;
+            uniform vec4 color;
+            void main() {
+                gl_FragColor = color;
+            }`,
+        attributes: {
+            position: regl.prop('position'),
+        },
+        uniforms: {
+            translate: regl.prop('translate'),
+            color: regl.prop('color'),
+        },
+        primitive: regl.prop('primitive'),
+        offset: regl.prop('offset'),
+        count: regl.prop('count')
+    });
+}
+
 function image(regl) {
     return regl({
         vert: `
@@ -174,6 +204,7 @@ export default class DrawCommands {
         this.camera = camera(regl);
         this.noDepth = noDepth(regl);
         this.simple = simple(regl);
+        this.simple2d = simple2d(regl);
         this.image = image(regl);
         this.gcode = gcode(regl);
     }
