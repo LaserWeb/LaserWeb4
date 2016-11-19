@@ -4,6 +4,7 @@ import { getParentIds, object, objectArray } from '../reducers/object'
 
 const operationBase = object('operation', {
     documents: [],
+    tabDocuments: [],
     expanded: false,
     type: 'Laser Engrave',
     direction: 'Conventional',
@@ -15,6 +16,7 @@ const operationBase = object('operation', {
     stepOver: 0.4,
     passDepth: 0,
     cutDepth: 0,
+    tabDepth: 0,
     clearance: 0,
     plungeRate: 0,
     cutRate: 0,
@@ -26,7 +28,10 @@ export function operation(state, action) {
     switch (action.type) {
         case 'OPERATION_REMOVE_DOCUMENT':
             if (action.payload.id === state.id)
-                return {...state, documents: state.documents.filter(d => d !== action.payload.document) }
+                if (action.payload.isTab)
+                    return {...state, tabDocuments: state.tabDocuments.filter(d => d !== action.payload.document) }
+                else
+                    return {...state, documents: state.documents.filter(d => d !== action.payload.document) }
     }
     return state;
 }
@@ -48,7 +53,11 @@ export function operationsAddDocuments(state, documents, action) {
     return state.map(operation => {
         if (operation.id !== action.payload.id)
             return operation;
-        let combined = [...operation.documents];
+        let combined;
+        if (action.payload.isTab)
+            combined = [...operation.tabDocuments];
+        else
+            combined = [...operation.documents];
         for (let id of action.payload.documents)
             if (!combined.includes(id))
                 combined.push(id);
@@ -62,7 +71,10 @@ export function operationsAddDocuments(state, documents, action) {
             if (ok)
                 result.push(id);
         }
-        return Object.assign({}, operation, { documents: result });
+        if (action.payload.isTab)
+            return Object.assign({}, operation, { tabDocuments: result });
+        else
+            return Object.assign({}, operation, { documents: result });
     });
 }
 

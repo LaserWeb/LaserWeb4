@@ -179,7 +179,7 @@ export function getMillGcode(props) {
     return gcode;
 }; // getMillGcode
 
-function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
+function getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert) {
     let ok = true;
     if (op.passDepth <= 0) {
         showAlert("Pass Depth must be greater than 0", "alert-danger");
@@ -261,8 +261,8 @@ function getMillGcodeFromOp(opIndex, op, geometry, showAlert) {
         passDepth: op.passDepth,
         plungeFeed: op.plungeRate,
         cutFeed: op.cutRate,
-        tabGeometry: [],
-        tabZ: 0,
+        tabGeometry: op.type === 'Mill V Carve' ? [] : tabGeometry,
+        tabZ: -op.tabDepth,
     });
 
     return gcode;
@@ -277,24 +277,30 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         var op = operations[opIndex];
 
         let geometry = [];
+        let tabGeometry = [];
         let docsWithImages = [];
-        function examineDocTree(id) {
+        function examineDocTree(isTab, id) {
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
-                geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
-            if (doc.isRoot && doc.type === 'image') {
+                if (isTab)
+                    tabGeometry = union(tabGeometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+                else
+                    geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+            if (doc.isRoot && doc.type === 'image' && !isTab) {
                 let cache = documentCacheHolder.cache.get(doc.id);
                 if (cache && cache.imageLoaded)
                     docsWithImages.push(Object.assign([], doc, { image: cache.image }));
             }
             for (let child of doc.children)
-                examineDocTree(child);
+                examineDocTree(isTab, child);
         }
         for (let id of op.documents)
-            examineDocTree(id);
+            examineDocTree(false, id);
+        for (let id of op.tabDocuments)
+            examineDocTree(true, id);
 
         if (op.type.substring(0, 5) === 'Mill ') {
-            let g = getMillGcodeFromOp(opIndex, op, geometry, showAlert);
+            let g = getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert);
             if (!g)
                 return '';
             gcode += g;

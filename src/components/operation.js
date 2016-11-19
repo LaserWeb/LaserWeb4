@@ -83,7 +83,7 @@ class Field extends React.Component {
 class Doc extends React.Component {
     componentWillMount() {
         this.remove = e => {
-            this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.id));
+            this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.isTab, this.props.id));
         }
     }
 
@@ -109,6 +109,11 @@ Doc = connect()(Doc);
 const checkPositive = {
     check: v => v > 0,
     error: 'Must be > 0',
+};
+
+const checkGE0 = {
+    check: v => v >= 0,
+    error: 'Must be >= 0',
 };
 
 const checkPercent = {
@@ -139,27 +144,32 @@ const fields = {
     stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPositive },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
-    clearance: { name: 'clearance', label: 'Clearance', units: 'mm', input: NumberInput, ...checkPositive },
+    clearance: { name: 'clearance', label: 'Clearance', units: 'mm', input: NumberInput, ...checkGE0 },
 
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 };
 
+const tabFields = [
+    { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
+];
+
 const types = {
-    'Laser Engrave': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Laser Inside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Laser Outside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Mill Pocket': { fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Engrave': { fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
-    'Mill Inside': { fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Outside': { fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill V Carve': { fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+    'Laser Engrave': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
+    'Laser Inside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
+    'Laser Outside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
+    'Mill Pocket': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Engrave': { allowTabs: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+    'Mill Inside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Outside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill V Carve': { allowTabs: false, fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
 };
 
 class Operation extends React.Component {
     componentWillMount() {
         this.onDragOver = this.onDragOver.bind(this);
         this.onDrop = this.onDrop.bind(this);
+        this.onDropTabs = this.onDropTabs.bind(this);
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
@@ -175,7 +185,15 @@ class Operation extends React.Component {
     onDrop(e) {
         if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
             let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(operationAddDocuments(this.props.op.id, documents));
+            this.props.dispatch(operationAddDocuments(this.props.op.id, false, documents));
+            e.preventDefault();
+        }
+    }
+
+    onDropTabs(e) {
+        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
+            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
+            this.props.dispatch(operationAddDocuments(this.props.op.id, true, documents));
             e.preventDefault();
         }
     }
@@ -204,7 +222,7 @@ class Operation extends React.Component {
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
         let rows = [
-            <div key="header" style={{ display: 'table-row' }}>
+            <div key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                 <div style={leftStyle} />
                 <div style={{ display: 'table-cell' }}>
                     <i
@@ -224,16 +242,16 @@ class Operation extends React.Component {
                 {error}
             </div>
         ];
-        if (op.expanded)
+        if (op.expanded) {
             rows.push(
-                <div key="docs" style={{ display: 'table-row' }}>
+                <div key="docs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table style={{ width: '100%' }}>
                             <tbody>
                                 {op.documents.map(id => {
-                                    return <Doc key={id} op={op} documents={documents} id={id} dispatch={dispatch} />
+                                    return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
                                 })}
                                 <tr><td>&nbsp;</td></tr>
                             </tbody>
@@ -252,9 +270,63 @@ class Operation extends React.Component {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div>,
             );
-        return <div className="operation-row" onDragOver={this.onDragOver} onDrop={this.onDrop}>{rows}</div>;
+            if (types[op.type].allowTabs) {
+                rows.push(
+                    <div key="space" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div style={leftStyle} />
+                        <div style={{ display: 'table-cell' }}>&nbsp;</div>
+                    </div>
+                );
+                if (op.tabDocuments.length) {
+                    rows.push(
+                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                            <div style={leftStyle} />
+                            <div style={{ display: 'table-cell' }} />
+                            <div style={{ display: 'table-cell' }}><b>Tabs</b></div>
+                        </div>,
+                        <div key="tabDocs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                            <div style={leftStyle} />
+                            <div style={{ display: 'table-cell' }} />
+                            <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                                <table style={{ width: '100%' }}>
+                                    <tbody>
+                                        {op.tabDocuments.map(id => {
+                                            return <Doc key={id} op={op} documents={documents} id={id} isTab={true} dispatch={dispatch} />
+                                        })}
+                                        <tr><td>&nbsp;</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>,
+                        <div key="tabattrs" style={{ display: 'table-row' }}>
+                            <div style={leftStyle} />
+                            <div style={{ display: 'table-cell' }} />
+                            <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                                <table>
+                                    <tbody>
+                                        {tabFields.map(field => {
+                                            return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>,
+                    );
+                }
+                else {
+                    rows.push(
+                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                            <div style={leftStyle} />
+                            <div style={{ display: 'table-cell' }} />
+                            <div style={{ display: 'table-cell' }}><b>Drag document(s) here to create tabs</b></div>
+                        </div>,
+                    );
+                }
+            } // types[op.type].allowTabs
+        } // op.expanded
+        return <div className="operation-row">{rows}</div>;
     }
 };
 

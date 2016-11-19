@@ -278,6 +278,41 @@ export function pathsToCpp(memoryBlocks, paths) {
     return [cPaths, paths.length, cPathSizes];
 }
 
+// Convert C format paths to Clipper paths. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
+// This version assume each point has X, Y (stride = 2).
+export function cppToPaths(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {
+    let cPaths = Module.HEAPU32[cPathsRef >> 2];
+    memoryBlocks.push(cPaths);
+    let cPathsBase = cPaths >> 2;
+
+    let cNumPaths = Module.HEAPU32[cNumPathsRef >> 2];
+
+    let cPathSizes = Module.HEAPU32[cPathSizesRef >> 2];
+    memoryBlocks.push(cPathSizes);
+    let cPathSizesBase = cPathSizes >> 2;
+
+    let convertedPaths = [];
+    for (let i = 0; i < cNumPaths; ++i) {
+        let pathSize = Module.HEAPU32[cPathSizesBase + i];
+        let cPath = Module.HEAPU32[cPathsBase + i];
+        // cPath contains value to pass to Module._free(). The aligned version contains the actual data.
+        memoryBlocks.push(cPath);
+        if (cPath & 4)
+            cPath += 4;
+        let pathArray = new Float64Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + cPath);
+
+        let convertedPath = [];
+        convertedPaths.push(convertedPath);
+        for (let j = 0; j < pathSize; ++j)
+            convertedPath.push({
+                X: pathArray[j * 2] / clipperToCppScale,
+                Y: pathArray[j * 2 + 1] / clipperToCppScale,
+            });
+    }
+
+    return convertedPaths;
+}
+
 // Convert C format paths to array of CamPath. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
 // Each point has X, Y, Z (stride = 3).
 export function cppToCamPath(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {

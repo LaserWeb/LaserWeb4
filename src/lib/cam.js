@@ -17,8 +17,7 @@
 
 import ClipperLib from 'clipper-lib';
 
-import { diff, offset, cppToCamPath, pathsToCpp, clipperToCppScale } from './mesh';
-
+import { diff, offset, cppToPaths, cppToCamPath, pathsToCpp, clipperToCppScale } from './mesh';
 
 require('script!web-cam-cpp');
 
@@ -257,8 +256,8 @@ export function separateTabs(cutterPath, tabGeometry) {
 
     let memoryBlocks = [];
 
-    let cCutterPath = jscut.priv.path.convertPathsToCpp(memoryBlocks, [cutterPath]);
-    let cTabGeometry = jscut.priv.path.convertPathsToCpp(memoryBlocks, tabGeometry);
+    let cCutterPath = pathsToCpp(memoryBlocks, [cutterPath]);
+    let cTabGeometry = pathsToCpp(memoryBlocks, tabGeometry);
 
     let errorRef = Module._malloc(4);
     let resultPathsRef = Module._malloc(4);
@@ -284,7 +283,7 @@ export function separateTabs(cutterPath, tabGeometry) {
         displayedCppTabError2 = true;
     }
 
-    let result = jscut.priv.path.convertPathsFromCpp(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
+    let result = cppToPaths(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
 
     for (let i = 0; i < memoryBlocks.length; ++i)
         Module._free(memoryBlocks[i]);
