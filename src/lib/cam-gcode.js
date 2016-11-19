@@ -16,7 +16,7 @@
 'use strict';
 
 import { dist, engrave, insideOutside, pocket, separateTabs, vCarve } from './cam';
-import { clip, mmToClipperScale, offset, positionsToClipperPaths, union } from './mesh';
+import { clip, mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert paths to gcode (mill only).
 //      paths:          Array of CamPath
@@ -283,9 +283,9 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             let doc = documents.find(d => d.id === id);
             if (doc.positions)
                 if (isTab)
-                    tabGeometry = union(tabGeometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
                 else
-                    geometry = union(geometry, positionsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
+                    geometry = union(geometry, rawPathsToClipperPaths(doc.positions, doc.translate[0], doc.translate[1]));
             if (doc.isRoot && doc.type === 'image' && !isTab) {
                 let cache = documentCacheHolder.cache.get(doc.id);
                 if (cache && cache.imageLoaded)

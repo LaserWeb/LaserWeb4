@@ -15,7 +15,7 @@
 
 import React from 'react';
 
-import { triangulatePositions } from '../lib/mesh';
+import { triangulateRawPaths } from '../lib/mesh';
 
 // * This holds document data which
 //   * doesn't belong in the store,
@@ -74,7 +74,7 @@ export class DocumentCacheHolder extends React.Component {
             case 'path':
                 if (cachedDocument.positions !== document.positions) {
                     cachedDocument.positions = document.positions;
-                    cachedDocument.triangles = new Float32Array(triangulatePositions(document.positions, 0));
+                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(document.positions, 0));
                     cachedDocument.outlines = [];
                     for (let p of document.positions)
                         cachedDocument.outlines.push(new Float32Array(p));

@@ -17,7 +17,7 @@
 
 import ClipperLib from 'clipper-lib';
 
-import { diff, offset, cppToPaths, cppToCamPath, pathsToCpp, clipperToCppScale } from './mesh';
+import { diff, offset, cPathsToClipper, cPathsToCamPaths, rawPathsToCPaths, clipperToCppScale } from './mesh';
 
 require('script!web-cam-cpp');
 
@@ -199,7 +199,7 @@ export function vCarve(geometry, cutterAngle, passDepth) {
         return [];
 
     let memoryBlocks = [];
-    let cGeometry = pathsToCpp(memoryBlocks, geometry);
+    let cGeometry = rawPathsToCPaths(memoryBlocks, geometry);
     let resultPathsRef = Module._malloc(4);
     let resultNumPathsRef = Module._malloc(4);
     let resultPathSizesRef = Module._malloc(4);
@@ -223,7 +223,7 @@ export function vCarve(geometry, cutterAngle, passDepth) {
             resultPathsRef, resultNumPathsRef, resultPathSizesRef
         ]);
 
-    let result = cppToCamPath(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
+    let result = cPathsToCamPaths(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
 
     for (let i = 0; i < memoryBlocks.length; ++i)
         Module._free(memoryBlocks[i]);
@@ -256,8 +256,8 @@ export function separateTabs(cutterPath, tabGeometry) {
 
     let memoryBlocks = [];
 
-    let cCutterPath = pathsToCpp(memoryBlocks, [cutterPath]);
-    let cTabGeometry = pathsToCpp(memoryBlocks, tabGeometry);
+    let cCutterPath = rawPathsToCPaths(memoryBlocks, [cutterPath]);
+    let cTabGeometry = rawPathsToCPaths(memoryBlocks, tabGeometry);
 
     let errorRef = Module._malloc(4);
     let resultPathsRef = Module._malloc(4);
@@ -283,7 +283,7 @@ export function separateTabs(cutterPath, tabGeometry) {
         displayedCppTabError2 = true;
     }
 
-    let result = cppToPaths(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
+    let result = cPathsToClipper(memoryBlocks, resultPathsRef, resultNumPathsRef, resultPathSizesRef);
 
     for (let i = 0; i < memoryBlocks.length; ++i)
         Module._free(memoryBlocks[i]);
