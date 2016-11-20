@@ -1,0 +1,34 @@
+[
+    {
+        "id":"plywood_3mm",
+        "material": {
+            "name":"Plywood",
+            "thickness":"3mm",
+            "notes":"Standard Regular Plain Plywood, not thick nor thin."
+        },
+        "operations":[
+            {
+                
+                "machine_profile":null,
+                "type":"Laser Engrave",
+                "name":"Engraving just a little",
+                "notes":"",
+                "params":{
+                    
+                }
+            },
+            {
+                
+                "machine_profile":null,
+                "type":"Laser Inside",
+                "name":"Cut through",
+                "notes":"",
+                "params":{
+                    
+                }
+            }
+
+        ]
+    } 
+]
+

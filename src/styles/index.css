@@ -256,3 +256,21 @@ body, html, .full-height {
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #fcc}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
+
+
+/*FullSizeModal*/
+
+
+.full-width .modal-dialog {
+  width: 98%;
+  max-height: 92%;
+  padding: 0;
+}
+
+.full-width .modal-content {
+  max-height: 99%;
+}
+
+
+/* reeact-bootstrap-table*/
+.react-bs-table table {margin-bottom:0}

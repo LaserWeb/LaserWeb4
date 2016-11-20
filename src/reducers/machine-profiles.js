@@ -1,4 +1,4 @@
-import { objectNoId } from '../reducers/object'
+
 import omit from 'object.omit'
 
 

@@ -126,7 +126,7 @@ const checkToolAngle = {
     error: 'Must be in range (0, 180)',
 };
 
-const fields = {
+export const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -145,7 +145,7 @@ const fields = {
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 };
 
-const types = {
+export const types = {
     'Laser Engrave': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Laser Inside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Laser Outside': { fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },

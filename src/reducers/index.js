@@ -10,16 +10,17 @@ import { splitters } from './splitters'
 import { workspace } from './workspace'
 
 import { machineProfiles } from './machine-profiles'
+import { materialDatabase } from './material-database'
 
 import omit from 'object.omit';
 
 const shouldSaveUndo=(action)=>{
     let blackList=['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'];
-    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER/));
+    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER|^MATERIAL_/));
 
     return should;
 };
-const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles }, shouldSaveUndo);
+const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase }, shouldSaveUndo);
 
 export default function reducer(state, action) {
     switch (action.type) {
