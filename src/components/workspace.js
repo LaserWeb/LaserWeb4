@@ -270,11 +270,13 @@ class WorkspaceContent extends React.Component {
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
             let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
-            let pixel = this.regl.read({ x, y, width: 1, height: 1 });
-            let hitTestId = (pixel[0] << 24) | (pixel[1] << 16) | (pixel[2] << 8) | pixel[3];
-            for (let cachedDocument of this.props.documentCacheHolder.cache.values())
-                if (cachedDocument.hitTestId === hitTestId)
-                    result = cachedDocument;
+            if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
+                let pixel = this.regl.read({ x, y, width: 1, height: 1 });
+                let hitTestId = (pixel[0] << 24) | (pixel[1] << 16) | (pixel[2] << 8) | pixel[3];
+                for (let cachedDocument of this.props.documentCacheHolder.cache.values())
+                    if (cachedDocument.hitTestId === hitTestId)
+                        result = cachedDocument;
+            }
         });
         return result;
     }
