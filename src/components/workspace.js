@@ -34,19 +34,19 @@ import CommandHistory from './command-history'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
-    let world = mat4.lookAt([], eye, center, up);
+    let view = mat4.lookAt([], eye, center, up);
     if (showPerspective)
         perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
     else {
         let yBound = vec3.distance(eye, center) * Math.tan(fovy / 2);
         perspective = mat4.identity([]);
-        world = mat4.mul([],
+        view = mat4.mul([],
             mat4.ortho([], -yBound * viewportWidth / viewportHeight, yBound * viewportWidth / viewportHeight, -yBound, yBound, near, far),
-            world);
+            view);
         fovy = 0;
     }
-    let worldInv = mat4.invert([], world);
-    return { fovy, perspective, world, worldInv };
+    let viewInv = mat4.invert([], view);
+    return { fovy, perspective, view, viewInv };
 }
 
 class Grid {
@@ -124,7 +124,7 @@ class WorkspaceContent extends React.Component {
                 color: [1, 1, 1, 1],
                 depth: 1
             })
-            this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
+            this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
@@ -192,12 +192,12 @@ class WorkspaceContent extends React.Component {
         let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
         if (this.props.camera.showPerspective) {
             let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
-            let origin = vec3.transformMat4([], [0, 0, 0], this.camera.worldInv);
-            let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.worldInv), origin);
+            let origin = vec3.transformMat4([], [0, 0, 0], this.camera.viewInv);
+            let direction = vec3.sub([], vec3.transformMat4([], cursor, this.camera.viewInv), origin);
             return { origin, direction };
         } else {
-            let cursor = vec3.transformMat4([], [x, y, -1], this.camera.worldInv);
-            let origin = vec3.transformMat4([], [x, y, 0], this.camera.worldInv);
+            let cursor = vec3.transformMat4([], [x, y, -1], this.camera.viewInv);
+            let origin = vec3.transformMat4([], [x, y, 0], this.camera.viewInv);
             let direction = vec3.sub([], cursor, origin);
             return { origin, direction };
         }
@@ -222,7 +222,7 @@ class WorkspaceContent extends React.Component {
                 color: [0, 0, 0, 0],
                 depth: 1
             })
-            this.drawCommands.camera({ perspective: this.camera.perspective, world: this.camera.world, }, () => {
+            this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {

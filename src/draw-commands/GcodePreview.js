@@ -21,7 +21,7 @@ export function gcode(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world;
+            uniform mat4 view;
             attribute vec3 position;
             attribute float g;
             attribute float t;
@@ -31,7 +31,7 @@ export function gcode(regl) {
             varying float vg0Dist;
             varying float vg1Time;  
             void main() {
-                gl_Position = perspective * world * vec4(position, 1);
+                gl_Position = perspective * view * vec4(position, 1);
                 if(g == 0.0)
                     color = vec4(0.0, 0.7, 0.0, 1.0);
                 else if(t == 1.0)

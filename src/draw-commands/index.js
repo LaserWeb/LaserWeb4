@@ -19,7 +19,7 @@ function camera(regl) {
     return regl({
         uniforms: {
             perspective: regl.prop('perspective'),
-            world: regl.prop('world'),
+            view: regl.prop('view'),
         }
     });
 }
@@ -37,11 +37,11 @@ function simple(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world; 
+            uniform mat4 view; 
             uniform vec3 translate; 
             attribute vec3 position;
             void main() {
-                gl_Position = perspective * world * vec4(position + translate, 1);
+                gl_Position = perspective * view * vec4(position + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -67,11 +67,11 @@ function simple2d(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world; 
+            uniform mat4 view; 
             uniform vec3 translate; 
             attribute vec2 position;
             void main() {
-                gl_Position = perspective * world * vec4(vec3(position, 0.0) + translate, 1);
+                gl_Position = perspective * view * vec4(vec3(position, 0.0) + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -97,14 +97,14 @@ function image(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world;
+            uniform mat4 view;
             uniform vec3 translate;
             uniform vec2 size;
             attribute vec2 position;
             varying vec2 coord;
             void main() {
                 coord = position;
-                gl_Position = perspective * world * vec4(vec3(position * size, 0) + translate, 1);
+                gl_Position = perspective * view * vec4(vec3(position * size, 0) + translate, 1);
             }`,
         frag: `
             precision mediump float;
