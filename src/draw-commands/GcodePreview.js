@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const parsedStride = 9;
-const drawStride = 6;
+const drawStride = 7;
 
 export function gcode(regl) {
     return regl({
@@ -24,6 +24,7 @@ export function gcode(regl) {
             uniform mat4 world;
             attribute vec3 position;
             attribute float g;
+            attribute float t;
             attribute float g0Dist;
             attribute float g1Time;  
             varying vec4 color;
@@ -32,7 +33,17 @@ export function gcode(regl) {
             void main() {
                 gl_Position = perspective * world * vec4(position, 1);
                 if(g == 0.0)
-                    color = vec4(0.0, 1.0, 0.0, 1.0);
+                    color = vec4(0.0, 0.7, 0.0, 1.0);
+                else if(t == 1.0)
+                    color = vec4(0.0, 0.0, 1.0, 1.0);
+                else if(t == 2.0)
+                    color = vec4(0.5, 0.5, 0.0, 1.0);
+                else if(t == 3.0)
+                    color = vec4(1.0, 0.0, 1.0, 1.0);
+                else if(t == 4.0)
+                    color = vec4(0.0, 0.0, 0.0, 1.0);
+                else if(t == 5.0)
+                    color = vec4(0.0, 0.5, 0.7, 1.0);
                 else
                     color = vec4(1.0, 0.0, 0.0, 1.0);
                 vg0Dist = g0Dist;
@@ -63,14 +74,19 @@ export function gcode(regl) {
                 offset: 4,
                 stride: drawStride * 4,
             },
-            g0Dist: {
+            t: {
                 buffer: regl.prop('buffer'),
                 offset: 16,
                 stride: drawStride * 4,
             },
-            g1Time: {
+            g0Dist: {
                 buffer: regl.prop('buffer'),
                 offset: 20,
+                stride: drawStride * 4,
+            },
+            g1Time: {
+                buffer: regl.prop('buffer'),
+                offset: 24,
                 stride: drawStride * 4,
             },
         },
@@ -114,14 +130,15 @@ export class GcodePreview {
                 let f = parsed[i * parsedStride + 14];
                 // a
                 // s
-                // t
+                let t = parsed[i * parsedStride + 8];
 
                 array[i * drawStride * 2 + 0] = g;
                 array[i * drawStride * 2 + 1] = x1;
                 array[i * drawStride * 2 + 2] = y1;
                 array[i * drawStride * 2 + 3] = z1;
-                array[i * drawStride * 2 + 4] = g0Dist;
-                array[i * drawStride * 2 + 5] = g1Time;
+                array[i * drawStride * 2 + 4] = t;
+                array[i * drawStride * 2 + 5] = g0Dist;
+                array[i * drawStride * 2 + 6] = g1Time;
 
                 let dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
                 if (g)
@@ -129,12 +146,13 @@ export class GcodePreview {
                 else
                     g0Dist += dist;
 
-                array[i * drawStride * 2 + 6] = g;
-                array[i * drawStride * 2 + 7] = x2;
-                array[i * drawStride * 2 + 8] = y2;
-                array[i * drawStride * 2 + 9] = z2;
-                array[i * drawStride * 2 + 10] = g0Dist;
-                array[i * drawStride * 2 + 11] = g1Time;
+                array[i * drawStride * 2 + 7] = g;
+                array[i * drawStride * 2 + 8] = x2;
+                array[i * drawStride * 2 + 9] = y2;
+                array[i * drawStride * 2 + 10] = z2;
+                array[i * drawStride * 2 + 11] = t;
+                array[i * drawStride * 2 + 12] = g0Dist;
+                array[i * drawStride * 2 + 13] = g1Time;
             }
             this.array = array;
             this.g0Dist = g0Dist;
