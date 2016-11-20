@@ -26,6 +26,7 @@ import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
+import { GcodePreview } from '../draw-commands/GcodePreview'
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
@@ -83,96 +84,6 @@ function GridText(props) {
     a.push(<Text3d key="y-label" x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
-
-const parsedStride = 9;
-const drawStride = 6;
-
-class GcodePreview {
-    setGcode(gcode) {
-        if (this.gcode === gcode)
-            return;
-        this.gcode = gcode;
-        this.arrayChanged = true;
-        let parsed = parseGcode(gcode);
-        if (parsed.length < 2 * parsedStride) {
-            this.array = null;
-            this.g0Dist = 0;
-            this.g1Time = 0;
-        } else {
-            let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
-
-            let g0Dist = 0, g1Time = 0;
-            for (let i = 0; i < parsed.length / parsedStride - 1; ++i) {
-                // g
-                let x1 = parsed[i * parsedStride + 1];
-                let y1 = parsed[i * parsedStride + 2];
-                let z1 = parsed[i * parsedStride + 3];
-                // e
-                // f
-                // a
-                // s
-                // t
-
-                let g = parsed[i * parsedStride + 9];
-                let x2 = parsed[i * parsedStride + 10];
-                let y2 = parsed[i * parsedStride + 11];
-                let z2 = parsed[i * parsedStride + 12];
-                // e
-                let f = parsed[i * parsedStride + 14];
-                // a
-                // s
-                // t
-
-                array[i * drawStride * 2 + 0] = g;
-                array[i * drawStride * 2 + 1] = x1;
-                array[i * drawStride * 2 + 2] = y1;
-                array[i * drawStride * 2 + 3] = z1;
-                array[i * drawStride * 2 + 4] = g0Dist;
-                array[i * drawStride * 2 + 5] = g1Time;
-
-                let dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
-                if (g)
-                    g1Time += dist / f;
-                else
-                    g0Dist += dist;
-
-                array[i * drawStride * 2 + 6] = g;
-                array[i * drawStride * 2 + 7] = x2;
-                array[i * drawStride * 2 + 8] = y2;
-                array[i * drawStride * 2 + 9] = z2;
-                array[i * drawStride * 2 + 10] = g0Dist;
-                array[i * drawStride * 2 + 11] = g1Time;
-            }
-            this.array = array;
-            this.g0Dist = g0Dist;
-            this.g1Time = g1Time;
-        }
-    }
-
-    draw(drawCommands, {g0Rate, simTime}) {
-        if (this.regl !== drawCommands.regl) {
-            this.regl = drawCommands.regl;
-            if (this.buffer)
-                this.buffer.destroy();
-            this.buffer = null;
-        }
-
-        if (!this.buffer)
-            this.buffer = drawCommands.regl.buffer(this.array);
-        else if (this.arrayChanged)
-            this.buffer({ data: this.array });
-        this.arrayChanged = false;
-
-        if (this.array) {
-            drawCommands.gcode({
-                buffer: this.buffer,
-                count: this.array.length / drawStride,
-                g0Rate,
-                simTime,
-            });
-        }
-    }
-};
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
@@ -487,7 +398,10 @@ class Workspace extends React.Component {
 
     render() {
         let {camera, gcode, workspace, setG0Rate, setShowPerspective, setSimTime, setShowDocuments} = this.props;
-        this.gcodePreview.setGcode(gcode);
+        if (this.gcode !== gcode) {
+            this.gcode = gcode;
+            this.gcodePreview.setParsedGcode(parseGcode(gcode));
+        }
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
