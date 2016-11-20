@@ -29,7 +29,7 @@ import DrawCommands from '../draw-commands'
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
-import  CommandHistory  from './command-history'
+import CommandHistory from './command-history'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -84,7 +84,7 @@ function GridText(props) {
     return <div>{a}</div>;
 }
 
-const parsedStride = 7;
+const parsedStride = 9;
 const drawStride = 6;
 
 class GcodePreview {
@@ -107,17 +107,21 @@ class GcodePreview {
                 let x1 = parsed[i * parsedStride + 1];
                 let y1 = parsed[i * parsedStride + 2];
                 let z1 = parsed[i * parsedStride + 3];
+                // e
                 // f
                 // a
                 // s
+                // t
 
-                let g = parsed[i * parsedStride + 7];
-                let x2 = parsed[i * parsedStride + 8];
-                let y2 = parsed[i * parsedStride + 9];
-                let z2 = parsed[i * parsedStride + 10];
-                let f = parsed[i * parsedStride + 11];
+                let g = parsed[i * parsedStride + 9];
+                let x2 = parsed[i * parsedStride + 10];
+                let y2 = parsed[i * parsedStride + 11];
+                let z2 = parsed[i * parsedStride + 12];
+                // e
+                let f = parsed[i * parsedStride + 14];
                 // a
                 // s
+                // t
 
                 array[i * drawStride * 2 + 0] = g;
                 array[i * drawStride * 2 + 1] = x1;
@@ -515,9 +519,9 @@ class Workspace extends React.Component {
                             </tr>
                         </tbody>
                     </table>
-                    <CommandHistory/>
+                    <CommandHistory />
                 </div>
-                
+
             </div>
         )
     }
