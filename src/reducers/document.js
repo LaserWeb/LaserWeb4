@@ -6,7 +6,7 @@ import Snap from 'snapsvg-cjs';
 
 import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
-import { elementToPositions, flipY } from '../lib/mesh'
+import { elementToRawPaths, flipY } from '../lib/mesh'
 
 const documentBase = object('document', {
     type: '?',
@@ -51,10 +51,10 @@ function loadSvg(state, {file, content}) {
             if (child.nodeName === 'path') {
                 // TODO: report errors
                 // TODO: settings for pxPerInch, minNumSegments, minSegmentLength
-                c.positions = elementToPositions(child, 90, 1, .01 * 90, error => console.log(error));
-                if (!c.positions)
+                c.rawPaths = elementToRawPaths(child, 96, 1, .01 * 96, error => console.log(error));
+                if (!c.rawPaths)
                     continue;
-                allPositions.push(c.positions);
+                allPositions.push(c.rawPaths);
             } else if (child.nodeName !== 'g')
                 continue;
             state.push(c);

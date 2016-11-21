@@ -43,16 +43,16 @@ I can't think of a how-to, but here are some notes that may help.
 
 * Only objects which can be serialized to/from JSON go in the store, no regl objects,
   DOM nodes, image objects, etc. This is critical for state saving and loading.
-  * e.g. Polygons are in a 2d arrays: [[x, y, z, x, y, z, ...], ...]
+  * e.g. Polygons are in a 2d arrays: [[x, y, x, y, ...], ...]
   * e.g. Images are in base-64-encoded strings
 
 * React components convert objects to other forms as needed. Functions in lib/ aid this.
 
 * The ```DocumentCacheHolder``` component converts document data into more usable forms.
   * It converts:
-    * Polygon data [[x, y, z, x, y, z, ...], ...] into:
-      * ```outlines```: array of Float32Array. This draws polygon outlines in regl.
-      * ```triangles```: single Float32Array, This draws polygon filled areas in regl.
+    * Polygon data [[x, y, x, y, ...], ...] into:
+      * ```outlines```: array of Float32Array of (x, y, x, y, ...). This draws polygon outlines in regl.
+      * ```triangles```: Float32Array of (x, y, x, y, ...), This draws polygon filled areas in regl.
     * Base-64-encoded image data into:
       * Browser's Image class
       * A regl texture

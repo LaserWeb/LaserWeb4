@@ -13,11 +13,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { gcode } from './GcodePreview';
+
 function camera(regl) {
     return regl({
         uniforms: {
             perspective: regl.prop('perspective'),
-            world: regl.prop('world'),
+            view: regl.prop('view'),
         }
     });
 }
@@ -35,11 +37,41 @@ function simple(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world; 
+            uniform mat4 view; 
             uniform vec3 translate; 
             attribute vec3 position;
             void main() {
-                gl_Position = perspective * world * vec4(position + translate, 1);
+                gl_Position = perspective * view * vec4(position + translate, 1);
+            }`,
+        frag: `
+            precision mediump float;
+            uniform vec4 color;
+            void main() {
+                gl_FragColor = color;
+            }`,
+        attributes: {
+            position: regl.prop('position'),
+        },
+        uniforms: {
+            translate: regl.prop('translate'),
+            color: regl.prop('color'),
+        },
+        primitive: regl.prop('primitive'),
+        offset: regl.prop('offset'),
+        count: regl.prop('count')
+    });
+}
+
+function simple2d(regl) {
+    return regl({
+        vert: `
+            precision mediump float;
+            uniform mat4 perspective; 
+            uniform mat4 view; 
+            uniform vec3 translate; 
+            attribute vec2 position;
+            void main() {
+                gl_Position = perspective * view * vec4(vec3(position, 0.0) + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -65,14 +97,14 @@ function image(regl) {
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
-            uniform mat4 world;
+            uniform mat4 view;
             uniform vec3 translate;
             uniform vec2 size;
             attribute vec2 position;
             varying vec2 coord;
             void main() {
                 coord = position;
-                gl_Position = perspective * world * vec4(vec3(position * size, 0) + translate, 1);
+                gl_Position = perspective * view * vec4(vec3(position * size, 0) + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -100,80 +132,13 @@ function image(regl) {
     });
 }
 
-function gcode(regl) {
-    return regl({
-        vert: `
-            precision mediump float;
-            uniform mat4 perspective; 
-            uniform mat4 world;
-            attribute vec3 position;
-            attribute float g;
-            attribute float g0Dist;
-            attribute float g1Time;  
-            varying vec4 color;
-            varying float vg0Dist;
-            varying float vg1Time;  
-            void main() {
-                gl_Position = perspective * world * vec4(position, 1);
-                if(g == 0.0)
-                    color = vec4(0.0, 1.0, 0.0, 1.0);
-                else
-                    color = vec4(1.0, 0.0, 0.0, 1.0);
-                vg0Dist = g0Dist;
-                vg1Time = g1Time;
-            }`,
-        frag: `
-            precision mediump float;
-            uniform float g0Rate;
-            uniform float simTime;
-            varying vec4 color;
-            varying float vg0Dist;
-            varying float vg1Time;
-            void main() {
-                float time = vg1Time + vg0Dist / g0Rate;
-                if(time > simTime)
-                    discard;
-                else
-                    gl_FragColor = color;
-            }`,
-        attributes: {
-            g: {
-                buffer: regl.prop('buffer'),
-                offset: 0,
-                stride: 24,
-            },
-            position: {
-                buffer: regl.prop('buffer'),
-                offset: 4,
-                stride: 24,
-            },
-            g0Dist: {
-                buffer: regl.prop('buffer'),
-                offset: 16,
-                stride: 24,
-            },
-            g1Time: {
-                buffer: regl.prop('buffer'),
-                offset: 20,
-                stride: 24,
-            },
-        },
-        uniforms: {
-            g0Rate: regl.prop('g0Rate'),
-            simTime: regl.prop('simTime'),
-        },
-        primitive: 'line',
-        offset: 0,
-        count: regl.prop('count')
-    });
-}
-
 export default class DrawCommands {
     constructor(regl) {
         this.regl = regl;
         this.camera = camera(regl);
         this.noDepth = noDepth(regl);
         this.simple = simple(regl);
+        this.simple2d = simple2d(regl);
         this.image = image(regl);
         this.gcode = gcode(regl);
     }

@@ -89,9 +89,9 @@ function linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn) {
     return result;
 };
 
-// Get a linear path from an element in snap.svg's format. Calls alertFn with an 
+// Get linear paths (snap format) from an SVG element. Calls alertFn with an 
 // error message and returns null if there's a problem.
-function elementToLinearSnapPath(element, minNumSegments, minSegmentLength, alertFn) {
+function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn) {
     let path = null;
     let snapElement = Snap(element);
 
@@ -130,25 +130,25 @@ function elementToLinearSnapPath(element, minNumSegments, minSegmentLength, aler
     return path;
 };
 
-// Convert a path in snap.svg format to [[x0, y0, 0, x1, y1, 0, ...], ...].
+// Convert a path in snap.svg format to [[x0, y0, x1, y1, ...], ...].
 // Result is in mm. Doesn't close paths. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
-function snapPathToPositions(path, pxPerInch, alertFn) {
+function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
     let factor = 25.4 / pxPerInch;
-    if (path.length < 2 || path[0].length != 3 || path[0][0] != 'M') {
+    if (snapPath.length < 2 || snapPath[0].length != 3 || snapPath[0][0] != 'M') {
         alertFn('Path does not begin with M');
         return null;
     }
-    let currentPath = [path[0][1] * factor, path[0][2] * factor, 0];
+    let currentPath = [snapPath[0][1] * factor, snapPath[0][2] * factor];
     let result = [currentPath];
-    for (let i = 1; i < path.length; ++i) {
-        let subpath = path[i];
+    for (let i = 1; i < snapPath.length; ++i) {
+        let subpath = snapPath[i];
         if (subpath[0] == 'M' && subpath.length == 3) {
-            currentPath = [subpath[1] * factor, subpath[2] * factor, 0];
+            currentPath = [subpath[1] * factor, subpath[2] * factor];
             result.push(currentPath);
         } else if (subpath[0] == 'L') {
             for (let j = 0; j < (subpath.length - 1) / 2; ++j)
-                currentPath.push(subpath[1 + j * 2] * factor, subpath[2 + j * 2] * factor, 0);
+                currentPath.push(subpath[1 + j * 2] * factor, subpath[2 + j * 2] * factor);
         } else {
             alertFn('Subpath has a non-linear prefix: ' + subpath[0]);
             return null;
@@ -157,46 +157,46 @@ function snapPathToPositions(path, pxPerInch, alertFn) {
     return result;
 };
 
-// Closes each path in positions.
-function closePositions(positions) {
-    for (let path of positions)
-        path.push(path[0], path[1], path[2]);
+// Closes each path in paths.
+function closeRawPaths(paths) {
+    for (let path of paths)
+        path.push(path[0], path[1]);
 }
 
-// Convert a path in an SVG element to [[x0, y0, 0, x1, y1, 0, ...], ...].
+// Convert a path in an SVG element to [[x0, y0, x1, y1, ...], ...].
 // Result is in mm. Returns multiple paths. Converts curves.
 // Calls alertFn with an error message and returns null if there's a problem.
-export function elementToPositions(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
-    let path = elementToLinearSnapPath(element, minNumSegments, minSegmentLength, alertFn);
+export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
+    let path = elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn);
     if (path !== null) {
-        let positions = snapPathToPositions(path, pxPerInch, alertFn);
-        if (positions !== null) {
-            closePositions(positions);
-            return positions;
+        let rawPaths = snapPathToRawPaths(path, pxPerInch, alertFn);
+        if (rawPaths !== null) {
+            closeRawPaths(rawPaths);
+            return rawPaths;
         }
     }
     return null;
 }
 
-// [[[x0, y0, 0, x1, y1, 0, ...], ...], ...]
-export function flipY(allPositions) {
+// [[[x0, y0, x1, y1, ...], ...], ...]
+export function flipY(allRawPaths) {
     let maxY = Number.MIN_VALUE;
-    for (let positions of allPositions)
-        for (let a of positions)
-            for (let i = 0; i < a.length; i += 3)
-                maxY = Math.max(maxY, a[i + 1]);
-    for (let positions of allPositions)
-        for (let a of positions)
-            for (let i = 0; i < a.length; i += 3)
-                a[i + 1] = maxY - a[i + 1];
+    for (let rawPaths of allRawPaths)
+        for (let rawPath of rawPaths)
+            for (let i = 0; i < rawPath.length; i += 2)
+                maxY = Math.max(maxY, rawPath[i + 1]);
+    for (let rawPaths of allRawPaths)
+        for (let rawPath of rawPaths)
+            for (let i = 0; i < rawPath.length; i += 2)
+                rawPath[i + 1] = maxY - rawPath[i + 1];
 }
 
-export function positionsToClipperPaths(positions, translateX, translateY) {
-    return positions.map(p => {
-        let path = [];
-        for (let i = 0; i < p.length; i += 3)
-            path.push({ X: (p[i] + translateX) * mmToClipperScale, Y: (p[i + 1] + translateY) * mmToClipperScale });
-        return path;
+export function rawPathsToClipperPaths(rawPaths, translateX, translateY) {
+    return rawPaths.map(p => {
+        let result = [];
+        for (let i = 0; i < p.length; i += 2)
+            result.push({ X: (p[i] + translateX) * mmToClipperScale, Y: (p[i + 1] + translateY) * mmToClipperScale });
+        return result;
     });
 }
 
@@ -208,7 +208,7 @@ function clipperPathsToPolyTree(paths) {
     return polyTree;
 }
 
-function triangulatePolyTree(polyTree, z) {
+function triangulatePolyTree(polyTree) {
     let result = [];
     let pointToVertex = point => ({ x: point.X / mmToClipperScale, y: point.Y / mmToClipperScale });
     let contourToVertexes = path => path.map(pointToVertex);
@@ -223,9 +223,9 @@ function triangulatePolyTree(polyTree, z) {
         for (let t of triangles) {
             let p = t.getPoints();
             result.push(
-                p[0].x, p[0].y, z,
-                p[1].x, p[1].y, z,
-                p[2].x, p[2].y, z);
+                p[0].x, p[0].y,
+                p[1].x, p[1].y,
+                p[2].x, p[2].y);
         }
         for (let hole of node.Childs()) {
             for (let next of hole.Childs()) {
@@ -239,48 +239,83 @@ function triangulatePolyTree(polyTree, z) {
     return result;
 }
 
-export function triangulatePositions(positions, z) {
-    return triangulatePolyTree(clipperPathsToPolyTree(positionsToClipperPaths(positions, 0, 0)), z);
+export function triangulateRawPaths(rawPaths) {
+    return triangulatePolyTree(clipperPathsToPolyTree(rawPathsToClipperPaths(rawPaths, 0, 0)));
 }
 
-// Convert Clipper paths to C format. Returns [double** cPaths, int cNumPaths, int* cPathSizes].
-export function pathsToCpp(memoryBlocks, paths) {
+// Convert Clipper paths to C. Returns [double** cPaths, int cNumPaths, int* cPathSizes].
+export function clipperPathsToCPaths(memoryBlocks, clipperPaths) {
     let doubleSize = 8;
 
-    let cPaths = Module._malloc(paths.length * 4);
+    let cPaths = Module._malloc(clipperPaths.length * 4);
     memoryBlocks.push(cPaths);
     let cPathsBase = cPaths >> 2;
 
-    let cPathSizes = Module._malloc(paths.length * 4);
+    let cPathSizes = Module._malloc(clipperPaths.length * 4);
     memoryBlocks.push(cPathSizes);
     let cPathSizesBase = cPathSizes >> 2;
 
-    for (let i = 0; i < paths.length; ++i) {
-        let path = paths[i];
+    for (let i = 0; i < clipperPaths.length; ++i) {
+        let clipperPath = clipperPaths[i];
 
-        let cPath = Module._malloc(path.length * 2 * doubleSize + 4);
+        let cPath = Module._malloc(clipperPath.length * 2 * doubleSize + 4);
         memoryBlocks.push(cPath);
         if (cPath & 4)
             cPath += 4;
         //console.log("-> " + cPath.toString(16));
         let pathArray = new Float64Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + cPath);
 
-        for (let j = 0; j < path.length; ++j) {
-            let point = path[j];
+        for (let j = 0; j < clipperPath.length; ++j) {
+            let point = clipperPath[j];
             pathArray[j * 2] = point.X * clipperToCppScale;
             pathArray[j * 2 + 1] = point.Y * clipperToCppScale;
         }
 
         Module.HEAPU32[cPathsBase + i] = cPath;
-        Module.HEAPU32[cPathSizesBase + i] = path.length;
+        Module.HEAPU32[cPathSizesBase + i] = clipperPath.length;
     }
 
-    return [cPaths, paths.length, cPathSizes];
+    return [cPaths, clipperPaths.length, cPathSizes];
 }
 
-// Convert C format paths to array of CamPath. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
+// Convert C paths to Clipper paths. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
+// Each point has X, Y (stride = 2).
+export function cPathsToClipperPaths(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {
+    let cPaths = Module.HEAPU32[cPathsRef >> 2];
+    memoryBlocks.push(cPaths);
+    let cPathsBase = cPaths >> 2;
+
+    let cNumPaths = Module.HEAPU32[cNumPathsRef >> 2];
+
+    let cPathSizes = Module.HEAPU32[cPathSizesRef >> 2];
+    memoryBlocks.push(cPathSizes);
+    let cPathSizesBase = cPathSizes >> 2;
+
+    let clipperPaths = [];
+    for (let i = 0; i < cNumPaths; ++i) {
+        let pathSize = Module.HEAPU32[cPathSizesBase + i];
+        let cPath = Module.HEAPU32[cPathsBase + i];
+        // cPath contains value to pass to Module._free(). The aligned version contains the actual data.
+        memoryBlocks.push(cPath);
+        if (cPath & 4)
+            cPath += 4;
+        let pathArray = new Float64Array(Module.HEAPU32.buffer, Module.HEAPU32.byteOffset + cPath);
+
+        let clipperPath = [];
+        clipperPaths.push(clipperPath);
+        for (let j = 0; j < pathSize; ++j)
+            clipperPath.push({
+                X: pathArray[j * 2] / clipperToCppScale,
+                Y: pathArray[j * 2 + 1] / clipperToCppScale,
+            });
+    }
+
+    return clipperPaths;
+}
+
+// Convert C paths to array of CamPath. double**& cPathsRef, int& cNumPathsRef, int*& cPathSizesRef
 // Each point has X, Y, Z (stride = 3).
-export function cppToCamPath(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {
+export function cPathsToCamPaths(memoryBlocks, cPathsRef, cNumPathsRef, cPathSizesRef) {
     let cPaths = Module.HEAPU32[cPathsRef >> 2];
     memoryBlocks.push(cPaths);
     let cPathsBase = cPaths >> 2;
