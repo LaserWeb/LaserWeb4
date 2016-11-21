@@ -273,4 +273,4 @@ body, html, .full-height {
 
 
 /* reeact-bootstrap-table*/
-.react-bs-table table {margin-bottom:0}
+.nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}

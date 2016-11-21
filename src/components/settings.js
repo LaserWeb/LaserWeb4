@@ -6,7 +6,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
 import MachineProfile from './machine-profile';
-import { MaterialDatabaseEditor } from './material-database';
+import { MaterialDatabaseButton } from './material-database';
 
 import {PanelGroup, Panel} from 'react-bootstrap';
 
@@ -130,7 +130,7 @@ class Settings extends React.Component {
                 <Panel header="Machine Profiles"  bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
                     <MachineProfile onApply={this.props.handleApplyProfile}/>
                     
-                    <MaterialDatabaseEditor/>
+                    <MaterialDatabaseButton label="Launch Material Database"/>
                 </Panel>
                 <Panel collapsible header="Machine" eventKey="1" bsStyle="info">
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
