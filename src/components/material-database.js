@@ -53,11 +53,14 @@ class TableRow extends React.Component {
   render(){
     let childIndex=this.props.childIndex;
     
+    let props=Object.assign({},this.props)
+        props.rowClass += (this.props.collapseContent)? " collapsible" : "";
+        props.rowClass += (this.state.isOpened)? " opened" : "";
     
     
     return (
       <div onDoubleClick={(e)=>this.handleInteraction(e,childIndex)} onClick={(e)=>this.handleSelect(e,childIndex)} style={this.props.style}>
-      <FlexData.TableRow {...this.props} >{this.props.children}</FlexData.TableRow>
+      <FlexData.TableRow {...props} >{this.props.children}</FlexData.TableRow>
       <Collapse in={this.state.isOpened}><div className="nestedTableWrapper">{this.props.collapseContent}</div></Collapse>
       </div>
     )
@@ -81,10 +84,10 @@ class Table extends React.Component {
             <FlexData.Table {...this.props } altColor="none">
                 {(this.props.header)? <caption>{this.props.header}</caption> : undefined}
                 
-                <FlexData.TableHeader>
+                <FlexData.TableHeader rowClass="flexTHead">
                    {this.props.columns.map((column) => <FlexData.TableHeaderColumn key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
                 </FlexData.TableHeader>
-                <FlexData.TableBody>
+                <FlexData.TableBody bodyClass="flexTbody">
                     {this.props.data.map((row, i) => {
                         
                         let style=(!(i%2)) ? {backgroundColor:this.props.altColor} : undefined
@@ -93,7 +96,7 @@ class Table extends React.Component {
                         }
                         
                         return (
-                            <TableRow key={i} childIndex={i} collapseContent={this.props.data[i].collapseContent} style={style} onSelect={handleSelect}>
+                            <TableRow key={i} childIndex={i} collapseContent={this.props.data[i].collapseContent} style={style} onSelect={handleSelect} rowClass="tableRow">
                                 {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id}>{this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
                             </TableRow>
                         );
@@ -129,16 +132,25 @@ function MaterialOperations({operations,...rest}) {
         if (typeof  data[_operation.type] =='undefined')
              data[_operation.type]=[];
         
-        data[_operation.type].push({name: (<strong>{_operation.name}</strong>), ..._operation.params})
+        
+        let fields={}
+        // fields=_operation.params
+        currentOperation.fields.forEach((key)=>{
+               let currentParam = operation.fields[key];
+               let FieldType= currentParam.input
+               //op, field, onChange, onFocus
+               fields[key]    = <label><FieldType key={currentParam.name} op={_operation.params} field={key} style={{}} />{currentParam.units}</label>
+        });
+        
+        
+        data[_operation.type].push({name: (<strong>{_operation.name}</strong>), ...fields})
         
     });
     
    let result=[];
     Object.entries(tables).forEach((item)=>{
         let [type,columns] = item;
-        
-        
-        result.push(<div key={uuid.v4()}><Table  columns={columns} data={data[type]} rowHeight={25} columnRatio={[2].fill(1,1)}/></div>)
+        result.push(<div key={uuid.v4()}><Table  columns={columns} data={data[type]} rowHeight={30} columnRatio={[2].fill(1,1)}/></div>)
         
     })
     
@@ -171,7 +183,7 @@ class Material extends React.Component {
         ]
         
         
-        return (<Table columns={columns} data={data} rowHeight={25} columnRatio={[2,1,5]} />);
+        return (<Table columns={columns} data={data} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} />);
     }
 }
 
@@ -181,10 +193,15 @@ class MaterialDatabaseEditor extends React.Component {
         super(props);
         this.state={selected: this.props.selectedProfile}
         this.handleProfileSelect.bind(this)
+        this.handleMaterialChange.bind(this)
     }
     
     handleProfileSelect(e) {
         
+    }
+    
+    handleMaterialChange(data){
+        console.log(data)
     }
     
     render(){
@@ -207,7 +224,7 @@ class MaterialDatabaseEditor extends React.Component {
               
               
               {this.props.materials.map((item)=>{
-                   return (<Material key={uuid.v4()} data={item}/>)
+                   return (<Material key={uuid.v4()} data={item} onChange={(data)=>this.handleMaterialChange(data)}/>)
               })}
               
               
