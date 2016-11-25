@@ -85,6 +85,83 @@ function GridText(props) {
     return <div>{a}</div>;
 }
 
+class FloatingControls extends React.Component {
+    componentWillMount() {
+        this.setMinX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x1, 0, 0]));
+        }
+        this.setCenterX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
+        }
+        this.setMaxX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x2, 0, 0]));
+        }
+        this.setMinY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y1, 0]));
+        }
+        this.setCenterY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
+        }
+        this.setMaxY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y2, 0]));
+        }
+    }
+
+    render() {
+        let found = false;
+        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
+        for (let cache of this.props.documentCacheHolder.cache.values()) {
+            let doc = cache.document;
+            if (doc.selected && doc.translate && cache.bounds) {
+                found = true;
+                bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.translate[0]);
+                bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.translate[1]);
+                bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.translate[0]);
+                bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.translate[1]);
+            }
+        }
+        if (!found || !this.props.camera)
+            return <div />
+
+        let p =
+            vec4.transformMat4([],
+                vec4.transformMat4([], [bounds.x1, bounds.y1, 0, 1], this.props.camera.view),
+                this.props.camera.perspective);
+        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2;
+        let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2;
+
+        x = x / window.devicePixelRatio - this.props.width;// * window.devicePixelRatio;
+        y = y / window.devicePixelRatio;
+        x = Math.min(Math.max(x, 0), this.props.workspaceWidth / window.devicePixelRatio - this.props.width);
+        y = Math.min(Math.max(y, 0), this.props.workspaceHeight / window.devicePixelRatio - this.props.height);
+
+        let round = n => Math.round(n * 100) / 100;
+
+        return (
+            <table style={{ position: 'relative', left: x, top: y }} className="floating-controls" >
+                <tr>
+                    <td></td>
+                    <td>Min</td>
+                    <td>Center</td>
+                    <td>Max</td>
+                </tr>
+                <tr>
+                    <td>X</td>
+                    <td><input value={round(bounds.x1)} onChange={this.setMinX} type="number" step="any" /></td>
+                    <td><input value={round((bounds.x1 + bounds.x2) / 2)} onChange={this.setCenterX} type="number" step="any" /></td>
+                    <td><input value={round(bounds.x2)} type="number" onChange={this.setMaxX} step="any" /></td>
+                </tr>
+                <tr>
+                    <td>Y</td>
+                    <td><input value={round(bounds.y1)} onChange={this.setMinY} type="number" step="any" /></td>
+                    <td><input value={round((bounds.y1 + bounds.y2) / 2)} onChange={this.setCenterY} type="number" step="any" /></td>
+                    <td><input value={round(bounds.y2)} type="number" onChange={this.setMaxY} step="any" /></td>
+                </tr>
+            </table>
+        );
+    }
+} // FloatingControls
+
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.grid = new Grid();
@@ -371,20 +448,29 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <Capture
-                className="workspace-content" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
-                onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
-                <div className="workspace-content">
-                    <canvas
-                        style={{ width: this.props.width, height: this.props.height }}
-                        width={Math.round(this.props.width)}
-                        height={Math.round(this.props.height)}
-                        ref={this.setCanvas} />
+            <div>
+                <Capture
+                    onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
+                    onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
+                    <div className="workspace-content">
+                        <canvas
+                            style={{ width: this.props.width, height: this.props.height }}
+                            width={Math.round(this.props.width)}
+                            height={Math.round(this.props.height)}
+                            ref={this.setCanvas} />
+                    </div>
+                    <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
+                        <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
+                    </Dom3d>
+                </Capture>
+                <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
+                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
+                        <FloatingControls
+                            documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
+                            workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
+                    </SetSize>
                 </div>
-                <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
-                    <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
-                </Dom3d>
-            </Capture>
+            </div>
         );
     }
 } // WorkspaceContent
