@@ -3,13 +3,18 @@ import uuid from 'node-uuid';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {connect, dispatch} from 'react-redux'
+import {setMaterialOperationAttrs, setMaterialToggle} from '../actions/material-database.js'
+
 
 import * as operation from './operation'
 
-import {Modal, Button, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse} from 'react-bootstrap'
+import {Modal, Button, ButtonToolbar, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse} from 'react-bootstrap'
 import * as FlexData from 'react-flex-data';
+import Icon from './font-awesome';
 
 import omit from 'object.omit';
+
+
 
 class FullSizeModal extends React.Component {
     
@@ -33,39 +38,34 @@ class FullSizeModal extends React.Component {
 
 class TableRow extends React.Component {
   
-  constructor(props){
-    super(props)
-    this.state={isOpened:false}
-    this.handleInteraction.bind(this);
-  }
-  
-  handleInteraction(e,rowIndex){
-    this.setState({isOpened:!this.state.isOpened})
-    if (this.props.onTap) 
-        this.props.onTap(e,rowIndex)
-  }
-  
-  handleSelect(e,rowIndex){
-    if (this.props.onSelect) 
-        this.props.onSelect(e,rowIndex)
-  }
   
   render(){
     let childIndex=this.props.childIndex;
+    let isOpened=(this.props.collapseContent) ? this.props.collapseContent.props.isOpened : undefined
     
     let props=Object.assign({},this.props)
         props.rowClass += (this.props.collapseContent)? " collapsible" : "";
-        props.rowClass += (this.state.isOpened)? " opened" : "";
+        props.rowClass += (isOpened)? " opened" : "";
     
+    let events={}
+    if (this.props.onRowClick){
+       events={
+            onDoubleClick: (e)=>this.props.onRowClick(e,childIndex),
+            onClick: (e)=>this.props.onRowClick(e,childIndex)
+       }
+    }
+        
     
     return (
-      <div onDoubleClick={(e)=>this.handleInteraction(e,childIndex)} onClick={(e)=>this.handleSelect(e,childIndex)} style={this.props.style}>
-      <FlexData.TableRow {...props} >{this.props.children}</FlexData.TableRow>
-      <Collapse in={this.state.isOpened}><div className="nestedTableWrapper">{this.props.collapseContent}</div></Collapse>
+      <div  style={this.props.style}>
+      <div {...events}><FlexData.TableRow {...props} >{this.props.children}</FlexData.TableRow></div>
+      <Collapse in={isOpened}><div className="nestedTableWrapper">{this.props.collapseContent}</div></Collapse>
       </div>
     )
   }
 }
+
+
 
 class Table extends React.Component {
     
@@ -79,91 +79,144 @@ class Table extends React.Component {
         let handleSelect=(e,rowIndex)=>{
             this.setState({selectedIndex: rowIndex});
         }
+        
+       
 
         return (
+            <div> 
             <FlexData.Table {...this.props } altColor="none">
                 {(this.props.header)? <caption>{this.props.header}</caption> : undefined}
                 
                 <FlexData.TableHeader rowClass="flexTHead">
                    {this.props.columns.map((column) => <FlexData.TableHeaderColumn key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
+                   
                 </FlexData.TableHeader>
                 <FlexData.TableBody bodyClass="flexTbody">
                     {this.props.data.map((row, i) => {
                         
                         let style=(!(i%2)) ? {backgroundColor:this.props.altColor} : undefined
+                        
+                        
+                        
                         if (this.state.selectedIndex===i) {
                             style = {backgroundColor:this.props.selectColor}
                         }
                         
                         return (
-                            <TableRow key={i} childIndex={i} collapseContent={this.props.data[i].collapseContent} style={style} onSelect={handleSelect} rowClass="tableRow">
-                                {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id}>{this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
+                            <TableRow key={i}
+                                childIndex={i}
+                                collapseContent={this.props.data[i].collapseContent}
+                                style={style}
+                                
+                                onRowClick={this.props.onRowClick}
+                                rowClass="tableRow"
+                            >
+                                
+                                {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id} >
+                                {(!j && this.props.data[i].collapseContent) ? ((this.props.data[i].collapseContent.props.isOpened) ? <Icon name="minus-square-o"/>: <Icon name="plus-square-o"/>) : undefined}    
+                                &nbsp;{this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
+                                
                             </TableRow>
                         );
                     })}
                 </FlexData.TableBody>
             </FlexData.Table>
+            </div>
         );
     }
     
 }
 
 
-function MaterialOperations({operations,...rest}) {
+class MaterialOperations extends React.Component {
 
  
-    let data={};
-    let tables={};
-    operations.forEach((_operation)=>{
-        /*Takes the type of operation from operation::types*/
-        let currentOperation=operation.types[_operation.type]
+    constructor(props){
+        super(props)
+        this.handleCellChange.bind(this)
         
-        /*Extracts the column names from operation::fields*/
-        let columns= [{id: "name", label: _operation.type}];
-        
-        currentOperation.fields.forEach((key)=>{
-            let currentParam = operation.fields[key];
-            columns.push({id: key, label: currentParam.label})
-        })
-        
-        /*Assigns a table for each kind of operation available for that material*/
-        tables[_operation.type]=columns;
-        
-        if (typeof  data[_operation.type] =='undefined')
-             data[_operation.type]=[];
-        
-        
-        let fields={}
-        // fields=_operation.params
-        currentOperation.fields.forEach((key)=>{
-               let currentParam = operation.fields[key];
-               let FieldType= currentParam.input
-               //op, field, onChange, onFocus
-               fields[key]    = <label><FieldType key={currentParam.name} op={_operation.params} field={key} style={{}} />{currentParam.units}</label>
-        });
-        
-        
-        data[_operation.type].push({name: (<strong>{_operation.name}</strong>), ...fields})
-        
-    });
+    }
     
-   let result=[];
-    Object.entries(tables).forEach((item)=>{
-        let [type,columns] = item;
-        result.push(<div key={uuid.v4()}><Table  columns={columns} data={data[type]} rowHeight={30} columnRatio={[2].fill(1,1)}/></div>)
+    handleCellChange(materialId, operationIndex, paramKey, paramValue ){
+        this.props.handleCellChange(materialId, operationIndex, {[paramKey]:paramValue} );
+    }
+ 
+    render(){
+        const operations=this.props.operations
+        const rest = this.props;
         
-    })
-    
-    return(<div>{result}</div>);
-   
-   
+            let data={};
+            let tables={};
+            operations.forEach((_operation, _operationindex)=>{
+                /*Takes the type of operation from operation::types*/
+                let currentOperation=operation.types[_operation.type]
+                
+                /*Extracts the column names from operation::fields*/
+                let columns= [{id: "name", label: _operation.type}];
+                
+                currentOperation.fields.forEach((key)=>{
+                    let currentParam = operation.fields[key];
+                    columns.push({id: key, label: currentParam.label})
+                })
+                
+                /*Assigns a table for each kind of operation available for that material*/
+                tables[_operation.type]=columns;
+                
+                if (typeof  data[_operation.type] =='undefined')
+                     data[_operation.type]=[];
+                
+                
+                let fields={}
+                // fields=_operation.params
+                currentOperation.fields.forEach((key)=>{
+                       let currentParam = operation.fields[key];
+                       let FieldType= currentParam.input
+                       
+                       fields[key]    = <label><FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, key, e.target.value)}} />{currentParam.units}</label>
+                       
+                       
+                });
+                
+                
+                data[_operation.type].push({name: (<strong>{_operation.name}</strong>), ...fields})
+                
+            });
+            
+           let result=[];
+            Object.entries(tables).forEach((item)=>{
+                let [type,columns] = item;
+                result.push(<Table key={uuid.v4()} columns={columns} data={data[type]} rowHeight={30} columnRatio={Array(columns.length).fill(1).fill(2,0,1)}/>)
+            })
+            
+            return(<div>{result}</div>);
+        
+    }
    
 }
 
+MaterialOperations = connect(null,(dispatch) =>{
+    return {
+        handleCellChange: (materialId, operationIndex, attrs ) => {
+            dispatch(setMaterialOperationAttrs(materialId, operationIndex, attrs))
+            
+        }
+    }
+    
+})(MaterialOperations)
+
 class Material extends React.Component {
     
-    /*<Panel collapsible key={item.id} header={<div><strong>{item.material.name}, {item.material.thickness}</strong> <small>{item.material.notes}</small></div>}><MaterialOperations operations={item.operations}/></Panel>*/
+    constructor(props){
+        super(props);
+        this.handleRowClick.bind(this)
+    }
     
+    handleRowClick(e,rowIndex){
+        switch (e.type) {
+            case "dblclick":
+                this.props.handleToggle(this.props.data.id)
+        }
+    }
     
     render(){
         
@@ -171,6 +224,7 @@ class Material extends React.Component {
             {id:"name",label:"Name"},
             {id:"thickness",label:"Thickness"},
             {id:"notes",label:"Notes"},
+            {id:"actions",label:""}
         ];
         
         let data=[
@@ -178,14 +232,26 @@ class Material extends React.Component {
                 name: this.props.data.material.name,
                 thickness: this.props.data.material.thickness,
                 notes: this.props.data.material.notes,
-                collapseContent: (<MaterialOperations operations={this.props.data.operations}/>)
+                collapseContent: (<MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened}/>)
+                
             }
         ]
         
         
-        return (<Table columns={columns} data={data} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} />);
+        return (<Table columns={columns} data={data} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
     }
 }
+
+
+
+Material = connect(null, (dispatch)=>{
+    return {
+        handleToggle: (materialId) => {
+            dispatch(setMaterialToggle(materialId))
+        }
+    }    
+    
+} )(Material);
 
 class MaterialDatabaseEditor extends React.Component {
     
