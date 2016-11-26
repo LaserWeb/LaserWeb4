@@ -293,5 +293,6 @@ body, html, .full-height {
 .flexTable .tableRow.collapsible.opened {cursor: n-resize }
 .flexTable .tableRow label {width: 100%}
 .flexTable .tableRow input {width: auto !important}
-
+.flexTable .flexTbody .column._actions {flex:none !important; text-align: right}
+.flexTable .flexTbody .column._actions div {line-height: 0}
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}

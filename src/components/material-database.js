@@ -3,12 +3,12 @@ import uuid from 'node-uuid';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {connect, dispatch} from 'react-redux'
-import {setMaterialOperationAttrs, setMaterialToggle} from '../actions/material-database.js'
+import {setMaterialOperationAttrs, toggleMaterialView, toggleMaterialOperationEdit, toggleMaterialEdit, deleteMaterialOperation, deleteMaterial} from '../actions/material-database.js'
 
 
 import * as operation from './operation'
 
-import {Modal, Button, ButtonToolbar, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse} from 'react-bootstrap'
+import {Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse} from 'react-bootstrap'
 import * as FlexData from 'react-flex-data';
 import Icon from './font-awesome';
 
@@ -54,7 +54,6 @@ class TableRow extends React.Component {
             onClick: (e)=>this.props.onRowClick(e,childIndex)
        }
     }
-        
     
     return (
       <div  style={this.props.style}>
@@ -88,7 +87,7 @@ class Table extends React.Component {
                 {(this.props.header)? <caption>{this.props.header}</caption> : undefined}
                 
                 <FlexData.TableHeader rowClass="flexTHead">
-                   {this.props.columns.map((column) => <FlexData.TableHeaderColumn key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
+                   {this.props.columns.map((column) => <FlexData.TableHeaderColumn columnClass={"column "+column.id} key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
                    
                 </FlexData.TableHeader>
                 <FlexData.TableBody bodyClass="flexTbody">
@@ -112,7 +111,7 @@ class Table extends React.Component {
                                 rowClass="tableRow"
                             >
                                 
-                                {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id} >
+                                {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id} columnClass={"column "+column.id} >
                                 {(!j && this.props.data[i].collapseContent) ? ((this.props.data[i].collapseContent.props.isOpened) ? <Icon name="minus-square-o"/>: <Icon name="plus-square-o"/>) : undefined}    
                                 &nbsp;{this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
                                 
@@ -127,6 +126,13 @@ class Table extends React.Component {
     
 }
 
+function MaterialActions({isEditable=false, onDelete=null, onEdit=null }){
+    return (<ButtonGroup>
+        {(isEditable && onDelete)? (<Button onClick={onDelete} bsSize="xsmall" bsStyle="danger"><Icon name="trash"/></Button>) :undefined}
+        <Button onClick={onEdit} bsSize="xsmall" bsStyle={isEditable? "default":"info"}><Icon name="pencil-square-o"/></Button>
+        </ButtonGroup>)
+}
+
 
 class MaterialOperations extends React.Component {
 
@@ -134,11 +140,19 @@ class MaterialOperations extends React.Component {
     constructor(props){
         super(props)
         this.handleCellChange.bind(this)
-        
+        this.handleRowEdit.bind(this)
     }
     
     handleCellChange(materialId, operationIndex, paramKey, paramValue ){
         this.props.handleCellChange(materialId, operationIndex, {[paramKey]:paramValue} );
+    }
+    
+    handleRowEdit(materialId, operationIndex) {
+        this.props.handleRowEdit(materialId, operationIndex);
+    }
+    
+    handleRowDelete(materialId, operationIndex) {
+        this.props.handleRowDelete(materialId, operationIndex);
     }
  
     render(){
@@ -156,8 +170,10 @@ class MaterialOperations extends React.Component {
                 
                 currentOperation.fields.forEach((key)=>{
                     let currentParam = operation.fields[key];
-                    columns.push({id: key, label: currentParam.label})
+                    columns.push({id: key, label: currentParam.label+" ("+currentParam.units+")"})
                 })
+                
+                columns.push({id: "_actions", label: "Actions"})
                 
                 /*Assigns a table for each kind of operation available for that material*/
                 tables[_operation.type]=columns;
@@ -171,9 +187,19 @@ class MaterialOperations extends React.Component {
                 currentOperation.fields.forEach((key)=>{
                        let currentParam = operation.fields[key];
                        let FieldType= currentParam.input
+                       if (_operation.isEditable){
+                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, key, e.target.value)}} />
+                       } else {
+                        fields[key]    = <span>{isNaN(_operation.params[currentParam]) ? "---": Number(_operation.params[currentParam])}</span>
+                       }
                        
-                       fields[key]    = <label><FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, key, e.target.value)}} />{currentParam.units}</label>
                        
+                       
+                       fields['_actions'] = <MaterialActions
+                                                isEditable={_operation.isEditable}
+                                                onEdit={(e)=>{this.handleRowEdit(this.props.materialId,_operationindex)}}
+                                                onDelete={(e)=>{this.handleRowDelete(this.props.materialId,_operationindex)}}
+                                                />
                        
                 });
                 
@@ -185,7 +211,8 @@ class MaterialOperations extends React.Component {
            let result=[];
             Object.entries(tables).forEach((item)=>{
                 let [type,columns] = item;
-                result.push(<Table key={uuid.v4()} columns={columns} data={data[type]} rowHeight={30} columnRatio={Array(columns.length).fill(1).fill(2,0,1)}/>)
+                let columnRatio=[...Array(columns.length-1).fill(1).fill(2,0,1),0]
+                result.push(<Table key={uuid.v4()} columns={columns} data={data[type]} rowHeight={30} columnRatio={columnRatio}/>)
             })
             
             return(<div>{result}</div>);
@@ -197,8 +224,13 @@ class MaterialOperations extends React.Component {
 MaterialOperations = connect(null,(dispatch) =>{
     return {
         handleCellChange: (materialId, operationIndex, attrs ) => {
-            dispatch(setMaterialOperationAttrs(materialId, operationIndex, attrs))
-            
+            dispatch(setMaterialOperationAttrs(materialId, operationIndex, attrs));
+        },
+        handleRowEdit: (materialId, operationIndex) => {
+            dispatch(toggleMaterialOperationEdit(materialId, operationIndex));
+        },
+        handleRowDelete: (materialId, operationIndex) =>{
+            if (confirm("Are you sure?"))  dispatch(deleteMaterialOperation(materialId, operationIndex));
         }
     }
     
@@ -209,6 +241,8 @@ class Material extends React.Component {
     constructor(props){
         super(props);
         this.handleRowClick.bind(this)
+        this.handleRowEdit.bind(this)
+        this.handleRowDelete.bind(this)
     }
     
     handleRowClick(e,rowIndex){
@@ -218,25 +252,49 @@ class Material extends React.Component {
         }
     }
     
+    handleRowEdit(e){
+        this.props.handleRowEdit(this.props.data.id);
+    }
+    
+    handleRowDelete(e){
+        this.props.handleRowDelete(this.props.data.id);
+    }
+    
     render(){
         
         let columns=[
             {id:"name",label:"Name"},
             {id:"thickness",label:"Thickness"},
             {id:"notes",label:"Notes"},
-            {id:"actions",label:""}
+            {id:"_actions",label:""}
         ];
         
-        let data=[
-            {
-                name: this.props.data.material.name,
-                thickness: this.props.data.material.thickness,
-                notes: this.props.data.material.notes,
-                collapseContent: (<MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened}/>)
-                
-            }
-        ]
+        let data=[];
+        if (this.props.data.material.isEditable){
+            data.push(
+                {
+                    name: this.props.data.material.name,
+                    thickness: this.props.data.material.thickness,
+                    notes: this.props.data.material.notes
+                    
+                }
+            )
+        } else {
+            data.push(
+                {
+                    name: this.props.data.material.name,
+                    thickness: this.props.data.material.thickness,
+                    notes: this.props.data.material.notes,
+                    collapseContent: (<MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened}/>)
+                }
+            )
+        }
         
+        data[0]["_actions"] = <MaterialActions
+                                                    isEditable={this.props.data.material.isEditable}
+                                                    onEdit={(e)=>{this.handleRowEdit(e)}}
+                                                    onDelete={(e)=>{this.handleRowDelete(e)}}
+                                                    />
         
         return (<Table columns={columns} data={data} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
     }
@@ -246,9 +304,18 @@ class Material extends React.Component {
 
 Material = connect(null, (dispatch)=>{
     return {
+        handleCellChange: (materialId, attrs ) => {
+            dispatch(setMaterialAttrs(materialId, attrs));
+        },
         handleToggle: (materialId) => {
-            dispatch(setMaterialToggle(materialId))
-        }
+            dispatch(toggleMaterialView(materialId))
+        },
+        handleRowEdit: (materialId) => {
+             dispatch(toggleMaterialEdit(materialId));
+        },
+        handleRowDelete: (materialId) => {
+             if (confirm("Are you sure?")) dispatch(deleteMaterial(materialId));
+        },
     }    
     
 } )(Material);
