@@ -76,8 +76,17 @@ export class DocumentCacheHolder extends React.Component {
                     cachedDocument.rawPaths = document.rawPaths;
                     cachedDocument.triangles = new Float32Array(triangulateRawPaths(document.rawPaths));
                     cachedDocument.outlines = [];
-                    for (let rawPath of document.rawPaths)
+                    let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
+                    for (let rawPath of document.rawPaths) {
+                        for (let i = 0; i < rawPath.length - 1; i += 2) {
+                            bounds.x1 = Math.min(bounds.x1, rawPath[i]);
+                            bounds.x2 = Math.max(bounds.x2, rawPath[i]);
+                            bounds.y1 = Math.min(bounds.y1, rawPath[i + 1]);
+                            bounds.y2 = Math.max(bounds.y2, rawPath[i + 1]);
+                        }
                         cachedDocument.outlines.push(new Float32Array(rawPath));
+                    }
+                    console.log(bounds);
                 }
                 break;
             case 'image': {
@@ -87,6 +96,12 @@ export class DocumentCacheHolder extends React.Component {
                             cachedDocument.texture.destroy();
                         cachedDocument.regl = this.regl;
                         cachedDocument.texture = this.regl.texture(cachedDocument.image);
+                        cachedDocument.bounds = {
+                            x1: 0,
+                            y1: 0,
+                            x2: cachedDocument.image.width / document.dpi * 25.4,
+                            y2: cachedDocument.image.height / document.dpi * 25.4
+                        };
                     }
                 }
                 if (cachedDocument.dataURL !== document.dataURL) {

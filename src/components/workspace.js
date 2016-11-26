@@ -19,7 +19,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { resetCamera, setCameraAttrs } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, translateSelectedDocuments } from '../actions/document';
+import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
 import Capture from './capture';
@@ -68,9 +68,9 @@ class Grid {
             this.position = drawCommands.regl.buffer(new Float32Array(a));
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
     }
 };
 
@@ -84,6 +84,102 @@ function GridText(props) {
     a.push(<Text3d key="y-label" x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
+
+class FloatingControls extends React.Component {
+    componentWillMount() {
+        this.scale = s => {
+            let cx = (this.bounds.x1 + this.bounds.x2) / 2;
+            let cy = (this.bounds.y1 + this.bounds.y2) / 2;
+            this.props.dispatch(scaleTranslateSelectedDocuments(
+                [s, s, 1],
+                [cx - s * cx, cy - s * cy, 0]
+            ));
+        }
+        this.setMinX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x1, 0, 0]));
+        }
+        this.setCenterX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
+        }
+        this.setMaxX = e => {
+            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x2, 0, 0]));
+        }
+        this.setSizeX = e => {
+            if (e.target.value > 0)
+                this.scale(e.target.value / (this.bounds.x2 - this.bounds.x1));
+        }
+        this.setMinY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y1, 0]));
+        }
+        this.setCenterY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
+        }
+        this.setMaxY = e => {
+            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y2, 0]));
+        }
+        this.setSizeY = e => {
+            if (e.target.value > 0)
+                this.scale(e.target.value / (this.bounds.y2 - this.bounds.y1));
+        }
+    }
+
+    render() {
+        let found = false;
+        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
+        for (let cache of this.props.documentCacheHolder.cache.values()) {
+            let doc = cache.document;
+            if (doc.selected && doc.translate && cache.bounds) {
+                found = true;
+                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
+                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
+                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
+                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+            }
+        }
+        if (!found || !this.props.camera)
+            return <div />
+
+        let p =
+            vec4.transformMat4([],
+                vec4.transformMat4([], [bounds.x1, bounds.y1, 0, 1], this.props.camera.view),
+                this.props.camera.perspective);
+        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2;
+        let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2;
+
+        x = x / window.devicePixelRatio - this.props.width;
+        y = y / window.devicePixelRatio;
+        x = Math.min(Math.max(x, 0), this.props.workspaceWidth / window.devicePixelRatio - this.props.width);
+        y = Math.min(Math.max(y, 0), this.props.workspaceHeight / window.devicePixelRatio - this.props.height);
+
+        let round = n => Math.round(n * 100) / 100;
+
+        return (
+            <table style={{ position: 'relative', left: x, top: y }} className="floating-controls" >
+                <tr>
+                    <td></td>
+                    <td>Min</td>
+                    <td>Center</td>
+                    <td>Max</td>
+                    <td>Size</td>
+                </tr>
+                <tr>
+                    <td>X</td>
+                    <td><input value={round(bounds.x1)} onChange={this.setMinX} type="number" step="any" /></td>
+                    <td><input value={round((bounds.x1 + bounds.x2) / 2)} onChange={this.setCenterX} type="number" step="any" /></td>
+                    <td><input value={round(bounds.x2)} type="number" onChange={this.setMaxX} step="any" /></td>
+                    <td><input value={round(bounds.x2 - bounds.x1)} type="number" onChange={this.setSizeX} step="any" /></td>
+                </tr>
+                <tr>
+                    <td>Y</td>
+                    <td><input value={round(bounds.y1)} onChange={this.setMinY} type="number" step="any" /></td>
+                    <td><input value={round((bounds.y1 + bounds.y2) / 2)} onChange={this.setCenterY} type="number" step="any" /></td>
+                    <td><input value={round(bounds.y2)} type="number" onChange={this.setMaxY} step="any" /></td>
+                    <td><input value={round(bounds.y2 - bounds.y1)} type="number" onChange={this.setSizeY} step="any" /></td>
+                </tr>
+            </table>
+        );
+    }
+} // FloatingControls
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
@@ -134,6 +230,7 @@ class WorkspaceContent extends React.Component {
                                 this.drawCommands.noDepth(() => {
                                     this.drawCommands.simple2d({
                                         position: cachedDocument.triangles,
+                                        scale: document.scale,
                                         translate: document.translate,
                                         color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
                                         primitive: 'triangles',
@@ -143,6 +240,7 @@ class WorkspaceContent extends React.Component {
                                     for (let o of cachedDocument.outlines)
                                         this.drawCommands.simple2d({
                                             position: o,
+                                            scale: document.scale,
                                             translate: document.translate,
                                             color: [0, 0, 0, 1],
                                             primitive: 'line strip',
@@ -156,7 +254,9 @@ class WorkspaceContent extends React.Component {
                                     this.drawCommands.noDepth(() => {
                                         this.drawCommands.image({
                                             translate: document.translate,
-                                            size: [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4],
+                                            size: [
+                                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
                                             texture: cachedDocument.texture,
                                             selected: document.selected,
                                         });
@@ -231,6 +331,7 @@ class WorkspaceContent extends React.Component {
                             this.drawCommands.noDepth(() => {
                                 this.drawCommands.simple2d({
                                     position: cachedDocument.triangles,
+                                    scale: document.scale,
                                     translate: document.translate,
                                     color: [
                                         ((hitTestId >> 24) & 0xff) / 0xff,
@@ -244,14 +345,17 @@ class WorkspaceContent extends React.Component {
                             });
                         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {
                             this.drawCommands.noDepth(() => {
+                                let w = cachedDocument.image.width / document.dpi * 25.4;
+                                let h = cachedDocument.image.height / document.dpi * 25.4;
                                 this.drawCommands.simple({
                                     position: [
                                         [0, 0, 0],
-                                        [cachedDocument.image.width / document.dpi * 25.4, 0, 0],
-                                        [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
-                                        [cachedDocument.image.width / document.dpi * 25.4, cachedDocument.image.height / document.dpi * 25.4, 0],
-                                        [0, cachedDocument.image.height / document.dpi * 25.4, 0],
+                                        [w, 0, 0],
+                                        [w, h, 0],
+                                        [w, h, 0],
+                                        [0, h, 0],
                                         [0, 0, 0]],
+                                    scale: document.scale,
                                     translate: document.translate,
                                     color: [
                                         ((hitTestId >> 24) & 0xff) / 0xff,
@@ -371,20 +475,29 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <Capture
-                className="workspace-content" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
-                onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
-                <div className="workspace-content">
-                    <canvas
-                        style={{ width: this.props.width, height: this.props.height }}
-                        width={Math.round(this.props.width)}
-                        height={Math.round(this.props.height)}
-                        ref={this.setCanvas} />
+            <div>
+                <Capture
+                    onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
+                    onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
+                    <div className="workspace-content">
+                        <canvas
+                            style={{ width: this.props.width, height: this.props.height }}
+                            width={Math.round(this.props.width)}
+                            height={Math.round(this.props.height)}
+                            ref={this.setCanvas} />
+                    </div>
+                    <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
+                        <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
+                    </Dom3d>
+                </Capture>
+                <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
+                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
+                        <FloatingControls
+                            documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
+                            workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
+                    </SetSize>
                 </div>
-                <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
-                    <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
-                </Dom3d>
-            </Capture>
+            </div>
         );
     }
 } // WorkspaceContent

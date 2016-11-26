@@ -60,6 +60,18 @@ body, html, .full-height {
     flex-shrink: 0;
 }
 
+.floating-controls {
+    background-color: white;
+}
+
+.floating-controls td {
+    padding-left: 2px;
+}
+
+.floating-controls input {
+    width: 54px;
+}
+
 /* Dock */
 
 #sidebar .dock {
