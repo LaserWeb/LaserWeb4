@@ -38,10 +38,11 @@ function simple(regl) {
             precision mediump float;
             uniform mat4 perspective; 
             uniform mat4 view; 
+            uniform vec3 scale; 
             uniform vec3 translate; 
             attribute vec3 position;
             void main() {
-                gl_Position = perspective * view * vec4(position + translate, 1);
+                gl_Position = perspective * view * vec4(scale * position + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -53,6 +54,7 @@ function simple(regl) {
             position: regl.prop('position'),
         },
         uniforms: {
+            scale: regl.prop('scale'),
             translate: regl.prop('translate'),
             color: regl.prop('color'),
         },
@@ -68,10 +70,11 @@ function simple2d(regl) {
             precision mediump float;
             uniform mat4 perspective; 
             uniform mat4 view; 
+            uniform vec3 scale; 
             uniform vec3 translate; 
             attribute vec2 position;
             void main() {
-                gl_Position = perspective * view * vec4(vec3(position, 0.0) + translate, 1);
+                gl_Position = perspective * view * vec4(scale * vec3(position, 0.0) + translate, 1);
             }`,
         frag: `
             precision mediump float;
@@ -83,6 +86,7 @@ function simple2d(regl) {
             position: regl.prop('position'),
         },
         uniforms: {
+            scale: regl.prop('scale'),
             translate: regl.prop('translate'),
             color: regl.prop('color'),
         },

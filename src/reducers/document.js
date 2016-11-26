@@ -23,6 +23,15 @@ export function document(state, action) {
                 return {...state, translate: vec3.add([], state.translate, action.payload) };
             } else
                 return state;
+        case 'DOCUMENT_SCALE_TRANSLATE_SELECTED':
+            if (state.selected && state.scale && state.translate) {
+                return {
+                    ...state,
+                    scale: vec3.mul([], state.scale, action.payload.scale),
+                    translate: vec3.add([], vec3.mul([], action.payload.scale, state.translate), action.payload.translate),
+                };
+            } else
+                return state;
         default:
             return documentBase(state, action)
     }
@@ -46,7 +55,6 @@ function loadSvg(state, {file, content}) {
                 isRoot: false,
                 children: [],
                 selected: false,
-                translate: [0, 0, 0],
             };
             if (child.nodeName === 'path') {
                 // TODO: report errors
@@ -55,6 +63,8 @@ function loadSvg(state, {file, content}) {
                 if (!c.rawPaths)
                     continue;
                 allPositions.push(c.rawPaths);
+                c.translate = [0, 0, 0];
+                c.scale = [1, 1, 1];
             } else if (child.nodeName !== 'g')
                 continue;
             state.push(c);
@@ -86,6 +96,7 @@ function loadImage(state, {file, content}) {
         children: [],
         selected: false,
         translate: [0, 0, 0],
+        scale: [1, 1, 1],
         mimeType: file.type,
         dataURL: content,
         dpi: 96, // TODO

@@ -96,6 +96,12 @@ export class DocumentCacheHolder extends React.Component {
                             cachedDocument.texture.destroy();
                         cachedDocument.regl = this.regl;
                         cachedDocument.texture = this.regl.texture(cachedDocument.image);
+                        cachedDocument.bounds = {
+                            x1: 0,
+                            y1: 0,
+                            x2: cachedDocument.image.width / document.dpi * 25.4,
+                            y2: cachedDocument.image.height / document.dpi * 25.4
+                        };
                     }
                 }
                 if (cachedDocument.dataURL !== document.dataURL) {
