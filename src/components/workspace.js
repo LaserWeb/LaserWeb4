@@ -87,12 +87,16 @@ function GridText(props) {
 
 class FloatingControls extends React.Component {
     componentWillMount() {
-        this.scale = s => {
+        this.state = { linkScale: true };
+        this.linkScaleChanged = e => {
+            this.setState({ linkScale: e.target.checked });
+        }
+        this.scale = (sx, sy) => {
             let cx = (this.bounds.x1 + this.bounds.x2) / 2;
             let cy = (this.bounds.y1 + this.bounds.y2) / 2;
             this.props.dispatch(scaleTranslateSelectedDocuments(
-                [s, s, 1],
-                [cx - s * cx, cy - s * cy, 0]
+                [sx, sy, 1],
+                [cx - sx * cx, cy - sy * cy, 0]
             ));
         }
         this.setMinX = e => {
@@ -105,8 +109,13 @@ class FloatingControls extends React.Component {
             this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x2, 0, 0]));
         }
         this.setSizeX = e => {
-            if (e.target.value > 0)
-                this.scale(e.target.value / (this.bounds.x2 - this.bounds.x1));
+            if (e.target.value > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
+                let s = e.target.value / (this.bounds.x2 - this.bounds.x1);
+                if (this.state.linkScale)
+                    this.scale(s, s);
+                else
+                    this.scale(s, 1);
+            }
         }
         this.setMinY = e => {
             this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y1, 0]));
@@ -118,8 +127,13 @@ class FloatingControls extends React.Component {
             this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y2, 0]));
         }
         this.setSizeY = e => {
-            if (e.target.value > 0)
-                this.scale(e.target.value / (this.bounds.y2 - this.bounds.y1));
+            if (e.target.value > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
+                let s = e.target.value / (this.bounds.y2 - this.bounds.y1);
+                if (this.state.linkScale)
+                    this.scale(s, s);
+                else
+                    this.scale(1, s);
+            }
         }
     }
 
@@ -168,6 +182,9 @@ class FloatingControls extends React.Component {
                     <td><input value={round((bounds.x1 + bounds.x2) / 2)} onChange={this.setCenterX} type="number" step="any" /></td>
                     <td><input value={round(bounds.x2)} type="number" onChange={this.setMaxX} step="any" /></td>
                     <td><input value={round(bounds.x2 - bounds.x1)} type="number" onChange={this.setSizeX} step="any" /></td>
+                    <td rowSpan={2}>
+                        &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
+                    </td>
                 </tr>
                 <tr>
                     <td>Y</td>

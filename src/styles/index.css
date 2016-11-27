@@ -68,7 +68,7 @@ body, html, .full-height {
     padding-left: 2px;
 }
 
-.floating-controls input {
+.floating-controls input[type="number"] {
     width: 54px;
 }
 
