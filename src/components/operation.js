@@ -19,9 +19,9 @@ import { connect } from 'react-redux';
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { withBounds } from './get-bounds.js';
 
-function NumberInput({op, field, onChange, onFocus, style={ width: "100%" }}) {
+function NumberInput({op, field, style={ width: "100%" }, ...rest}) {
     return (
-        <input type='number' step='any' value={op[field.name]} style={style} onChange={onChange} onFocus={onFocus} />
+        <input type='number' step='any' value={op[field.name]} style={style} {...rest} />
     );
 }
 

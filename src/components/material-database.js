@@ -3,7 +3,7 @@ import uuid from 'node-uuid';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {connect, dispatch} from 'react-redux'
-import {setMaterialOperationAttrs, toggleMaterialView, toggleMaterialOperationEdit, toggleMaterialEdit, deleteMaterialOperation, deleteMaterial} from '../actions/material-database.js'
+import {setMaterialAttrs, setMaterialOperationAttrs, toggleMaterialView, toggleMaterialOperationEdit, toggleMaterialEdit, deleteMaterialOperation, deleteMaterial} from '../actions/material-database.js'
 
 
 import * as operation from './operation'
@@ -112,8 +112,8 @@ class Table extends React.Component {
                             >
                                 
                                 {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id} columnClass={"column "+column.id} >
-                                {(!j && this.props.data[i].collapseContent) ? ((this.props.data[i].collapseContent.props.isOpened) ? <Icon name="minus-square-o"/>: <Icon name="plus-square-o"/>) : undefined}    
-                                &nbsp;{this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
+                                {(!j && this.props.data[i].collapseContent) ? (<span><Icon name={(this.props.data[i].collapseContent.props.isOpened)? "minus-square-o":"plus-square-o"}/>&nbsp;</span>) : undefined}    
+                                {this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
                                 
                             </TableRow>
                         );
@@ -166,14 +166,14 @@ class MaterialOperations extends React.Component {
                 let currentOperation=operation.types[_operation.type]
                 
                 /*Extracts the column names from operation::fields*/
-                let columns= [{id: "name", label: _operation.type}];
+                let columns= [{id: "_name", label: _operation.type}];
                 
                 currentOperation.fields.forEach((key)=>{
                     let currentParam = operation.fields[key];
                     columns.push({id: key, label: currentParam.label+" ("+currentParam.units+")"})
                 })
                 
-                columns.push({id: "_actions", label: "Actions"})
+                columns.push({id: "_actions", label: <Icon name="cogs"/>})
                 
                 /*Assigns a table for each kind of operation available for that material*/
                 tables[_operation.type]=columns;
@@ -183,36 +183,46 @@ class MaterialOperations extends React.Component {
                 
                 
                 let fields={}
-                // fields=_operation.params
+                
+                
+                if (_operation.isEditable){
+                    //writes on operation[i][key]
+                    fields['_name']=<input type="text" key="name" value={_operation.name} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value)}} />
+                } else {
+                    fields['_name']=<strong>{_operation.name}</strong>
+                }
+                
+                
                 currentOperation.fields.forEach((key)=>{
                        let currentParam = operation.fields[key];
                        let FieldType= currentParam.input
                        if (_operation.isEditable){
-                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, key, e.target.value)}} />
+                        //writes on operation.params[i][key]
+                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "params", {[key]:e.target.value})}} />
                        } else {
-                        fields[key]    = <span>{isNaN(_operation.params[currentParam]) ? "---": Number(_operation.params[currentParam])}</span>
+                        fields[key]    = <span>{_operation.params[currentParam.name] || "---"}</span>
+                        
                        }
-                       
-                       
-                       
+                });
+                
+                if (this.props.canEdit){
                        fields['_actions'] = <MaterialActions
                                                 isEditable={_operation.isEditable}
                                                 onEdit={(e)=>{this.handleRowEdit(this.props.materialId,_operationindex)}}
                                                 onDelete={(e)=>{this.handleRowDelete(this.props.materialId,_operationindex)}}
                                                 />
-                       
-                });
+                }
                 
                 
-                data[_operation.type].push({name: (<strong>{_operation.name}</strong>), ...fields})
+                data[_operation.type].push(fields)
                 
             });
             
            let result=[];
-            Object.entries(tables).forEach((item)=>{
+            Object.entries(tables).forEach((item,i)=>{
                 let [type,columns] = item;
                 let columnRatio=[...Array(columns.length-1).fill(1).fill(2,0,1),0]
-                result.push(<Table key={uuid.v4()} columns={columns} data={data[type]} rowHeight={30} columnRatio={columnRatio}/>)
+                result.push(<Table key={i} columns={columns} data={data[type]} rowHeight={30} columnRatio={columnRatio}/>)
             })
             
             return(<div>{result}</div>);
@@ -243,6 +253,7 @@ class Material extends React.Component {
         this.handleRowClick.bind(this)
         this.handleRowEdit.bind(this)
         this.handleRowDelete.bind(this)
+        this.handleCellChange.bind(this)
     }
     
     handleRowClick(e,rowIndex){
@@ -260,43 +271,45 @@ class Material extends React.Component {
         this.props.handleRowDelete(this.props.data.id);
     }
     
+    handleCellChange(e, attr) {
+        this.props.handleCellChange(this.props.data.id, {[attr]:e.target.value})
+    }
+    
     render(){
         
         let columns=[
             {id:"name",label:"Name"},
             {id:"thickness",label:"Thickness"},
             {id:"notes",label:"Notes"},
-            {id:"_actions",label:""}
+            {id:"_actions",label:<Icon name="cogs"/>}
         ];
         
-        let data=[];
+        
+        let row={};
         if (this.props.data.material.isEditable){
-            data.push(
-                {
-                    name: this.props.data.material.name,
-                    thickness: this.props.data.material.thickness,
-                    notes: this.props.data.material.notes
-                    
-                }
-            )
+            row={
+                name: this.props.data.material.name,
+                thickness: this.props.data.material.thickness,
+                notes: <input type="text" value={this.props.data.material.notes} onChange={(e)=>{this.handleCellChange(e, "notes")}} />,
+            }
         } else {
-            data.push(
-                {
+            row={
                     name: this.props.data.material.name,
                     thickness: this.props.data.material.thickness,
                     notes: this.props.data.material.notes,
-                    collapseContent: (<MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened}/>)
+                    collapseContent: (<MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable}/>),
+                    
                 }
-            )
+            
         }
         
-        data[0]["_actions"] = <MaterialActions
+        row["_actions"] = <MaterialActions
                                                     isEditable={this.props.data.material.isEditable}
                                                     onEdit={(e)=>{this.handleRowEdit(e)}}
                                                     onDelete={(e)=>{this.handleRowDelete(e)}}
                                                     />
         
-        return (<Table columns={columns} data={data} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
+        return (<Table columns={columns} data={[row]} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
     }
 }
 
@@ -304,21 +317,23 @@ class Material extends React.Component {
 
 Material = connect(null, (dispatch)=>{
     return {
-        handleCellChange: (materialId, attrs ) => {
-            dispatch(setMaterialAttrs(materialId, attrs));
-        },
+        
         handleToggle: (materialId) => {
             dispatch(toggleMaterialView(materialId))
+        },
+        handleCellChange: (materialId, attrs ) => {
+            dispatch(setMaterialAttrs(materialId, attrs));
         },
         handleRowEdit: (materialId) => {
              dispatch(toggleMaterialEdit(materialId));
         },
         handleRowDelete: (materialId) => {
              if (confirm("Are you sure?")) dispatch(deleteMaterial(materialId));
-        },
+        }
     }    
     
 } )(Material);
+
 
 class MaterialDatabaseEditor extends React.Component {
     
@@ -357,7 +372,7 @@ class MaterialDatabaseEditor extends React.Component {
               
               
               {this.props.materials.map((item)=>{
-                   return (<Material key={uuid.v4()} data={item} onChange={(data)=>this.handleMaterialChange(data)}/>)
+                   return (<Material key={item.id} data={item} onChange={(data)=>this.handleMaterialChange(data)}/>)
               })}
               
               
@@ -367,6 +382,20 @@ class MaterialDatabaseEditor extends React.Component {
     }
     
 }
+
+
+const mapStateToProps = (state)=>{
+    
+    return {
+        profiles: state.machineProfiles,
+        materials: state.materialDatabase,
+        selectedProfile: state.settings.__selectedProfile || "*"
+    }
+    
+}
+
+MaterialDatabaseEditor = connect(mapStateToProps)(MaterialDatabaseEditor)
+
 
 export class MaterialDatabaseButton extends React.Component {
     
@@ -386,21 +415,5 @@ export class MaterialDatabaseButton extends React.Component {
     }
 }
 
-const mapStateToProps = (state)=>{
-    
-    return {
-        profiles: state.machineProfiles,
-        materials: state.materialDatabase,
-        selectedProfile: state.settings.__selectedProfile || "*"
-    }
-    
-}
 
-const mapDispatchToProps = (dispatch)=>{
-    return {}
-    
-}
-
-
-MaterialDatabaseEditor = connect(mapStateToProps, mapDispatchToProps)(MaterialDatabaseEditor)
 
