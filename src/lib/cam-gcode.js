@@ -283,9 +283,9 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             let doc = documents.find(d => d.id === id);
             if (doc.rawPaths)
                 if (isTab)
-                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.translate[0], doc.translate[1]));
+                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
                 else
-                    geometry = union(geometry, rawPathsToClipperPaths(doc.rawPaths, doc.translate[0], doc.translate[1]));
+                    geometry = union(geometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
             if (doc.isRoot && doc.type === 'image' && !isTab) {
                 let cache = documentCacheHolder.cache.get(doc.id);
                 if (cache && cache.imageLoaded)
