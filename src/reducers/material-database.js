@@ -1,21 +1,48 @@
 
 import omit from 'object.omit'
-
+import {deepMerge} from "../lib/helpers"
+import generateName from 'sillyname'
+import uuid from 'node-uuid';
 
 const initialState = require("../data/material-database.json");
 
+function generateInteger(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+const MATERIAL_TEMPLATE=()=>{
+    return {
+        id: uuid.v4(),
+        material:{
+            isEditable:true,
+            name: generateName(),
+            thickness: generateInteger(1,10)+"mm",
+            notes:""
+        },
+        operations:[]
+    }
+}
 
 export const materialDatabase = (state = initialState, action) => {
 
     
         switch (action.type) {
             case "MATERIAL_ADD":
-                if (!lock.exec(action.payload.id)) 
-                    return Object.assign({}, state, {[action.payload.id]:  action.payload.material});
+                state = [...state, MATERIAL_TEMPLATE()];
                 return state;
                 
             case "MATERIAL_REMOVE":
                 return omit(state,(val,key)=>{return key!==action.payload.id});
+            
+            case "MATERIAL_SET_ATTRS":
+                return state.map((material) => {
+                    if (material.id !== action.payload.materialId)
+                        return material;
+                    
+                    material.material=deepMerge(material.material, action.payload.attrs)
+                    
+                    return material;
+                })
             
             case "MATERIAL_SET_OPERATION_ATTRS":
                 return state.map((material) => {
@@ -26,7 +53,8 @@ export const materialDatabase = (state = initialState, action) => {
                             if (i!==action.payload.operationIndex)
                                 return operation;
                             
-                            operation.params=Object.assign({},operation.params, action.payload.attrs)
+                            operation=deepMerge(operation, action.payload.attrs)
+                            //operation=Object.assign({},operation, action.payload.attrs)
                             
                             return operation;
                             
@@ -77,6 +105,12 @@ export const materialDatabase = (state = initialState, action) => {
                     
                     if (typeof material.material.isEditable =="undefined")
                         material.material.isEditable=false;
+                        
+                    
+                    material.operations=material.operations.map((operation, i) =>{
+                        operation.isEditable=false;
+                        return operation;    
+                    })
                     
                     material.material.isEditable=!material.material.isEditable;
                     return material;

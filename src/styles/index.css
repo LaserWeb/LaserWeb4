@@ -286,13 +286,20 @@ body, html, .full-height {
 
 /* reeact-bootstrap-table*/
 
+.clearfix {display: block; clear:both}
+
 .flexTable {}
 .flexTHead {border-bottom: 1px solid #ccc}
 .flexTable .tableRow.collapsible {cursor: s-resize;}
 .flexTable .collapsible:hover {background: rgb(188, 232, 241)}
 .flexTable .tableRow.collapsible.openedÊ{cursor: n-resize }
 .flexTable .tableRow label {width: 100%}
-.flexTable .tableRow input {width: auto !important}
+/*.flexTable .tableRow input {width: auto !important}*/
+.flexTable .flexTbody .column {align-items:none}
+.flexTable .flexTbody .column > div {width:100%; overflow:visible !important}
 .flexTable .flexTbody .column._actions {flex:none !important; text-align: right}
 .flexTable .flexTbody .column._actions div {line-height: 0}
+.flexTable .flexTbody .column input, 
+.flexTable .flexTbody .column select,
+.flexTable .flexTbody .column textarea {width:100%}
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
