@@ -286,6 +286,8 @@ body, html, .full-height {
 
 /* reeact-bootstrap-table*/
 
+.clearfix {display: block; clear:both}
+
 .flexTable {}
 .flexTHead {border-bottom: 1px solid #ccc}
 .flexTable .tableRow.collapsible {cursor: s-resize;}

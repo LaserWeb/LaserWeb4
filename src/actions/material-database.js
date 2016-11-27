@@ -11,3 +11,5 @@ export const toggleMaterialEdit = (materialId) => ({type:"MATERIAL_TOGGLE_EDIT",
 
 export const deleteMaterialOperation = (materialId, operationIndex)  => ({type:"MATERIAL_OPERATION_DELETE", payload: {materialId, operationIndex}});
 export const deleteMaterial = (materialId)  => ({type:"MATERIAL_DELETE", payload: {materialId}});
+
+export const addMaterial = (materialId)=> ({type:"MATERIAL_ADD", payload: {materialId}});
