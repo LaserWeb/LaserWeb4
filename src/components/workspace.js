@@ -433,24 +433,25 @@ class WorkspaceContent extends React.Component {
                 this.props.dispatch(toggleSelectDocument(this.needToSelect));
             else
                 this.props.dispatch(selectDocument(this.needToSelect));
-        }
+        } else if (this.adjustingCamera && !this.moveStarted)
+            this.props.dispatch(selectDocument(''));
     }
 
     mouseMove(e) {
         let dx = e.pageX - this.mouseX;
         let dy = this.mouseY - e.pageY;
+        if (Math.abs(dx) >= 10 || Math.abs(dy) >= 10)
+            this.moveStarted = true;
+        if (!this.moveStarted)
+            return;
         if (this.movingObjects) {
-            if (Math.abs(dx) >= 10 || Math.abs(dy) >= 10)
-                this.moveStarted = true;
-            if (this.moveStarted) {
-                this.needToSelect = null;
-                let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
-                let p2 = this.xyInterceptFromPoint(this.mouseX, this.mouseY);
-                if (p1 && p2)
-                    this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
-                this.mouseX = e.pageX;
-                this.mouseY = e.pageY;
-            }
+            this.needToSelect = null;
+            let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
+            let p2 = this.xyInterceptFromPoint(this.mouseX, this.mouseY);
+            if (p1 && p2)
+                this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
+            this.mouseX = e.pageX;
+            this.mouseY = e.pageY;
         } else if (this.adjustingCamera) {
             let camera = this.props.camera;
             if (e.button === 0) {
