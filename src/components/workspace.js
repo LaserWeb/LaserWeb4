@@ -527,10 +527,17 @@ WorkspaceContent = connect(
 class Workspace extends React.Component {
     componentWillMount() {
         this.gcodePreview = new GcodePreview();
+        this.setSimTime = e => {
+            let {workspace} = this.props;
+            if (e.target.value >= this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate - .00001)
+                this.props.dispatch(setWorkspaceAttrs({ simTime: 1e10 }));
+            else
+                this.props.dispatch(setWorkspaceAttrs({ simTime: +e.target.value }));
+        };
     }
 
     render() {
-        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setSimTime, setShowDocuments} = this.props;
+        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setShowDocuments} = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             this.gcodePreview.setParsedGcode(parseGcode(gcode));
@@ -562,7 +569,7 @@ class Workspace extends React.Component {
                             </tr>
                             <tr>
                                 <td>Sim time</td>
-                                <td><input value={workspace.simTime} onChange={setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
+                                <td><input value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
                             </tr>
                         </tbody>
                     </table>
@@ -576,10 +583,10 @@ class Workspace extends React.Component {
 Workspace = connect(
     state => ({ camera: state.camera, gcode: state.gcode, workspace: state.workspace }),
     dispatch => ({
+        dispatch,
         reset: () => dispatch(resetCamera()),
         setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
-        setSimTime: e => dispatch(setWorkspaceAttrs({ simTime: +e.target.value })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
     })
 )(Workspace);
