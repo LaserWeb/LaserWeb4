@@ -82,5 +82,6 @@ export const settings = objectNoId('settings', {
     gcodeHoming:"",
     gcodeLaserOn:"",
     gcodeLaserOff:"",
+    gcodeSMaxValue: 1,
     
 });

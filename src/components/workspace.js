@@ -27,6 +27,7 @@ import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
+import { LaserPreview } from '../draw-commands/LaserPreview'
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
@@ -222,7 +223,8 @@ class WorkspaceContent extends React.Component {
             return;
 
         this.regl = require('regl')({
-            canvas: ReactDOM.findDOMNode(canvas)
+            canvas: ReactDOM.findDOMNode(canvas),
+            extensions: ['EXT_blend_minmax'],
         });
         this.hitTestFrameBuffer = this.regl.framebuffer({
             width: this.props.width,
@@ -239,6 +241,16 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+                if (this.props.workspace.showLaser) {
+                    this.drawCommands.noDepth(() => {
+                        this.props.laserPreview.draw(this.drawCommands, {
+                            diameter: this.props.settings.machineBeamDiameter,
+                            gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
+                            g0Rate: this.props.workspace.g0Rate,
+                            simTime: this.props.workspace.simTime,
+                        });
+                    });
+                }
                 if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
                         let {document} = cachedDocument;
@@ -282,7 +294,11 @@ class WorkspaceContent extends React.Component {
                         }
                     }
                 }
-                this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
+                if (this.props.workspace.showGcode) {
+                    this.drawCommands.noDepth(() => {
+                        this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
+                    });
+                }
             });
             //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
         });
@@ -527,6 +543,7 @@ WorkspaceContent = connect(
 class Workspace extends React.Component {
     componentWillMount() {
         this.gcodePreview = new GcodePreview();
+        this.laserPreview = new LaserPreview();
         this.setSimTime = e => {
             let {workspace} = this.props;
             if (e.target.value >= this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate - .00001)
@@ -537,42 +554,58 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setShowDocuments} = this.props;
+        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments} = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
-            this.gcodePreview.setParsedGcode(parseGcode(gcode));
+            let parsedGcode = parseGcode(gcode);
+            this.gcodePreview.setParsedGcode(parsedGcode);
+            this.laserPreview.setParsedGcode(parsedGcode);
         }
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
-                    <WorkspaceContent gcodePreview={this.gcodePreview} />
+                    <WorkspaceContent gcodePreview={this.gcodePreview} laserPreview={this.laserPreview} />
                 </SetSize>
                 <div id="workspace-controls">
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td />
-                                <td><button onClick={this.props.reset}>Reset View</button></td>
-                            </tr>
-                            <tr>
-                                <td>Perspective</td>
-                                <td><input checked={camera.showPerspective} onChange={setShowPerspective} type="checkbox" /></td>
-                            </tr>
-                            <tr>
-                                <td>Show Documents</td>
-                                <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
-                            </tr>
-                            <tr>
-                                <td>g0 rate</td>
-                                <td><input value={workspace.g0Rate} onChange={setG0Rate} type="number" step="any" /></td>
-                                <td>mm/min</td>
-                            </tr>
-                            <tr>
-                                <td>Sim time</td>
-                                <td><input value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div style={{ display: 'flex' }}>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td />
+                                    <td><button onClick={this.props.reset}>Reset View</button></td>
+                                </tr>
+                                <tr>
+                                    <td>g0 rate</td>
+                                    <td><input value={workspace.g0Rate} onChange={setG0Rate} type="number" step="any" /></td>
+                                    <td>mm/min</td>
+                                </tr>
+                                <tr>
+                                    <td>Sim time</td>
+                                    <td><input value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table style={{ marginLeft: 10 }}>
+                            <tbody>
+                                <tr>
+                                    <td>Perspective</td>
+                                    <td><input checked={camera.showPerspective} onChange={setShowPerspective} type="checkbox" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Show Gcode</td>
+                                    <td><input checked={workspace.showGcode} onChange={setShowGcode} type="checkbox" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Show Laser</td>
+                                    <td><input checked={workspace.showLaser} onChange={setShowLaser} type="checkbox" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Show Documents</td>
+                                    <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <CommandHistory />
                 </div>
 
@@ -587,6 +620,8 @@ Workspace = connect(
         reset: () => dispatch(resetCamera()),
         setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
+        setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
+        setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
     })
 )(Workspace);

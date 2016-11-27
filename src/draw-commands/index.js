@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { gcode } from './GcodePreview';
+import { laser } from './LaserPreview';
 
 function camera(regl) {
     return regl({
@@ -145,5 +146,6 @@ export default class DrawCommands {
         this.simple2d = simple2d(regl);
         this.image = image(regl);
         this.gcode = gcode(regl);
+        this.laser = laser(regl);
     }
 };
