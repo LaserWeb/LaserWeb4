@@ -268,3 +268,38 @@ body, html, .full-height {
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #fcc}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
+
+
+/*FullSizeModal*/
+
+
+.full-width .modal-dialog {
+  width: 98%;
+  max-height: 92%;
+  padding: 0;
+}
+
+.full-width .modal-content {
+  max-height: 99%;
+}
+
+
+/* reeact-bootstrap-table*/
+
+.clearfix {display: block; clear:both}
+
+.flexTable {}
+.flexTHead {border-bottom: 1px solid #ccc}
+.flexTable .tableRow.collapsible {cursor: s-resize;}
+.flexTable .collapsible:hover {background: rgb(188, 232, 241)}
+.flexTable .tableRow.collapsible.openedÊ{cursor: n-resize }
+.flexTable .tableRow label {width: 100%}
+/*.flexTable .tableRow input {width: auto !important}*/
+.flexTable .flexTbody .column {align-items:none}
+.flexTable .flexTbody .column > div {width:100%; overflow:visible !important}
+.flexTable .flexTbody .column._actions {flex:none !important; text-align: right}
+.flexTable .flexTbody .column._actions div {line-height: 0}
+.flexTable .flexTbody .column input, 
+.flexTable .flexTbody .column select,
+.flexTable .flexTbody .column textarea {width:100%}
+.nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}

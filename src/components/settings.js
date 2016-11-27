@@ -6,6 +6,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
 import MachineProfile from './machine-profile';
+import { MaterialDatabaseButton } from './material-database';
 
 import {PanelGroup, Panel} from 'react-bootstrap';
 
@@ -127,7 +128,9 @@ class Settings extends React.Component {
             
             <PanelGroup>
                 <Panel header="Machine Profiles"  bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
-                <MachineProfile onApply={this.props.handleApplyProfile}/>
+                    <MachineProfile onApply={this.props.handleApplyProfile}/>
+                    
+                    <MaterialDatabaseButton label="Launch Material Database"/>
                 </Panel>
                 <Panel collapsible header="Machine" eventKey="1" bsStyle="info">
                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
@@ -161,6 +164,9 @@ class Settings extends React.Component {
                     <hr/>
                     <QuadrantField {... {errors: this.state.errors, object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </Panel>
+                
+               
+                
                 <Panel collapsible header="Tools" bsStyle="danger" eventKey="5">
                     <h5>Settings</h5>
                     <button onClick={() => this.props.handleDownload('laserweb-settings.json',this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;

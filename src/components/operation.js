@@ -19,9 +19,9 @@ import { connect } from 'react-redux';
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { withBounds } from './get-bounds.js';
 
-function NumberInput({op, field, onChange, onFocus}) {
+function NumberInput({op, field, style={ width: "100%" }, ...rest}) {
     return (
-        <input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} onChange={onChange} onFocus={onFocus} />
+        <input type='number' step='any' value={op[field.name]} style={style} {...rest} />
     );
 }
 
@@ -131,7 +131,7 @@ const checkToolAngle = {
     error: 'Must be in range (0, 180)',
 };
 
-const fields = {
+export const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -150,11 +150,12 @@ const fields = {
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 };
 
+
 const tabFields = [
     { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
 ];
 
-const types = {
+export const types = {
     'Laser Engrave': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Laser Inside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
     'Laser Outside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
@@ -163,6 +164,7 @@ const types = {
     'Mill Inside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Outside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill V Carve': { allowTabs: false, fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+
 };
 
 class Operation extends React.Component {

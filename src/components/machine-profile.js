@@ -15,13 +15,16 @@ class MachineProfile extends React.Component {
         this.handleApply.bind(this);
         this.handleSelect.bind(this);
         this.handleInput.bind(this);
-        this.state={selected:"", newLabel: '', newSlug:''}
+        
+        let selected = this.props.settings.__selectedProfile || "";
+        
+        this.state={selected: selected , newLabel: '', newSlug:''}
     }
     
     handleApply(e) {
        let selected=this._getSelectedProfile()
        if (selected && confirm("Are you sure? Current settings will be overwritten."))
-           return this.props.onApply(selected.settings);
+           return this.props.onApply({__selectedProfile: this.state.selected, ...selected.settings });
        
        return ;
     }

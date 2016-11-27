@@ -57,6 +57,9 @@ import { objectNoId } from '../reducers/object'
 
 
 export const settings = objectNoId('settings', {
+    
+    __currentProfile:null,
+    
     machineWidth: 300,
     machineHeight: 300,
     machineBeamDiameter: 0.2,
