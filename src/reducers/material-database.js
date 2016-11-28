@@ -14,13 +14,24 @@ const MATERIAL_TEMPLATE=()=>{
     return {
         id: uuid.v4(),
         material:{
-            isEditable:true,
+            isEditable:false,
             name: generateName(),
             thickness: generateInteger(1,10)+"mm",
             notes:""
         },
         operations:[]
     }
+}
+
+const MATERIAL_OPERATION_TEMPLATE=(type, machineProfile=null)=>{
+    return {
+        machine_profile:machineProfile,
+        type:type,
+        name: "** "+generateName()+" **",
+        notes:"",
+        params:{}
+    }
+  
 }
 
 export const materialDatabase = (state = initialState, action) => {
@@ -31,8 +42,10 @@ export const materialDatabase = (state = initialState, action) => {
                 state = [...state, MATERIAL_TEMPLATE()];
                 return state;
                 
-            case "MATERIAL_REMOVE":
-                return omit(state,(val,key)=>{return key!==action.payload.id});
+            case "MATERIAL_DELETE":
+                return state.filter((material)=>{
+                    return (material.id !== action.payload.materialId);
+                })
             
             case "MATERIAL_SET_ATTRS":
                 return state.map((material) => {
@@ -54,7 +67,6 @@ export const materialDatabase = (state = initialState, action) => {
                                 return operation;
                             
                             operation=deepMerge(operation, action.payload.attrs)
-                            //operation=Object.assign({},operation, action.payload.attrs)
                             
                             return operation;
                             
@@ -117,6 +129,16 @@ export const materialDatabase = (state = initialState, action) => {
                     
                 })
             
+            case "MATERIAL_OPERATION_ADD":
+                return state.map((material) => {
+                    if (material.id !== action.payload.materialId)
+                        return material;
+                      
+                    material.operations=[...material.operations, MATERIAL_OPERATION_TEMPLATE(action.payload.operationType, action.payload.machineProfile)]
+                    
+                    return material;
+                });
+            
             case "MATERIAL_OPERATION_DELETE":
                 return state.map((material) => {
                     if (material.id !== action.payload.materialId)
@@ -129,10 +151,7 @@ export const materialDatabase = (state = initialState, action) => {
                     return material;
                 })
                 
-            case "MATERIAL_DELETE":
-                return state.filter((material)=>{
-                    return (material.id !== action.payload.materialId);
-                })
+            
             default:
                 return state;
         }
