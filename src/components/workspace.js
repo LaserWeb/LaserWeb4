@@ -241,16 +241,6 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showLaser) {
-                    this.drawCommands.noDepth(() => {
-                        this.props.laserPreview.draw(this.drawCommands, {
-                            diameter: this.props.settings.machineBeamDiameter,
-                            gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
-                            g0Rate: this.props.workspace.g0Rate,
-                            simTime: this.props.workspace.simTime,
-                        });
-                    });
-                }
                 if (this.props.workspace.showDocuments) {
                     for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
                         let {document} = cachedDocument;
@@ -293,6 +283,16 @@ class WorkspaceContent extends React.Component {
                                 break;
                         }
                     }
+                }
+                if (this.props.workspace.showLaser) {
+                    this.drawCommands.noDepth(() => {
+                        this.props.laserPreview.draw(this.drawCommands, {
+                            diameter: this.props.settings.machineBeamDiameter,
+                            gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
+                            g0Rate: this.props.workspace.g0Rate,
+                            simTime: this.props.workspace.simTime,
+                        });
+                    });
                 }
                 if (this.props.workspace.showGcode) {
                     this.drawCommands.noDepth(() => {

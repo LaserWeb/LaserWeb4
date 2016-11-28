@@ -225,11 +225,11 @@ export function getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert
     } else if (op.type === 'Mill Inside') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
-        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', true);
     } else if (op.type === 'Mill Outside') {
         if (op.margin)
             geometry = offset(geometry, op.margin * mmToClipperScale);
-        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb');
+        camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', true);
     } else if (op.type === 'Mill V Carve') {
         camPaths = vCarve(geometry, op.toolAngle, op.passDepth * mmToClipperScale);
     }
@@ -267,46 +267,3 @@ export function getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert
 
     return gcode;
 } // getMillGcodeFromOp
-
-export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
-    "use strict";
-
-    var gcode = settings.gcodeStart;
-
-    for (var opIndex = 0; opIndex < operations.length; ++opIndex) {
-        var op = operations[opIndex];
-
-        let geometry = [];
-        let tabGeometry = [];
-        let docsWithImages = [];
-        function examineDocTree(isTab, id) {
-            let doc = documents.find(d => d.id === id);
-            if (doc.rawPaths)
-                if (isTab)
-                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-                else
-                    geometry = union(geometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-            if (doc.isRoot && doc.type === 'image' && !isTab) {
-                let cache = documentCacheHolder.cache.get(doc.id);
-                if (cache && cache.imageLoaded)
-                    docsWithImages.push(Object.assign([], doc, { image: cache.image }));
-            }
-            for (let child of doc.children)
-                examineDocTree(isTab, child);
-        }
-        for (let id of op.documents)
-            examineDocTree(false, id);
-        for (let id of op.tabDocuments)
-            examineDocTree(true, id);
-
-        if (op.type.substring(0, 5) === 'Mill ') {
-            let g = getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert);
-            if (!g)
-                return '';
-            gcode += g;
-        }
-    } // opIndex
-
-    gcode += settings.gcodeEnd;
-    return gcode;
-} // getGcode

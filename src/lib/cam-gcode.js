@@ -15,8 +15,9 @@
 
 'use strict';
 
-import { rawPathsToClipperPaths, union } from './mesh';
+import { getLaserCutGcodeFromOp } from './cam-gcode-laser-cut'
 import { getMillGcodeFromOp } from './cam-gcode-mill'
+import { rawPathsToClipperPaths, union } from './mesh';
 
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
     "use strict";
@@ -49,7 +50,12 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         for (let id of op.tabDocuments)
             examineDocTree(true, id);
 
-        if (op.type.substring(0, 5) === 'Mill ') {
+        if (op.type === 'Laser Engrave' || op.type === 'Laser Inside' || op.type === 'Laser Outside') {
+            let g = getLaserCutGcodeFromOp(settings, opIndex, op, geometry, tabGeometry, showAlert);
+            if (!g)
+                return '';
+            gcode += g;
+        } else if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert);
             if (!g)
                 return '';
