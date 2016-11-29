@@ -29,6 +29,38 @@
             }
 
         ]
+    } ,
+    
+    {
+        "id":"ProfileTest",
+        "material": {
+            "name":"ProfileTest",
+            "thickness":"3mm",
+            "notes":"Blurb"
+        },
+        "operations":[
+            {
+                
+                "machine_profile":"*gen_smoothie",
+                "type":"Laser Engrave",
+                "name":"SMOOTHI",
+                "notes":"",
+                "params":{
+                    
+                }
+            },
+            {
+                
+                "machine_profile":"*gen_grbl",
+                "type":"Laser Inside",
+                "name":"GRBL",
+                "notes":"",
+                "params":{
+                    
+                }
+            }
+
+        ]
     } 
 ]
 

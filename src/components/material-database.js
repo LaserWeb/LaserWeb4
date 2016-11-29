@@ -1,20 +1,25 @@
-import uuid from 'node-uuid';
-
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {connect, dispatch} from 'react-redux'
-import {addMaterial, setMaterialAttrs, setMaterialOperationAttrs, toggleMaterialView, toggleMaterialOperationEdit, toggleMaterialEdit, deleteMaterialOperation, deleteMaterial} from '../actions/material-database.js'
+import { connect, dispatch } from 'react-redux'
+import { addMaterial, setMaterialAttrs, deleteMaterial,toggleMaterialView,toggleMaterialEdit,
+        addMaterialOperation, deleteMaterialOperation, setMaterialOperationAttrs,  toggleMaterialOperationEdit,
+        uploadMaterialDatabase, downloadMaterialDatabase } from '../actions/material-database.js'
 
 
 import * as operation from './operation'
 
-import {Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse} from 'react-bootstrap'
+import {Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup} from 'react-bootstrap'
+import {FileField} from './forms'
+
 import * as FlexData from 'react-flex-data';
 import Icon from './font-awesome';
 
 import omit from 'object.omit';
 
+import stringify from 'json-stringify-pretty-compact';
 
+
+import {FileStorage, LocalStorage} from '../lib/storages';
 
 class FullSizeModal extends React.Component {
     
@@ -28,7 +33,7 @@ class FullSizeModal extends React.Component {
             {this.props.children}
             </Modal.Body>
             <Modal.Footer>
-              <Button onClick={this.props.modal.onHide}>Close</Button>
+              {this.props.footer}
             </Modal.Footer>
           </Modal>
         )
@@ -90,7 +95,7 @@ class Table extends React.Component {
                    {this.props.columns.map((column) => <FlexData.TableHeaderColumn columnClass={"column "+column.id} key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
                    
                 </FlexData.TableHeader>
-                <FlexData.TableBody bodyClass="flexTbody">
+                <FlexData.TableBody bodyClass="flexTBody">
                     {this.props.data.map((row, i) => {
                         
                         let style=(!(i%2)) ? {backgroundColor:this.props.altColor} : undefined
@@ -136,6 +141,55 @@ function MaterialActions({isEditable=false, onDelete=null, onEdit=null, onAppend
         </ButtonGroup>)
 }
 
+class MaterialOperationsDropdown extends React.Component {
+    
+    constructor(props){
+        super(props);
+        this.state={selected:""}
+        this.handleSelect.bind(this)
+        this.handleClick.bind(this)
+    }
+    
+    handleClick(e){
+        if (this.state.selected)
+            this.props.onApply(this.state.selected, this.props.selectedProfile)
+    }
+    
+    handleSelect(e){
+        this.setState({selected:e.target.value})
+    }
+    
+    render(){
+        return (
+            
+            
+            <FormGroup>
+            <ControlLabel>Select a Material Operation to add</ControlLabel>
+            
+            <InputGroup>
+                
+                <FormControl componentClass="select" placeholder="Operation type" ref="select" onChange={(e)=>this.handleSelect(e)}>
+                    <option key="__" value="">Select a Operation Type</option>
+                {Object.keys(operation.types).map((item,i)=>{return <option key={i} value={item}>{item}</option>})}        
+                </FormControl>
+                <InputGroup.Button>
+                        <Button bsClass="btn btn-success" onClick={(e)=>{this.handleClick(e)}}><Icon name="share" /></Button>
+                </InputGroup.Button>
+            </InputGroup>
+            </FormGroup>
+            
+        )
+    }
+    
+}
+
+MaterialOperationsDropdown = connect((state)=>{
+        return {
+            selectedProfile: state.settings.__selectedProfile || "*"
+        }
+})(MaterialOperationsDropdown)
+
+
 
 class MaterialOperations extends React.Component {
 
@@ -148,20 +202,21 @@ class MaterialOperations extends React.Component {
         this.handleRowAppend.bind(this)
     }
     
-    handleCellChange(materialId, operationIndex, paramKey, paramValue ){
-        this.props.handleCellChange(materialId, operationIndex, {[paramKey]:paramValue} );
+    handleCellChange(operationIndex, paramKey, paramValue ){
+        this.props.handleCellChange(this.props.materialId, operationIndex, {[paramKey]:paramValue} );
     }
     
-    handleRowEdit(materialId, operationIndex) {
-        this.props.handleRowEdit(materialId, operationIndex);
+    handleRowEdit( operationIndex) {
+        this.props.handleRowEdit(this.props.materialId, operationIndex);
     }
     
-    handleRowDelete(materialId, operationIndex) {
-        this.props.handleRowDelete(materialId, operationIndex);
+    handleRowDelete( operationIndex) {
+        this.props.handleRowDelete(this.props.materialId, operationIndex);
     }
     
-    handleRowAppend(materialId, operationType) {
+    handleRowAppend( operationType, machineProfile=null) {
         
+        this.props.handleRowAppend(this.props.materialId, operationType, machineProfile);
     }
  
     render(){
@@ -171,6 +226,10 @@ class MaterialOperations extends React.Component {
             let data={};
             let tables={};
             operations.forEach((_operation, _operationindex)=>{
+                
+                if (this.props.profileFilter && this.props.profileFilter!="*" && (_operation.machine_profile!=this.props.profileFilter))
+                    return;
+                
                 /*Takes the type of operation from operation::types*/
                 let currentOperation=operation.types[_operation.type]
                 
@@ -179,7 +238,7 @@ class MaterialOperations extends React.Component {
                 
                 currentOperation.fields.forEach((key)=>{
                     let currentParam = operation.fields[key];
-                    columns.push({id: key, label: currentParam.label+" ("+currentParam.units+")"})
+                    columns.push({id: key, label: currentParam.label+ ((currentParam.units)? " ("+currentParam.units+")":"")})
                 })
                 
                 columns.push({id: "_actions", label: ""})
@@ -207,7 +266,7 @@ class MaterialOperations extends React.Component {
                        let FieldType= currentParam.input
                        if (_operation.isEditable){
                         //writes on operation.params[i][key]
-                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "params", {[key]:e.target.value})}} />
+                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange( _operationindex, "params", {[key]:e.target.value})}} />
                        } else {
                         fields[key]    = <span>{_operation.params[currentParam.name] || "---"}</span>
                         
@@ -217,8 +276,8 @@ class MaterialOperations extends React.Component {
                 if (this.props.canEdit){
                        fields['_actions'] = <MaterialActions
                                                 isEditable={_operation.isEditable}
-                                                onEdit={(e)=>{this.handleRowEdit(this.props.materialId,_operationindex)}}
-                                                onDelete={(e)=>{this.handleRowDelete(this.props.materialId,_operationindex)}}
+                                                onEdit={(e)=>{this.handleRowEdit(_operationindex)}}
+                                                onDelete={(e)=>{this.handleRowDelete(_operationindex)}}
                                                 
                                                 />
                 }
@@ -237,7 +296,7 @@ class MaterialOperations extends React.Component {
             
             return(<div className="materialOperations">{result}
             <div className="well well-sm">
-            here goes form to add new operation
+            <MaterialOperationsDropdown onApply={(operationType, machineProfile)=>this.handleRowAppend(operationType, machineProfile)}/>
             </div>
             </div>);
         
@@ -255,6 +314,9 @@ MaterialOperations = connect(null,(dispatch) =>{
         },
         handleRowDelete: (materialId, operationIndex) =>{
             if (confirm("Are you sure?"))  dispatch(deleteMaterialOperation(materialId, operationIndex));
+        },
+        handleRowAppend: (materialId, operationType, machineProfile) => {
+            dispatch(addMaterialOperation(materialId, operationType,machineProfile));
         }
     }
     
@@ -315,7 +377,7 @@ class Material extends React.Component {
             
         }
         
-            row["collapseContent"] = <MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable} />;
+            row["collapseContent"] = <MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable} profileFilter={this.props.profileFilter} />;
         
         row["_actions"] = <MaterialActions
                                                     isEditable={this.props.data.material.isEditable}
@@ -349,6 +411,27 @@ Material = connect(null, (dispatch)=>{
     
 } )(Material);
 
+function MaterialMachineProfile({profiles, selected, onChange, blank="*", label="Profile Filter", ...rest})
+{
+    
+    
+        return (<FormGroup>
+            <ControlLabel>{label}</ControlLabel>
+              <FormControl componentClass="select"  onChange={(e)=>{onChange(e.target.value)}} value={selected} {...rest}>
+                      <option value={blank}>Any</option>
+                      {
+                        Object.entries(profiles).map((entry)=>{
+                            let [key,item] = entry;
+                            return (<option key={key} value={key}>{item.machineLabel}</option>)    
+                        })
+                      }
+              </FormControl>
+              </FormGroup>)
+    
+    
+}
+
+
 
 class MaterialDatabaseEditor extends React.Component {
     
@@ -358,10 +441,12 @@ class MaterialDatabaseEditor extends React.Component {
         this.handleProfileSelect.bind(this)
         this.handleMaterialChange.bind(this)
         this.handleAddMaterial.bind(this)
+        this.handleExport.bind(this)
     }
     
-    handleProfileSelect(e) {
-        
+    handleProfileSelect(value) {
+        console.log(value)
+        this.setState({selected:value})
     }
     
     handleMaterialChange(data){
@@ -372,31 +457,32 @@ class MaterialDatabaseEditor extends React.Component {
         this.props.handleAddMaterial();
     }
     
+    handleExport(e){
+        this.props.handleDownload(this.props.materials)
+    }
+    
+    
     render(){
      
         
+        
         return (
-            <FullSizeModal modal={{show:this.props.show, onHide:this.props.onHide, header:"Material Database"}}>
-            <FormGroup>
-            <ControlLabel>Profile Filter</ControlLabel>
-              <FormControl componentClass="select"  ref="select" onChange={(e)=>{this.handleProfileSelect(e)}} value={this.state.selected}>
-                      <option value="*">Any</option>
-                      {
-                        Object.entries(this.props.profiles).map((entry)=>{
-                            let [key,item] = entry;
-                            return (<option key={key} value={key}>{item.machineLabel}</option>)    
-                        })
-                      }
-              </FormControl>
-              </FormGroup>
+            <FullSizeModal modal={{show:this.props.show, onHide:this.props.onHide, header:"Material Database"}}
+                footer={<ButtonToolbar>
+                    <Button bsStyle="primary" onClick={(e)=>this.handleAddMaterial(e)}>Add new material</Button>
+                    <Button bsStyle="info" onClick={(e)=>this.handleExport(e)}><Icon name="download"/></Button>
+                    <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0],uploadMaterialDatabase)}   buttonClass="btn btn-danger"/>
+                </ButtonToolbar>}
+            >
+            <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value)=>{this.handleProfileSelect(value)}}/>
               
-              
+              <div className="materialList">
               {this.props.materials.map((item)=>{
-                   return (<Material key={item.id} data={item} onChange={(data)=>this.handleMaterialChange(data)}/>)
+                   return (<Material key={item.id} data={item} onChange={(data)=>this.handleMaterialChange(data)} profileFilter={this.state.selected}/>)
               })}
-              
+              </div>
               <hr/>
-              <Button block bsStyle="primary" bsSize="xsmall" onClick={(e)=>this.handleAddMaterial(e)}>Add new material</Button>
+              
               
             </FullSizeModal>
          )
@@ -420,6 +506,13 @@ const mapDispatchToProps = (dispatch) => {
     return {
         handleAddMaterial: () => {
             dispatch(addMaterial())
+        },
+        handleDownload:(materials) => {
+            FileStorage.save('laserweb-materials', stringify(materials),"application/json" );
+            dispatch(downloadMaterialDatabase(materials))
+        },
+        handleUpload:(name, action)=>{
+            FileStorage.load(name, (file, result) => dispatch(action(file, result)));
         }
         
     }

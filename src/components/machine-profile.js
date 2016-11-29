@@ -7,6 +7,8 @@ import { addMachineProfile, delMachineProfileId } from '../actions/settings';
 import stringify from 'json-stringify-pretty-compact';
 import slug from 'slug'
 
+import Icon from './font-awesome';
+
 class MachineProfile extends React.Component {
     
     constructor(props)
@@ -95,7 +97,7 @@ class MachineProfile extends React.Component {
                     </FormControl>
                     
                     <InputGroup.Button>
-                        <Button bsClass="btn btn-info" onClick={(e)=>{this.handleApply(e)}}><Glyphicon glyph="share-alt" /></Button>
+                        <Button bsClass="btn btn-info" onClick={(e)=>{this.handleApply(e)}}><Icon name="share" /></Button>
                         <Button bsClass="btn btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /></Button>
                     </InputGroup.Button>
                     </InputGroup>
