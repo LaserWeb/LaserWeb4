@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { withBounds } from './get-bounds.js';
 
-function NumberInput({op, field, style={ width: "100%" }, ...rest}) {
+function NumberInput({op, field, style = { width: "100%" }, ...rest}) {
     return (
         <input type='number' step='any' value={op[field.name]} style={style} {...rest} />
     );
@@ -111,6 +111,11 @@ const checkPositive = {
     error: 'Must be > 0',
 };
 
+const checkPositiveInt = {
+    check: v => v > 0 && (v | 0) === +v,
+    error: 'Must be integer > 0',
+};
+
 const checkGE0 = {
     check: v => v >= 0,
     error: 'Must be >= 0',
@@ -118,7 +123,7 @@ const checkGE0 = {
 
 const checkPercent = {
     check: v => v >= 0 && v <= 100,
-    error: 'Must be between 0 and 100',
+    error: 'Must be in range [0, 100]',
 };
 
 const checkStepOver = {
@@ -140,6 +145,7 @@ export const fields = {
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
+    passes: { name: 'passes', label: 'Passes', units: '', input: NumberInput, ...checkPositiveInt },
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
     stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPositive },
@@ -156,13 +162,13 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Engrave': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Laser Inside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Laser Outside': { allowTabs: false, fields: ['cutDepth', 'laserDiameter', 'laserPower', 'passDepth', 'cutRate'] },
-    'Mill Pocket': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Engrave': { allowTabs: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
-    'Mill Inside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Outside': { allowTabs: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Laser Engrave': { allowTabs: true, tabFields: false, fields: ['laserPower', 'passes', 'cutRate'] },
+    'Laser Inside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Laser Outside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Engrave': { allowTabs: true, tabFields: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+    'Mill Inside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Outside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill V Carve': { allowTabs: false, fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
 
 };
@@ -302,20 +308,24 @@ class Operation extends React.Component {
                                 </table>
                             </div>
                         </div>,
-                        <div key="tabattrs" style={{ display: 'table-row' }}>
-                            <div style={leftStyle} />
-                            <div style={{ display: 'table-cell' }} />
-                            <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                                <table>
-                                    <tbody>
-                                        {tabFields.map(field => {
-                                            return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>,
                     );
+                    if (types[op.type].tabFields) {
+                        rows.push(
+                            <div key="tabattrs" style={{ display: 'table-row' }}>
+                                <div style={leftStyle} />
+                                <div style={{ display: 'table-cell' }} />
+                                <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                                    <table>
+                                        <tbody>
+                                            {tabFields.map(field => {
+                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        );
+                    }
                 }
                 else {
                     rows.push(
