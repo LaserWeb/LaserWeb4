@@ -38,6 +38,13 @@ export const materialDatabase = (state = initialState, action) => {
 
     
         switch (action.type) {
+          
+            case "MATERIALDB_UPLOAD":
+                return action.payload.database;
+          
+            case "MATERIALDB_DOWNLOAD":
+                return state;
+          
             case "MATERIAL_ADD":
                 state = [...state, MATERIAL_TEMPLATE()];
                 return state;

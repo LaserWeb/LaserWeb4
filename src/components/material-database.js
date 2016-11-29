@@ -1,13 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {connect, dispatch} from 'react-redux'
-import {addMaterial, setMaterialAttrs, deleteMaterial,toggleMaterialView,toggleMaterialEdit,
-        addMaterialOperation, deleteMaterialOperation, setMaterialOperationAttrs,  toggleMaterialOperationEdit} from '../actions/material-database.js'
+import { connect, dispatch } from 'react-redux'
+import { addMaterial, setMaterialAttrs, deleteMaterial,toggleMaterialView,toggleMaterialEdit,
+        addMaterialOperation, deleteMaterialOperation, setMaterialOperationAttrs,  toggleMaterialOperationEdit,
+        uploadMaterialDatabase, downloadMaterialDatabase } from '../actions/material-database.js'
 
 
 import * as operation from './operation'
 
 import {Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup} from 'react-bootstrap'
+import {FileField} from './forms'
+
 import * as FlexData from 'react-flex-data';
 import Icon from './font-awesome';
 
@@ -223,6 +226,10 @@ class MaterialOperations extends React.Component {
             let data={};
             let tables={};
             operations.forEach((_operation, _operationindex)=>{
+                
+                if (this.props.profileFilter && this.props.profileFilter!="*" && (_operation.machine_profile!=this.props.profileFilter))
+                    return;
+                
                 /*Takes the type of operation from operation::types*/
                 let currentOperation=operation.types[_operation.type]
                 
@@ -370,7 +377,7 @@ class Material extends React.Component {
             
         }
         
-            row["collapseContent"] = <MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable} />;
+            row["collapseContent"] = <MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable} profileFilter={this.props.profileFilter} />;
         
         row["_actions"] = <MaterialActions
                                                     isEditable={this.props.data.material.isEditable}
@@ -438,7 +445,8 @@ class MaterialDatabaseEditor extends React.Component {
     }
     
     handleProfileSelect(value) {
-        
+        console.log(value)
+        this.setState({selected:value})
     }
     
     handleMaterialChange(data){
@@ -450,26 +458,27 @@ class MaterialDatabaseEditor extends React.Component {
     }
     
     handleExport(e){
-        this.props.handleExport(this.props.materials)
+        this.props.handleDownload(this.props.materials)
     }
     
     
     render(){
      
         
+        
         return (
             <FullSizeModal modal={{show:this.props.show, onHide:this.props.onHide, header:"Material Database"}}
                 footer={<ButtonToolbar>
                     <Button bsStyle="primary" onClick={(e)=>this.handleAddMaterial(e)}>Add new material</Button>
                     <Button bsStyle="info" onClick={(e)=>this.handleExport(e)}><Icon name="download"/></Button>
-                    <Button onClick={this.props.onHide}>Close</Button>
+                    <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0],uploadMaterialDatabase)}   buttonClass="btn btn-danger"/>
                 </ButtonToolbar>}
             >
             <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value)=>{this.handleProfileSelect(value)}}/>
               
               <div className="materialList">
               {this.props.materials.map((item)=>{
-                   return (<Material key={item.id} data={item} onChange={(data)=>this.handleMaterialChange(data)}/>)
+                   return (<Material key={item.id} data={item} onChange={(data)=>this.handleMaterialChange(data)} profileFilter={this.state.selected}/>)
               })}
               </div>
               <hr/>
@@ -498,10 +507,12 @@ const mapDispatchToProps = (dispatch) => {
         handleAddMaterial: () => {
             dispatch(addMaterial())
         },
-        handleExport:(materials) => {
-            FileStorage.save('laserweb-materials', stringify(materials),"application/json" )
-            
-            
+        handleDownload:(materials) => {
+            FileStorage.save('laserweb-materials', stringify(materials),"application/json" );
+            dispatch(downloadMaterialDatabase(materials))
+        },
+        handleUpload:(name, action)=>{
+            FileStorage.load(name, (file, result) => dispatch(action(file, result)));
         }
         
     }

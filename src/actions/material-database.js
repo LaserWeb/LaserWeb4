@@ -12,3 +12,7 @@ export const addMaterialOperation = (materialId, operationType, machineProfile=n
 export const deleteMaterialOperation = (materialId, operationIndex)  => ({type:"MATERIAL_OPERATION_DELETE", payload: {materialId, operationIndex}});
 export const setMaterialOperationAttrs = (materialId, operationIndex, attrs) => ({type:"MATERIAL_SET_OPERATION_ATTRS", payload: { materialId, operationIndex, attrs}});
 export const toggleMaterialOperationEdit = (materialId, operationIndex) => ({type:"MATERIAL_OPERATION_TOGGLE_EDIT", payload: {materialId, operationIndex}});
+
+/*MATERIAL DB*/
+export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIALDB_UPLOAD", payload: {file, database:JSON.parse(content)}});
+export const downloadMaterialDatabase = (database) => ({ type:"MATERIALDB_DOWNLOAD", payload: {database}});
