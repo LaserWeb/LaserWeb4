@@ -2,7 +2,7 @@
 import omit from 'object.omit'
 
 
-const initialState = require("../data/machine-profiles.json");
+const initialState = require("../data/lw.machines/machine-profiles.json");
 
 
 export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
