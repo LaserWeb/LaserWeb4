@@ -7,7 +7,8 @@
     "start": "webpack-dev-server --progress --colors",
     "bundle-dev": "webpack --progress --colors",
     "bundle-prod": "webpack -p --progress --colors",
-    "build-docs": "jsdoc -c ./jsdoc.json"
+    "build-docs": "jsdoc -c ./jsdoc.json",
+    "installdev" : "git submodule update --remote && npm install "
   },
   "repository": {
     "type": "git",
