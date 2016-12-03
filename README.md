@@ -82,5 +82,7 @@ The package list changes frequently; expect to do an **npm install** every time 
  * npm run bundle-dev   -  Bundle the project for development.
  * npm run bundle-prod  -  Bundle the project for production.
  * npm run build-docs   -  Build the sources documentations.
+ * npm run installdev   -  Resolve git submodules and install.
+ 
 -------------------------------------------------------------
 ```
