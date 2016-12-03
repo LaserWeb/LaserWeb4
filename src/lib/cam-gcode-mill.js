@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, engrave, insideOutside, pocket, separateTabs, vCarve } from './cam';
+import { dist, cut, insideOutside, pocket, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert mill paths to gcode.
@@ -220,13 +220,13 @@ export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeome
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = pocket(geometry, op.toolDiameter * mmToClipperScale, op.stepOver, op.direction === 'Climb');
-    } else if (op.type === 'Mill Engrave') {
-        camPaths = engrave(geometry, openGeometry, op.direction === 'Climb');
-    } else if (op.type === 'Mill Inside') {
+    } else if (op.type === 'Mill Cut') {
+        camPaths = cut(geometry, openGeometry, op.direction === 'Climb');
+    } else if (op.type === 'Mill Cut Inside') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', true);
-    } else if (op.type === 'Mill Outside') {
+    } else if (op.type === 'Mill Cut Outside') {
         if (op.margin)
             geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.toolDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', true);

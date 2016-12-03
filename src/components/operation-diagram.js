@@ -36,13 +36,13 @@ const hide = [
 ];
 
 const types = {
-    'Laser Engrave': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath'] },
-    'Laser Inside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgInside'] },
-    'Laser Outside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgOutside'] },
+    'Laser Cut': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath'] },
+    'Laser Cut Inside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgInside'] },
+    'Laser Cut Outside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgOutside'] },
     'Mill Pocket': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgPocket', 'svgToolDiaGrp'] },
-    'Mill Engrave': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti'] },
-    'Mill Inside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgInside', 'svgToolDiaGrp'] },
-    'Mill Outside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgOutside', 'svgToolDiaGrp'] },
+    'Mill Cut': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti'] },
+    'Mill Cut Inside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgInside', 'svgToolDiaGrp'] },
+    'Mill Cut Outside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgOutside', 'svgToolDiaGrp'] },
 };
 
 export class OperationDiagram extends React.Component {

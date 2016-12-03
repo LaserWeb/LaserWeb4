@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, engrave, insideOutside, pocket, separateTabs, vCarve } from './cam';
+import { dist, cut, insideOutside, pocket, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert laser cut paths to gcode.
@@ -90,7 +90,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         showAlert("PWM Max S Value (in Settings) must be greater than 0", "alert-danger");
         ok = false;
     }
-    if (op.type !== 'Laser Engrave') {
+    if (op.type !== 'Laser Cut') {
         if (op.laserDiameter <= 0) {
             showAlert("Laser Diameter must be greater than 0", "alert-danger");
             ok = false;
@@ -112,13 +112,13 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         return '';
 
     let camPaths = [];
-    if (op.type === 'Laser Engrave') {
-        camPaths = engrave(geometry, openGeometry, false);
-    } else if (op.type === 'Laser Inside') {
+    if (op.type === 'Laser Cut') {
+        camPaths = cut(geometry, openGeometry, false);
+    } else if (op.type === 'Laser Cut Inside') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
-    } else if (op.type === 'Laser Outside') {
+    } else if (op.type === 'Laser Cut Outside') {
         if (op.margin)
             geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);

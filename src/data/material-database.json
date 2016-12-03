@@ -10,7 +10,7 @@
             {
                 
                 "machine_profile":null,
-                "type":"Laser Engrave",
+                "type":"Laser Cut",
                 "name":"Engraving just a little",
                 "notes":"",
                 "params":{
@@ -20,7 +20,7 @@
             {
                 
                 "machine_profile":null,
-                "type":"Laser Inside",
+                "type":"Laser Cut Inside",
                 "name":"Cut through",
                 "notes":"",
                 "params":{
@@ -42,7 +42,7 @@
             {
                 
                 "machine_profile":"*gen_smoothie",
-                "type":"Laser Engrave",
+                "type":"Laser Cut",
                 "name":"SMOOTHI",
                 "notes":"",
                 "params":{
@@ -52,7 +52,7 @@
             {
                 
                 "machine_profile":"*gen_grbl",
-                "type":"Laser Inside",
+                "type":"Laser Cut Inside",
                 "name":"GRBL",
                 "notes":"",
                 "params":{

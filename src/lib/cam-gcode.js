@@ -61,7 +61,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         for (let id of op.tabDocuments)
             examineDocTree(true, id);
 
-        if (op.type === 'Laser Engrave' || op.type === 'Laser Inside' || op.type === 'Laser Outside') {
+        if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside') {
             let g = getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
                 return '';

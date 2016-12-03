@@ -162,13 +162,13 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Engrave': { allowTabs: true, tabFields: false, fields: ['laserPower', 'passes', 'cutRate'] },
-    'Laser Inside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
-    'Laser Outside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['laserPower', 'passes', 'cutRate'] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Engrave': { allowTabs: true, tabFields: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
-    'Mill Inside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Outside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill V Carve': { allowTabs: false, fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
 
 };
