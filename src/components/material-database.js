@@ -13,10 +13,9 @@ import {FileField} from './forms'
 
 import * as FlexData from 'react-flex-data';
 import Icon from './font-awesome';
-
-import omit from 'object.omit';
-
 import stringify from 'json-stringify-pretty-compact';
+
+import { materialTreeToTabular, materialTabularToTree, arr2csv, csv2arr} from '../lib/material-database';
 
 
 import {FileStorage, LocalStorage} from '../lib/storages';
@@ -227,7 +226,7 @@ class MaterialOperations extends React.Component {
             let tables={};
             operations.forEach((_operation, _operationindex)=>{
                 
-                if (this.props.profileFilter && this.props.profileFilter!="*" && (_operation.machine_profile!=this.props.profileFilter))
+                if ((this.props.profileFilter && (_operation.machine_profile!=this.props.profileFilter)) && (this.props.profileFilter!=="*") && (_operation.machine_profile!==null))
                     return;
                 
                 /*Takes the type of operation from operation::types*/
@@ -257,7 +256,7 @@ class MaterialOperations extends React.Component {
                     //writes on operation[i][key]
                     fields['_name']=<input type="text" key="name" value={_operation.name} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value)}} />
                 } else {
-                    fields['_name']=<strong>{_operation.name}</strong>
+                    fields['_name']=<div><strong>{_operation.name}</strong>{(_operation.machine_profile) ? <small><code>{_operation.machine_profile}</code></small> : undefined}</div>
                 }
                 
                 
@@ -445,7 +444,6 @@ class MaterialDatabaseEditor extends React.Component {
     }
     
     handleProfileSelect(value) {
-        console.log(value)
         this.setState({selected:value})
     }
     
@@ -457,8 +455,8 @@ class MaterialDatabaseEditor extends React.Component {
         this.props.handleAddMaterial();
     }
     
-    handleExport(e){
-        this.props.handleDownload(this.props.materials)
+    handleExport(e, format){
+        this.props.handleDownload(this.props.materials, format)
     }
     
     
@@ -470,7 +468,8 @@ class MaterialDatabaseEditor extends React.Component {
             <FullSizeModal modal={{show:this.props.show, onHide:this.props.onHide, header:"Material Database"}}
                 footer={<ButtonToolbar>
                     <Button bsStyle="primary" onClick={(e)=>this.handleAddMaterial(e)}>Add new material</Button>
-                    <Button bsStyle="info" onClick={(e)=>this.handleExport(e)}><Icon name="download"/></Button>
+                    <Button bsStyle="info" onClick={(e)=>this.handleExport(e,'json')}><Icon name="download"/> .json</Button>
+                    <Button bsStyle="info" onClick={(e)=>this.handleExport(e,'csv')}><Icon name="download"/> .csv</Button>
                     <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0],uploadMaterialDatabase)}   buttonClass="btn btn-danger"/>
                 </ButtonToolbar>}
             >
@@ -507,8 +506,12 @@ const mapDispatchToProps = (dispatch) => {
         handleAddMaterial: () => {
             dispatch(addMaterial())
         },
-        handleDownload:(materials) => {
-            FileStorage.save('laserweb-materials', stringify(materials),"application/json" );
+        handleDownload:(materials, format) => {
+            if (format=='json') {
+                FileStorage.save('laserweb-materials', stringify(materials),"application/json" );
+            } else if (format=='csv') {
+                FileStorage.save('laserweb-materials', arr2csv(materialTreeToTabular(materials)),"text/csv" );
+            }
             dispatch(downloadMaterialDatabase(materials))
         },
         handleUpload:(name, action)=>{
