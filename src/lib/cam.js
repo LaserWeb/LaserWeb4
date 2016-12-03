@@ -211,9 +211,9 @@ export function insideOutside(geometry, cutterDia, isInside, width, stepover, cl
     return mergePaths(bounds, allPaths);
 };
 
-// Compute paths for engrave operation on Clipper geometry. Returns array
+// Compute paths for cut operation on Clipper geometry. Returns array
 // of CamPath.
-export function engrave(geometry, openGeometry, climb) {
+export function cut(geometry, openGeometry, climb) {
     let allPaths = [];
     for (let i = 0; i < geometry.length; ++i) {
         let path = geometry[i].slice(0);

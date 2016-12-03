@@ -6,7 +6,7 @@ const operationBase = object('operation', {
     documents: [],
     tabDocuments: [],
     expanded: false,
-    type: 'Laser Engrave',
+    type: 'Laser Cut',
     direction: 'Conventional',
     laserPower: 100,
     laserDiameter: 0,
