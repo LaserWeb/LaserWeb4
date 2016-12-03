@@ -14,20 +14,51 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import React from 'react'
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { withBounds } from './get-bounds.js';
 
-function NumberInput({op, field, style = { width: "100%" }, ...rest}) {
-    return (
-        <input type='number' step='any' value={op[field.name]} style={style} {...rest} />
-    );
-}
+class NumberInput extends React.Component {
+    componentWillMount() {
+        this.onChange = this.onChange.bind(this);
+        this.setInput = this.setInput.bind(this);
+    }
 
-function DirectionInput({op, field, onChange, onFocus}) {
+    onChange(e) {
+        this.props.onChangeValue(+e.target.value || 0);
+    }
+
+    setInput(e) {
+        let {op, field} = this.props;
+        let node = ReactDOM.findDOMNode(this);
+        node.value = +op[field.name] || 0;
+    }
+
+    componentDidMount() {
+        this.setInput();
+    }
+
+    componentDidUpdate() {
+        let {op, field} = this.props;
+        let v = +op[field.name] || 0;
+        let node = ReactDOM.findDOMNode(this);
+        if ((+node.value || 0) != v)
+            node.value = v;
+    }
+
+    render() {
+        let {op, field, onChange, onChangeValue, style = { width: "100%" }, ...rest} = this.props;
+        return (
+            <input type='number' step='any' onChange={this.onChange} onBlur={this.setInput} style={style} {...rest} />
+        );
+    }
+};
+
+function DirectionInput({op, field, onChangeValue, ...rest}) {
     return (
-        <select value={op[field.name]} style={{ width: "100%" }} onChange={onChange} onFocus={onFocus} >
+        <select value={op[field.name]} style={{ width: "100%" }} {...rest} >
             <option>Conventional</option>
             <option>Climb</option>
         </select>
@@ -54,13 +85,24 @@ Error = withBounds(Error);
 
 class Field extends React.Component {
     componentWillMount() {
-        this.onChange = e => {
-            this.props.dispatch(setOperationAttrs({ [this.props.field.name]: e.target.value }, this.props.op.id));
-        };
-        this.onFocus = e => {
-            if (!this.props.selected)
-                this.props.dispatch(setCurrentOperation(this.props.op.id));
-        };
+        this.onChangeValue = this.onChangeValue.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.onFocus = this.onFocus.bind(this);
+    }
+
+    onChangeValue(v) {
+        let {op, field} = this.props;
+        if (op[field.name] !== v)
+            this.props.dispatch(setOperationAttrs({ [field.name]: v }, op.id));
+    }
+
+    onChange(e) {
+        this.onChangeValue(e.target.value);
+    }
+
+    onFocus(e) {
+        if (!this.props.selected)
+            this.props.dispatch(setCurrentOperation(this.props.op.id));
     }
 
     render() {
@@ -72,7 +114,7 @@ class Field extends React.Component {
         return (
             <tr>
                 <td>{field.label}</td>
-                <td><Input op={op} field={field} onChange={this.onChange} onFocus={this.onFocus} /></td>
+                <td><Input op={op} field={field} onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} /></td>
                 <td>{field.units}</td>
                 {error}
             </tr>
