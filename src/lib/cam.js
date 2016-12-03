@@ -49,18 +49,28 @@ function crosses(bounds, p1, p2) {
     return true;
 }
 
+function pathIsClosed(clipperPath) {
+    return (
+        clipperPath.length >= 2 &&
+        clipperPath[0].X === clipperPath[clipperPath.length - 1].X &&
+        clipperPath[0].Y === clipperPath[clipperPath.length - 1].Y);
+}
+
 // CamPath has this format: {
 //      path:               Clipper path
 //      safeToClose:        Is it safe to close the path without retracting?
 // }
 
 // Try to merge paths. A merged path doesn't cross outside of bounds. Returns array of CamPath.
+// If paths contains both open and closed paths, then the closed paths must be before the open
+// paths within the array.
 function mergePaths(bounds, paths) {
     if (paths.length === 0)
         return [];
 
     let currentPath = paths[0];
-    currentPath.push(currentPath[0]);
+    if (pathIsClosed(currentPath))
+        currentPath.push(currentPath[0]);
     let currentPoint = currentPath[currentPath.length - 1];
     paths[0] = [];
 
@@ -70,25 +80,47 @@ function mergePaths(bounds, paths) {
         let closestPathIndex = null;
         let closestPointIndex = null;
         let closestPointDist = null;
+        let closestReverse = false;
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
             let path = paths[pathIndex];
-            for (let pointIndex = 0; pointIndex < path.length; ++pointIndex) {
+            function check(pointIndex) {
                 let point = path[pointIndex];
                 let dist = (currentPoint.X - point.X) * (currentPoint.X - point.X) + (currentPoint.Y - point.Y) * (currentPoint.Y - point.Y);
                 if (closestPointDist === null || dist < closestPointDist) {
                     closestPathIndex = pathIndex;
                     closestPointIndex = pointIndex;
                     closestPointDist = dist;
+                    closestReverse = false;
+                    return true;
                 }
+                else
+                    return false;
+            }
+            if (pathIsClosed(path)) {
+                for (let pointIndex = 0; pointIndex < path.length; ++pointIndex)
+                    check(pointIndex);
+            } else if (path.length) {
+                check(0);
+                if (check(path.length - 1))
+                    closestReverse = true;
             }
         }
 
         let path = paths[closestPathIndex];
         paths[closestPathIndex] = [];
         numLeft -= 1;
-        let needNew = crosses(bounds, currentPoint, path[closestPointIndex]);
-        path = path.slice(closestPointIndex, path.length).concat(path.slice(0, closestPointIndex));
-        path.push(path[0]);
+        let needNew;
+        if (pathIsClosed(path)) {
+            needNew = crosses(bounds, currentPoint, path[closestPointIndex]);
+            path = path.slice(closestPointIndex, path.length).concat(path.slice(0, closestPointIndex));
+            path.push(path[0]);
+        } else {
+            needNew = true;
+            if (closestReverse) {
+                path = path.slice();
+                path.reverse();
+            }
+        }
         if (needNew) {
             mergedPaths.push(currentPath);
             currentPath = path;
@@ -181,7 +213,7 @@ export function insideOutside(geometry, cutterDia, isInside, width, stepover, cl
 
 // Compute paths for engrave operation on Clipper geometry. Returns array
 // of CamPath.
-export function engrave(geometry, climb) {
+export function engrave(geometry, openGeometry, climb) {
     let allPaths = [];
     for (let i = 0; i < geometry.length; ++i) {
         let path = geometry[i].slice(0);
@@ -190,9 +222,11 @@ export function engrave(geometry, climb) {
         path.push(path[0]);
         allPaths.push(path);
     }
+    for (let path of openGeometry)
+        allPaths.push(path.slice());
     let result = mergePaths(null, allPaths);
     for (let i = 0; i < result.length; ++i)
-        result[i].safeToClose = true;
+        result[i].safeToClose = pathIsClosed(result[i].path);
     return result;
 };
 

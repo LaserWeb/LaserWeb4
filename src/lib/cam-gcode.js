@@ -28,15 +28,26 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         var op = operations[opIndex];
 
         let geometry = [];
+        let openGeometry = [];
         let tabGeometry = [];
         let docsWithImages = [];
         function examineDocTree(isTab, id) {
             let doc = documents.find(d => d.id === id);
-            if (doc.rawPaths)
-                if (isTab)
+            if (doc.rawPaths) {
+                if (isTab) {
                     tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-                else
-                    geometry = union(geometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
+                } else {
+                    let isClosed = false;
+                    for (let rawPath of doc.rawPaths)
+                        if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
+                            isClosed = true;
+                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
+                    if (isClosed)
+                        geometry = union(geometry, clipperPaths);
+                    else
+                        openGeometry = openGeometry.concat(clipperPaths);
+                }
+            }
             if (doc.isRoot && doc.type === 'image' && !isTab) {
                 let cache = documentCacheHolder.cache.get(doc.id);
                 if (cache && cache.imageLoaded)
@@ -51,12 +62,12 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             examineDocTree(true, id);
 
         if (op.type === 'Laser Engrave' || op.type === 'Laser Inside' || op.type === 'Laser Outside') {
-            let g = getLaserCutGcodeFromOp(settings, opIndex, op, geometry, tabGeometry, showAlert);
+            let g = getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
                 return '';
             gcode += g;
         } else if (op.type.substring(0, 5) === 'Mill ') {
-            let g = getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert);
+            let g = getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
                 return '';
             gcode += g;

@@ -83,7 +83,7 @@ export function getLaserCutGcode(props) {
     return gcode;
 }; // getLaserCutGcode
 
-export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, tabGeometry, showAlert) {
+export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert) {
     let ok = true;
 
     if (settings.gcodeSMaxValue <= 0) {
@@ -113,7 +113,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, tabGeome
 
     let camPaths = [];
     if (op.type === 'Laser Engrave') {
-        camPaths = engrave(geometry, false);
+        camPaths = engrave(geometry, openGeometry, false);
     } else if (op.type === 'Laser Inside') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);

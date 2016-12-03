@@ -131,7 +131,7 @@ function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, ale
 };
 
 // Convert a path in snap.svg format to [[x0, y0, x1, y1, ...], ...].
-// Result is in mm. Doesn't close paths. Returns multiple paths. Only supports linear paths.
+// Result is in mm. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
 function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
     let factor = 25.4 / pxPerInch;
@@ -157,24 +157,13 @@ function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
     return result;
 };
 
-// Closes each path in paths.
-function closeRawPaths(paths) {
-    for (let path of paths)
-        path.push(path[0], path[1]);
-}
-
 // Convert a path in an SVG element to [[x0, y0, x1, y1, ...], ...].
 // Result is in mm. Returns multiple paths. Converts curves.
 // Calls alertFn with an error message and returns null if there's a problem.
 export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
     let path = elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn);
-    if (path !== null) {
-        let rawPaths = snapPathToRawPaths(path, pxPerInch, alertFn);
-        if (rawPaths !== null) {
-            closeRawPaths(rawPaths);
-            return rawPaths;
-        }
-    }
+    if (path !== null)
+        return snapPathToRawPaths(path, pxPerInch, alertFn);
     return null;
 }
 
