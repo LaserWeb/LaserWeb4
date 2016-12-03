@@ -86,7 +86,7 @@ export class DocumentCacheHolder extends React.Component {
                         }
                         cachedDocument.outlines.push(new Float32Array(rawPath));
                     }
-                    console.log(bounds);
+                    //console.log(bounds);
                 }
                 break;
             case 'image': {

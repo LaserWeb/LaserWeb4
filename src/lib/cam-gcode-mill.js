@@ -179,7 +179,7 @@ export function getMillGcode(props) {
     return gcode;
 }; // getMillGcode
 
-export function getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert) {
+export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeometry, showAlert) {
     let ok = true;
     if (op.passDepth <= 0) {
         showAlert("Pass Depth must be greater than 0", "alert-danger");
@@ -221,7 +221,7 @@ export function getMillGcodeFromOp(opIndex, op, geometry, tabGeometry, showAlert
             geometry = offset(geometry, -op.margin * mmToClipperScale);
         camPaths = pocket(geometry, op.toolDiameter * mmToClipperScale, op.stepOver, op.direction === 'Climb');
     } else if (op.type === 'Mill Engrave') {
-        camPaths = engrave(geometry, op.direction === 'Climb');
+        camPaths = engrave(geometry, openGeometry, op.direction === 'Climb');
     } else if (op.type === 'Mill Inside') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
