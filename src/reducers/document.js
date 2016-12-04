@@ -20,7 +20,7 @@ export function document(state, action) {
     switch (action.type) {
         case 'DOCUMENT_TRANSLATE_SELECTED':
             if (state.selected && state.translate) {
-                return {...state, translate: vec3.add([], state.translate, action.payload) };
+                return { ...state, translate: vec3.add([], state.translate, action.payload) };
             } else
                 return state;
         case 'DOCUMENT_SCALE_TRANSLATE_SELECTED':
@@ -43,7 +43,7 @@ function loadSvg(state, {file, content}) {
     state = state.slice();
 
     // TODO catch and report errors
-    let svg = Snap.parse(content);
+    let svg = Snap.parse(content).node.children[0];
     let allPositions = [];
 
     function addChildren(parent, node) {
@@ -82,8 +82,9 @@ function loadSvg(state, {file, content}) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, svg.node.children[0]);
-    flipY(allPositions);
+    addChildren(doc, svg);
+    let viewBox = svg.viewBox.baseVal;
+    flipY(allPositions, (viewBox.y + viewBox.height) / 96 * 25.4); // TODO: pxPerInch
     return state;
 }
 
