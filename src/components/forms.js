@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
 import Toggle from "react-toggle";
@@ -6,6 +7,48 @@ import 'react-toggle/style.css';
 import '../styles/forms.css';
 
 import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox } from 'react-bootstrap';
+
+// <input> for text and number fields
+export class Input extends React.Component {
+    componentWillMount() {
+        this.onChange = this.onChange.bind(this);
+        this.setInput = this.setInput.bind(this);
+    }
+
+    convert(value) {
+        if (this.props.type === 'number')
+            return +value || 0;
+        else
+            return value + '';
+    }
+
+    setInput() {
+        ReactDOM.findDOMNode(this).value = this.convert(this.props.value);
+    }
+
+    onChange(e) {
+        this.props.onChangeValue(this.convert(e.target.value));
+    }
+
+    componentDidMount() {
+        this.setInput();
+    }
+
+    componentDidUpdate() {
+        let v = this.convert(this.props.value);
+        let node = ReactDOM.findDOMNode(this);
+        if (this.convert(node.value) != v)
+            node.value = v;
+    }
+
+    render() {
+        let {Component, value, onChangeValue, ...rest} = this.props;
+        if (Component)
+            return <Component {...rest} onChange={this.onChange} onBlur={this.setInput} />;
+        else
+            return <input {...rest} onChange={this.onChange} onBlur={this.setInput} />;
+    }
+};
 
 export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
     
@@ -16,7 +59,7 @@ export function NumberField({object, field, description, units, setAttrs, dispat
    
     let input = <InputGroup>
         <InputGroup.Addon>{description}</InputGroup.Addon>
-        <FormControl type="number" onChange={e => dispatch(setAttrs({ [field]: Number(e.target.value) }, object.id))} value={object[field]} {...rest} />
+        <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
         {errors ? <FormControl.Feedback /> : undefined}
         <InputGroup.Addon>{units}</InputGroup.Addon>
 

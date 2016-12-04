@@ -28,6 +28,7 @@ import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
+import { Input } from './forms.js';
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
@@ -100,36 +101,36 @@ class FloatingControls extends React.Component {
                 [cx - sx * cx, cy - sy * cy, 0]
             ));
         }
-        this.setMinX = e => {
-            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x1, 0, 0]));
+        this.setMinX = v => {
+            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x1, 0, 0]));
         }
-        this.setCenterX = e => {
-            this.props.dispatch(translateSelectedDocuments([e.target.value - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
+        this.setCenterX = v => {
+            this.props.dispatch(translateSelectedDocuments([v - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
         }
-        this.setMaxX = e => {
-            this.props.dispatch(translateSelectedDocuments([e.target.value - this.bounds.x2, 0, 0]));
+        this.setMaxX = v => {
+            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x2, 0, 0]));
         }
-        this.setSizeX = e => {
-            if (e.target.value > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
-                let s = e.target.value / (this.bounds.x2 - this.bounds.x1);
+        this.setSizeX = v => {
+            if (v > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
+                let s = v / (this.bounds.x2 - this.bounds.x1);
                 if (this.state.linkScale)
                     this.scale(s, s);
                 else
                     this.scale(s, 1);
             }
         }
-        this.setMinY = e => {
-            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y1, 0]));
+        this.setMinY = v => {
+            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y1, 0]));
         }
-        this.setCenterY = e => {
-            this.props.dispatch(translateSelectedDocuments([0, e.target.value - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
+        this.setCenterY = v => {
+            this.props.dispatch(translateSelectedDocuments([0, v - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
         }
-        this.setMaxY = e => {
-            this.props.dispatch(translateSelectedDocuments([0, e.target.value - this.bounds.y2, 0]));
+        this.setMaxY = v => {
+            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y2, 0]));
         }
-        this.setSizeY = e => {
-            if (e.target.value > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
-                let s = e.target.value / (this.bounds.y2 - this.bounds.y1);
+        this.setSizeY = v => {
+            if (v > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
+                let s = v / (this.bounds.y2 - this.bounds.y1);
                 if (this.state.linkScale)
                     this.scale(s, s);
                 else
@@ -179,20 +180,20 @@ class FloatingControls extends React.Component {
                 </tr>
                 <tr>
                     <td>X</td>
-                    <td><input value={round(bounds.x1)} onChange={this.setMinX} type="number" step="any" /></td>
-                    <td><input value={round((bounds.x1 + bounds.x2) / 2)} onChange={this.setCenterX} type="number" step="any" /></td>
-                    <td><input value={round(bounds.x2)} type="number" onChange={this.setMaxX} step="any" /></td>
-                    <td><input value={round(bounds.x2 - bounds.x1)} type="number" onChange={this.setSizeX} step="any" /></td>
+                    <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" /></td>
+                    <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" /></td>
+                    <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" /></td>
+                    <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" /></td>
                     <td rowSpan={2}>
                         &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
                     </td>
                 </tr>
                 <tr>
                     <td>Y</td>
-                    <td><input value={round(bounds.y1)} onChange={this.setMinY} type="number" step="any" /></td>
-                    <td><input value={round((bounds.y1 + bounds.y2) / 2)} onChange={this.setCenterY} type="number" step="any" /></td>
-                    <td><input value={round(bounds.y2)} type="number" onChange={this.setMaxY} step="any" /></td>
-                    <td><input value={round(bounds.y2 - bounds.y1)} type="number" onChange={this.setSizeY} step="any" /></td>
+                    <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" /></td>
+                    <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" /></td>
+                    <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
+                    <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" /></td>
                 </tr>
             </table>
         );
@@ -576,7 +577,7 @@ class Workspace extends React.Component {
                                 </tr>
                                 <tr>
                                     <td>g0 rate</td>
-                                    <td><input value={workspace.g0Rate} onChange={setG0Rate} type="number" step="any" /></td>
+                                    <td><Input value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" /></td>
                                     <td>mm/min</td>
                                 </tr>
                                 <tr>
@@ -618,7 +619,7 @@ Workspace = connect(
     dispatch => ({
         dispatch,
         reset: () => dispatch(resetCamera()),
-        setG0Rate: e => dispatch(setWorkspaceAttrs({ g0Rate: +e.target.value })),
+        setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
