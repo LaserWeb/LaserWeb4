@@ -1,7 +1,7 @@
 import { undoCombineReducers } from './undo'
 
 import { camera, resetCamera } from './camera'
-import { documents } from './document'
+import { documents,documentsLoad } from './document'
 import { gcode } from './gcode'
 import { operations, currentOperation, operationsAddDocuments, fixupOperations } from './operation'
 import panes from './panes'
@@ -29,14 +29,14 @@ export default function reducer(state, action) {
         case 'DOCUMENT_REMOVE':
             state = combined(state, action);
             return {...state, operations: fixupOperations(state.operations, state.documents) };
+        case 'DOCUMENT_LOAD':
+            return { ...state, documents: documentsLoad(state.documents, state.settings, action) };
         case 'OPERATION_ADD_DOCUMENTS':
             state = combined(state, action);
             return {...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
-        
         case "SNAPSHOT_UPLOAD":
             let newState=omit(action.payload.snapshot,["history"]);
             return Object.assign({}, state, newState);
-        
         default:
             return combined(state, action);
     }

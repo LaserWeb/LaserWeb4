@@ -64,9 +64,7 @@ export const settings = objectNoId('settings', {
     machineHeight: 300,
     machineBeamDiameter: 0.2,
     
-    dpiDefault: 96,
-    dpiIllustrator: 72,
-    dpiInkscape: 96,
+    pxPerInch: 96,
     dpiRasterBmp:300,
     
     toolSafetyLockDisabled:false,

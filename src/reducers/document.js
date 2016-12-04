@@ -39,8 +39,9 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, {file, content}) {
+function loadSvg(state, settings, {file, content}) {
     state = state.slice();
+    let pxPerInch = +settings.pxPerInch || 96; // TODO: dpiIllustrator, dpiInkscape?
 
     // TODO catch and report errors
     let svg = Snap.parse(content).node.children[0];
@@ -58,8 +59,8 @@ function loadSvg(state, {file, content}) {
             };
             if (child.nodeName === 'path') {
                 // TODO: report errors
-                // TODO: settings for pxPerInch, minNumSegments, minSegmentLength
-                c.rawPaths = elementToRawPaths(child, 96, 1, .01 * 96, error => console.log(error));
+                // TODO: settings for minNumSegments, minSegmentLength
+                c.rawPaths = elementToRawPaths(child, pxPerInch, 1, .01 * pxPerInch, error => console.log(error));
                 if (!c.rawPaths)
                     continue;
                 allPositions.push(c.rawPaths);
@@ -84,7 +85,7 @@ function loadSvg(state, {file, content}) {
     state.push(doc);
     addChildren(doc, svg);
     let viewBox = svg.viewBox.baseVal;
-    flipY(allPositions, (viewBox.y + viewBox.height) / 96 * 25.4); // TODO: pxPerInch
+    flipY(allPositions, (viewBox.y + viewBox.height) / pxPerInch * 25.4);
     return state;
 }
 
@@ -107,19 +108,21 @@ function loadImage(state, {file, content}) {
     return state;
 }
 
+export function documentsLoad(state, settings, action) {
+    if (action.payload.file.type === 'image/svg+xml')
+        return loadSvg(state, settings, action.payload);
+    else if (action.payload.file.type.substring(0, 6) === 'image/')
+        return loadImage(state, action.payload);
+    else {
+        // TODO: show error in gui
+        console.log('Unsupported file type:', action.payload.file.type)
+        return state;
+    }
+}
+
 export function documents(state, action) {
     state = documentsForest(state, action);
     switch (action.type) {
-        case 'DOCUMENT_LOAD':
-            if (action.payload.file.type === 'image/svg+xml')
-                return loadSvg(state, action.payload);
-            else if (action.payload.file.type.substring(0, 6) === 'image/')
-                return loadImage(state, action.payload);
-            else {
-                // TODO: show error in gui
-                console.log('Unsupported file type:', action.payload.file.type)
-                return state;
-            }
         case 'DOCUMENT_SELECT': {
             let ids = getSubtreeIds(state, action.payload.id);
             return state.map(o => Object.assign({}, o, { selected: ids.includes(o.id) }));
