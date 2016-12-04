@@ -6,7 +6,7 @@ import Toggle from "react-toggle";
 import 'react-toggle/style.css';
 import '../styles/forms.css';
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox } from 'react-bootstrap';
+import { Tooltip, Overlay, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox } from 'react-bootstrap';
 
 // <input> for text and number fields
 export class Input extends React.Component {
@@ -50,27 +50,42 @@ export class Input extends React.Component {
     }
 };
 
-export function NumberField({object, field, description, units, setAttrs, dispatch, ...rest}) {
+export class NumberField extends React.Component {
     
-    let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
-    let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
+    constructor(props){
+        super(props)
+        this.state={overlay:false}
+        this.handleBlur.bind(this)
+        this.handleFocus.bind(this)
+    }
     
-    let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
-   
-    let input = <InputGroup>
-        <InputGroup.Addon>{description}</InputGroup.Addon>
-        <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
-        {errors ? <FormControl.Feedback /> : undefined}
-        <InputGroup.Addon>{units}</InputGroup.Addon>
-
-      </InputGroup>;
-      
-    
-    return (
-        <FormGroup validationState={errors? "error": undefined }>
-        {errors? <OverlayTrigger  placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
-        </FormGroup>
-    );
+    handleBlur(e){
+        this.setState({overlay:false})
+    }
+    handleFocus(e){
+        this.setState({overlay:true})
+    }
+    render(){
+        let {object, field, description, units, setAttrs, dispatch, ...rest} = this.props;
+        
+        let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+        let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
+        
+        let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+       
+        let input = <InputGroup ref="target" onBlur={(e)=>this.handleBlur(e)} onFocus={(e)=>this.handleFocus(e)}>
+            <InputGroup.Addon>{description}</InputGroup.Addon>
+            <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
+            {errors ? <FormControl.Feedback /> : undefined}
+            <InputGroup.Addon>{units}</InputGroup.Addon>
+          </InputGroup>;
+        
+        return (
+            <FormGroup validationState={errors? "error": undefined }>{input}
+            <Overlay show={hasErrors && this.state.overlay? true:false} placement="right" target={() => ReactDOM.findDOMNode(this.refs.target)}>{tooltip}</Overlay>
+            </FormGroup>
+        );
+    }
 }
 
 export function TextField({object, field, description, units="", setAttrs, dispatch, ...rest}) {

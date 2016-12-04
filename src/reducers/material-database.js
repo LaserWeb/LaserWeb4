@@ -6,6 +6,8 @@ import uuid from 'node-uuid';
 
 const initialState = require("../data/material-database.json");
 
+import {types} from "../components/operation";
+
 function generateInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
@@ -164,4 +166,3 @@ export const materialDatabase = (state = initialState, action) => {
         }
     
 }
-

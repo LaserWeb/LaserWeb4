@@ -1,0 +1,5 @@
+"id","material.name","material.thickness","material.notes","operation.machine_profile","operation.type","operation.name","operation.notes","operation.params.laserPower","operation.params.passes","operation.params.cutRate","operation.params.laserDiameter","operation.params.margin"
+"plywood_3mm","Plywood","3mm","Standard Regular Plain Plywood, not thick nor thin.","","Laser Engrave","Engraving just a little","","100","20","20","",""
+"plywood_3mm","Plywood","3mm","Standard Regular Plain Plywood, not thick nor thin.","","Laser Inside","Cut through","","","","","",""
+"ProfileTest","ProfileTest","3mm","Blurb","*gen_smoothie","Laser Engrave","SMOOTHI","","","","","",""
+"ProfileTest","ProfileTest","3mm","Blurb","*gen_grbl","Laser Inside","GRBL","","100","6","30","0.2","1"
