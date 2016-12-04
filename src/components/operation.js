@@ -18,7 +18,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
-import { withBounds } from './get-bounds.js';
+import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 
 class NumberInput extends React.Component {
     componentWillMount() {
@@ -68,20 +68,17 @@ function DirectionInput({op, field, onChangeValue, ...rest}) {
 function Error(props) {
     let {bounds, operationsBounds, message} = props;
     return (
-        <span>
-            &nbsp;
-            <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
-                <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
-                    <div className='error-bubble' style={{ top: (bounds.top + bounds.bottom) / 2 - operationsBounds.top }}>
-                        <div className='error-bubble-arrow' />
-                        <div className='error-bubble-message'>{message}</div>
-                    </div>
+        <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
+            <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
+                <div className='error-bubble' style={{ top: (bounds.top + bounds.bottom) / 2 - operationsBounds.top }}>
+                    <div className='error-bubble-arrow' />
+                    <div className='error-bubble-message'>{message}</div>
                 </div>
             </div>
-        </span>
+        </div>
     );
 }
-Error = withBounds(Error);
+Error = withStoredBounds(Error);
 
 class Field extends React.Component {
     componentWillMount() {
@@ -110,14 +107,13 @@ class Field extends React.Component {
         let Input = field.input;
         let error;
         if (field.check && !field.check(op[field.name]))
-            error = <td><Error operationsBounds={operationsBounds} message={field.error} /></td>;
+            error = <Error operationsBounds={operationsBounds} message={field.error} />;
         return (
-            <tr>
+            <GetBounds Type="tr">
                 <td>{field.label}</td>
                 <td><Input op={op} field={field} onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} /></td>
-                <td>{field.units}</td>
-                {error}
-            </tr>
+                <td>{field.units}{error}</td>
+            </GetBounds>
         );
     }
 };
@@ -255,11 +251,7 @@ class Operation extends React.Component {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
                 if (field.check && !field.check(op[fieldName])) {
-                    error = (
-                        <span style={{ display: 'table-cell' }}>
-                            <Error operationsBounds={operationsBounds} message="Expand to setup operation" />
-                        </span>
-                    );
+                    error = <Error operationsBounds={operationsBounds} message="Expand to setup operation" />;
                     break;
                 }
             }
@@ -272,7 +264,7 @@ class Operation extends React.Component {
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
         let rows = [
-            <div key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+            <GetBounds Type="div" key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                 <div style={leftStyle} />
                 <div style={{ display: 'table-cell' }}>
                     <i
@@ -288,9 +280,9 @@ class Operation extends React.Component {
                             <i className="fa fa-times"></i>
                         </button>
                     </span>
+                    {error}
                 </div>
-                {error}
-            </div>
+            </GetBounds>
         ];
         if (op.expanded) {
             rows.push(
@@ -424,5 +416,5 @@ class Operations extends React.Component {
 };
 Operations = connect(
     ({operations, currentOperation, documents}) => ({ operations, currentOperation, documents }),
-)(withBounds(Operations));
+)(withGetBounds(Operations));
 export { Operations };
