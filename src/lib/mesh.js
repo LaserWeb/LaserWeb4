@@ -168,16 +168,11 @@ export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegment
 }
 
 // [[[x0, y0, x1, y1, ...], ...], ...]
-export function flipY(allRawPaths) {
-    let maxY = Number.MIN_VALUE;
+export function flipY(allRawPaths, deltaY) {
     for (let rawPaths of allRawPaths)
         for (let rawPath of rawPaths)
             for (let i = 0; i < rawPath.length; i += 2)
-                maxY = Math.max(maxY, rawPath[i + 1]);
-    for (let rawPaths of allRawPaths)
-        for (let rawPath of rawPaths)
-            for (let i = 0; i < rawPath.length; i += 2)
-                rawPath[i + 1] = maxY - rawPath[i + 1];
+                rawPath[i + 1] = deltaY - rawPath[i + 1];
 }
 
 export function rawPathsToClipperPaths(rawPaths, scaleX, scaleY, translateX, translateY) {
