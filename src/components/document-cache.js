@@ -15,7 +15,8 @@
 
 import React from 'react';
 
-import { triangulateRawPaths } from '../lib/mesh';
+import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
+import { filterClosedRawPaths, triangulateRawPaths } from '../lib/mesh';
 
 // * This holds document data which
 //   * doesn't belong in the store,
@@ -74,8 +75,9 @@ export class DocumentCacheHolder extends React.Component {
             case 'path':
                 if (cachedDocument.rawPaths !== document.rawPaths) {
                     cachedDocument.rawPaths = document.rawPaths;
-                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(document.rawPaths));
+                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
                     cachedDocument.outlines = [];
+                    cachedDocument.thickOutlines = [];
                     let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
                     for (let rawPath of document.rawPaths) {
                         for (let i = 0; i < rawPath.length - 1; i += 2) {
@@ -85,8 +87,10 @@ export class DocumentCacheHolder extends React.Component {
                             bounds.y2 = Math.max(bounds.y2, rawPath[i + 1]);
                         }
                         cachedDocument.outlines.push(new Float32Array(rawPath));
+                        let thick = convertOutlineToThickLines(rawPath);
+                        if (thick)
+                            cachedDocument.thickOutlines.push(thick);
                     }
-                    //console.log(bounds);
                 }
                 break;
             case 'image': {
@@ -142,7 +146,7 @@ export function withDocumentCache(Component) {
     class Wrapper extends React.Component {
         render() {
             return (
-                <Component {...{...this.props, documentCacheHolder: this.context.documentCacheHolder }} />
+                <Component {...{ ...this.props, documentCacheHolder: this.context.documentCacheHolder }} />
             );
         }
     };

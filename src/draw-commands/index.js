@@ -15,6 +15,7 @@
 
 import { gcode } from './GcodePreview';
 import { laser } from './LaserPreview';
+import { thickLines } from './thick-lines';
 
 function camera(regl) {
     return regl({
@@ -145,6 +146,7 @@ export default class DrawCommands {
         this.simple = simple(regl);
         this.simple2d = simple2d(regl);
         this.image = image(regl);
+        this.thickLines = thickLines(regl);
         this.gcode = gcode(regl);
         this.laser = laser(regl);
     }

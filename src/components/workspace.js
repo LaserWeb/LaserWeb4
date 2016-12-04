@@ -259,6 +259,14 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
                     offset: 0,
                     count: cachedDocument.triangles.length / 2,
                 });
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 10,
+                        color,
+                    })
             });
         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl) {
             drawCommands.noDepth(() => {
