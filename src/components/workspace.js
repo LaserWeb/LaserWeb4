@@ -200,6 +200,84 @@ class FloatingControls extends React.Component {
     }
 } // FloatingControls
 
+function drawDocuments(drawCommands, documentCacheHolder) {
+    for (let cachedDocument of documentCacheHolder.cache.values()) {
+        let {document} = cachedDocument;
+        switch (document.type) {
+            case 'path':
+                drawCommands.noDepth(() => {
+                    drawCommands.simple2d({
+                        position: cachedDocument.triangles,
+                        scale: document.scale,
+                        translate: document.translate,
+                        color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
+                        primitive: 'triangles',
+                        offset: 0,
+                        count: cachedDocument.triangles.length / 2,
+                    });
+                    for (let o of cachedDocument.outlines)
+                        drawCommands.simple2d({
+                            position: o,
+                            scale: document.scale,
+                            translate: document.translate,
+                            color: [0, 0, 0, 1],
+                            primitive: 'line strip',
+                            offset: 0,
+                            count: o.length / 2,
+                        });
+                });
+                break;
+            case 'image':
+                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
+                    drawCommands.noDepth(() => {
+                        drawCommands.image({
+                            translate: document.translate,
+                            size: [
+                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                            texture: cachedDocument.texture,
+                            selected: document.selected,
+                        });
+                    });
+                break;
+        }
+    }
+} // drawDocuments
+
+function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
+    for (let cachedDocument of documentCacheHolder.cache.values()) {
+        let {document, hitTestId} = cachedDocument;
+        let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
+        if (document.type === 'path') {
+            drawCommands.noDepth(() => {
+                drawCommands.simple2d({
+                    position: cachedDocument.triangles,
+                    scale: document.scale,
+                    translate: document.translate,
+                    color,
+                    primitive: 'triangles',
+                    offset: 0,
+                    count: cachedDocument.triangles.length / 2,
+                });
+            });
+        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl) {
+            drawCommands.noDepth(() => {
+                let w = cachedDocument.image.width / document.dpi * 25.4;
+                let h = cachedDocument.image.height / document.dpi * 25.4;
+                drawCommands.simple({
+                    position: [[0, 0, 0], [w, 0, 0], [w, h, 0], [w, h, 0], [0, h, 0], [0, 0, 0]],
+                    scale: document.scale,
+                    translate: document.translate,
+                    color,
+                    primitive: 'triangles',
+                    offset: 0,
+                    count: 6,
+                });
+            });
+        }
+    }
+}
+
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.grid = new Grid();
@@ -242,49 +320,8 @@ class WorkspaceContent extends React.Component {
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showDocuments) {
-                    for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
-                        let {document} = cachedDocument;
-                        switch (document.type) {
-                            case 'path':
-                                this.drawCommands.noDepth(() => {
-                                    this.drawCommands.simple2d({
-                                        position: cachedDocument.triangles,
-                                        scale: document.scale,
-                                        translate: document.translate,
-                                        color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
-                                        primitive: 'triangles',
-                                        offset: 0,
-                                        count: cachedDocument.triangles.length / 2,
-                                    });
-                                    for (let o of cachedDocument.outlines)
-                                        this.drawCommands.simple2d({
-                                            position: o,
-                                            scale: document.scale,
-                                            translate: document.translate,
-                                            color: [0, 0, 0, 1],
-                                            primitive: 'line strip',
-                                            offset: 0,
-                                            count: o.length / 2,
-                                        });
-                                });
-                                break;
-                            case 'image':
-                                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl)
-                                    this.drawCommands.noDepth(() => {
-                                        this.drawCommands.image({
-                                            translate: document.translate,
-                                            size: [
-                                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                                            texture: cachedDocument.texture,
-                                            selected: document.selected,
-                                        });
-                                    });
-                                break;
-                        }
-                    }
-                }
+                if (this.props.workspace.showDocuments)
+                    drawDocuments(this.drawCommands, this.props.documentCacheHolder);
                 if (this.props.workspace.showLaser) {
                     this.drawCommands.noDepth(() => {
                         this.props.laserPreview.draw(this.drawCommands, {
@@ -357,53 +394,8 @@ class WorkspaceContent extends React.Component {
                 depth: 1
             })
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showDocuments) {
-                    for (let cachedDocument of this.props.documentCacheHolder.cache.values()) {
-                        let {document, hitTestId} = cachedDocument;
-                        if (document.type === 'path') {
-                            this.drawCommands.noDepth(() => {
-                                this.drawCommands.simple2d({
-                                    position: cachedDocument.triangles,
-                                    scale: document.scale,
-                                    translate: document.translate,
-                                    color: [
-                                        ((hitTestId >> 24) & 0xff) / 0xff,
-                                        ((hitTestId >> 16) & 0xff) / 0xff,
-                                        ((hitTestId >> 8) & 0xff) / 0xff,
-                                        (hitTestId & 0xff) / 0xff],
-                                    primitive: 'triangles',
-                                    offset: 0,
-                                    count: cachedDocument.triangles.length / 2,
-                                });
-                            });
-                        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === this.regl) {
-                            this.drawCommands.noDepth(() => {
-                                let w = cachedDocument.image.width / document.dpi * 25.4;
-                                let h = cachedDocument.image.height / document.dpi * 25.4;
-                                this.drawCommands.simple({
-                                    position: [
-                                        [0, 0, 0],
-                                        [w, 0, 0],
-                                        [w, h, 0],
-                                        [w, h, 0],
-                                        [0, h, 0],
-                                        [0, 0, 0]],
-                                    scale: document.scale,
-                                    translate: document.translate,
-                                    color: [
-                                        ((hitTestId >> 24) & 0xff) / 0xff,
-                                        ((hitTestId >> 16) & 0xff) / 0xff,
-                                        ((hitTestId >> 8) & 0xff) / 0xff,
-                                        (hitTestId & 0xff) / 0xff],
-                                    primitive: 'triangles',
-                                    offset: 0,
-                                    count: 6,
-                                });
-                            });
-                        }
-                    }
-                }
+                if (this.props.workspace.showDocuments)
+                    drawDocumentsHitTest(this.drawCommands, this.props.documentCacheHolder);
             });
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
