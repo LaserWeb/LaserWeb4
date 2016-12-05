@@ -28,6 +28,7 @@ import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
+import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
 import { Input } from './forms.js';
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
@@ -200,6 +201,8 @@ class FloatingControls extends React.Component {
     }
 } // FloatingControls
 
+const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
+
 function drawDocuments(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
@@ -210,7 +213,7 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                         position: cachedDocument.triangles,
                         scale: document.scale,
                         translate: document.translate,
-                        color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
+                        color: [0, 1, 1, 1],
                         primitive: 'triangles',
                         offset: 0,
                         count: cachedDocument.triangles.length / 2,
@@ -236,8 +239,45 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                                 cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
                                 cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
                             texture: cachedDocument.texture,
-                            selected: document.selected,
+                            selected: false,
                         });
+                    });
+                break;
+        }
+    }
+
+    for (let cachedDocument of documentCacheHolder.cache.values()) {
+        let {document} = cachedDocument;
+        if (!document.selected)
+            continue;
+        switch (document.type) {
+            case 'path':
+                drawCommands.noDepth(() => {
+                    for (let o of cachedDocument.thickOutlines)
+                        drawCommands.thickLines({
+                            buffer: o,
+                            scale: document.scale,
+                            translate: document.translate,
+                            thickness: 6,
+                            color1: [0, 0, 1, 1],
+                            color2: [1, 1, 1, 1],
+                        })
+                });
+                break;
+            case 'image':
+                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
+                    drawCommands.noDepth(() => {
+                        drawCommands.thickLines({
+                            buffer: thickSquare,
+                            scale: [
+                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                                1],
+                            translate: document.translate,
+                            thickness: 6,
+                            color1: [0, 0, 1, 1],
+                            color2: [1, 1, 1, 1],
+                        })
                     });
                 break;
         }
@@ -265,7 +305,8 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
                         scale: document.scale,
                         translate: document.translate,
                         thickness: 10,
-                        color,
+                        color1: color,
+                        color2: color,
                     })
             });
         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl) {

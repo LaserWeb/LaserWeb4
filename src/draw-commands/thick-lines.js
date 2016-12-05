@@ -59,8 +59,9 @@ export function thickLines(regl) {
         frag: `
             precision mediump float;
 
-            uniform float thickness;
-            uniform vec4 color;
+            uniform float time, thickness;
+            uniform vec4 color1;
+            uniform vec4 color2;
 
             varying vec2 vp1, vp2, vp;
 
@@ -70,8 +71,10 @@ export function thickLines(regl) {
                     discard;
                 else if(f > 1.0 && dot(vp - vp2, vp - vp2) > thickness * 0.5 * thickness * 0.5)
                     discard;
+                else if(mod(vp.x + vp.y - time * 32.0, 16.0) < 8.0)
+                    gl_FragColor = color1;
                 else
-                    gl_FragColor = color;
+                    gl_FragColor = color2;
             }`,
         attributes: {
             p1: {
@@ -93,10 +96,12 @@ export function thickLines(regl) {
         uniforms: {
             viewportWidth: regl.context('viewportWidth'),
             viewportHeight: regl.context('viewportHeight'),
+            time: regl.context('time'),
             scale: regl.prop('scale'),
             translate: regl.prop('translate'),
             thickness: regl.prop('thickness'),
-            color: regl.prop('color'),
+            color1: regl.prop('color1'),
+            color2: regl.prop('color2'),
         },
         primitive: 'triangle',
         offset: 0,
