@@ -1,0 +1,16 @@
+{
+    
+   "F1": {
+        "label": "SET ZERO",
+        "gcode": "G92 X0Y0Z0"
+   },
+   "F2": {
+        "label": "LASER TRACER",
+        "gcode": "M3 S5"
+   },
+   "F3": {
+        "label": "LASER OFF",
+        "gcode": "M5"
+   }
+    
+}

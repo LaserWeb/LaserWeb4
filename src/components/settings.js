@@ -5,7 +5,7 @@ import { dispatch, connect } from 'react-redux';
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
-import MachineProfile from './machine-profile';
+import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros' 
 import {PanelGroup, Panel} from 'react-bootstrap';
@@ -187,7 +187,7 @@ class Settings extends React.Component {
                     <QuadrantField {... {object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </SettingsPanel>
                 
-                <Panel collapsible header="Macros" bsStyle="info" eventkey="5">
+                <Panel collapsible header="Macros" bsStyle="info" eventKey="5">
                     <Macros/>
                 
                 </Panel>
