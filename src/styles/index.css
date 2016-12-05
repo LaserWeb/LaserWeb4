@@ -157,6 +157,10 @@ body, html, .full-height {
     border-bottom: 1px #ccc dashed;
 }
 
+#sidebar .panes .pane-settings .panel .panel-heading .label {
+    float:right
+}
+
 .form-group .input-group-addon ,
 .form-group label { text-transform: uppercase; font-size: smaller}
 

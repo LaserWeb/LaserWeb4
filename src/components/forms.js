@@ -50,41 +50,59 @@ export class Input extends React.Component {
     }
 };
 
-export class NumberField extends React.Component {
-    
-    constructor(props){
-        super(props)
-        this.state={overlay:false}
-        this.handleBlur.bind(this)
-        this.handleFocus.bind(this)
+class TooltipFormGroup extends React.Component {
+    componentWillMount() {
+        this.handleBlur = this.handleBlur.bind(this);
+        this.handleFocus = this.handleFocus.bind(this);
+        this.setState({hasFocus: false})
     }
     
     handleBlur(e){
-        this.setState({overlay:false})
+        this.setState({hasFocus:false})
     }
     handleFocus(e){
-        this.setState({overlay:true})
+        this.setState({hasFocus:true})
     }
+    
+    render(){
+        return <FormGroup validationState={this.props.validationState}
+            onBlur={(e)=>this.handleBlur(e)}
+            onFocus={(e)=>this.handleFocus(e)}
+            onMouseEnter={(e)=>this.handleFocus(e)}
+            onMouseLeave={(e)=>this.handleBlur(e)}
+                
+                
+            ref="target">
+            {this.props.children}
+            <Overlay container={this.props.container || undefined} show={this.props.validationContent && this.state.hasFocus? true:false} placement={this.props.validationPlacement} target={() => ReactDOM.findDOMNode(this.refs.target)}>
+                <Tooltip id="validation_tooltip" >{this.props.validationContent}</Tooltip>    
+            </Overlay>   
+        </FormGroup>
+    }
+}
+
+export class NumberField extends React.Component {
+    
+    
     render(){
         let {object, field, description, units, setAttrs, dispatch, ...rest} = this.props;
         
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
         
-        let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+        
        
-        let input = <InputGroup ref="target" onBlur={(e)=>this.handleBlur(e)} onFocus={(e)=>this.handleFocus(e)}>
+        let input = <InputGroup>
             <InputGroup.Addon>{description}</InputGroup.Addon>
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
             <InputGroup.Addon>{units}</InputGroup.Addon>
           </InputGroup>;
         
-        return (
-            <FormGroup validationState={errors? "error": undefined }>{input}
-            <Overlay show={hasErrors && this.state.overlay? true:false} placement="right" target={() => ReactDOM.findDOMNode(this.refs.target)}>{tooltip}</Overlay>
-            </FormGroup>
-        );
+        return <TooltipFormGroup validationState={errors? "error": undefined }
+                                validationContent={errors}
+                                validationPlacement="right">{input}</TooltipFormGroup>
+        
     }
 }
 
@@ -113,11 +131,11 @@ export function TextField({object, field, description, units="", setAttrs, dispa
             {(units!=="")? <InputGroup.Addon>{units}</InputGroup.Addon>:(undefined)}
                 
         </InputGroup>;
-    return (
-        <FormGroup validationState={errors? "error": undefined }>
-        {errors? <OverlayTrigger  placement="right" overlay={tooltip} >{input}</OverlayTrigger> : input}
-        </FormGroup>
-    );
+    
+    return  <TooltipFormGroup validationState={errors? "error": undefined }
+                                validationContent={errors}
+                                validationPlacement="right">{input}</TooltipFormGroup>
+    
 }
 
 export function ToggleField({object, field, description, units="", setAttrs, dispatch, ...rest}) {
@@ -128,11 +146,11 @@ export function ToggleField({object, field, description, units="", setAttrs, dis
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
         </div>
-    return (
-        <div className={"form-group "+ (hasErrors? 'has-error':'')}>
-        {errors? <OverlayTrigger placement="right" overlay={tooltip}  trigger={[]}>{input}</OverlayTrigger> : input}
-        </div>
-    )    
+    
+    return <TooltipFormGroup validationState={errors? "error": undefined }
+                                validationContent={errors}
+                                validationPlacement="right">{input}</TooltipFormGroup>
+    
 }
 
 export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
