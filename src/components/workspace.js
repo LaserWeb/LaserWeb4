@@ -209,25 +209,27 @@ function drawDocuments(drawCommands, documentCacheHolder) {
         switch (document.type) {
             case 'path':
                 drawCommands.noDepth(() => {
-                    drawCommands.simple2d({
-                        position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
-                        color: document.fillColor,
-                        primitive: 'triangles',
-                        offset: 0,
-                        count: cachedDocument.triangles.length / 2,
-                    });
-                    for (let o of cachedDocument.outlines)
+                    drawCommands.blendAlpha(() => {
                         drawCommands.simple2d({
-                            position: o,
+                            position: cachedDocument.triangles,
                             scale: document.scale,
                             translate: document.translate,
-                            color: document.strokeColor,
-                            primitive: 'line strip',
+                            color: document.fillColor,
+                            primitive: 'triangles',
                             offset: 0,
-                            count: o.length / 2,
+                            count: cachedDocument.triangles.length / 2,
                         });
+                        for (let o of cachedDocument.outlines)
+                            drawCommands.simple2d({
+                                position: o,
+                                scale: document.scale,
+                                translate: document.translate,
+                                color: document.strokeColor,
+                                primitive: 'line strip',
+                                offset: 0,
+                                count: o.length / 2,
+                            });
+                    });
                 });
                 break;
             case 'image':
