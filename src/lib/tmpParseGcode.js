@@ -17,7 +17,7 @@
 
 export function parseGcode(gcode) {
     let path = [];
-    let lastX = NaN, lastY = NaN, lastZ = NaN, lastF = NaN, lastS = 0, lastT = 0;
+    let lastG = NaN, lastX = NaN, lastY = NaN, lastZ = NaN, lastF = NaN, lastS = 0, lastT = 0;
     let stride = 9;
     let i = 0;
     while (i < gcode.length) {
@@ -49,7 +49,9 @@ export function parseGcode(gcode) {
             else
                 ++i;
         }
-        if (g == 0 || g == 1) {
+        if (g === 0 || g === 1 || !isNaN(x) || !isNaN(y) || !isNaN(z)) {
+            if (g === 0 || g === 1)
+                lastG = g;
             if (!isNaN(x)) {
                 if (isNaN(lastX))
                     for (let j = 1; j < path.length; j += stride)
@@ -74,15 +76,17 @@ export function parseGcode(gcode) {
                         path[j] = f;
                 lastF = f;
             }
-            path.push(g);
-            path.push(lastX);
-            path.push(lastY);
-            path.push(lastZ);
-            path.push(0); // E
-            path.push(lastF);
-            path.push(0); // A
-            path.push(lastS);
-            path.push(lastT);
+            if (!isNaN(lastG)) {
+                path.push(lastG);
+                path.push(lastX);
+                path.push(lastY);
+                path.push(lastZ);
+                path.push(0); // E
+                path.push(lastF);
+                path.push(0); // A
+                path.push(lastS);
+                path.push(lastT);
+            }
         }
         while (i < gcode.length && gcode[i] != '\r' && gcode[i] != '\n')
             ++i;
