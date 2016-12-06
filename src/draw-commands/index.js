@@ -34,6 +34,20 @@ function noDepth(regl) {
     });
 }
 
+function blendAlpha(regl) {
+    return regl({
+        blend: {
+            enable: true,
+            func: {
+                srcRGB: 'src alpha',
+                srcAlpha: 1,
+                dstRGB: 'one minus src alpha',
+                dstAlpha: 1
+            },
+        },
+    });
+}
+
 function simple(regl) {
     return regl({
         vert: `
@@ -143,6 +157,7 @@ export default class DrawCommands {
         this.regl = regl;
         this.camera = camera(regl);
         this.noDepth = noDepth(regl);
+        this.blendAlpha = blendAlpha(regl);
         this.simple = simple(regl);
         this.simple2d = simple2d(regl);
         this.image = image(regl);
