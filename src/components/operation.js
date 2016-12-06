@@ -18,6 +18,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 
@@ -422,9 +423,16 @@ class Operations extends React.Component {
         }
         for (let doc of documents) {
             if (doc.type === 'path') {
-                addColor(fillColors, doc.fillColor);
+                if (hasClosedRawPaths(doc.rawPaths))
+                    addColor(fillColors, doc.fillColor);
                 addColor(strokeColors, doc.strokeColor);
             }
+        }
+        for (let op of operations) {
+            if (op.filterFillColor)
+                addColor(fillColors, op.filterFillColor);
+            if (op.filterStrokeColor)
+                addColor(strokeColors, op.filterStrokeColor);
         }
         return (
             <div style={this.props.style}>
