@@ -15,23 +15,60 @@
 
 import React from 'react'
 import { connect } from 'react-redux';
+import Select from 'react-select';
 
 import { addOperation, removeOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { Input } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 
 function NumberInput(props) {
-    let {op, field, ...rest} = props;
+    let {op, field, fillColors, strokeColors, ...rest} = props;
     return <Input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} {...rest } />;
 }
 
-function DirectionInput({op, field, onChangeValue, ...rest}) {
+function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
     return (
         <select value={op[field.name]} style={{ width: "100%" }} {...rest} >
             <option>Conventional</option>
             <option>Climb</option>
         </select>
     );
+}
+
+function ColorBox(v) {
+    let rgb = 'rgb(' + v.color[0] * 255 + ',' + v.color[1] * 255 + ',' + v.color[2] * 255 + ')';
+    return (
+        <span style={{ backgroundColor: rgb, width: 40, display: 'inline-block' }}>&nbsp;</span>
+    );
+}
+
+class FilterInput extends React.Component {
+    componentWillMount() {
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange(v) {
+        if (v)
+            this.props.onChangeValue(JSON.parse(v.value));
+        else
+            this.props.onChangeValue(null);
+    }
+
+    render() {
+        let {op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest} = this.props;
+        let raw = op[field.name];
+        let colors = field.name === 'filterFillColor' ? fillColors : strokeColors;
+        let value;
+        if (raw)
+            value = JSON.stringify(raw);
+        else
+            value = null;
+        return (
+            <Select
+                value={value} options={colors} onChange={this.onChange} searchable={false}
+                optionRenderer={ColorBox} valueRenderer={ColorBox} {...rest} />
+        );
+    }
 }
 
 function Error(props) {
@@ -72,7 +109,7 @@ class Field extends React.Component {
     }
 
     render() {
-        let {op, field, operationsBounds} = this.props;
+        let {op, field, operationsBounds, fillColors, strokeColors} = this.props;
         let Input = field.input;
         let error;
         if (field.check && !field.check(op[field.name]))
@@ -80,7 +117,11 @@ class Field extends React.Component {
         return (
             <GetBounds Type="tr">
                 <td>{field.label}</td>
-                <td><Input op={op} field={field} onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} /></td>
+                <td>
+                    <Input
+                        op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
+                        onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
+                </td>
                 <td>{field.units}{error}</td>
             </GetBounds>
         );
@@ -144,6 +185,8 @@ const checkToolAngle = {
 };
 
 export const fields = {
+    filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
+    filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -169,15 +212,14 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['laserPower', 'passes', 'cutRate'] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
-    'Mill V Carve': { allowTabs: false, fields: ['direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
-
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate'] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
+    'Mill V Carve': { allowTabs: false, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
 };
 
 class Operation extends React.Component {
@@ -214,7 +256,7 @@ class Operation extends React.Component {
     }
 
     render() {
-        let {op, documents, onDragOver, selected, operationsBounds, dispatch} = this.props;
+        let {op, documents, onDragOver, selected, operationsBounds, dispatch, fillColors, strokeColors} = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
@@ -276,7 +318,10 @@ class Operation extends React.Component {
                         <table>
                             <tbody>
                                 {types[op.type].fields.map(fieldName => {
-                                    return <Field key={fieldName} op={op} field={fields[fieldName]} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
+                                    return <Field
+                                        key={fieldName} op={op} field={fields[fieldName]} selected={selected}
+                                        fillColors={fillColors} strokeColors={strokeColors}
+                                        operationsBounds={operationsBounds} dispatch={dispatch} />
                                 })}
                             </tbody>
                         </table>
@@ -368,6 +413,19 @@ class Operations extends React.Component {
 
     render() {
         let {operations, currentOperation, documents, dispatch, bounds } = this.props;
+        let fillColors = [];
+        let strokeColors = [];
+        let addColor = (colors, color) => {
+            let value = JSON.stringify(color);
+            if (!colors.find(c => c.value === value))
+                colors.push({ value: value, color: color });
+        }
+        for (let doc of documents) {
+            if (doc.type === 'path') {
+                addColor(fillColors, doc.fillColor);
+                addColor(strokeColors, doc.strokeColor);
+            }
+        }
         return (
             <div style={this.props.style}>
                 <div style={{ backgroundColor: 'cyan', padding: '20px' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
@@ -376,7 +434,10 @@ class Operations extends React.Component {
                 <br />
                 <div className="operations" style={{ display: 'table' }}>
                     {operations.map(o =>
-                        <Operation key={o.id} op={o} selected={currentOperation === o.id} documents={documents} operationsBounds={bounds} dispatch={dispatch} />
+                        <Operation
+                            key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
+                            fillColors={fillColors} strokeColors={strokeColors}
+                            operationsBounds={bounds} dispatch={dispatch} />
                     )}
                 </div>
             </div >

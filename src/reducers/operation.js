@@ -7,6 +7,8 @@ const operationBase = object('operation', {
     tabDocuments: [],
     expanded: false,
     type: 'Laser Cut',
+    filterFillColor: null,
+    filterStrokeColor: null,
     direction: 'Conventional',
     laserPower: 100,
     laserDiameter: 0,
@@ -30,9 +32,9 @@ export function operation(state, action) {
         case 'OPERATION_REMOVE_DOCUMENT':
             if (action.payload.id === state.id)
                 if (action.payload.isTab)
-                    return {...state, tabDocuments: state.tabDocuments.filter(d => d !== action.payload.document) }
+                    return { ...state, tabDocuments: state.tabDocuments.filter(d => d !== action.payload.document) }
                 else
-                    return {...state, documents: state.documents.filter(d => d !== action.payload.document) }
+                    return { ...state, documents: state.documents.filter(d => d !== action.payload.document) }
     }
     return state;
 }

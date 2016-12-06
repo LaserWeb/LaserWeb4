@@ -71,6 +71,7 @@
     "react-hot-loader": "^3.0.0-beta.4",
     "react-keydown": "^1.6.3",
     "react-redux": "^4.4.5",
+    "react-select": "^1.0.0-rc.2",
     "react-toggle": "^2.1.1",
     "redux": "^3.6.0",
     "redux-localstorage": "^1.0.0-rc5",
