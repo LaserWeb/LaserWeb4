@@ -28,6 +28,11 @@ const middleware = compose(
 
 const store = createStore(reducer, middleware);
 
+export function GlobalStore()
+{
+    return store;
+}
+
 function Hot(props) {
     const LaserWeb = require('./components/laserweb').default;
     return <LaserWeb />;

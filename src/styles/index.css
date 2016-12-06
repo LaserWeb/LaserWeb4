@@ -276,6 +276,7 @@ body, html, .full-height {
 
 /*FullSizeModal*/
 
+.full-width {width: 100%}
 
 .full-width .modal-dialog {
   width: 98%;
@@ -314,3 +315,6 @@ body, html, .full-height {
 .materialList {max-height: 400px; overflow-y:auto; overflow-x: hidden}
 
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
+
+/* macros*/
+.macros select {width: 100%; font-size: 0.8em}
