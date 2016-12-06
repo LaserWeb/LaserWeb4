@@ -11,6 +11,7 @@ import { workspace } from './workspace'
 
 import { machineProfiles } from './machine-profiles'
 import { materialDatabase } from './material-database'
+import { macros } from './macros'
 
 import omit from 'object.omit';
 
@@ -20,7 +21,7 @@ const shouldSaveUndo=(action)=>{
 
     return should;
 };
-const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase }, shouldSaveUndo);
+const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros }, shouldSaveUndo);
 
 export default function reducer(state, action) {
     switch (action.type) {

@@ -5,9 +5,9 @@ import { dispatch, connect } from 'react-redux';
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
-import MachineProfile from './machine-profile';
+import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
-
+import { Macros } from './macros' 
 import {PanelGroup, Panel} from 'react-bootstrap';
 
 import Validator from 'validatorjs';
@@ -20,6 +20,7 @@ import stringify from 'json-stringify-pretty-compact';
 
 import {FileStorage, LocalStorage} from '../lib/storages';
 
+import Icon from './font-awesome';
 
 import omit from 'object.omit';
 
@@ -80,6 +81,28 @@ export class ApplicationSnapshot extends React.Component {
     
 }
 
+class SettingsPanel extends React.Component {
+    
+    render() {
+        let filterProps=omit(this.props,['header','errors','defaultExpanded']);
+        let childrenFields=this.props.children.map((item)=>{ return item.props.field})
+        let hasErrors=Object.keys(this.props.errors || []).filter((error)=> {return childrenFields.includes(error)}).length;
+        
+        filterProps['defaultExpanded']=(this.props.defaultExpanded || hasErrors)?true:false
+        
+        let children=this.props.children.map((child,i)=>{
+            let props={key:i}
+            if (child.props.field) props['errors']=this.props.errors;
+            return React.cloneElement(child, props);
+        })
+        
+        let icon=hasErrors? <Label bsStyle="warning">Please check!</Label>:undefined;
+        
+        return <Panel {...filterProps} header={<span>{icon}{this.props.header}</span>} >{children}</Panel>
+    }
+    
+}
+
 
 class Settings extends React.Component {
     
@@ -132,41 +155,44 @@ class Settings extends React.Component {
                     
                     <MaterialDatabaseButton label="Launch Material Database"/>
                 </Panel>
-                <Panel collapsible header="Machine" eventKey="1" bsStyle="info">
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
-                </Panel>
+                <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
+                   <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
+                   <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
+                   <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
+                </SettingsPanel>
                 
-                <Panel collapsible header="File Settings" eventKey="2"  bsStyle="info">
+                <SettingsPanel collapsible header="File Settings" eventKey="2"  bsStyle="info" errors={this.state.errors}>
                    <h4>SVG</h4>
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
-                   <h4>BMP</h4>
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
-                </Panel>
-                <Panel collapsible header="Gcode" eventKey="3"  bsStyle="info">
+                   <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
+                   <h4>BMP</h4>       
+                   <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
+                </SettingsPanel>
+                <SettingsPanel collapsible header="Gcode" eventKey="3"  bsStyle="info" errors={this.state.errors}>
                   <h4>Gcode generation</h4>
-                  <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5}} />
-                  <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
-                  <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5}} />
                   
-                  <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
-                  <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
-                  <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
-                </Panel>
-                <Panel collapsible header="Application" eventKey="4"  bsStyle="info">
-                    <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
-                    <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
-                    <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
-                    <ToggleField {... {errors: this.state.errors, object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay'}} />
-                    <TextField   {... {errors: this.state.errors, object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url'}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
+                  <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
+                </SettingsPanel>
+                <SettingsPanel collapsible header="Application" eventKey="4"  bsStyle="info" errors={this.state.errors}>
+                    <ToggleField {... {object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
+                    <ToggleField {... {object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
+                    <ToggleField {... {object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
+                    <ToggleField {... {object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay'}} />
+                    <TextField   {... {object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url'}} />
                     <hr/>
-                    <QuadrantField {... {errors: this.state.errors, object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
+                    <QuadrantField {... {object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
+                </SettingsPanel>
+                
+                <Panel collapsible header="Macros" bsStyle="info" eventKey="5">
+                    <Macros/>
+                
                 </Panel>
                 
-               
-                
-                <Panel collapsible header="Tools" bsStyle="danger" eventKey="5">
+                <Panel collapsible header="Tools" bsStyle="danger" eventKey="6" >
                     <h5>Settings</h5>
                     <button onClick={() => this.props.handleDownload('laserweb-settings.json',this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
                     <FileField label="Upload Settings" dispatch={(e) => this.props.handleUpload(e.target.files[0],uploadSettings)}   buttonClass="btn btn-danger btn-sm"/>
@@ -185,6 +211,8 @@ class Settings extends React.Component {
                     />
                     
                 </Panel>
+                
+                
             </PanelGroup>
                 
             

@@ -31,7 +31,7 @@ class Pane extends React.Component {
      */
     render() {
         return (
-            <div className={ "pane" + (this.props.active ? " active" : "") }>
+            <div className={ "pane" + (this.props.active ? " active" : "") + " pane-"+this.props.id}>
                 <div className="pane-content">{ this.props.children }</div>
             </div>
         )
@@ -64,6 +64,7 @@ class Panes extends React.Component {
                         <Pane
                             {...item.props}
                             key={item.props.id}
+                            id ={item.props.id} 
                             active={item.props.id === this.props.selected}
                             >
                             {item}
