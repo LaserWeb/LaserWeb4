@@ -245,7 +245,9 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                 break;
         }
     }
+} // drawDocuments
 
+function drawSelectedDocuments(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (!document.selected)
@@ -282,7 +284,7 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                 break;
         }
     }
-} // drawDocuments
+} // drawSelectedDocuments
 
 function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -386,6 +388,8 @@ class WorkspaceContent extends React.Component {
                         this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
                     });
                 }
+                if (this.props.workspace.showDocuments)
+                    drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
             });
             //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
         });
