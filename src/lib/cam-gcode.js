@@ -49,11 +49,13 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     for (let rawPath of doc.rawPaths)
                         if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
                             isClosed = true;
-                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
-                    if (isClosed)
-                        geometry = union(geometry, clipperPaths);
-                    else
-                        openGeometry = openGeometry.concat(clipperPaths);
+                    if (isClosed || !op.filterFillColor) {
+                        let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
+                        if (isClosed)
+                            geometry = union(geometry, clipperPaths);
+                        else
+                            openGeometry = openGeometry.concat(clipperPaths);
+                    }
                 }
             }
             if (doc.isRoot && doc.type === 'image' && !isTab) {
