@@ -19,6 +19,14 @@ import { getLaserCutGcodeFromOp } from './cam-gcode-laser-cut'
 import { getMillGcodeFromOp } from './cam-gcode-mill'
 import { rawPathsToClipperPaths, union } from './mesh';
 
+function matchColor(filterColor, color) {
+    if (!filterColor)
+        return true;
+    if (!color)
+        return false;
+    return filterColor[0] == color[0] && filterColor[1] == color[1] && filterColor[2] == color[2] && filterColor[3] == color[3];
+}
+
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
     "use strict";
 
@@ -36,7 +44,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             if (doc.rawPaths) {
                 if (isTab) {
                     tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-                } else {
+                } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
                     let isClosed = false;
                     for (let rawPath of doc.rawPaths)
                         if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
