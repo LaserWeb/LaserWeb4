@@ -28,6 +28,7 @@ import { Dom3d, Text3d } from './dom3d';
 import DrawCommands from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
+import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
 import { Input } from './forms.js';
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
@@ -200,6 +201,8 @@ class FloatingControls extends React.Component {
     }
 } // FloatingControls
 
+const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
+
 function drawDocuments(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
@@ -210,7 +213,7 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                         position: cachedDocument.triangles,
                         scale: document.scale,
                         translate: document.translate,
-                        color: document.selected ? [.2, .2, 1, 1] : [0, 1, 1, 1],
+                        color: document.fillColor,
                         primitive: 'triangles',
                         offset: 0,
                         count: cachedDocument.triangles.length / 2,
@@ -220,7 +223,7 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                             position: o,
                             scale: document.scale,
                             translate: document.translate,
-                            color: [0, 0, 0, 1],
+                            color: document.strokeColor,
                             primitive: 'line strip',
                             offset: 0,
                             count: o.length / 2,
@@ -236,13 +239,52 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                                 cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
                                 cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
                             texture: cachedDocument.texture,
-                            selected: document.selected,
+                            selected: false,
                         });
                     });
                 break;
         }
     }
 } // drawDocuments
+
+function drawSelectedDocuments(drawCommands, documentCacheHolder) {
+    for (let cachedDocument of documentCacheHolder.cache.values()) {
+        let {document} = cachedDocument;
+        if (!document.selected)
+            continue;
+        switch (document.type) {
+            case 'path':
+                drawCommands.noDepth(() => {
+                    for (let o of cachedDocument.thickOutlines)
+                        drawCommands.thickLines({
+                            buffer: o,
+                            scale: document.scale,
+                            translate: document.translate,
+                            thickness: 6,
+                            color1: [0, 0, 1, 1],
+                            color2: [1, 1, 1, 1],
+                        })
+                });
+                break;
+            case 'image':
+                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
+                    drawCommands.noDepth(() => {
+                        drawCommands.thickLines({
+                            buffer: thickSquare,
+                            scale: [
+                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                                1],
+                            translate: document.translate,
+                            thickness: 6,
+                            color1: [0, 0, 1, 1],
+                            color2: [1, 1, 1, 1],
+                        })
+                    });
+                break;
+        }
+    }
+} // drawSelectedDocuments
 
 function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -259,6 +301,15 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
                     offset: 0,
                     count: cachedDocument.triangles.length / 2,
                 });
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 10,
+                        color1: color,
+                        color2: color,
+                    })
             });
         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl) {
             drawCommands.noDepth(() => {
@@ -337,6 +388,8 @@ class WorkspaceContent extends React.Component {
                         this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
                     });
                 }
+                if (this.props.workspace.showDocuments)
+                    drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
             });
             //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
         });
