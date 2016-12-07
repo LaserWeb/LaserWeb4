@@ -220,7 +220,7 @@ export const fields = {
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: CheckboxInput },
-    aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkNot0, ...ifUseA },
+    aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 };
 

@@ -45,11 +45,36 @@ export function getLaserCutGcode(props) {
         laserOff += gcodeLaserOff + '\r\n';
     laserOff += 'S0\r\n';
 
-    function convertPoint(p) {
-        if (useA)
-            return ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' A' + (p.Y * scale + offsetY).toFixed(decimal);
-        else
-            return ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' Y' + (p.Y * scale + offsetY).toFixed(decimal);
+    let lastX = 0, lastY = 0;
+    function convertPoint(p, rapid) {
+        let x = p.X * scale + offsetX;
+        let y = p.Y * scale + offsetY;
+        if (useA) {
+            let roundedX = Number(x.toFixed(decimal)), roundedY = Number(y.toFixed(decimal));
+            if (rapid) {
+                lastX = roundedX;
+                lastY = roundedY;
+                return 'G0 X' + x.toFixed(decimal) + ' A' + y.toFixed(decimal);
+            } else {
+                let dx = roundedX - lastX, dy = roundedY - lastY;
+                let travelTime = Math.sqrt(dx * dx + dy * dy) / cutFeed;
+                let f = 0;
+                if (dx)
+                    f = Math.abs(dx) / travelTime;
+                else if (dy)
+                    f = Math.abs(dy) / travelTime;
+                else
+                    return '';
+                lastX = roundedX;
+                lastY = roundedY;
+                return 'G1 X' + x.toFixed(decimal) + ' A' + y.toFixed(decimal) + ' F' + f.toFixed(decimal);
+            }
+        } else {
+            if (rapid)
+                return 'G0 X' + x.toFixed(decimal) + ' Y' + y.toFixed(decimal);
+            else
+                return 'G1 X' + x.toFixed(decimal) + ' Y' + y.toFixed(decimal);
+        }
     }
 
     let gcode = '';
@@ -72,11 +97,11 @@ export function getLaserCutGcode(props) {
                     gcode += '; Skip tab\r\n';
                     continue;
                 }
-                gcode += 'G0' + convertPoint(selectedPath[0]) + '\r\n';
+                gcode += convertPoint(selectedPath[0], true) + '\r\n';
                 gcode += laserOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
-                    gcode += 'G1' + convertPoint(selectedPath[i]);
-                    if (i == 1)
+                    gcode += convertPoint(selectedPath[i], false);
+                    if (i == 1 && !useA)
                         gcode += ' F' + cutFeed;
                     gcode += '\r\n';
                 }
@@ -114,8 +139,8 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         ok = false;
     }
     if (op.useA) {
-        if (op.aAxisStepsPerTurn == 0) {
-            showAlert("A axis resolution must not be 0", "alert-danger");
+        if (op.aAxisStepsPerTurn <= 0) {
+            showAlert("A axis resolution must be greater than 0", "alert-danger");
             ok = false;
         }
         if (op.aAxisDiameter <= 0) {
