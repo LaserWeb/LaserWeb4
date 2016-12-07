@@ -36,6 +36,10 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
     );
 }
 
+function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+    return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
+}
+
 function ColorBox(v) {
     let rgb = 'rgb(' + v.color[0] * 255 + ',' + v.color[1] * 255 + ',' + v.color[2] * 255 + ')';
     return (
@@ -170,6 +174,11 @@ const checkGE0 = {
     error: 'Must be >= 0',
 };
 
+const checkNot0 = {
+    check: v => +v != 0,
+    error: 'Must be non-0',
+};
+
 const checkPercent = {
     check: v => v >= 0 && v <= 100,
     error: 'Must be in range [0, 100]',
@@ -183,6 +192,10 @@ const checkStepOver = {
 const checkToolAngle = {
     check: v => v > 0 && v < 180,
     error: 'Must be in range (0, 180)',
+};
+
+const ifUseA = {
+    condition: op => op.useA
 };
 
 export const fields = {
@@ -205,17 +218,20 @@ export const fields = {
 
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
-};
 
+    useA: { name: 'useA', label: 'Use A Axis', units: '', input: CheckboxInput },
+    aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkNot0, ...ifUseA },
+    aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
+};
 
 const tabFields = [
     { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
 ];
 
 export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate'] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate'] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
@@ -318,12 +334,14 @@ class Operation extends React.Component {
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
                             <tbody>
-                                {types[op.type].fields.map(fieldName => {
-                                    return <Field
-                                        key={fieldName} op={op} field={fields[fieldName]} selected={selected}
-                                        fillColors={fillColors} strokeColors={strokeColors}
-                                        operationsBounds={operationsBounds} dispatch={dispatch} />
-                                })}
+                                {types[op.type].fields
+                                    .filter(fieldName => { let f = fields[fieldName]; return !f.condition || f.condition(op); })
+                                    .map(fieldName => {
+                                        return <Field
+                                            key={fieldName} op={op} field={fields[fieldName]} selected={selected}
+                                            fillColors={fillColors} strokeColors={strokeColors}
+                                            operationsBounds={operationsBounds} dispatch={dispatch} />
+                                    })}
                             </tbody>
                         </table>
                     </div>

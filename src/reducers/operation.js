@@ -24,6 +24,9 @@ const operationBase = object('operation', {
     plungeRate: 0,
     cutRate: 0,
     toolAngle: 0,
+    useA: false,
+    aAxisStepsPerTurn: 0,
+    aAxisDiameter: 0,
 });
 
 export function operation(state, action) {

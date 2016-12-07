@@ -33,9 +33,9 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      gcodeSMaxValue: Max S value
 export function getLaserCutGcode(props) {
     let {paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
+        useA, aAxisStepsPerTurn, aAxisDiameter,
         tabGeometry, gcodeLaserOn, gcodeLaserOff, gcodeSMaxValue} = props;
-
-    let laserOn = '; Laser On\r\n';
+    let laserOn = '; Laser On ' + laserPower + '%\r\n';
     if (gcodeLaserOn)
         laserOn += gcodeLaserOn + '\r\n';
     laserOn += 'S' + (gcodeSMaxValue * laserPower / 100) + '\r\n';
@@ -46,10 +46,15 @@ export function getLaserCutGcode(props) {
     laserOff += 'S0\r\n';
 
     function convertPoint(p) {
-        return ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' Y' + (p.Y * scale + offsetY).toFixed(decimal);
+        if (useA)
+            return ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' A' + (p.Y * scale + offsetY).toFixed(decimal);
+        else
+            return ' X' + (p.X * scale + offsetX).toFixed(decimal) + ' Y' + (p.Y * scale + offsetY).toFixed(decimal);
     }
 
     let gcode = '';
+    if (useA)
+        gcode += 'M92 A' + (aAxisStepsPerTurn / Math.PI / aAxisDiameter).toFixed(decimal) + '; ' + aAxisStepsPerTurn + ' steps per turn, ' + aAxisDiameter + 'mm diameter';
     for (let pass = 0; pass < passes; ++pass) {
         gcode += '\n\n; Pass ' + pass + '\r\n';
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
@@ -108,6 +113,16 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         showAlert("Cut Rate must be greater than 0", "alert-danger");
         ok = false;
     }
+    if (op.useA) {
+        if (op.aAxisStepsPerTurn == 0) {
+            showAlert("A axis resolution must not be 0", "alert-danger");
+            ok = false;
+        }
+        if (op.aAxisDiameter <= 0) {
+            showAlert("A axis diameter must be greater than 0", "alert-danger");
+            ok = false;
+        }
+    }
     if (!ok)
         return '';
 
@@ -142,6 +157,9 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         cutFeed: op.cutRate,
         laserPower: op.laserPower,
         passes: op.passes,
+        useA: op.useA,
+        aAxisStepsPerTurn: op.aAxisStepsPerTurn,
+        aAxisDiameter: op.aAxisDiameter,
         tabGeometry: tabGeometry,
         gcodeLaserOn: settings.gcodeLaserOn,
         gcodeLaserOff: settings.gcodeLaserOff,
