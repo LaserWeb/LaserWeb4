@@ -7,8 +7,6 @@ var dist_path = path.resolve('./dist');
 module.exports = {
     context: src_path,
     entry: [
-        'webpack-dev-server/client?http://0.0.0.0:8080',
-        'webpack/hot/only-dev-server',
         'babel-polyfill',
         './index.js'
     ],
@@ -28,8 +26,7 @@ module.exports = {
                         'transform-es2015-destructuring',
                         'transform-es2015-parameters',
                         'transform-object-rest-spread',
-                        'transform-es2015-modules-commonjs',
-                        'react-hot-loader/babel']
+                        'transform-es2015-modules-commonjs']
                 }
             },
             {
