@@ -24,6 +24,7 @@ import { Operations } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
+import { sendAsFile } from '../lib/helpers';
 
 class Cam extends React.Component {
     componentWillMount() {
@@ -41,6 +42,7 @@ class Cam extends React.Component {
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <button onClick={this.generate}>Generate</button>
+                    <button onClick={this.props.saveGcode}>Save GCode</button>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
@@ -62,7 +64,10 @@ class Cam extends React.Component {
 };
 
 Cam = connect(
-    state => ({ settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation }),
+    state => ({
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation,
+        saveGcode: () => sendAsFile('gcode.gcode', state.gcode),
+    }),
     dispatch => ({
         dispatch,
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
