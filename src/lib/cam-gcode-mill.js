@@ -195,7 +195,7 @@ export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeome
             showAlert("Final Cut Depth must be greater than 0", "alert-danger");
             ok = false;
         }
-        if (op.toolDiameter <= 0) {
+        if (op.type !== 'Mill Cut' && op.toolDiameter <= 0) {
             showAlert("Tool Diameter must be greater than 0", "alert-danger");
             ok = false;
         }
