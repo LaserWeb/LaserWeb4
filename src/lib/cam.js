@@ -56,6 +56,12 @@ function pathIsClosed(clipperPath) {
         clipperPath[0].Y === clipperPath[clipperPath.length - 1].Y);
 }
 
+// Close all paths
+function closeClipperPaths(paths) {
+    for (let path of paths)
+        path.push(path[0]);
+}
+
 // CamPath has this format: {
 //      path:               Clipper path
 //      safeToClose:        Is it safe to close the path without retracting?
@@ -112,7 +118,7 @@ function mergePaths(bounds, paths) {
         let needNew;
         if (pathIsClosed(path)) {
             needNew = crosses(bounds, currentPoint, path[closestPointIndex]);
-            path = path.slice(closestPointIndex, path.length).concat(path.slice(0, closestPointIndex));
+            path = path.slice(closestPointIndex, path.length).concat(path.slice(1, closestPointIndex));
             path.push(path[0]);
         } else {
             needNew = true;
@@ -158,6 +164,7 @@ export function pocket(geometry, cutterDia, stepover, climb) {
         allPaths = current.concat(allPaths);
         current = offset(current, -cutterDia * stepover);
     }
+    closeClipperPaths(allPaths);
     return mergePaths(bounds, allPaths);
 };
 
@@ -208,6 +215,7 @@ export function insideOutside(geometry, cutterDia, isInside, width, stepover, cl
         if (currentWidth <= width)
             current = offset(current, eachOffset);
     }
+    closeClipperPaths(allPaths);
     return mergePaths(bounds, allPaths);
 };
 
