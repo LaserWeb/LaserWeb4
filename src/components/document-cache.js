@@ -75,7 +75,11 @@ export class DocumentCacheHolder extends React.Component {
             case 'path':
                 if (cachedDocument.rawPaths !== document.rawPaths) {
                     cachedDocument.rawPaths = document.rawPaths;
-                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
+                    try {
+                        cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
+                    } catch (e) {
+                        cachedDocument.triangles = new Float32Array(0);
+                    }
                     cachedDocument.outlines = [];
                     cachedDocument.thickOutlines = [];
                     let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
