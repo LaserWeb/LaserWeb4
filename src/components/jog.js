@@ -6,6 +6,8 @@
 // React
 import React from 'react'
 
+import {MacrosBar} from './macros';
+
 /**
  * Jog component.
  *
@@ -21,6 +23,8 @@ class Jog extends React.Component {
         return (
             <div>
                 <p>Jog panel...</p>
+                
+                <MacrosBar/>
             </div>
         )
     }

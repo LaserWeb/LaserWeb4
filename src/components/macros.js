@@ -4,9 +4,9 @@ import ReactDOM from 'react-dom';
 import Icon from './font-awesome'
 import {CheckBoxListField} from './forms';
 
-import {addMacro, removeMacro, setMacro} from '../actions/macros'
+import {addMacro, removeMacro, setMacro, fireMacroById} from '../actions/macros'
 
-import {Button, FormControl, ButtonGroup} from 'react-bootstrap'
+import {Button, FormControl, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
 import parseKeys from 'react-keydown/dist/lib/parse_keys'
 
@@ -85,7 +85,7 @@ export class Macros extends React.Component {
         
         return (
             <div className="macros">
-                <small className="help-block">Append new key binding to Gcode</small>
+                <small className="help-block">Append new key binding to Gcode. Page must be reloaded to take effect</small>
                 <FormControl componentClass="select" size="10" multiple onChange={(e)=>this.handleSelection(e)} value={this.state.selected}>
                     {Object.entries(this.props.macros).map((opt,i)=>{ let [key,value] = opt; return <option key={i} value={key}>[{key}] {value.label}</option>})}
                 </FormControl>
@@ -104,6 +104,21 @@ export class Macros extends React.Component {
     }
 }
 
+export class MacrosBar extends React.Component{
+    
+    render(){
+        return <fieldset>
+            <legend>Macros</legend>
+            <ButtonToolbar>
+            {Object.entries(this.props.macros).map((macro,i)=>{
+                let [keybinding, data] = macro;
+                return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+            }
+            </ButtonToolbar>
+        </fieldset>
+    }
+}
+
 const mapStateToProps = (state) => {
   return {
     macros: state.macros
@@ -114,10 +129,12 @@ const mapDispatchToProps = (dispatch) => {
     return {
         handleRemove: (keybinding)=>{dispatch(removeMacro(keybinding))},
         handleSet: (macro)=>{ dispatch(setMacro(macro))},
+        handleMacro: (keybinding, macros) => { dispatch(fireMacroById(keybinding, macros))}
     }
 }
  
 
 Macros = connect(mapStateToProps,mapDispatchToProps)(Macros);
+MacrosBar = connect(mapStateToProps,mapDispatchToProps)(MacrosBar);
 
 
