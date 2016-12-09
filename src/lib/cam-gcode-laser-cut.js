@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, cut, insideOutside, pocket, separateTabs, vCarve } from './cam';
+import { dist, cut, insideOutside, pocket, reduceCamPaths, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert laser cut paths to gcode.
@@ -35,15 +35,11 @@ export function getLaserCutGcode(props) {
     let {paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisStepsPerTurn, aAxisDiameter,
         tabGeometry, gcodeLaserOn, gcodeLaserOff, gcodeSMaxValue} = props;
-    let laserOn = '; Laser On ' + laserPower + '%\r\n';
     if (gcodeLaserOn)
-        laserOn += gcodeLaserOn + '\r\n';
-    laserOn += 'S' + (gcodeSMaxValue * laserPower / 100) + '\r\n';
-
-    let laserOff = '; Laser Off\r\n';
-    if (gcodeLaserOn)
-        laserOff += gcodeLaserOff + '\r\n';
-    laserOff += 'S0\r\n';
+        gcodeLaserOn += '\r\n';
+    if (gcodeLaserOff)
+        gcodeLaserOff += '\r\n';
+    let laserOnS = 'S' + (gcodeSMaxValue * laserPower / 100).toFixed(decimal);
 
     let lastX = 0, lastY = 0;
     function convertPoint(p, rapid) {
@@ -98,14 +94,16 @@ export function getLaserCutGcode(props) {
                     continue;
                 }
                 gcode += convertPoint(selectedPath[0], true) + '\r\n';
-                gcode += laserOn;
+                gcode += gcodeLaserOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
                     gcode += convertPoint(selectedPath[i], false);
+                    if (i == 1)
+                        gcode += ' ' + laserOnS;
                     if (i == 1 && !useA)
                         gcode += ' F' + cutFeed;
                     gcode += '\r\n';
                 }
-                gcode += laserOff;
+                gcode += gcodeLaserOff;
             }
         }
     }
@@ -164,6 +162,8 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
     }
 
+    reduceCamPaths(camPaths, .5 * mmToClipperScale);
+
     let gcode =
         "\r\n;" +
         "\r\n; Operation:    " + opIndex +
@@ -178,7 +178,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         scale: 1 / mmToClipperScale,
         offsetX: 0,
         offsetY: 0,
-        decimal: 4,
+        decimal: 2,
         cutFeed: op.cutRate,
         laserPower: op.laserPower,
         passes: op.passes,
