@@ -7,7 +7,7 @@ export const removeMacro = remove('macros');
 
 
 
-export function fireMacro(ev, macros){
+export function fireMacroByKeyboard(ev, macros){
     
     let keybinding = [ev.shiftKey ? 'shift':undefined, ev.ctrlKey? 'ctrl':undefined, ev.metaKey?'meta':undefined , ev.altKey?'alt':undefined, ev.key].filter((item)=>{return item}).sort().join('+')
     
@@ -17,4 +17,9 @@ export function fireMacro(ev, macros){
         return {type:'MACRO_FIRE', payload:{keybinding, label, gcode}}
     }
     return null;
+}
+
+export function fireMacroById(keybinding, macros) {
+     let {label, gcode} = macros[keybinding];
+     return {type:'MACRO_FIRE', payload:{keybinding, label, gcode}}
 }

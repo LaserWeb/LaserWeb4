@@ -102,7 +102,7 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch(keyboardUndoAction(e))
          },
          handleMacro: (e, macros) =>{
-                dispatch(fireMacro(e,macros))
+                dispatch(fireMacroByKeyboard(e,macros))
          }
         
     }

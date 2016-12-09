@@ -275,6 +275,20 @@ export function vCarve(geometry, cutterAngle, passDepth) {
     return result;
 };
 
+export function reduceCamPaths(camPaths, minDist) {
+    let minDistSqr = minDist * minDist;
+    let distSqr = (p1, p2) => (p1.X - p2.X) * (p1.X - p2.X) + (p1.Y - p2.Y) * (p1.Y - p2.Y);
+    for (let camPath of camPaths) {
+        let path = camPath.path;
+        let newPath = [path[0]];
+        for (let i = 1; i < path.length - 1; ++i)
+            if (distSqr(path[i], newPath[newPath.length - 1]) >= minDistSqr)
+                newPath.push(path[i]);
+        newPath.push(path[path.length - 1]);
+        camPath.path = newPath;
+    }
+}
+
 // Convert array of CamPath to array of Clipper path
 export function getClipperPathsFromCamPaths(paths) {
     let result = [];

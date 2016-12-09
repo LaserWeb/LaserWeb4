@@ -197,8 +197,10 @@ export function rawPathsToClipperPaths(rawPaths, scaleX, scaleY, translateX, tra
             result.push({ X: (p[i] * scaleX + translateX) * mmToClipperScale, Y: (p[i + 1] * scaleY + translateY) * mmToClipperScale });
         return result;
     });
-    result = ClipperLib.Clipper.CleanPolygons(result, cleanPolyDist);
-    result = ClipperLib.Clipper.SimplifyPolygons(result, ClipperLib.PolyFillType.pftEvenOdd);
+    if (hasClosedRawPaths(rawPaths)) {
+        result = ClipperLib.Clipper.CleanPolygons(result, cleanPolyDist);
+        result = ClipperLib.Clipper.SimplifyPolygons(result, ClipperLib.PolyFillType.pftEvenOdd);
+    }
     return result;
 }
 
