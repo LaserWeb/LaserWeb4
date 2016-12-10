@@ -24,6 +24,8 @@ import Icon from './font-awesome';
 
 import omit from 'object.omit';
 
+import {GlobalStore} from '../index';
+
 export class ApplicationSnapshot extends React.Component {
     
     constructor(props) {
@@ -103,6 +105,33 @@ class SettingsPanel extends React.Component {
     
 }
 
+export const SETTINGS_VALIDATION_RULES = {
+        machineWidth:'min:100',
+        machineHeight:'min:100',
+        gcodeSMaxValue: 'required|numeric|min:1'
+}
+
+
+export function ValidateSettings(throwErrors=true, rules=SETTINGS_VALIDATION_RULES)
+{
+    let settings= Object.assign({},GlobalStore().getState().settings);
+    let check = new Validator(settings, rules );
+    
+    if (throwErrors) {
+        if (check.fails()){
+         //console.error("Settings Error:"+JSON.stringify(check.errors.errors));
+         return false;
+        }
+        return true;
+    } 
+    return check;
+}
+
+export function SettingsValidator({style,...rest}){
+    let validator=ValidateSettings(false);
+    let errors =  (validator.fails()) ? ("Please review Settings:\n\n" + Object.values(validator.errors.errors)) : undefined
+    return <Label bsStyle={errors? 'warning':'success'} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></Label>
+}
 
 class Settings extends React.Component {
     
@@ -114,16 +143,11 @@ class Settings extends React.Component {
     
     /* TODO: Move to a rules file so can be reused with other components/actions/reducers */
     rules() {
-        return {
-            machineWidth:'min:100',
-            machineHeight:'min:100',
-            //gcodeLaserOn:'required',
-            //gcodeLaserOff:'required'
-        }
+        return SETTINGS_VALIDATION_RULES
     }
     
-    validate(props, rules={}) {
-        let check = new Validator(props, rules );
+    validate(data, rules={}) {
+        let check = new Validator(data, rules );
         
         if (check.fails()) {
             console.error("Settings Error:"+JSON.stringify(check.errors.errors));
@@ -158,7 +182,7 @@ class Settings extends React.Component {
                 <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                    <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                    <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
-                   <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
+                   <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
                 </SettingsPanel>
                 
                 <SettingsPanel collapsible header="File Settings" eventKey="2"  bsStyle="info" errors={this.state.errors}>

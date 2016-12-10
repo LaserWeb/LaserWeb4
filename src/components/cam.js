@@ -26,6 +26,12 @@ import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
 
+import { ValidateSettings, SettingsValidator } from './settings';
+import { ButtonToolbar } from 'react-bootstrap'
+
+
+
+
 class Cam extends React.Component {
     componentWillMount() {
         this.generate = e => {
@@ -38,11 +44,18 @@ class Cam extends React.Component {
 
     render() {
         let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
+        
+        let valid=ValidateSettings();
+        
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <button className="btn btn-success btn-xs" onClick={this.generate}><i className="fa fa-fw fa-folder-open" />Generate GCode</button>
-                    <button className="btn btn-primary btn-xs" onClick={this.props.saveGcode}><i className="fa fa-folder-open" />Save GCode</button>
+                    <h5>Gcode generation <SettingsValidator style={{float:"right"}} /></h5>
+                    <ButtonToolbar>
+                    <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-folder-open" />Generate GCode</button>
+                    <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-folder-open" />Save GCode</button>
+                    
+                    </ButtonToolbar>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
