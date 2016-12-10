@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, cut, insideOutside, pocket, reduceCamPaths, separateTabs, vCarve } from './cam';
+import { dist, cut, fillPath, insideOutside, pocket, reduceCamPaths, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert laser cut paths to gcode.
@@ -118,9 +118,15 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         showAlert("PWM Max S Value (in Settings) must be greater than 0", "alert-danger");
         ok = false;
     }
-    if (op.type !== 'Laser Cut') {
+    if (op.type !== 'Laser Cut' && op.type !== 'Laser Fill Path') {
         if (op.laserDiameter <= 0) {
             showAlert("Laser Diameter must be greater than 0", "alert-danger");
+            ok = false;
+        }
+    }
+    if (op.type === 'Laser Fill Path') {
+        if (op.lineDistance <= 0) {
+            showAlert("Line Distance must be greater than 0", "alert-danger");
             ok = false;
         }
     }
@@ -160,6 +166,10 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         if (op.margin)
             geometry = offset(geometry, op.margin * mmToClipperScale);
         camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
+    } else if (op.type === 'Laser Fill Path') {
+        if (op.margin)
+            geometry = offset(geometry, -op.margin * mmToClipperScale);
+        camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale);
     }
 
     reduceCamPaths(camPaths, .5 * mmToClipperScale);

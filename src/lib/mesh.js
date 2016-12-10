@@ -355,6 +355,22 @@ export function cPathsToCamPaths(memoryBlocks, cPathsRef, cNumPathsRef, cPathSiz
     return convertedPaths;
 }
 
+export function clipperBounds(paths) {
+    let minX = Number.MAX_VALUE;
+    let minY = Number.MAX_VALUE;
+    let maxX = Number.MIN_VALUE;
+    let maxY = Number.MIN_VALUE;
+    for (let path of paths) {
+        for (let pt of path) {
+            minX = Math.min(minX, pt.X);
+            maxX = Math.max(maxX, pt.X);
+            minY = Math.min(minY, pt.Y);
+            maxY = Math.max(maxY, pt.Y);
+        }
+    }
+    return { minX, minY, maxX, maxY };
+}
+
 // Clip Clipper geometry. clipType is a ClipperLib.ClipType constant. Returns new geometry.
 export function clip(paths1, paths2, clipType) {
     var clipper = new ClipperLib.Clipper();

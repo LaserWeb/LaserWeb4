@@ -13,6 +13,7 @@ const operationBase = object('operation', {
     laserPower: 100,
     laserDiameter: 0,
     toolDiameter: 0,
+    lineDistance: 0,
     margin: 0,
     passes: 0,
     cutWidth: 0,
