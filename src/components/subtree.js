@@ -22,7 +22,7 @@ function Subtree(props) {
     return (
         <div>
             <div style={{
-                backgroundColor: ((rowNumber.value)++ & 1) ? 'cyan' : 'LightCyan',
+                backgroundColor: ((rowNumber.value)++ & 1) ? '#eee' : '#ddd',
             }}>
                 <span style={{
                     display: 'flex',

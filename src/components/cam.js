@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -41,13 +41,13 @@ class Cam extends React.Component {
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <button onClick={this.generate}>Generate</button>
-                    <button onClick={this.props.saveGcode}>Save GCode</button>
+                    <button className="btn btn-success btn-xs" onClick={this.generate}><i className="fa fa-fw fa-folder-open" />Generate GCode</button>
+                    <button className="btn btn-primary btn-xs" onClick={this.props.saveGcode}><i className="fa fa-folder-open" />Save GCode</button>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
                     <span style={{ float: 'right', position: 'relative' }}>
-                        <button className="btn btn-xs"><i className="fa fa-upload" /></button>
+                        <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Open Document</button>
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>

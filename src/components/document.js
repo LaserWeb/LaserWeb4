@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -65,12 +65,18 @@ class DocumentLabel extends React.Component {
     render() {
         let style;
         if (this.props.object.selected)
-            style = { userSelect: 'none', cursor: 'default', backgroundColor: 'blue', color: 'white' };
+            style = { userSelect: 'none', cursor: 'default', textDecoration: 'bold', color: '#cc0000' };
+            // error = <E />;
         else
             style = { userSelect: 'none', cursor: 'default' };
+
+        let checked;
+        if (this.props.object.selected)
+            checked = <i className="fa fa-fw fa-check"></i>;
+
         return (
             <span style={style} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp} onDragStart={this.onDragStart} draggable={true}>
-                {this.props.object.name}
+                {checked}{this.props.object.name}
             </span>
         );
     }
