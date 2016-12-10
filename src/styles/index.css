@@ -318,3 +318,216 @@ body, html, .full-height {
 
 /* macros*/
 .macros select {width: 100%; font-size: 0.8em}
+
+/* Jog Panel */
+.btn-ctl {
+    padding: 12px 18px;
+    border-radius: 4px;
+}
+
+.btn-sd {
+    padding: 15px 48px;
+    border-radius: 4px;
+}
+
+.btn-jog {
+    padding: 12px 18px;
+    border-radius: 4px;
+}
+
+.fa-stack{
+    width: 1.28571em;
+}
+
+.icon-bot-text { margin-left: -3px; margin-top: 16px; font-size: 10px;}
+.icon-top-text { margin-left: -3px; margin-top: -16px; font-size: 10px; }
+.icon-text { margin-top: 16px; font-size: 11px; font-weight: bold;}
+
+.drolabel {
+    display:inline-block;
+    background-color: #dddddd;
+    text-align: left;
+    padding-left: 15px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: 50px;
+    border: 1px solid #aaa;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 3px;
+}
+
+.dro {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: left;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 18px;
+    width: calc(99% - 85px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 0px;
+    /*font-family: '8bit';*/
+}
+.droPos {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: right;
+    padding-right: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: calc(99% - 152px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 10px;
+    /*font-family: '8bit';*/
+}
+
+.droUnit {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: center;
+    /*padding-left: 3px;
+    padding-right: 3px;*/
+    padding-top: 9px;
+    padding-bottom: 2px;
+    font-size: 12px;
+    width: 38px;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 4px;
+    margin-right: 3px;
+    margin-bottom: 3px;
+    /*font-family: '8bit';*/
+}
+
+.droOR {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: center;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: calc(99% - 167px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 3px;
+    /*font-family: '8bit';*/
+}
+
+
+.droR {
+
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: left;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: 85px;
+	  height: 31px;
+    border: 1px solid #aaa;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 0px;
+    /*font-family: '8bit';*/
+}
+/* Badget over Glyphs */
+
+.badge-notify {
+    background-color: #cc0000;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-ok {
+    background-color: #008800;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-warn {
+    background-color: #cc9900;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-busy {
+    background-color: #1568bc;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+/* Bootstrap Callout */
+.bs-callout {
+    padding: 6px;
+    margin: 6px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+    background-color: #ffffff;
+}
+.bs-callout h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+    margin-bottom: 0;
+}
+.bs-callout code {
+    border-radius: 3px;
+}
+.bs-callout+.bs-callout {
+    margin-top: -5px;
+}
+.bs-callout-default {
+    border-left-color: #777;
+}
+.bs-callout-default h4 {
+    color: #777;
+}
+.bs-callout-primary {
+    border-left-color: #428bca;
+}
+.bs-callout-primary h4 {
+    color: #428bca;
+}
+.bs-callout-success {
+    border-left-color: #5cb85c;
+}
+.bs-callout-success h4 {
+    color: #5cb85c;
+}
+.bs-callout-danger {
+    border-left-color: #d9534f;
+}
+.bs-callout-danger h4 {
+    color: #d9534f;
+}
+.bs-callout-warning {
+    border-left-color: #f0ad4e;
+}
+.bs-callout-warning h4 {
+    color: #f0ad4e;
+}
+.bs-callout-info {
+    border-left-color: #5bc0de;
+}
+.bs-callout-info h4 {
+    color: #5bc0de;
+}
