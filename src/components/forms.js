@@ -96,7 +96,7 @@ export class NumberField extends React.Component {
             <InputGroup.Addon>{description}</InputGroup.Addon>
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
-            <InputGroup.Addon>{units}</InputGroup.Addon>
+            {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
           </InputGroup>;
         
         return <TooltipFormGroup validationState={errors? "error": undefined }
