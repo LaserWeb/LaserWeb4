@@ -17,7 +17,7 @@
 
 import ClipperLib from 'clipper-lib';
 
-import { diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperPathsToCPaths, clipperToCppScale } from './mesh';
+import { diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
 
 require('script!web-cam-cpp');
 
@@ -235,6 +235,22 @@ export function cut(geometry, openGeometry, climb) {
     let result = mergePaths(null, allPaths);
     for (let i = 0; i < result.length; ++i)
         result[i].safeToClose = pathIsClosed(result[i].path);
+    return result;
+};
+
+export function fillPath(geometry, lineDistance) {
+    if (!geometry.length || !geometry[0].length)
+        return [];
+    let bounds = clipperBounds(geometry);
+    let allPaths = [];
+    for (let y = bounds.minY; y <= bounds.maxY; y += lineDistance) {
+        let separated = separateTabs(
+            [{ X: bounds.minX, Y: y }, { X: bounds.maxX, Y: y }],
+            geometry);
+        for (let i = 1; i < separated.length; i += 2)
+            allPaths.push(separated[i]);
+    }
+    let result = mergePaths(null, allPaths);
     return result;
 };
 
