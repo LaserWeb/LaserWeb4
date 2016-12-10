@@ -171,7 +171,7 @@ class FloatingControls extends React.Component {
         let round = n => Math.round(n * 100) / 100;
 
         return (
-            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee'  }} className="floating-controls" >
+            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee' }} className="floating-controls" >
                 <tr>
                     <td></td>
                     <td>Min</td>
@@ -620,7 +620,7 @@ class Workspace extends React.Component {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td colSpan='2'><button className='btn btn-default btn-block' style={{ width: '150px'}}   onClick={this.props.reset}><i className="fa fa-fw fa-search"></i>Reset View</button></td>
+                                    <td colSpan='2'><button className='btn btn-default btn-block' style={{ width: '150px' }} onClick={this.props.reset}><i className="fa fa-fw fa-search"></i>Reset View</button></td>
                                 </tr>
                                 <tr>
                                     <td>Perspective</td>
@@ -644,13 +644,15 @@ class Workspace extends React.Component {
                             <tbody>
                                 <tr>
                                     <td>
-                                      <div className='input-group'>
-                                        <span className='input-group-addon'>Simulator</span>
-                                        <input style={{ width: '250px'}}  class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
-                                        <span className='input-group-addon'>G0 Feedrate</span>
-                                        <Input style={{ width: '85px'}} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
-                                        <span className='input-group-addon'>mm/min</span>
-                                      </div>
+                                        <div className='input-group'>
+                                            <span className='input-group-addon'>Simulator</span>
+                                            <input style={{ width: '250px' }} class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
+                                        </div>
+                                        <div className='input-group'>
+                                            <span className='input-group-addon'>G0 Feedrate</span>
+                                            <Input style={{ width: '85px' }} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
+                                            <span className='input-group-addon'>mm/min</span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
