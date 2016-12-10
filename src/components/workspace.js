@@ -178,6 +178,7 @@ class FloatingControls extends React.Component {
                     <td>Center</td>
                     <td>Max</td>
                     <td>Size</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td><span className="label label-danger">X</span></td>
