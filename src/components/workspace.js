@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -71,20 +71,20 @@ class Grid {
             this.position = drawCommands.regl.buffer(new Float32Array(a));
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [1, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 1, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' });
+        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
+        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
+        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
     }
 };
 
 function GridText(props) {
     let a = [];
     for (let x = 50; x <= props.width; x += 50)
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: 'red' }}>{x}</Text3d>);
-    a.push(<Text3d key="x-label" x={props.width + 15} y={0} size={10} style={{ color: 'red' }}>X</Text3d>);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }}>{x}</Text3d>);
+    a.push(<Text3d key="x-label" x={props.width + 15} y={0} size={10} style={{ color: '#CC0000' }}>X</Text3d>);
     for (let y = 50; y <= props.height; y += 50)
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: 'green' }}>{y}</Text3d>);
-    a.push(<Text3d key="y-label" x={0} y={props.height + 15} size={10} style={{ color: 'green' }}>Y</Text3d>);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }}>{y}</Text3d>);
+    a.push(<Text3d key="y-label" x={0} y={props.height + 15} size={10} style={{ color: '#00CC00' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
 
@@ -171,7 +171,7 @@ class FloatingControls extends React.Component {
         let round = n => Math.round(n * 100) / 100;
 
         return (
-            <table style={{ position: 'relative', left: x, top: y }} className="floating-controls" >
+            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee'  }} className="floating-controls" >
                 <tr>
                     <td></td>
                     <td>Min</td>
@@ -180,7 +180,7 @@ class FloatingControls extends React.Component {
                     <td>Size</td>
                 </tr>
                 <tr>
-                    <td>X</td>
+                    <td><span className="label label-danger">X</span></td>
                     <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" /></td>
                     <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" /></td>
                     <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" /></td>
@@ -190,7 +190,7 @@ class FloatingControls extends React.Component {
                     </td>
                 </tr>
                 <tr>
-                    <td>Y</td>
+                    <td><span className="label label-success">Y</span></td>
                     <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" /></td>
                     <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" /></td>
                     <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
@@ -619,22 +619,8 @@ class Workspace extends React.Component {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td />
-                                    <td><button onClick={this.props.reset}>Reset View</button></td>
+                                    <td colSpan='2'><button className='btn btn-default btn-block' style={{ width: '150px'}}   onClick={this.props.reset}><i className="fa fa-fw fa-search"></i>Reset View</button></td>
                                 </tr>
-                                <tr>
-                                    <td>g0 rate</td>
-                                    <td><Input value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" /></td>
-                                    <td>mm/min</td>
-                                </tr>
-                                <tr>
-                                    <td>Sim time</td>
-                                    <td><input value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} /></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table style={{ marginLeft: 10 }}>
-                            <tbody>
                                 <tr>
                                     <td>Perspective</td>
                                     <td><input checked={camera.showPerspective} onChange={setShowPerspective} type="checkbox" /></td>
@@ -650,6 +636,21 @@ class Workspace extends React.Component {
                                 <tr>
                                     <td>Show Documents</td>
                                     <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table style={{ marginLeft: 10 }}>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                      <div className='input-group'>
+                                        <span className='input-group-addon'>Simulator</span>
+                                        <input style={{ width: '250px'}}  class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
+                                        <span className='input-group-addon'>G0 Feedrate</span>
+                                        <input style={{ width: '85px'}} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
+                                        <span className='input-group-addon'>mm/min</span>
+                                      </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -205,6 +205,7 @@ export const fields = {
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
     toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
@@ -232,6 +233,7 @@ export const types = {
     'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'lineDistance', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
@@ -297,7 +299,7 @@ class Operation extends React.Component {
                 <div style={{ display: 'table-cell' }}>
                     <i
                         onClick={this.toggleExpanded}
-                        className={op.expanded ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o'} />
+                        className={op.expanded ? 'fa fa-fw fa-minus-square-o' : 'fa fa-fw fa-plus-square-o'} />
                 </div>
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -399,7 +401,7 @@ class Operation extends React.Component {
                         <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
-                            <div style={{ display: 'table-cell' }}><b>Drag document(s) here to create tabs</b></div>
+                            <div style={{ display: 'table-cell', border: '2px dashed #ccc' }}><b>Drag document(s) here to create tabs</b></div>
                         </div>,
                     );
                 }
@@ -454,7 +456,7 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: 'cyan', padding: '20px' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc'}} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                     <b>Drag document(s) here</b>
                 </div>
                 <br />

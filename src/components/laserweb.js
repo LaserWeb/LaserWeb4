@@ -12,6 +12,7 @@ import 'font-awesome/css/font-awesome.min.css'
 import 'react-select/dist/react-select.css';
 import '../styles/index.css'
 import '../styles/resizer.css';
+import 'bootstrap-range-input/dist/css/bootstrap-range-input.min.css'
 
 import ReactDOM from 'react-dom'
 
@@ -53,18 +54,18 @@ import {GlobalStore} from '../index'
 
 
 class LaserWeb extends React.Component {
-    
+
     @keydown('ctrl+z')
     keylogger( event ) {
         this.props.handleKeypress(event);
-        
+
     }
-    
+
     @keydown(Object.keys(GlobalStore().getState().macros))
     macro(event) {
         this.props.handleMacro(event, this.props.macros)
     }
-    
+
     render() {
         return (
             <AllowCapture style={{ height: '100%' }}>
@@ -104,11 +105,10 @@ const mapDispatchToProps = (dispatch) => {
          handleMacro: (e, macros) =>{
                 dispatch(fireMacroByKeyboard(e,macros))
          }
-        
+
     }
 }
 
 // Exports
 export { LaserWeb }
 export default connect(mapStateToProps, mapDispatchToProps)(LaserWeb)
-

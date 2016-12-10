@@ -92,6 +92,9 @@
     "webpack-dev-server": "^1.15.1"
   },
   "dependencies": {
-    "immutability-helper": "^2.0.0"
+    "bootstrap-range-input": "^1.0.0",
+    "immutability-helper": "^2.0.0",
+    "react-addons-shallow-compare": "^15.4.1",
+    "unicode": "^0.6.1"
   }
 }

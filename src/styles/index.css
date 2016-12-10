@@ -211,11 +211,11 @@ body, html, .full-height {
 }
 
 .operation-row {
-    background-color:cyan;
+    background-color:#eee;
 }
 
 .operation-row:nth-child(even) {
-    background-color: lightcyan;
+    background-color: #ddd;
 }
 
 .operations td {
@@ -297,14 +297,14 @@ body, html, .full-height {
 .flexTHead {border-bottom: 1px solid #ccc}
 .flexTable .tableRow.collapsible {cursor: s-resize;}
 .flexTable .collapsible:hover {background: rgb(188, 232, 241)}
-.flexTable .tableRow.collapsible.openedÊ{cursor: n-resize }
+.flexTable .tableRow.collapsible.openedï¿½{cursor: n-resize }
 .flexTable .tableRow label {width: 100%}
 
 .flexTable .flexTBody .column {align-items:none}
 .flexTable .flexTBody .column > div {width:100%; overflow:visible !important}
 .flexTable .flexTBody .column._actions {flex:none !important; text-align: right}
 .flexTable .flexTBody .column._actions div {line-height: 0}
-.flexTable .flexTBody .column input, 
+.flexTable .flexTBody .column input,
 .flexTable .flexTBody .column select,
 .flexTable .flexTBody .column textarea {width:100%}
 
