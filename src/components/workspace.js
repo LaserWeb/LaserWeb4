@@ -178,6 +178,7 @@ class FloatingControls extends React.Component {
                     <td>Center</td>
                     <td>Max</td>
                     <td>Size</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td><span className="label label-danger">X</span></td>
@@ -647,7 +648,7 @@ class Workspace extends React.Component {
                                         <span className='input-group-addon'>Simulator</span>
                                         <input style={{ width: '250px'}}  class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
                                         <span className='input-group-addon'>G0 Feedrate</span>
-                                        <input style={{ width: '85px'}} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
+                                        <Input style={{ width: '85px'}} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
                                         <span className='input-group-addon'>mm/min</span>
                                       </div>
                                     </td>
