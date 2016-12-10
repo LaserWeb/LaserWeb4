@@ -29,10 +29,10 @@ function Subtree(props) {
                     justifyContent: 'space-between',
                     marginLeft: indent,
                 }}>
-                    <div>
+                    <div style={{cursor: 'pointer'}}>
                         <i
                             onClick={() => toggleExpanded(object)}
-                            className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o'} />
+                            className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
                         &nbsp;
                             <Label object={object} />
                     </div>

@@ -296,10 +296,10 @@ class Operation extends React.Component {
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                 <div style={leftStyle} />
-                <div style={{ display: 'table-cell' }}>
+                <div style={{ display: 'table-cell', cursor: 'pointer' }}>
                     <i
                         onClick={this.toggleExpanded}
-                        className={op.expanded ? 'fa fa-fw fa-minus-square-o' : 'fa fa-fw fa-plus-square-o'} />
+                        className={op.expanded ? 'fa fa-fw fa-minus-circle' : 'fa fa-fw fa-plus-circle'} />
                 </div>
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>

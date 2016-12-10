@@ -20,7 +20,16 @@ class About extends React.Component {
     render() {
         return (
             <div>
-                <p>About panel...</p>
+                <h3>Support Community</h3>
+                  
+                <h3>Developers</h3>
+                <ul>
+                  <li>Todd Fleming</li>
+                  <li>Sebastien Mischler</li>
+                  <li>Jorge Robles</li>
+                  <li>Peter van der Walt</li>
+                </ul>
+
             </div>
         )
     }

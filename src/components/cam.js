@@ -44,22 +44,22 @@ class Cam extends React.Component {
 
     render() {
         let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
-        
+
         let valid=ValidateSettings();
-        
+
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <h5>Gcode generation <SettingsValidator style={{float:"right"}} /></h5>
                     <ButtonToolbar>
-                    <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-folder-open" />Generate GCode</button>
-                    <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-folder-open" />Save GCode</button>
-                    
+                    <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
+                    <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
+
                     </ButtonToolbar>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
-                    <span style={{ float: 'right', position: 'relative' }}>
+                    <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
                         <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Open Document</button>
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
