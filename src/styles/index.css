@@ -355,6 +355,7 @@ body, html, .full-height {
     font-weight: bold;
     margin-left: 0px;
     margin-right: 3px;
+    cursor: default;
 }
 
 .dro {
@@ -383,6 +384,7 @@ body, html, .full-height {
     font-weight: bold;
     margin-left: 0px;
     margin-right: 10px;
+    cursor: default;
     /*font-family: '8bit';*/
 }
 
@@ -401,6 +403,7 @@ body, html, .full-height {
     margin-left: 4px;
     margin-right: 3px;
     margin-bottom: 3px;
+    cursor: default;
     /*font-family: '8bit';*/
 }
 
@@ -434,6 +437,7 @@ body, html, .full-height {
     font-weight: bold;
     margin-left: 0px;
     margin-right: 0px;
+    cursor: default;
     /*font-family: '8bit';*/
 }
 /* Badget over Glyphs */

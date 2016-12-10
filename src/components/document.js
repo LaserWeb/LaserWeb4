@@ -68,7 +68,7 @@ class DocumentLabel extends React.Component {
             style = { userSelect: 'none', cursor: 'default', textDecoration: 'bold', color: '#cc0000' };
             // error = <E />;
         else
-            style = { userSelect: 'none', cursor: 'default' };
+            style = { userSelect: 'none', cursor: 'copy' };
 
         let checked;
         if (this.props.object.selected)
