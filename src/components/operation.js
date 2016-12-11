@@ -201,6 +201,7 @@ const ifUseA = {
 export const fields = {
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
+    union: { name: 'union', label: 'Union', units: '', input: CheckboxInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -230,7 +231,7 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'union', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'lineDistance', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
@@ -456,7 +457,7 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc'}} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                     <b>Drag document(s) here</b>
                 </div>
                 <br />
