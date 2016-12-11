@@ -140,6 +140,42 @@ export function TextField({object, field, description, units="", setAttrs, dispa
     
 }
 
+export class SelectField extends React.Component  {
+    
+    
+    render(){
+        
+        let {object, field, description, units="",  setAttrs, dispatch, data, blank="select", labelAddon=true,...rest} = this.props;
+        
+        let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
+        let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
+        let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
+        
+        let label = labelAddon? <InputGroup.Addon>{description}{ units? " ("+units+")":undefined }</InputGroup.Addon>: <ControlLabel>{description}{ units? " ("+units+")":undefined }</ControlLabel>
+        
+        let input =<InputGroup>
+            {label}
+            <FormControl componentClass="select" placeholder="select" value={object[field]}  onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}>
+            <option>{blank}</option>
+            {Object.entries(data).map((item,i, obj)=>{
+                let [value, label] = item;
+                
+                if (Array.isArray(obj) && !isNaN(value))
+                    value = label;
+                
+                return <option key={i} value={value}>{label}</option>
+            })}
+            </FormControl>
+        </InputGroup>
+        
+        return  <TooltipFormGroup validationState={errors? "error": undefined }
+                                    validationContent={errors}
+                                    validationPlacement="right">{input}</TooltipFormGroup>
+    }
+    
+}
+
+
 export function ToggleField({object, field, description, units="", setAttrs, dispatch, ...rest}) {
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
@@ -234,3 +270,4 @@ TextField = connect()(TextField);
 ToggleField = connect()(ToggleField);
 QuadrantField = connect()(QuadrantField);
 CheckBoxListField = connect()(CheckBoxListField);
+SelectField = connect()(SelectField);
