@@ -112,7 +112,7 @@ export const settings = objectNoId('settings', {
     toolUseNumpad: false,
     toolUseVideo: false,
     toolWebcamUrl:"",
-    
+    toolMoveUnits: 'mm/min',
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M2          ; End\r\n",
@@ -121,6 +121,6 @@ export const settings = objectNoId('settings', {
     gcodeLaserOff:"",
     gcodeSMaxValue: 1,
     
-    gcodeMoveUnits: 'mm/min'
+    
     
 });

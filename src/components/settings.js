@@ -193,13 +193,14 @@ class Settings extends React.Component {
                   <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
                   <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5}} />
                   
-                <SelectField {...{ object: this.props.settings, field: 'gcodeMoveUnits', setAttrs: setSettingsAttrs, data:['mm/s','mm/min'], description: 'Movement Units'}} />
+                
 
                   <TextField {...{ object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
                   <TextField {...{ object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
                   <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
                 </SettingsPanel>
                 <SettingsPanel collapsible header="Application" eventKey="4"  bsStyle="info" errors={this.state.errors}>
+                    <SelectField {...{ object: this.props.settings, field: 'toolMoveUnits', setAttrs: setSettingsAttrs, data:['mm/s','mm/min'], description: 'Movement Units'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
