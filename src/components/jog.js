@@ -5,6 +5,7 @@
 
 // React
 import React from 'react'
+import {PanelGroup, Panel} from 'react-bootstrap';
 
 import {MacrosBar} from './macros';
 
@@ -24,13 +25,10 @@ class Jog extends React.Component {
     render() {
         return (
         <div style={{paddingTop: 2}}>
-          <div className='panel panel-primary'>
-            <div className="panel-heading">
-              <h4 className="panel-title"><a className="accordion-toggle" data-toggle="collapse" href="#statusPanel">Status</a></h4>
-            </div>
-            <div id='statusPanel' className="panel-collapse collapse in" style={{padding: 5}}>
-              <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{marginRight: 5, marginTop: 8}}>Not Connected</span>
-              <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{marginRight: 5, marginTop: 8}}>Queued: 0</span>
+          <PanelGroup>
+           <Panel collapsible header="Jog" bsStyle="primary" eventKey="1" defaultExpanded={true}>
+              <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{marginRight: 5}}>Not Connected</span>
+              <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{marginRight: 5}}>Queued: 0</span>
               <div id="mPosition" style={{padding: 5}}>
                   <div id="rX" className="drolabel">X:</div>
                   <div className="btn-group dropdown" style={{marginLeft: -3}}>
@@ -144,16 +142,12 @@ class Jog extends React.Component {
                           </button>
                       </div>
                     </div>
-                </div>
-            </div>
-          </div>
+                  </div>
+                </Panel>
 
 
-          <div className='panel panel-primary'>
-            <div className="panel-heading">
-              <h4 className="panel-title"><a className="accordion-toggle" data-toggle="collapse" href="#controlPanel">Control</a></h4>
-            </div>
-            <div id='controlPanel' className="panel-collapse collapse in" style={{padding: 5}}>
+
+          <Panel collapsible header="Control" bsStyle="primary" eventKey="2" defaultExpanded={true}>
             <div id="controlmachine" className="btn-group" role="group" aria-label="controljob">
               <div className="btn-group btn-group-justified">
                 <div className="btn-group">
@@ -206,7 +200,7 @@ class Jog extends React.Component {
                       <span className="fa-stack fa-1x">
                           <i className="fa fa-square-o fa-stack-1x"></i>
                           <strong className="fa-stack-1x icon-top-text">check</strong>
-                          <strong className="fa-stack-1x icon-bot-text">outline</strong>
+                          <strong className="fa-stack-1x icon-bot-text">size</strong>
                       </span>
                   </button>
                 </div>
@@ -346,8 +340,8 @@ class Jog extends React.Component {
                   </tr>
                 </tbody>
               </table>
-            </div>
-          </div>
+            </Panel>
+          </PanelGroup>
 
                 <MacrosBar/>
             </div>

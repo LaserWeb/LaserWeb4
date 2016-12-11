@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ReactDOM from 'react-dom';
+import {PanelGroup, Panel} from 'react-bootstrap';
+
 import Icon from './font-awesome'
 import {CheckBoxListField} from './forms';
 
@@ -108,19 +110,15 @@ export class MacrosBar extends React.Component{
 
     render(){
         return <fieldset>
-        <div className='panel panel-primary'>
-          <div className="panel-heading">
-            <h4 className="panel-title"><a className="accordion-toggle" data-toggle="collapse" href="#macroPanel">Status</a></h4>
-          </div>
-          <div id='macroPanel' className="panel-collapse collapse in" style={{padding: 5}}>
-              <ButtonToolbar>
-              {Object.entries(this.props.macros).map((macro,i)=>{
-                  let [keybinding, data] = macro;
-                  return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
-              }
-              </ButtonToolbar>
-            </div>
-          </div>
+        <Panel collapsible defaultExpanded={true} header="Macros" bsStyle="primary" eventKey="3" >
+          <ButtonToolbar>
+          {Object.entries(this.props.macros).map((macro,i)=>{
+              let [keybinding, data] = macro;
+              return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+          }
+          </ButtonToolbar>
+        </Panel>
+
         </fieldset>
     }
 }
