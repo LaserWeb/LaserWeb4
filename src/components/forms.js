@@ -145,7 +145,7 @@ export class SelectField extends React.Component  {
     
     render(){
         
-        let {object, field, description, units="",  setAttrs, dispatch, data, blank="select", labelAddon=true,...rest} = this.props;
+        let {object, field, description, units="",  setAttrs, dispatch, data, blank, labelAddon=true,...rest} = this.props;
         
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
@@ -156,7 +156,7 @@ export class SelectField extends React.Component  {
         let input =<InputGroup>
             {label}
             <FormControl componentClass="select" placeholder="select" value={object[field]}  onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}>
-            <option>{blank}</option>
+            {blank ? <option>{blank}</option> :undefined}
             {Object.entries(data).map((item,i, obj)=>{
                 let [value, label] = item;
                 
