@@ -109,5 +109,6 @@ export function Documents({documents, toggleExpanded}) {
                         toggleExpanded={object => toggleExpanded(object)} />
                 ))}
         </div>
+
     );
 }

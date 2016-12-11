@@ -14,7 +14,7 @@ body, html, .full-height {
 
 #sidebar {
     flex-grow: 1;
-    min-width: 80px;
+    min-width: 60px;
     /*max-width: 380px;*/
     display: flex;
 }
@@ -26,7 +26,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock {
-    min-width: 80px;
+    min-width: 60px;
     flex-grow:0;
 }
 
@@ -85,7 +85,7 @@ body, html, .full-height {
     color: #eee;
     display: block;
     cursor: pointer;
-    padding: 10px 5px;
+    padding: 5px 5px;
     text-align: center;
     line-height: 60px;
 }
@@ -121,7 +121,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock li i {
-    font-size: 2em;
+    font-size: 1.6em;
 }
 
 #sidebar .dock li span {
@@ -201,7 +201,7 @@ body, html, .full-height {
 
 .folded > .Pane1{
     flex-grow:0;
-    max-width:80px;
+    max-width:60px;
 }
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
@@ -320,6 +320,40 @@ body, html, .full-height {
 .macros select {width: 100%; font-size: 0.8em}
 
 /* Jog Panel */
+
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: #fff;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+}
+
+
+button,
+button:active,
+button:focus,
+button:hover,
+.btn,
+.btn:active,
+.btn:focus,
+.btn:hover{
+    outline:none !important;
+}
+
+.centerTable td
+{
+    text-align:center;
+    vertical-align:middle;
+    padding-bottom: 5px;
+    padding-top: 5px;
+
+}
+
 .btn-ctl {
     padding: 12px 18px;
     border-radius: 4px;
@@ -379,7 +413,7 @@ body, html, .full-height {
     padding-right: 18px;
     margin-bottom: 3px;
     font-size: 20px;
-    width: calc(99% - 152px);
+    width: calc(99% - 115px);
     border: 1px solid #ccc;
     font-weight: bold;
     margin-left: 0px;
