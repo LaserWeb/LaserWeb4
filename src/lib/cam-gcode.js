@@ -46,9 +46,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
                 } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
                     let isClosed = false;
-                    for (let rawPath of doc.rawPaths)
-                        if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
-                            isClosed = true;
+                    if (op.union || op.type !== 'Laser Cut')
+                        for (let rawPath of doc.rawPaths)
+                            if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
+                                isClosed = true;
                     if (isClosed || !op.filterFillColor) {
                         let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
                         if (isClosed)
