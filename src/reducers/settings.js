@@ -1,4 +1,6 @@
 import { objectNoId } from '../reducers/object'
+import Validator from 'validatorjs';
+import {GlobalStore} from '../index';
 
  /*
         {
@@ -53,8 +55,39 @@ import { objectNoId } from '../reducers/object'
         }
     
     */
+ 
 
 
+export const SETTINGS_VALIDATION_RULES = {
+    machineWidth:'min:100',
+    machineHeight:'min:100',
+    
+    gcodeSMaxValue: 'required|numeric|min:1',
+    gcodeMoveUnits: 'in:mm/s,mm/min',
+    
+    machineZEnabled: 'boolean',
+    machineZBlowerEnabled: 'boolean',
+    machineZMatThickness: 'min:0',
+    machineZFocusOffset: 'min:0',
+    machineZDefaultMaterialThickness: 'min:0',
+    
+    toolImagePosition: 'in:TL,TR,C,BL,BR',
+    
+}
+
+
+export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, settings=null) {
+
+    if (!settings)
+        settings=Object.assign({},GlobalStore().getState().settings)
+
+    let check = new Validator(settings, rules );
+    
+    if (bool) 
+        return check.passes();
+    
+    return check;
+}
 
 export const settings = objectNoId('settings', {
     
@@ -63,6 +96,12 @@ export const settings = objectNoId('settings', {
     machineWidth: 300,
     machineHeight: 300,
     machineBeamDiameter: 0.2,
+    
+    machineZEnabled: false,
+    machineZBlowerEnabled: false,
+    machineZMatThickness: 0,
+    machineZFocusOffset: 0,
+    machineZDefaultMaterialThickness: 0,
     
     pxPerInch: 96,
     dpiRasterBmp:300,
@@ -81,5 +120,7 @@ export const settings = objectNoId('settings', {
     gcodeLaserOn:"",
     gcodeLaserOff:"",
     gcodeSMaxValue: 1,
+    
+    gcodeMoveUnits: 'mm/min'
     
 });

@@ -157,7 +157,9 @@ body, html, .full-height {
     border-bottom: 1px #ccc dashed;
 }
 
-#sidebar .panes .pane-settings .panel .panel-heading .label {
+#sidebar .panes .pane-settings .panel .panel-heading .label,
+#sidebar .panes .pane-settings .panel .react-toggle
+{
     float:right
 }
 
