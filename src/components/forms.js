@@ -164,7 +164,7 @@ export class SelectField extends React.Component  {
         
         let label = labelAddon? <InputGroup.Addon>{description}{ units? " ("+units+")":undefined }</InputGroup.Addon>: <ControlLabel>{description}{ units? " ("+units+")":undefined }</ControlLabel>
         
-        let props={...selectProps, options: selectOptions(data),  value: object[field] || defaultValue, onChange: (v) => dispatch(setAttrs({ [field]: v }, object.id))}
+        let props={...selectProps, options: selectOptions(data),  value: object[field] || defaultValue, onChange: (v) => dispatch(setAttrs({ [field]: v.value }, object.id))}
         
         let input = <InputGroup>{label}<Select {...props} /></InputGroup>
         

@@ -179,7 +179,7 @@ export function getMillGcode(props) {
     return gcode;
 }; // getMillGcode
 
-export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeometry, showAlert) {
+export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert) {
     let ok = true;
     if (op.passDepth <= 0) {
         showAlert("Pass Depth must be greater than 0", "alert-danger");
@@ -234,6 +234,10 @@ export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeome
         camPaths = vCarve(geometry, op.toolAngle, op.passDepth * mmToClipperScale);
     }
 
+    let feedScale = 1;
+    if (settings.toolFeedUnits === 'mm/s')
+        feedScale = 60;
+
     let gcode =
         "\r\n;" +
         "\r\n; Operation:    " + opIndex +
@@ -243,8 +247,8 @@ export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeome
         "\r\n; Cut Depth:    " + op.cutDepth +
         "\r\n; Pass Depth:   " + op.passDepth +
         "\r\n; clearance:    " + op.clearance +
-        "\r\n; Plunge rate:  " + op.plungeRate +
-        "\r\n; Cut rate:     " + op.cutRate +
+        "\r\n; Plunge rate:  " + op.plungeRate + ' ' + settings.toolFeedUnits +
+        "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
 
     gcode += getMillGcode({
@@ -259,8 +263,8 @@ export function getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeome
         botZ: -op.cutDepth,
         safeZ: +op.clearance,
         passDepth: op.passDepth,
-        plungeFeed: op.plungeRate,
-        cutFeed: op.cutRate,
+        plungeFeed: op.plungeRate * feedScale,
+        cutFeed: op.cutRate * feedScale,
         tabGeometry: op.type === 'Mill V Carve' ? [] : tabGeometry,
         tabZ: -op.tabDepth,
     });
