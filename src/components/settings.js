@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
-import { dispatch, connect } from 'react-redux';
+import { connect } from 'react-redux';
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField } from './forms';
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot  } from '../actions/settings';
 
 import MachineProfile from './machine-profiles';
@@ -157,8 +157,6 @@ class Settings extends React.Component {
         return (
             <div className="form">
             
-            
-            
             <PanelGroup>
                 <Panel header="Machine Profiles"  bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
                     <MachineProfile onApply={this.props.handleApplyProfile}/>
@@ -195,11 +193,14 @@ class Settings extends React.Component {
                   <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
                   <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5}} />
                   
+                
+
                   <TextField {...{ object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
                   <TextField {...{ object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
                   <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
                 </SettingsPanel>
                 <SettingsPanel collapsible header="Application" eventKey="4"  bsStyle="info" errors={this.state.errors}>
+                    <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data:['mm/s','mm/min'], description: 'Feed Units'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />

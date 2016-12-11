@@ -78,7 +78,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 return '';
             gcode += g;
         } else if (op.type.substring(0, 5) === 'Mill ') {
-            let g = getMillGcodeFromOp(opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
+            let g = getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
                 return '';
             gcode += g;
