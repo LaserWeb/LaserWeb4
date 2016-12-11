@@ -14,7 +14,7 @@ body, html, .full-height {
 
 #sidebar {
     flex-grow: 1;
-    min-width: 80px;
+    min-width: 60px;
     /*max-width: 380px;*/
     display: flex;
 }
@@ -26,7 +26,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock {
-    min-width: 80px;
+    min-width: 60px;
     flex-grow:0;
 }
 
@@ -85,7 +85,7 @@ body, html, .full-height {
     color: #eee;
     display: block;
     cursor: pointer;
-    padding: 10px 5px;
+    padding: 5px 5px;
     text-align: center;
     line-height: 60px;
 }
@@ -121,7 +121,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock li i {
-    font-size: 2em;
+    font-size: 1.6em;
 }
 
 #sidebar .dock li span {
@@ -201,7 +201,7 @@ body, html, .full-height {
 
 .folded > .Pane1{
     flex-grow:0;
-    max-width:80px;
+    max-width:60px;
 }
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
