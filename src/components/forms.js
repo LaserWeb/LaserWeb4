@@ -85,23 +85,25 @@ export class NumberField extends React.Component {
     
     
     render(){
-        let {object, field, description, units, setAttrs, dispatch, ...rest} = this.props;
+        let {object, field, description, units, setAttrs, dispatch, labelAddon, ...rest} = this.props;
         
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
         
+        if (labelAddon!==false) labelAddon=true;
         
-       
-        let input = <InputGroup>
-            <InputGroup.Addon>{description}</InputGroup.Addon>
+        
+        let input= <InputGroup>
+            {labelAddon? <InputGroup.Addon>{description}</InputGroup.Addon> : undefined}
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
-            <InputGroup.Addon>{units}</InputGroup.Addon>
+            {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
           </InputGroup>;
+        
         
         return <TooltipFormGroup validationState={errors? "error": undefined }
                                 validationContent={errors}
-                                validationPlacement="right">{input}</TooltipFormGroup>
+                                validationPlacement="right">{!labelAddon? <ControlLabel>{description}</ControlLabel>:undefined}{input}</TooltipFormGroup>
         
     }
 }
@@ -142,7 +144,7 @@ export function ToggleField({object, field, description, units="", setAttrs, dis
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
-    let input = <div className="input-group">
+    let input = <div >
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
         </div>

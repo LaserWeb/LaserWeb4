@@ -22,17 +22,17 @@ function Subtree(props) {
     return (
         <div>
             <div style={{
-                backgroundColor: ((rowNumber.value)++ & 1) ? 'cyan' : 'LightCyan',
+                backgroundColor: ((rowNumber.value)++ & 1) ? '#eee' : '#ddd',
             }}>
                 <span style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     marginLeft: indent,
                 }}>
-                    <div>
+                    <div style={{cursor: 'pointer'}}>
                         <i
                             onClick={() => toggleExpanded(object)}
-                            className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o'} />
+                            className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
                         &nbsp;
                             <Label object={object} />
                     </div>

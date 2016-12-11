@@ -10,9 +10,9 @@ import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros' 
 import {PanelGroup, Panel} from 'react-bootstrap';
 
-import Validator from 'validatorjs';
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label } from 'react-bootstrap';
+
+import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse } from 'react-bootstrap';
 
 import update from 'immutability-helper';
 
@@ -23,6 +23,11 @@ import {FileStorage, LocalStorage} from '../lib/storages';
 import Icon from './font-awesome';
 
 import omit from 'object.omit';
+
+import Validator from 'validatorjs';
+
+
+import {SETTINGS_VALIDATION_RULES, ValidateSettings} from '../reducers/settings';
 
 export class ApplicationSnapshot extends React.Component {
     
@@ -104,6 +109,16 @@ class SettingsPanel extends React.Component {
 }
 
 
+
+
+
+
+export function SettingsValidator({style,...rest}){
+    let validator=ValidateSettings(false);
+    let errors =  (validator.fails()) ? ("Please review Settings:\n\n" + Object.values(validator.errors.errors)) : undefined
+    return <Label bsStyle={errors? 'warning':'success'} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></Label>
+}
+
 class Settings extends React.Component {
     
     constructor(props){
@@ -112,24 +127,19 @@ class Settings extends React.Component {
         
     }
     
-    /* TODO: Move to a rules file so can be reused with other components/actions/reducers */
-    rules() {
-        return {
-            machineWidth:'min:100',
-            machineHeight:'min:100',
-            //gcodeLaserOn:'required',
-            //gcodeLaserOff:'required'
-        }
-    }
-    
-    validate(props, rules={}) {
-        let check = new Validator(props, rules );
+    validate(data, rules) {
+        let check = new Validator(data, rules );
         
         if (check.fails()) {
             console.error("Settings Error:"+JSON.stringify(check.errors.errors));
             return check.errors.errors;
         }
         return null;
+    }
+   
+    rules()
+    {
+        return SETTINGS_VALIDATION_RULES;
     }
    
     componentWillMount() {
@@ -158,7 +168,19 @@ class Settings extends React.Component {
                 <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                    <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                    <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
-                   <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: 'Laser Beam Diameter', units: 'mm' }} />
+                   <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
+                   
+                   <hr/>
+                   <ToggleField {... {object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage'}} />
+                   <Collapse in={this.props.settings.machineZEnabled}>
+                   <div>
+                   <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist Compensation'}} />
+                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZMatThickness', setAttrs: setSettingsAttrs, description: 'Cutting Mat Compensation', labelAddon:false, units: 'mm' }} />
+                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZFocusOffset', setAttrs: setSettingsAttrs, description: 'Focus Height Compensation', labelAddon:false,units: 'mm' }} />
+                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZDefaultMaterialThickness', setAttrs: setSettingsAttrs, description: 'Default Material Thickness', labelAddon:false, units: 'mm' }} />
+                   </div>
+                   </Collapse>
+                   
                 </SettingsPanel>
                 
                 <SettingsPanel collapsible header="File Settings" eventKey="2"  bsStyle="info" errors={this.state.errors}>

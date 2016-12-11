@@ -5,7 +5,8 @@
 
 // React
 import React from 'react'
-
+import { ButtonToolbar, Button } from 'react-bootstrap'
+import Icon from './font-awesome'
 /**
  * About component.
  *
@@ -20,7 +21,16 @@ class About extends React.Component {
     render() {
         return (
             <div>
-                <p>About panel...</p>
+                <h3>Support</h3>
+                  <Button href="https://plus.google.com/communities/115879488566665599508"><Icon name="question-circle"/>&nbsp;Google+ Community</Button>
+                <h3>Developers</h3>
+                <ul>
+                  <li>Todd Fleming</li>
+                  <li>Sebastien Mischler</li>
+                  <li>Jorge Robles</li>
+                  <li>Peter van der Walt</li>
+                </ul>
+
             </div>
         )
     }

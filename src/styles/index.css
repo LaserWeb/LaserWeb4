@@ -14,7 +14,7 @@ body, html, .full-height {
 
 #sidebar {
     flex-grow: 1;
-    min-width: 80px;
+    min-width: 60px;
     /*max-width: 380px;*/
     display: flex;
 }
@@ -26,7 +26,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock {
-    min-width: 80px;
+    min-width: 60px;
     flex-grow:0;
 }
 
@@ -85,7 +85,7 @@ body, html, .full-height {
     color: #eee;
     display: block;
     cursor: pointer;
-    padding: 10px 5px;
+    padding: 5px 5px;
     text-align: center;
     line-height: 60px;
 }
@@ -121,7 +121,7 @@ body, html, .full-height {
 }
 
 #sidebar .dock li i {
-    font-size: 2em;
+    font-size: 1.6em;
 }
 
 #sidebar .dock li span {
@@ -157,7 +157,9 @@ body, html, .full-height {
     border-bottom: 1px #ccc dashed;
 }
 
-#sidebar .panes .pane-settings .panel .panel-heading .label {
+#sidebar .panes .pane-settings .panel .panel-heading .label,
+#sidebar .panes .pane-settings .panel .react-toggle
+{
     float:right
 }
 
@@ -201,7 +203,7 @@ body, html, .full-height {
 
 .folded > .Pane1{
     flex-grow:0;
-    max-width:80px;
+    max-width:60px;
 }
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
@@ -211,11 +213,11 @@ body, html, .full-height {
 }
 
 .operation-row {
-    background-color:cyan;
+    background-color:#eee;
 }
 
 .operation-row:nth-child(even) {
-    background-color: lightcyan;
+    background-color: #ddd;
 }
 
 .operations td {
@@ -297,14 +299,14 @@ body, html, .full-height {
 .flexTHead {border-bottom: 1px solid #ccc}
 .flexTable .tableRow.collapsible {cursor: s-resize;}
 .flexTable .collapsible:hover {background: rgb(188, 232, 241)}
-.flexTable .tableRow.collapsible.openedÊ{cursor: n-resize }
+.flexTable .tableRow.collapsible.opened {cursor: n-resize }
 .flexTable .tableRow label {width: 100%}
 
 .flexTable .flexTBody .column {align-items:none}
 .flexTable .flexTBody .column > div {width:100%; overflow:visible !important}
 .flexTable .flexTBody .column._actions {flex:none !important; text-align: right}
 .flexTable .flexTBody .column._actions div {line-height: 0}
-.flexTable .flexTBody .column input, 
+.flexTable .flexTBody .column input,
 .flexTable .flexTBody .column select,
 .flexTable .flexTBody .column textarea {width:100%}
 
@@ -318,3 +320,254 @@ body, html, .full-height {
 
 /* macros*/
 .macros select {width: 100%; font-size: 0.8em}
+
+/* Jog Panel */
+
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: #fff;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+}
+
+
+button,
+button:active,
+button:focus,
+button:hover,
+.btn,
+.btn:active,
+.btn:focus,
+.btn:hover{
+    outline:none !important;
+}
+
+.centerTable td
+{
+    text-align:center;
+    vertical-align:middle;
+    padding-bottom: 5px;
+    padding-top: 5px;
+
+}
+
+.btn-ctl {
+    padding: 12px 18px;
+    border-radius: 4px;
+}
+
+.btn-sd {
+    padding: 15px 48px;
+    border-radius: 4px;
+}
+
+.btn-jog {
+    padding: 12px 18px;
+    border-radius: 4px;
+}
+
+.fa-stack{
+    width: 1.28571em;
+}
+
+.icon-bot-text { margin-left: -3px; margin-top: 16px; font-size: 10px;}
+.icon-top-text { margin-left: -3px; margin-top: -16px; font-size: 10px; }
+.icon-text { margin-top: 16px; font-size: 11px; font-weight: bold;}
+
+.drolabel {
+    display:inline-block;
+    background-color: #dddddd;
+    text-align: left;
+    padding-left: 15px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: 50px;
+    border: 1px solid #aaa;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 3px;
+    cursor: default;
+}
+
+.dro {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: left;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 18px;
+    width: calc(99% - 85px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 0px;
+    /*font-family: '8bit';*/
+}
+.droPos {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: right;
+    padding-right: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: calc(99% - 115px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 10px;
+    cursor: default;
+    /*font-family: '8bit';*/
+}
+
+.droUnit {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: center;
+    /*padding-left: 3px;
+    padding-right: 3px;*/
+    padding-top: 9px;
+    padding-bottom: 2px;
+    font-size: 12px;
+    width: 38px;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 4px;
+    margin-right: 3px;
+    margin-bottom: 3px;
+    cursor: default;
+    /*font-family: '8bit';*/
+}
+
+.droOR {
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: center;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: calc(99% - 167px);
+    border: 1px solid #ccc;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 3px;
+    /*font-family: '8bit';*/
+}
+
+
+.droR {
+
+    display:inline-block;
+    background-color: #ffffff;
+    text-align: left;
+    padding-left: 18px;
+    margin-bottom: 3px;
+    font-size: 20px;
+    width: 85px;
+	  height: 31px;
+    border: 1px solid #aaa;
+    font-weight: bold;
+    margin-left: 0px;
+    margin-right: 0px;
+    cursor: default;
+    /*font-family: '8bit';*/
+}
+/* Badget over Glyphs */
+
+.badge-notify {
+    background-color: #cc0000;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-ok {
+    background-color: #008800;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-warn {
+    background-color: #cc9900;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+
+.badge-busy {
+    background-color: #1568bc;
+    color: #fff;
+    position:relative;
+    bottom: 5px;
+    right: 0px;
+}
+
+/* Bootstrap Callout */
+.bs-callout {
+    padding: 6px;
+    margin: 6px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+    background-color: #ffffff;
+}
+.bs-callout h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+    margin-bottom: 0;
+}
+.bs-callout code {
+    border-radius: 3px;
+}
+.bs-callout+.bs-callout {
+    margin-top: -5px;
+}
+.bs-callout-default {
+    border-left-color: #777;
+}
+.bs-callout-default h4 {
+    color: #777;
+}
+.bs-callout-primary {
+    border-left-color: #428bca;
+}
+.bs-callout-primary h4 {
+    color: #428bca;
+}
+.bs-callout-success {
+    border-left-color: #5cb85c;
+}
+.bs-callout-success h4 {
+    color: #5cb85c;
+}
+.bs-callout-danger {
+    border-left-color: #d9534f;
+}
+.bs-callout-danger h4 {
+    color: #d9534f;
+}
+.bs-callout-warning {
+    border-left-color: #f0ad4e;
+}
+.bs-callout-warning h4 {
+    color: #f0ad4e;
+}
+.bs-callout-info {
+    border-left-color: #5bc0de;
+}
+.bs-callout-info h4 {
+    color: #5bc0de;
+}
