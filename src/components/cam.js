@@ -26,7 +26,8 @@ import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
 
-import { ValidateSettings, SettingsValidator } from './settings';
+import { ValidateSettings } from '../reducers/settings';
+import { SettingsValidator } from './settings';
 import { ButtonToolbar } from 'react-bootstrap'
 
 
