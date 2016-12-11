@@ -114,9 +114,12 @@ class Field extends React.Component {
     }
 
     render() {
-        let {op, field, operationsBounds, fillColors, strokeColors} = this.props;
+        let {op, field, operationsBounds, fillColors, strokeColors, settings} = this.props;
         let Input = field.input;
+        let {units} = field;
         let error;
+        if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
+            units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name]))
             error = <Error operationsBounds={operationsBounds} message={field.error} />;
         return (
@@ -127,7 +130,7 @@ class Field extends React.Component {
                         op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
                         onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
                 </td>
-                <td>{field.units}{error}</td>
+                <td>{units}{error}</td>
             </GetBounds>
         );
     }
@@ -276,7 +279,7 @@ class Operation extends React.Component {
     }
 
     render() {
-        let {op, documents, onDragOver, selected, operationsBounds, dispatch, fillColors, strokeColors} = this.props;
+        let {op, documents, onDragOver, selected, operationsBounds, dispatch, fillColors, strokeColors, settings} = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
@@ -342,7 +345,7 @@ class Operation extends React.Component {
                                     .map(fieldName => {
                                         return <Field
                                             key={fieldName} op={op} field={fields[fieldName]} selected={selected}
-                                            fillColors={fillColors} strokeColors={strokeColors}
+                                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                                             operationsBounds={operationsBounds} dispatch={dispatch} />
                                     })}
                             </tbody>
@@ -410,7 +413,7 @@ class Operation extends React.Component {
         } // op.expanded
         return <div className="operation-row">{rows}</div>;
     }
-};
+}; // Operation
 
 class Operations extends React.Component {
     componentWillMount() {
@@ -434,7 +437,7 @@ class Operations extends React.Component {
     }
 
     render() {
-        let {operations, currentOperation, documents, dispatch, bounds } = this.props;
+        let {operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
         let fillColors = [];
         let strokeColors = [];
         let addColor = (colors, color) => {
@@ -465,7 +468,7 @@ class Operations extends React.Component {
                     {operations.map(o =>
                         <Operation
                             key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
-                            fillColors={fillColors} strokeColors={strokeColors}
+                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                             operationsBounds={bounds} dispatch={dispatch} />
                     )}
                 </div>
@@ -474,6 +477,6 @@ class Operations extends React.Component {
     }
 };
 Operations = connect(
-    ({operations, currentOperation, documents}) => ({ operations, currentOperation, documents }),
+    ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
 )(withGetBounds(Operations));
 export { Operations };

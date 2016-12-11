@@ -174,13 +174,17 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
 
     reduceCamPaths(camPaths, .5 * mmToClipperScale);
 
+    let feedScale = 1;
+    if (settings.toolFeedUnits === 'mm/s')
+        feedScale = 60;
+
     let gcode =
         "\r\n;" +
         "\r\n; Operation:    " + opIndex +
         "\r\n; Type:         " + op.type +
         "\r\n; Paths:        " + camPaths.length +
         "\r\n; Passes:       " + op.passes +
-        "\r\n; Cut rate:     " + op.cutRate +
+        "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
 
     gcode += getLaserCutGcode({
@@ -189,7 +193,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         offsetX: 0,
         offsetY: 0,
         decimal: 2,
-        cutFeed: op.cutRate,
+        cutFeed: op.cutRate * feedScale,
         laserPower: op.laserPower,
         passes: op.passes,
         useA: op.useA,
