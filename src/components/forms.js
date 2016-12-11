@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Toggle from "react-toggle";
 import 'react-toggle/style.css';
 import '../styles/forms.css';
+import Select from 'react-select'
 
 import { Tooltip, Overlay, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox } from 'react-bootstrap';
 
@@ -140,12 +141,22 @@ export function TextField({object, field, description, units="", setAttrs, dispa
     
 }
 
+function selectOptions(arr){
+    let result=[];
+    Object.entries(arr).forEach((item,i, obj)=>{
+        let [value, label] = item;
+        if (Array.isArray(obj) && !isNaN(value)) value = label;
+        result.push({value,label})
+    })
+    return result;
+}
+
 export class SelectField extends React.Component  {
     
     
     render(){
         
-        let {object, field, description, units="",  setAttrs, dispatch, data, blank, labelAddon=true,...rest} = this.props;
+        let {object, field, description, units="",  setAttrs, dispatch, data, blank, defaultValue, labelAddon=true, selectProps,...rest} = this.props;
         
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
@@ -153,20 +164,9 @@ export class SelectField extends React.Component  {
         
         let label = labelAddon? <InputGroup.Addon>{description}{ units? " ("+units+")":undefined }</InputGroup.Addon>: <ControlLabel>{description}{ units? " ("+units+")":undefined }</ControlLabel>
         
-        let input =<InputGroup>
-            {label}
-            <FormControl componentClass="select" placeholder="select" value={object[field]}  onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}>
-            {blank ? <option>{blank}</option> :undefined}
-            {Object.entries(data).map((item,i, obj)=>{
-                let [value, label] = item;
-                
-                if (Array.isArray(obj) && !isNaN(value))
-                    value = label;
-                
-                return <option key={i} value={value}>{label}</option>
-            })}
-            </FormControl>
-        </InputGroup>
+        let props={...selectProps, options: selectOptions(data),  value: object[field] || defaultValue, onChange: (v) => dispatch(setAttrs({ [field]: v }, object.id))}
+        
+        let input = <InputGroup>{label}<Select {...props} /></InputGroup>
         
         return  <TooltipFormGroup validationState={errors? "error": undefined }
                                     validationContent={errors}
