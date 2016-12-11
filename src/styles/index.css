@@ -320,6 +320,40 @@ body, html, .full-height {
 .macros select {width: 100%; font-size: 0.8em}
 
 /* Jog Panel */
+
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: #fff;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+}
+
+
+button,
+button:active,
+button:focus,
+button:hover,
+.btn,
+.btn:active,
+.btn:focus,
+.btn:hover{
+    outline:none !important;
+}
+
+.centerTable td
+{
+    text-align:center;
+    vertical-align:middle;
+    padding-bottom: 5px;
+    padding-top: 5px;
+
+}
+
 .btn-ctl {
     padding: 12px 18px;
     border-radius: 4px;
@@ -379,7 +413,7 @@ body, html, .full-height {
     padding-right: 18px;
     margin-bottom: 3px;
     font-size: 20px;
-    width: calc(99% - 152px);
+    width: calc(99% - 115px);
     border: 1px solid #ccc;
     font-weight: bold;
     margin-left: 0px;

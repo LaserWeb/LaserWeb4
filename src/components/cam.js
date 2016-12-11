@@ -60,7 +60,7 @@ class Cam extends React.Component {
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
                     <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
-                        <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Open Document</button>
+                        <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>
