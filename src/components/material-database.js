@@ -354,7 +354,7 @@ class Material extends React.Component {
         
         let columns=[
             {id:"name",label:"Name"},
-            {id:"thickness",label:"Thickness"},
+            {id:"thickness",label:"Thickness (mm)"},
             {id:"notes",label:"Notes"},
             {id:"_actions",label:<Icon name="cogs"/>}
         ];

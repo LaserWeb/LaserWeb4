@@ -2,6 +2,8 @@ import { objectNoId } from '../reducers/object'
 import Validator from 'validatorjs';
 import {GlobalStore} from '../index';
 
+const version = require("../../package.json").version;
+
  /*
         {
              "__version": "Laserweb 0.4 alpha",
@@ -59,8 +61,8 @@ import {GlobalStore} from '../index';
 
 
 export const SETTINGS_VALIDATION_RULES = {
-    machineWidth:'min:100',
-    machineHeight:'min:100',
+    machineWidth:'numeric|min:100',
+    machineHeight:'numeric|min:100',
     
     gcodeSMaxValue: 'required|numeric|min:1',
     gcodeMoveUnits: 'in:mm/s,mm/min',
@@ -91,6 +93,7 @@ export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, set
 
 export const settings = objectNoId('settings', {
     
+    __version: version,
     __currentProfile:null,
     
     machineWidth: 300,
@@ -101,7 +104,6 @@ export const settings = objectNoId('settings', {
     machineZBlowerEnabled: false,
     machineZMatThickness: 0,
     machineZFocusOffset: 0,
-    machineZDefaultMaterialThickness: 0,
     
     pxPerInch: 96,
     dpiRasterBmp:300,

@@ -3,7 +3,7 @@
         "id":"plywood_3mm",
         "material": {
             "name":"Plywood",
-            "thickness":"3mm",
+            "thickness":"3",
             "notes":"Standard Regular Plain Plywood, not thick nor thin."
         },
         "operations":[
@@ -35,7 +35,7 @@
         "id":"ProfileTest",
         "material": {
             "name":"ProfileTest",
-            "thickness":"3mm",
+            "thickness":"3",
             "notes":"Blurb"
         },
         "operations":[
