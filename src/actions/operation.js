@@ -15,3 +15,7 @@ export function operationRemoveDocument(id, isTab, document) {
 export function setCurrentOperation(id) {
     return { type: 'OPERATION_SET_CURRENT', payload: id };
 }
+
+export function moveOperation(id, step) {
+    return { type: 'OPERATION_MOVE_CURRENT', payload: {id, step} };
+}
