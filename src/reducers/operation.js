@@ -2,7 +2,7 @@
 
 import { getParentIds, object, objectArray } from '../reducers/object'
 
-import 'array.prototype.move'
+import arrayMove from 'array-move'
 
 const operationBase = object('operation', {
     documents: [],
@@ -56,7 +56,7 @@ export const operations = (state, action) => {
                 if (newIndex<0) newIndex=0;
                 if (newIndex>state.length-1) newIndex=state.length-1;
             
-            return state.slice().move(index, newIndex);
+            return arrayMove(state.slice(),index, newIndex);
         default:
             return objectArray('operation', operation)(state, action);
     }

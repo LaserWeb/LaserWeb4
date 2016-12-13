@@ -50,7 +50,7 @@ function loadSvg(state, settings, {file, content}) {
     function getColor(c) {
         let sc = Snap.color(c);
         if (sc.r === -1 || sc.g === -1 || sc.b === -1)
-            return [0, 0, 0, 1];
+            return [0, 0, 0, 0];
         else
             return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
     }
