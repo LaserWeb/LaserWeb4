@@ -2,6 +2,8 @@
 
 import { getParentIds, object, objectArray } from '../reducers/object'
 
+import 'array.prototype.move'
+
 const operationBase = object('operation', {
     documents: [],
     tabDocuments: [],
@@ -44,7 +46,22 @@ export function operation(state, action) {
     return state;
 }
 
-export const operations = objectArray('operation', operation);
+
+
+export const operations = (state, action) => {
+    switch (action.type) {
+        case 'OPERATION_MOVE_CURRENT':
+            let index=state.findIndex(item => item.id==action.payload.id)
+            let newIndex=index+action.payload.step;
+                if (newIndex<0) newIndex=0;
+                if (newIndex>state.length-1) newIndex=state.length-1;
+            
+            return state.slice().move(index, newIndex);
+        default:
+            return objectArray('operation', operation)(state, action);
+    }
+    
+}
 
 export function currentOperation(state = '', action) {
     if (action.type === 'OPERATION_SET_CURRENT')
