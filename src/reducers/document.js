@@ -47,10 +47,10 @@ function loadSvg(state, settings, {file, content}) {
     let svg = Snap.parse(content).node.children[0];
     let allPositions = [];
 
-    function getColor(c) {
+    function getColor(c, missingA) {
         let sc = Snap.color(c);
         if (sc.r === -1 || sc.g === -1 || sc.b === -1)
-            return [0, 0, 0, 0];
+            return [0, 0, 0, missingA];
         else
             return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
     }
@@ -74,8 +74,8 @@ function loadSvg(state, settings, {file, content}) {
                 allPositions.push(c.rawPaths);
                 c.translate = [0, 0, 0];
                 c.scale = [1, 1, 1];
-                c.fillColor = getColor(child.style.fill);
-                c.strokeColor = getColor(child.style.stroke);
+                c.strokeColor = getColor(child.style.stroke, 0);
+                c.fillColor = getColor(child.style.fill, c.strokeColor[3] ? 0 : .1);
             } else if (child.nodeName !== 'g')
                 continue;
             state.push(c);
