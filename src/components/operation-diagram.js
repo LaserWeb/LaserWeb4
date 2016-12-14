@@ -81,6 +81,7 @@ export class OperationDiagram extends React.Component {
 
     render() {
         this.updateSvg();
-        return <div />;
+        let visible= this.props.currentOperation && this.props.operations.length;
+        return <div style={{ transition: "height 0.25s ease-in", height: visible? 100:0}} />;
     }
 };

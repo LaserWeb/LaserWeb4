@@ -469,13 +469,13 @@ class Operations extends React.Component {
                     <b>Drag document(s) here</b>
                 </div>
                 <br />
-                <div className="operations" style={{ display: 'table' }}>
-                    {operations.map(o =>
-                        <Operation
-                            key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
-                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                <div className="operations" style={{ height: "100%", overflowY:"auto"}} >
+                        {operations.map(o =>
+                            <Operation
+                                key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
+                                fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                             operationsBounds={bounds} dispatch={dispatch} />
-                    )}
+                        )}
                 </div>
             </div >
         );

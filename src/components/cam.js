@@ -53,9 +53,8 @@ class Cam extends React.Component {
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <h5>Gcode generation <SettingsValidator style={{float:"right"}} /></h5>
                     <ButtonToolbar>
-                    <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
-                    <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
-
+                        <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
+                        <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
                     </ButtonToolbar>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
@@ -71,8 +70,8 @@ class Cam extends React.Component {
                     </div>
                 </Splitter>
                 <OperationDiagram {...{ operations, currentOperation }} />
-                <div style={{ marginTop: 10 }}><b>Operations</b></div>
-                <Operations style={{ flexGrow: 2, overflowY: 'auto' }} />
+                <h5>Operations</h5>
+                <Operations style={{ flexGrow: 2, display: "flex",flexDirection: "column" }} />
             </div>);
     }
 };
