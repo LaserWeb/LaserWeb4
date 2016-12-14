@@ -57,55 +57,55 @@ class TooltipFormGroup extends React.Component {
         this.handleFocus = this.handleFocus.bind(this);
         this.setState({hasFocus: false})
     }
-    
+
     handleBlur(e){
         this.setState({hasFocus:false})
     }
     handleFocus(e){
         this.setState({hasFocus:true})
     }
-    
+
     render(){
         return <FormGroup validationState={this.props.validationState}
             onBlur={(e)=>this.handleBlur(e)}
             onFocus={(e)=>this.handleFocus(e)}
             onMouseEnter={(e)=>this.handleFocus(e)}
             onMouseLeave={(e)=>this.handleBlur(e)}
-                
-                
+
+
             ref="target">
             {this.props.children}
             <Overlay container={this.props.container || undefined} show={this.props.validationContent && this.state.hasFocus? true:false} placement={this.props.validationPlacement} target={() => ReactDOM.findDOMNode(this.refs.target)}>
-                <Tooltip id="validation_tooltip" >{this.props.validationContent}</Tooltip>    
-            </Overlay>   
+                <Tooltip id="validation_tooltip" >{this.props.validationContent}</Tooltip>
+            </Overlay>
         </FormGroup>
     }
 }
 
 export class NumberField extends React.Component {
-    
-    
+
+
     render(){
         let {object, field, description, units, setAttrs, dispatch, labelAddon, ...rest} = this.props;
-        
+
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". ") :null; delete rest.errors;
-        
+
         if (labelAddon!==false) labelAddon=true;
-        
-        
+
+
         let input= <InputGroup>
             {labelAddon? <InputGroup.Addon>{description}</InputGroup.Addon> : undefined}
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
             {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
           </InputGroup>;
-        
-        
+
+
         return <TooltipFormGroup validationState={errors? "error": undefined }
                                 validationContent={errors}
                                 validationPlacement="right">{!labelAddon? <ControlLabel>{description}</ControlLabel>:undefined}{input}</TooltipFormGroup>
-        
+
     }
 }
 
@@ -124,7 +124,7 @@ export function TextField({object, field, description, units="", setAttrs, dispa
                 {...rest}
                 />
             ) : (
-               
+
                 <FormControl componentClass="textarea" id={field}
                 onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                 value={object[field]}
@@ -132,13 +132,13 @@ export function TextField({object, field, description, units="", setAttrs, dispa
                 />
             )}
             {(units!=="")? <InputGroup.Addon>{units}</InputGroup.Addon>:(undefined)}
-                
+
         </InputGroup>;
-    
+
     return  <TooltipFormGroup validationState={errors? "error": undefined }
                                 validationContent={errors}
                                 validationPlacement="right">{input}</TooltipFormGroup>
-    
+
 }
 
 function selectOptions(arr){
@@ -152,27 +152,27 @@ function selectOptions(arr){
 }
 
 export class SelectField extends React.Component  {
-    
-    
+
+
     render(){
-        
+
         let {object, field, description, units="",  setAttrs, dispatch, data, blank, defaultValue, labelAddon=true, selectProps,...rest} = this.props;
-        
+
         let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
         let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors;
         let tooltip = <Tooltip id={"toolip_"+field} >{errors}</Tooltip>;
-        
+
         let label = labelAddon? <InputGroup.Addon>{description}{ units? " ("+units+")":undefined }</InputGroup.Addon>: <ControlLabel>{description}{ units? " ("+units+")":undefined }</ControlLabel>
-        
+
         let props={...selectProps, options: selectOptions(data),  value: object[field] || defaultValue, onChange: (v) => dispatch(setAttrs({ [field]: v.value }, object.id))}
-        
+
         let input = <InputGroup>{label}<Select {...props} /></InputGroup>
-        
+
         return  <TooltipFormGroup validationState={errors? "error": undefined }
                                     validationContent={errors}
                                     validationPlacement="right">{input}</TooltipFormGroup>
     }
-    
+
 }
 
 
@@ -184,17 +184,17 @@ export function ToggleField({object, field, description, units="", setAttrs, dis
         <Toggle id={"toggle_"+object.id+"_"+field} defaultChecked={object[field]==true} onChange={e => dispatch(setAttrs({  [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_"+object.id+"_"+field}>{description}</label>
         </div>
-    
+
     return <TooltipFormGroup validationState={errors? "error": undefined }
                                 validationContent={errors}
                                 validationPlacement="right">{input}</TooltipFormGroup>
-    
+
 }
 
 export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
     let hasErrors=typeof(rest.errors)!=="undefined" && rest.errors!==null  &&  typeof(rest.errors[field])!=="undefined";
     let errors= hasErrors? rest.errors[field].join(". "):null; delete rest.errors        ;
-        
+
     let radios=["TL","TR","C","BL","BR"];
     let available= new Set(rest.available ? rest.available : radios);
     let fields=radios.map((radio) =>
@@ -204,13 +204,13 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
        onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))} />
        </label>
     );
-    
+
     return (
         <div className={"form-group "+ (hasErrors? 'has-error':'')}>
         <div className="input-group">
             <label>{description}</label>
             <div className="quadrantField">{fields}</div>
-            
+
         </div>
         <p className="help-block">{errors}</p>
         </div>
@@ -220,7 +220,7 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
 
 export function FileField({label, dispatch, buttonClass="btn", icon="fa-upload", ...rest}) {
     return(
-        
+
         <div style={{position:"relative", display:"inline-block", margin:0, padding:0, border:"none", overflow:"hidden"}} {...rest}>
                 <button type="button" className={buttonClass} >{label} <span className={"fa fa-fw "+icon} aria-hidden="true"></span></button>
                 <input onChange={dispatch} type="file" value="" style={{position:"absolute", left: 0, top:0, height:"100%", opacity:0, width:150}} />
@@ -229,14 +229,14 @@ export function FileField({label, dispatch, buttonClass="btn", icon="fa-upload",
 }
 
 export class CheckBoxListField extends React.Component{
-    
+
     constructor(props) {
         super(props);
         this.state={checked:[]}
         this.handleChange.bind(this);
-        
+
     }
-    
+
     render(){
         let checks=[];
         let checked = this.state.checked;
@@ -245,7 +245,7 @@ export class CheckBoxListField extends React.Component{
             <div className="checkboxListField">{checks}</div>
         )
     }
-    
+
     handleChange(e,key){
         let value=e.target.checked;
         let state=this.state.checked.filter((o)=>{return o!==key});
@@ -253,15 +253,15 @@ export class CheckBoxListField extends React.Component{
             state.push(key);
         }
         this.setState({checked:state})
-        
-        if (this.props.onChange) 
+
+        if (this.props.onChange)
             this.props.onChange(state);
-        
-        
-        
+
+
+
     }
-    
-   
+
+
 }
 
 

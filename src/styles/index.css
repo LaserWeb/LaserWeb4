@@ -4,6 +4,15 @@ body, html, .full-height {
     height: 100%;
 }
 
+/*Hack for smaller inputs / selects in BS */
+.input-xs {
+  height: 22px;
+  padding: 2px 5px;
+  font-size: 12px;
+  line-height: 1.5; /* If Placeholder of the input is moved up, rem/modify this. */
+  border-radius: 3px;
+}
+
 #laserweb > div {
     display: flex;
 }
@@ -249,12 +258,12 @@ body, html, .full-height {
     height: 0px;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-right: 6px solid red;
+    border-right: 6px solid #d9534f;
     display: inline-block;
 }
 
 .error-bubble-message {
-    background-color: red;
+    background-color: #d9534f;
     color: white;
     padding-left: 4px;
     padding-right: 4px;

@@ -148,11 +148,11 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                    {documents.find(d => d.id === id).name}
+                └ {documents.find(d => d.id === id).name}
                 </td>
                 <td>
-                    <button className="btn btn-danger btn-xs" onClick={this.remove}>
-                        <i className="fa fa-times"></i>
+                    <button className="btn btn-default btn-xs" onClick={this.remove}>
+                        <i className="fa fa-trash"></i>
                     </button>
                 </td>
                 <td style={{ paddingLeft: 15 }} ></td>
@@ -309,14 +309,15 @@ class Operation extends React.Component {
                 </div>
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <select value={op.type} onChange={this.setType}>
+                        <select className="input-xs" value={op.type} onChange={this.setType}>
                             {Object.keys(types).map(type => <option key={type}>{type}</option>)}
                         </select>
-                        <div>
+                        <div className="btn-group">
                             <button className="btn btn-default btn-xs" onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
                             <button className="btn btn-default btn-xs" onClick={this.moveDn}><i className="fa fa-arrow-down"></i></button>
+                            <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
                         </div>
-                        <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
+
                     </span>
                     {error}
                 </div>

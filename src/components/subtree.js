@@ -44,7 +44,7 @@ function Subtree(props) {
                     object.expanded ? object.children.map(childId => {
                         let child = objects.find(child => child.id == childId);
                         return (
-                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 30 }} />
+                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 18 }} />
                         )
                     }) : undefined
                 }
