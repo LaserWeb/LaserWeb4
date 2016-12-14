@@ -18,6 +18,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 
 import { addOperation, removeOperation, moveOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { selectDocument } from '../actions/document'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
@@ -154,7 +155,7 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                └ {documents.find(d => d.id === id).name}
+                   └ <a onClick={(e)=>{this.props.dispatch(selectDocument(id))}}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
                     <button className="btn btn-default btn-xs" onClick={this.remove}>
