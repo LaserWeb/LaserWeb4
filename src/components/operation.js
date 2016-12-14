@@ -22,6 +22,8 @@ import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 
+import Toggle from 'react-toggle';
+
 function NumberInput(props) {
     let {op, field, fillColors, strokeColors, ...rest} = props;
     return <Input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} {...rest } />;
@@ -38,6 +40,10 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
 
 function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
+}
+
+function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className="scale75", ...rest}) {
+    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field]==true} onChange={e => onChangeValue(e.target.checked)} className={className} {...rest} /> 
 }
 
 function ColorBox(v) {
@@ -204,7 +210,7 @@ const ifUseA = {
 export const fields = {
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    union: { name: 'union', label: 'Union', units: '', input: CheckboxInput },
+    union: { name: 'union', label: 'Union', units: '', input: ToggleInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -224,7 +230,7 @@ export const fields = {
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 
-    useA: { name: 'useA', label: 'Use A Axis', units: '', input: CheckboxInput },
+    useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
     aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 };
