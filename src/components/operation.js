@@ -44,7 +44,7 @@ function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...r
 }
 
 function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className="scale75", ...rest}) {
-    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field]==true} onChange={e => onChangeValue(e.target.checked)} className={className}/>
+    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/> 
 }
 
 function ColorBox(v) {
