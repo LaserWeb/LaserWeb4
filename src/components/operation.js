@@ -44,7 +44,7 @@ function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...r
 }
 
 function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className="scale75", ...rest}) {
-    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/> 
+    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/>
 }
 
 function ColorBox(v) {
@@ -211,7 +211,7 @@ const ifUseA = {
 export const fields = {
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    union: { name: 'union', label: 'Union', units: '', input: ToggleInput },
+    union: { name: 'union', label: 'Combine Paths', units: '', input: ToggleInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
