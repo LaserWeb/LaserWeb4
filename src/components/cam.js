@@ -64,6 +64,9 @@ class Cam extends React.Component {
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>
+                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
+                  <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
+                </div>
                 <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
                     <div style={{ overflowY: 'auto' }}>
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
