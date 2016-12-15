@@ -458,7 +458,7 @@ class Operations extends React.Component {
                 colors.push({ value: value, color: color });
         }
         for (let doc of documents) {
-            if (doc.type === 'path') {
+            if (doc.rawPaths) {
                 if (hasClosedRawPaths(doc.rawPaths))
                     addColor(fillColors, doc.fillColor);
                 addColor(strokeColors, doc.strokeColor);

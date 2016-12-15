@@ -25,6 +25,7 @@ import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
+import Parser from '../../lw.svg-parser/src/parser'
 
 import { ValidateSettings } from '../reducers/settings';
 import { SettingsValidator } from './settings';
@@ -46,12 +47,12 @@ class Cam extends React.Component {
     render() {
         let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
 
-        let valid=ValidateSettings();
+        let valid = ValidateSettings();
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <h5>Gcode generation <SettingsValidator style={{float:"right"}} /></h5>
+                    <h5>Gcode generation <SettingsValidator style={{ float: "right" }} /></h5>
                     <ButtonToolbar>
                         <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
                         <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
@@ -65,7 +66,7 @@ class Cam extends React.Component {
                     </span>
                 </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
-                  <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
+                    <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
                 </div>
                 <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
                     <div style={{ overflowY: 'auto' }}>
@@ -74,7 +75,7 @@ class Cam extends React.Component {
                 </Splitter>
                 <OperationDiagram {...{ operations, currentOperation }} />
                 <h5>Operations</h5>
-                <Operations style={{ flexGrow: 2, display: "flex",flexDirection: "column" }} />
+                <Operations style={{ flexGrow: 2, display: "flex", flexDirection: "column" }} />
             </div>);
     }
 };
@@ -91,11 +92,18 @@ Cam = connect(
             // TODO: report errors
             for (let file of e.target.files) {
                 let reader = new FileReader;
-                reader.onload = () => dispatch(loadDocument(file, reader.result));
-                if (file.name.substr(-4) === '.svg')
+                if (file.name.substr(-4) === '.svg') {
+                    reader.onload = () => {
+                        let parser = new Parser({});
+                        parser.parse(reader.result)
+                            .then(tags => dispatch(loadDocument(file, tags)))
+                            .catch(e => console.log('error:', e))
+                    }
                     reader.readAsText(file);
-                else
+                } else {
+                    reader.onload = () => dispatch(loadDocument(file, reader.result));
                     reader.readAsDataURL(file);
+                }
             }
         }
     }),

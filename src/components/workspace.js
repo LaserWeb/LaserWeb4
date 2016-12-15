@@ -207,45 +207,43 @@ const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
 function drawDocuments(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
-        switch (document.type) {
-            case 'path':
-                drawCommands.noDepth(() => {
-                    drawCommands.blendAlpha(() => {
+        if (document.rawPaths) {
+            drawCommands.noDepth(() => {
+                drawCommands.blendAlpha(() => {
+                    drawCommands.simple2d({
+                        position: cachedDocument.triangles,
+                        scale: document.scale,
+                        translate: document.translate,
+                        color: document.fillColor,
+                        primitive: 'triangles',
+                        offset: 0,
+                        count: cachedDocument.triangles.length / 2,
+                    });
+                    for (let o of cachedDocument.outlines)
                         drawCommands.simple2d({
-                            position: cachedDocument.triangles,
+                            position: o,
                             scale: document.scale,
                             translate: document.translate,
-                            color: document.fillColor,
-                            primitive: 'triangles',
+                            color: document.strokeColor,
+                            primitive: 'line strip',
                             offset: 0,
-                            count: cachedDocument.triangles.length / 2,
+                            count: o.length / 2,
                         });
-                        for (let o of cachedDocument.outlines)
-                            drawCommands.simple2d({
-                                position: o,
-                                scale: document.scale,
-                                translate: document.translate,
-                                color: document.strokeColor,
-                                primitive: 'line strip',
-                                offset: 0,
-                                count: o.length / 2,
-                            });
+                });
+            });
+        } else if (document.type === 'image') {
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
+                drawCommands.noDepth(() => {
+                    drawCommands.image({
+                        translate: document.translate,
+                        size: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        texture: cachedDocument.texture,
+                        selected: false,
                     });
                 });
-                break;
-            case 'image':
-                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                    drawCommands.noDepth(() => {
-                        drawCommands.image({
-                            translate: document.translate,
-                            size: [
-                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                            texture: cachedDocument.texture,
-                            selected: false,
-                        });
-                    });
-                break;
+            break;
         }
     }
 } // drawDocuments
@@ -255,36 +253,34 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
         let {document} = cachedDocument;
         if (!document.selected)
             continue;
-        switch (document.type) {
-            case 'path':
+        if (document.rawPaths) {
+            drawCommands.noDepth(() => {
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 6,
+                        color1: [0, 0, 1, 1],
+                        color2: [1, 1, 1, 1],
+                    })
+            });
+        } else if (document.type === 'image') {
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
                 drawCommands.noDepth(() => {
-                    for (let o of cachedDocument.thickOutlines)
-                        drawCommands.thickLines({
-                            buffer: o,
-                            scale: document.scale,
-                            translate: document.translate,
-                            thickness: 6,
-                            color1: [0, 0, 1, 1],
-                            color2: [1, 1, 1, 1],
-                        })
+                    drawCommands.thickLines({
+                        buffer: thickSquare,
+                        scale: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                            1],
+                        translate: document.translate,
+                        thickness: 6,
+                        color1: [0, 0, 1, 1],
+                        color2: [1, 1, 1, 1],
+                    })
                 });
-                break;
-            case 'image':
-                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                    drawCommands.noDepth(() => {
-                        drawCommands.thickLines({
-                            buffer: thickSquare,
-                            scale: [
-                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                                1],
-                            translate: document.translate,
-                            thickness: 6,
-                            color1: [0, 0, 1, 1],
-                            color2: [1, 1, 1, 1],
-                        })
-                    });
-                break;
+            break;
         }
     }
 } // drawSelectedDocuments
@@ -293,7 +289,7 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
-        if (document.type === 'path') {
+        if (document.rawPaths) {
             drawCommands.noDepth(() => {
                 drawCommands.simple2d({
                     position: cachedDocument.triangles,

@@ -47,7 +47,7 @@
     "babel-preset-es2015": "^6.16.0",
     "babel-preset-react": "^6.11.1",
     "bootstrap": "^3.3.7",
-    "clipper-lib": "^1.0.0",
+    "clipper-lib": "^6.2.1",
     "css-loader": "^0.25.0",
     "file-loader": "^0.9.0",
     "flat": "^2.0.1",
