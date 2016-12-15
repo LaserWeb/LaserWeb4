@@ -44,7 +44,7 @@ function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...r
 }
 
 function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className="scale75", ...rest}) {
-    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/> 
+    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/>
 }
 
 function ColorBox(v) {
@@ -155,7 +155,7 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                   └ <a onClick={(e)=>{this.props.dispatch(selectDocument(id))}}>{documents.find(d => d.id === id).name}</a>
+                   └ <a style={{ userSelect: 'none', cursor: 'pointer' , textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e)=>{this.props.dispatch(selectDocument(id))}}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
                     <button className="btn btn-default btn-xs" onClick={this.remove}>
@@ -211,7 +211,7 @@ const ifUseA = {
 export const fields = {
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    union: { name: 'union', label: 'Union', units: '', input: ToggleInput },
+    union: { name: 'union', label: 'Combine Paths', units: '', input: ToggleInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -336,12 +336,12 @@ class Operation extends React.Component {
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                        <table style={{ width: '100%' }}>
+                        <table style={{ width: '100%', border: '2px dashed #ccc'  }}>
                             <tbody>
+                                <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br/><small>to add to existing operation</small></center></td></tr>
                                 {op.documents.map(id => {
                                     return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
                                 })}
-                                <tr><td>&nbsp;</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -383,12 +383,12 @@ class Operation extends React.Component {
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                                <table style={{ width: '100%' }}>
+                                <table style={{ width: '100%', border: '2px dashed #ccc'  }}>
                                     <tbody>
                                         {op.tabDocuments.map(id => {
                                             return <Doc key={id} op={op} documents={documents} id={id} isTab={true} dispatch={dispatch} />
                                         })}
-                                        <tr><td>&nbsp;</td></tr>
+                                        <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small></center></td></tr>
                                     </tbody>
                                 </table>
                             </div>

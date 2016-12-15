@@ -68,15 +68,17 @@ class DocumentLabel extends React.Component {
             style = { userSelect: 'none', cursor: 'grab', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2};
             // error = <E />;
         else
-            style = { userSelect: 'none', cursor: 'copy' };
+            style = { userSelect: 'none', cursor: 'copy', paddingLeft: 5, paddingRight: 5, paddingBottom: 3 };
 
         let checked;
         if (this.props.object.selected)
-            checked = <i className="fa fa-fw fa-check"></i>;
+            checked = <i className="fa fa-fw fa-check-square-o"></i>;
+        else
+            checked = <i className="fa fa-fw fa-square-o"></i>;
 
         return (
             <span style={style} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp} onDragStart={this.onDragStart} draggable={true}>
-              {this.props.object.name}{checked}
+              {checked}{this.props.object.name}
             </span>
         );
     }

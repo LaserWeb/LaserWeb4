@@ -235,6 +235,18 @@ body, html, .full-height {
     white-space: nowrap;
 }
 
+.operationDoc { 
+    user-select: 'none';
+    cursor: 'pointer';
+    text-decoration: 'bold';
+    color: '#FFF';
+    padding-left: 5;
+    padding-right: 5;
+    background-color: '#337AB7';
+    border: '1px solid #2e6da4';
+    border-radius: 2;
+}
+
 .error-bubble-clip {
     position: fixed;
     z-index: 100;
