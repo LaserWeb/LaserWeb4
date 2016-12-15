@@ -17,8 +17,31 @@ import stringify from 'json-stringify-pretty-compact';
 
 import { materialTreeToTabular, materialTabularToTree, arr2csv, csv2arr} from '../lib/material-database';
 
+import Select from 'react-select';
 
 import {FileStorage, LocalStorage} from '../lib/storages';
+
+import Validator from 'validatorjs';
+import {GlobalStore} from '../index';
+
+export const MATERIALDATABASE_VALIDATION_RULES = {
+    thickness: 'numeric|min:0.1',
+    name: 'required'
+}
+
+
+export function ValidateMaterial(bool=true, rules=MATERIALDATABASE_VALIDATION_RULES, data=null) {
+
+    if (!data)
+        data=Object.assign({},GlobalStore().getState().materialdatabase)
+
+    let check = new Validator(data, rules );
+    
+    if (bool) 
+        return check.passes();
+    
+    return check;
+}
 
 class FullSizeModal extends React.Component {
     
@@ -82,8 +105,6 @@ class Table extends React.Component {
         let handleSelect=(e,rowIndex)=>{
             this.setState({selectedIndex: rowIndex});
         }
-        
-       
 
         return (
             <div> 
@@ -116,7 +137,7 @@ class Table extends React.Component {
                             >
                                 
                                 {this.props.columns.map((column,j) => <FlexData.TableRowColumn key={column.id} columnClass={"column "+column.id} >
-                                {(!j && this.props.data[i].collapseContent) ? (<span><Icon name={(this.props.data[i].collapseContent.props.isOpened)? "minus-square-o":"plus-square-o"}/>&nbsp;</span>) : undefined}    
+                                {(!j && this.props.data[i].collapseContent) ? (<div style={{float:"left"}}><Icon name={(this.props.data[i].collapseContent.props.isOpened)? "minus-square-o":"plus-square-o"}/>&nbsp;</div>) : undefined}    
                                 {this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
                                 
                             </TableRow>
@@ -222,12 +243,23 @@ class MaterialOperations extends React.Component {
         const operations=this.props.operations
         const rest = this.props;
         
+        
+        let shouldShow = (operation, filter)=>{
+                if (!filter)
+                        return true;
+                if (filter === "*" || operation.machine_profile === null)
+                        return true;
+
+                return filter.split(",").includes(operation.machine_profile)
+                
+        }
+        
             let data={};
             let tables={};
             operations.forEach((_operation, _operationindex)=>{
                 
-                if ((this.props.profileFilter && (_operation.machine_profile!=this.props.profileFilter)) && (this.props.profileFilter!=="*") && (_operation.machine_profile!==null))
-                    return;
+                if (!shouldShow(_operation, this.props.profileFilter)) return;
+                
                 
                 /*Takes the type of operation from operation::types*/
                 let currentOperation=operation.types[_operation.type]
@@ -253,8 +285,8 @@ class MaterialOperations extends React.Component {
                 
                 
                 if (_operation.isEditable){
-                    //writes on operation[i][key]
-                    fields['_name']=<input type="text" key="name" value={_operation.name} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value)}} />
+                    //writes operation[i][key]
+                    fields['_name']=<div><input type="text" key="name" value={_operation.name} onChange={(e)=>{this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value)}} /></div>
                 } else {
                     fields['_name']=<div><strong>{_operation.name}</strong>{(_operation.machine_profile) ? <small><code>{_operation.machine_profile}</code></small> : undefined}</div>
                 }
@@ -263,11 +295,21 @@ class MaterialOperations extends React.Component {
                 currentOperation.fields.forEach((key)=>{
                        let currentParam = operation.fields[key];
                        let FieldType= currentParam.input
+                       let hasError= currentParam.check ? !currentParam.check(_operation.params[currentParam.name]) :false                     
+                       
+                       let className=[FieldType.name];
+                                
+                       if (hasError)
+                                className.push("has-error")
+                       
                        if (_operation.isEditable){
-                        //writes on operation.params[i][key]
-                        fields[key]    = <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}} onChange={(e)=>{this.handleCellChange( _operationindex, "params", {[key]:e.target.value})}} />
+                        //writes operation.params[i][key]
+                        fields[key]    = <div className={className.join(" ")} title={hasError? currentParam.error:undefined}>
+                                                <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}}
+                                                           onChangeValue={(v)=>{this.handleCellChange( _operationindex, "params", {[key]:v})}} />
+                                        </div>
                        } else {
-                        fields[key]    = <span>{_operation.params[currentParam.name] || "---"}</span>
+                        fields[key]    = <div className={className.join(" ")} title={hasError? currentParam.error:undefined}>{_operation.params[currentParam.name] || ""}</div>
                         
                        }
                 });
@@ -277,7 +319,6 @@ class MaterialOperations extends React.Component {
                                                 isEditable={_operation.isEditable}
                                                 onEdit={(e)=>{this.handleRowEdit(_operationindex)}}
                                                 onDelete={(e)=>{this.handleRowDelete(_operationindex)}}
-                                                
                                                 />
                 }
                 
@@ -290,7 +331,7 @@ class MaterialOperations extends React.Component {
             Object.entries(tables).forEach((item,i)=>{
                 let [type,columns] = item;
                 let columnRatio=[...Array(columns.length-1).fill(1).fill(2,0,1),0]
-                result.push(<Table key={i} columns={columns} data={data[type]} rowHeight={30} columnRatio={columnRatio}/>)
+                result.push(<Table key={i} columns={columns} data={data[type]} rowHeight={36} columnRatio={columnRatio}/>)
             })
             
             return(<div className="materialOperations">{result}
@@ -359,13 +400,16 @@ class Material extends React.Component {
             {id:"_actions",label:<Icon name="cogs"/>}
         ];
         
+        let validator = ValidateMaterial(false, MATERIALDATABASE_VALIDATION_RULES, this.props.data.material)
+            validator.passes();
+        let hasError=(name) => {return validator.errors.errors[name];}
         
         let row={};
         if (this.props.data.material.isEditable){
             row={
-                name: <input type="text" value={this.props.data.material.name} onChange={(e)=>{this.handleCellChange(e, "name")}} />,
-                thickness: <input type="text" value={this.props.data.material.thickness} onChange={(e)=>{this.handleCellChange(e, "thickness")}} />,
-                notes: <input type="text" value={this.props.data.material.notes} onChange={(e)=>{this.handleCellChange(e, "notes")}} />
+                name:       <div title={hasError('name')} className={hasError('name')? 'has-error':undefined}><input type="text" value={this.props.data.material.name} onChange={(e)=>{this.handleCellChange(e, "name")}} /></div>,
+                thickness:  <div title={hasError('thickness')} className={hasError('thickness')? 'has-error':undefined}><input type="text" value={this.props.data.material.thickness} onChange={(e)=>{this.handleCellChange(e, "thickness")}} /></div>,
+                notes:      <div title={hasError('notes')} className={hasError('notes')? 'has-error':undefined}><input type="text" value={this.props.data.material.notes} onChange={(e)=>{this.handleCellChange(e, "notes")}} /></div>
             }
         } else {
             row={
@@ -385,7 +429,7 @@ class Material extends React.Component {
                                                     
                                                     />
         
-        return (<Table columns={columns} data={[row]} rowHeight={25} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
+        return (<Table columns={columns} data={[row]} rowHeight={36} tableClass="flexTable" columnRatio={[2,1,5]} onRowClick={(e, rowIndex)=>{this.handleRowClick(e,rowIndex)}}/>);
     }
 }
 
@@ -410,23 +454,14 @@ Material = connect(null, (dispatch)=>{
     
 } )(Material);
 
-function MaterialMachineProfile({profiles, selected, onChange, blank="*", label="Profile Filter", ...rest})
+class MaterialMachineProfile extends React.Component
 {
     
-    
-        return (<FormGroup>
-            <ControlLabel>{label}</ControlLabel>
-              <FormControl componentClass="select"  onChange={(e)=>{onChange(e.target.value)}} value={selected} {...rest}>
-                      <option value={blank}>Any</option>
-                      {
-                        Object.entries(profiles).map((entry)=>{
-                            let [key,item] = entry;
-                            return (<option key={key} value={key}>{item.machineLabel}</option>)    
-                        })
-                      }
-              </FormControl>
-              </FormGroup>)
-    
+    render(){
+        let {profiles, selected, onChange, blank="*", label="Profile Filter", ...rest} = this.props;
+        let options = Object.entries(profiles).map((entry)=>{let [value,item] = entry; return {value,label: item.machineLabel}});
+        return <Select multi simpleValue delimiter="," value={selected} placeholder={label} options={options} onChange={(v)=>{onChange(v)}} />
+    }
     
 }
 

@@ -321,9 +321,15 @@ body, html, .full-height {
 
 
 
-.materialOperations .flexTHead {font-size: 0.8em; text-transform: uppercase}
+.materialOperations .flexTHead .column > div{font-size: 0.8em; text-transform: uppercase; white-space: normal !important}
+.materialList .column .has-error > * {border: 1px solid red}
+.materialList .column .has-error:empty {border:none}
+.materialList .column .has-error:empty:after {color: #faa; content:"not defined"; font-style:italic; font-size: 0.9em}
+
 .materialOperations .well {margin-top:1em}
 .materialList {max-height: 400px; overflow-y:auto; overflow-x: hidden}
+.materialList .form-group {margin-bottom: 0}
+.materialList .form-group.has-error input {border: 1px solid red}
 
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
 
