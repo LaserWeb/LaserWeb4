@@ -81,7 +81,7 @@ export class DocumentCacheHolder extends React.Component {
                 }
                 cachedDocument.outlines = [];
                 cachedDocument.thickOutlines = [];
-                let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
+                let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
                 for (let rawPath of document.rawPaths) {
                     for (let i = 0; i < rawPath.length - 1; i += 2) {
                         bounds.x1 = Math.min(bounds.x1, rawPath[i]);
