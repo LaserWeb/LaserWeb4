@@ -52,7 +52,7 @@ class Cam extends React.Component {
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
-                    <b>Documents</b>
+                    <h5><b>Document</b></h5>
                     <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
                         <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
@@ -66,7 +66,7 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <h5>Gcode generation <SettingsValidator style={{ float: "right" }} /></h5>
+                <h5><b>Gcode generation <SettingsValidator style={{ float: "right" }} /></b></h5>
                 <OperationDiagram {...{ operations, currentOperation }} />
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
                     <ButtonToolbar>
