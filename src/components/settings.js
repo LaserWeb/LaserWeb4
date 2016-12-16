@@ -8,11 +8,10 @@ import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfil
 import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros' 
-import {PanelGroup, Panel} from 'react-bootstrap';
 
 
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse } from 'react-bootstrap';
+import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge } from 'react-bootstrap';
 
 import update from 'immutability-helper';
 
@@ -113,10 +112,11 @@ class SettingsPanel extends React.Component {
 
 
 
-export function SettingsValidator({style,...rest}){
+export function SettingsValidator({style, className='badge', noneOnSuccess=false,...rest}){
     let validator=ValidateSettings(false);
     let errors =  (validator.fails()) ? ("Please review Settings:\n\n" + Object.values(validator.errors.errors)) : undefined
-    return <Label bsStyle={errors? 'warning':'success'} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></Label>
+    if (noneOnSuccess && !errors) return null;
+    return <span className={className} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></span>
 }
 
 class Settings extends React.Component {

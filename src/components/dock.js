@@ -13,6 +13,8 @@ import Icon from './font-awesome'
 // Actions
 import * as actions from '../actions/panes'
 
+import { SettingsValidator } from './settings';
+
 /**
  * Dock item component.
  *
@@ -40,9 +42,10 @@ class Button extends React.Component {
         if (this.props.dimmed) styleClasses.push('dimmed');
         return (
             <li className={ styleClasses.length ? styleClasses.join(" ") : null  } onClick={ this.props.onClick } >
-                <div>
+                <div style={{position:'relative'}}>
                     <Icon name={ this.props.icon } fw={ true } />
                     <span>{ this.props.title }</span>
+                    {this.props.children}
                 </div>
             </li>
         )
@@ -79,7 +82,8 @@ class Dock extends React.Component {
                             active={item.props.id === this.props.selected}
                             dimmed={this.props.dimmed}
                             onClick={() => this.props.onButtonClick(item.props.id)}
-                            />))
+                            >{item.props.id=='settings' ? <SettingsValidator className="notification" noneOnSuccess /> : undefined}</Button>
+                    ))
                 }
             </ul>
         )

@@ -34,6 +34,8 @@ body, html, .full-height {
     overflow-x: hidden;
 }
 
+#sidebar .dock .notification {display:block; position:absolute; right:-8px; top:-8px; color: white; background: red; height: 16px; width: 16px; border-radius: 10px; font-size: 7px; line-height: 16px}
+
 #sidebar .dock {
     min-width: 60px;
     flex-grow:0;

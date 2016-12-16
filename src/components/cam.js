@@ -28,7 +28,6 @@ import { sendAsFile } from '../lib/helpers';
 import Parser from '../../lw.svg-parser/src/parser'
 
 import { ValidateSettings } from '../reducers/settings';
-import { SettingsValidator } from './settings';
 import { ButtonToolbar } from 'react-bootstrap'
 
 
@@ -46,8 +45,8 @@ class Cam extends React.Component {
 
     render() {
         let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
-
-        let valid = ValidateSettings();
+        let validator=ValidateSettings(false)
+        let valid = validator.passes();
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -66,10 +65,10 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <h5><b>Gcode generation <SettingsValidator style={{ float: "right" }} /></b></h5>
+                <h5><b>Gcode generation</b></h5>
                 <OperationDiagram {...{ operations, currentOperation }} />
                 <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <ButtonToolbar>
+                    <ButtonToolbar title={"On Settings: "+Object.values(validator.errors.errors).join("\n")}>
                         <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
                         <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
                     </ButtonToolbar>
