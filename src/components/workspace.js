@@ -172,6 +172,7 @@ class FloatingControls extends React.Component {
 
         return (
             <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee' }} className="floating-controls" >
+              <tbody>
                 <tr>
                     <td></td>
                     <td>Min</td>
@@ -197,6 +198,7 @@ class FloatingControls extends React.Component {
                     <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
                     <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" /></td>
                 </tr>
+              </tbody>
             </table>
         );
     }
@@ -260,9 +262,9 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                         buffer: o,
                         scale: document.scale,
                         translate: document.translate,
-                        thickness: 6,
-                        color1: [0, 0, 1, 1],
-                        color2: [1, 1, 1, 1],
+                        thickness: 2,
+                        color1: [0.8, 0, 0, 1],
+                        color2: [1, 0.2, 0.2, 1],
                     })
             });
         } else if (document.type === 'image') {
@@ -275,7 +277,7 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                             cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
                             1],
                         translate: document.translate,
-                        thickness: 6,
+                        thickness: 2,
                         color1: [0, 0, 1, 1],
                         color2: [1, 1, 1, 1],
                     })

@@ -51,13 +51,6 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <h5>Gcode generation <SettingsValidator style={{ float: "right" }} /></h5>
-                    <ButtonToolbar>
-                        <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
-                        <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
-                    </ButtonToolbar>
-                </div>
                 <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
                     <b>Documents</b>
                     <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
@@ -65,7 +58,7 @@ class Cam extends React.Component {
                         <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                     </span>
                 </div>
-                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
+                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
                     <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
                 </div>
                 <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
@@ -73,7 +66,14 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
+                <h5>Gcode generation <SettingsValidator style={{ float: "right" }} /></h5>
                 <OperationDiagram {...{ operations, currentOperation }} />
+                <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
+                    <ButtonToolbar>
+                        <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
+                        <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
+                    </ButtonToolbar>
+                </div>
                 <h5>Operations</h5>
                 <Operations style={{ flexGrow: 2, display: "flex", flexDirection: "column" }} />
             </div>);
