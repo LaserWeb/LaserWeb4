@@ -1,12 +1,19 @@
 import { objectNoId } from '../reducers/object'
 import {Keys} from 'react-keydown';
-
-
-
 import omit from 'object.omit'
+
+import Validator from 'validatorjs';
+
 
 
 const initialState = require("../data/macros.json");
+
+
+export const MACRO_VALIDATION_RULES = {
+    label:'required',
+    keybinding:'required',
+    gcode:'required'
+}
 
 
 export const macros = (state = initialState, action) => {
