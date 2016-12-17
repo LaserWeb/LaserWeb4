@@ -65,8 +65,8 @@ class DocumentLabel extends React.Component {
     render() {
         let style;
         if (this.props.object.selected)
-            style = { userSelect: 'none', cursor: 'grab', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2};
-            // error = <E />;
+            style = { userSelect: 'none', cursor: 'grab', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 };
+        // error = <E />;
         else
             style = { userSelect: 'none', cursor: 'copy', paddingLeft: 5, paddingRight: 5, paddingBottom: 3 };
 
@@ -78,7 +78,7 @@ class DocumentLabel extends React.Component {
 
         return (
             <span style={style} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp} onDragStart={this.onDragStart} draggable={true}>
-              {checked}{this.props.object.name}
+                {checked}{this.props.object.name}
             </span>
         );
     }

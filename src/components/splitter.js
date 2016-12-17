@@ -43,13 +43,15 @@ class Splitter extends React.Component {
         if (this.size === undefined)
             this.size = this.props.initialSize;
         return (
-            <div style={{...this.props.style, display: 'flex', flexDirection: this.props.split === 'horizontal' ? 'column' : 'row' }} className={this.props.className}>
+            <div style={{ ...this.props.style, display: 'flex', flexDirection: this.props.split === 'horizontal' ? 'column' : 'row' }} className={this.props.className}>
                 {React.cloneElement(
                     this.props.children,
-                    { style: {
-                    ...this.props.children.props.style,
-                    [this.props.split === 'horizontal' ? 'height' : 'width']: this.size,
-                    }}
+                    {
+                        style: {
+                            ...this.props.children.props.style,
+                            [this.props.split === 'horizontal' ? 'height' : 'width']: this.size,
+                        }
+                    }
                 )}
                 <Capture onMouseDown={this.mouseDown} onMouseMove={this.mouseMove}>
                     <div className={'Resizer ' + this.props.split} style={this.props.resizerStyle} />

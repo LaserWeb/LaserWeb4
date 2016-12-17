@@ -43,8 +43,8 @@ function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...r
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
 }
 
-function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className="scale75", ...rest}) {
-    return <Toggle id={"toggle_"+op.id+"_"+field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className}/>
+function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest}) {
+    return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
 function ColorBox(v) {
@@ -155,7 +155,7 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                   └ <a style={{ userSelect: 'none', cursor: 'pointer' , textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e)=>{this.props.dispatch(selectDocument(id))}}>{documents.find(d => d.id === id).name}</a>
+                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) } }>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
                     <button className="btn btn-default btn-xs" onClick={this.remove}>
@@ -260,8 +260,8 @@ class Operation extends React.Component {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
-        this.moveUp =  e => this.props.dispatch(moveOperation(this.props.op.id,-1));
-        this.moveDn=  e => this.props.dispatch(moveOperation(this.props.op.id,+1));
+        this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
+        this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
     }
 
     onDragOver(e) {
@@ -336,9 +336,9 @@ class Operation extends React.Component {
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                        <table style={{ width: '100%', border: '2px dashed #ccc'  }}>
+                        <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                             <tbody>
-                                <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br/><small>to add to existing operation</small></center></td></tr>
+                                <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
                                 {op.documents.map(id => {
                                     return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
                                 })}
@@ -383,7 +383,7 @@ class Operation extends React.Component {
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                                <table style={{ width: '100%', border: '2px dashed #ccc'  }}>
+                                <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                                     <tbody>
                                         {op.tabDocuments.map(id => {
                                             return <Doc key={id} op={op} documents={documents} id={id} isTab={true} dispatch={dispatch} />
@@ -476,13 +476,13 @@ class Operations extends React.Component {
                     <b>Drag document(s) here</b>
                 </div>
                 <br />
-                <div className="operations" style={{ height: "100%", overflowY:"auto"}} >
-                        {operations.map(o =>
-                            <Operation
-                                key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
-                                fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                <div className="operations" style={{ height: "100%", overflowY: "auto" }} >
+                    {operations.map(o =>
+                        <Operation
+                            key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
+                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                             operationsBounds={bounds} dispatch={dispatch} />
-                        )}
+                    )}
                 </div>
             </div >
         );

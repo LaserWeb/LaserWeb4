@@ -17,5 +17,5 @@ export function setCurrentOperation(id) {
 }
 
 export function moveOperation(id, step) {
-    return { type: 'OPERATION_MOVE_CURRENT', payload: {id, step} };
+    return { type: 'OPERATION_MOVE_CURRENT', payload: { id, step } };
 }

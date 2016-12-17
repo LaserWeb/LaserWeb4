@@ -45,7 +45,7 @@ export default class SetSize extends React.Component {
 
     render() {
         return (
-            <div {...{...this.props }}>
+            <div {...{ ...this.props }}>
                 {React.cloneElement(this.props.children, { width: this.clientWidth, height: this.clientHeight })}
             </div>
         );

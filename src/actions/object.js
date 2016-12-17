@@ -18,7 +18,7 @@ export function setAttrs(objectType) {
 // attrs:       optional. e.g. {type: 'pocket', depth: 7}
 export function add(objectType) {
     let type = objectType.toUpperCase() + '_ADD';
-    return (attrs) => ({ type, payload: {attrs: {...attrs, id: uuid.v4() }}});
+    return (attrs) => ({ type, payload: { attrs: { ...attrs, id: uuid.v4() } } });
 };
 
 // Add a child to a parent. attrs is optional.
@@ -29,7 +29,7 @@ export function add(objectType) {
 export function addChild(objectType) {
     let type = objectType.toUpperCase() + '_ADD_CHILD';
     return (parentId, attrs) =>
-        ({ type, payload: { parentId, attrs: {...attrs, id: uuid.v4() } } });
+        ({ type, payload: { parentId, attrs: { ...attrs, id: uuid.v4() } } });
 };
 
 // Remove an object from a container.
