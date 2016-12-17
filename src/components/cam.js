@@ -28,7 +28,7 @@ import { sendAsFile } from '../lib/helpers';
 import Parser from '../../lw.svg-parser/src/parser'
 
 import { ValidateSettings } from '../reducers/settings';
-import { ButtonToolbar } from 'react-bootstrap'
+import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 
 
 
@@ -50,31 +50,62 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', }}>
-                    <h5><b>Document</b></h5>
-                    <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
-                        <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                        <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
-                    </span>
+              <div className="panel panel-success">
+                <div className="panel-heading">
+                  <table style={{width: 100 + '%'}}>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <label>Documents</label>
+                        </td>
+                        <td>
+                          <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
+                              <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
+                              <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan='2'>
+                          <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
-                    <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
+              </div>
+              <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
+                  <div style={{ overflowY: 'auto' }}>
+                      <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
+                  </div>
+              </Splitter>
+              <div className="panel panel-success">
+                <div className="panel-heading">
+                  <table style={{width: 100 + '%'}}>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <label>GCODE</label>
+                        </td>
+                        <td>
+                          <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
+                            <ButtonGroup title={"On Settings: "+Object.values(validator.errors.errors).join("\n")}>
+                                <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                                <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                            </ButtonGroup>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan='2'>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
-                    <div style={{ overflowY: 'auto' }}>
-                        <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
-                    </div>
-                </Splitter>
-                <h5><b>Gcode generation</b></h5>
-                <OperationDiagram {...{ operations, currentOperation }} />
-                <div style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px #ccc dashed" }}>
-                    <ButtonToolbar title={"On Settings: "+Object.values(validator.errors.errors).join("\n")}>
-                        <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate GCode</button>
-                        <button className="btn btn-primary btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" />&nbsp;Save GCode</button>
-                    </ButtonToolbar>
-                </div>
-                <h5>Operations</h5>
-                <Operations style={{ flexGrow: 2, display: "flex", flexDirection: "column" }} />
+              </div>
+              <OperationDiagram {...{ operations, currentOperation }} />
+              <Operations style={{ flexGrow: 2, display: "flex", flexDirection: "column" }} />
             </div>);
     }
 };
