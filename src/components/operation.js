@@ -21,7 +21,7 @@ import { addOperation, removeOperation, moveOperation, operationAddDocuments, se
 import { selectDocument } from '../actions/document'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
-import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
+import { GetBounds, withStoredBounds } from './get-bounds.js';
 
 import Toggle from 'react-toggle';
 
@@ -288,13 +288,13 @@ class Operation extends React.Component {
     }
 
     render() {
-        let {op, documents, onDragOver, selected, operationsBounds, dispatch, fillColors, strokeColors, settings} = this.props;
+        let {op, documents, onDragOver, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
                 if (field.check && !field.check(op[fieldName])) {
-                    error = <Error operationsBounds={operationsBounds} message="Expand to setup operation" />;
+                    error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
                 }
             }
@@ -358,7 +358,7 @@ class Operation extends React.Component {
                                         return <Field
                                             key={fieldName} op={op} field={fields[fieldName]} selected={selected}
                                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                            operationsBounds={operationsBounds} dispatch={dispatch} />
+                                            operationsBounds={bounds} dispatch={dispatch} />
                                     })}
                             </tbody>
                         </table>
@@ -403,7 +403,7 @@ class Operation extends React.Component {
                                     <table>
                                         <tbody>
                                             {tabFields.map(field => {
-                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
+                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={bounds} dispatch={dispatch} />
                                             })}
                                         </tbody>
                                     </table>
@@ -426,6 +426,8 @@ class Operation extends React.Component {
         return <div className="operation-row">{rows}</div>;
     }
 }; // Operation
+
+Operation = withStoredBounds(Operation);
 
 class Operations extends React.Component {
     componentWillMount() {
@@ -476,14 +478,14 @@ class Operations extends React.Component {
                     <b>Drag document(s) here</b>
                 </div>
                 <br />
-                <div className="operations" style={{ height: "100%", overflowY: "auto" }} >
+                <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation
                             key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                             operationsBounds={bounds} dispatch={dispatch} />
                     )}
-                </div>
+                </GetBounds>
             </div >
         );
     }
@@ -491,5 +493,5 @@ class Operations extends React.Component {
 
 Operations = connect(
     ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
-)(withGetBounds(Operations));
+)(Operations);
 export { Operations };
