@@ -13,7 +13,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import Parser from 'lw.svg-parser';
 import React from 'react'
+import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
@@ -25,10 +27,7 @@ import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
-import Parser from '../../lw.svg-parser/src/parser'
-
 import { ValidateSettings } from '../reducers/settings';
-import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 
 class Cam extends React.Component {
     componentWillMount() {
@@ -123,7 +122,7 @@ Cam = connect(
                     reader.onload = () => {
                         let parser = new Parser({});
                         parser.parse(reader.result)
-                            .then(tags => dispatch(loadDocument(file, tags)))
+                            .then(tags => dispatch(loadDocument(file, { parser, tags })))
                             .catch(e => console.log('error:', e))
                     }
                     reader.readAsText(file);

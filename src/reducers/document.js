@@ -40,6 +40,7 @@ export function document(state, action) {
 const documentsForest = forest('document', document);
 
 function loadSvg(state, settings, {file, content}) {
+    let {parser, tags} = content;
     state = state.slice();
     let pxPerInch = +settings.pxPerInch || 96;
     let allPositions = [];
@@ -63,10 +64,10 @@ function loadSvg(state, settings, {file, content}) {
                 selected: false,
             };
             let rawPaths = [];
-            for (let path of child.paths) {
+            for (let path of child.getPaths()) {
                 let p = [];
                 for (let point of path.points)
-                    p.push((point.x + content.attrs.viewBox[0]) / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
+                    p.push((point.x + parser.document.viewBox.x) / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
                 if (p.length)
                     rawPaths.push(p);
             }
@@ -93,8 +94,8 @@ function loadSvg(state, settings, {file, content}) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, content);
-    flipY(allPositions, (content.attrs.viewBox[3] - content.attrs.viewBox[1]) / pxPerInch * 25.4);
+    addChildren(doc, tags);
+    flipY(allPositions, (parser.document.viewBox.height - parser.document.viewBox.y) / pxPerInch * 25.4);
     return state;
 }
 
