@@ -51,14 +51,14 @@ export const operations = (state, action) => {
         case 'OPERATION_MOVE_CURRENT':
             let index = state.findIndex(item => item.id == action.payload.id)
             let newIndex = index + action.payload.step;
-            if (newIndex < 0) newIndex = 0;
-            if (newIndex > state.length - 1) newIndex = state.length - 1;
-
+            if (newIndex < 0)
+                newIndex = 0;
+            if (newIndex > state.length - 1)
+                newIndex = state.length - 1;
             return arrayMove(state.slice(), index, newIndex);
         default:
             return objectArray('operation', operation)(state, action);
     }
-
 }
 
 export function currentOperation(state = '', action) {
