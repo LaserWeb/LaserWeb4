@@ -60,7 +60,7 @@
     "jsdoc": "^3.4.1",
     "json-loader": "^0.5.4",
     "json-stringify-pretty-compact": "^1.0.2",
-    "lw.svg-parser": "file:lw.svg-parser",
+    "lw.svg-parser": "^0.2.1",
     "node-uuid": "^1.4.7",
     "object.omit": "^2.0.1",
     "poly2tri": "^1.3.5",

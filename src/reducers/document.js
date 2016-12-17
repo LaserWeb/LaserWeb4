@@ -67,7 +67,7 @@ function loadSvg(state, settings, {file, content}) {
             for (let path of child.getPaths()) {
                 let p = [];
                 for (let point of path.points)
-                    p.push((point.x + parser.document.viewBox.x) / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
+                    p.push(point.x / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
                 if (p.length)
                     rawPaths.push(p);
             }
@@ -95,7 +95,7 @@ function loadSvg(state, settings, {file, content}) {
     };
     state.push(doc);
     addChildren(doc, tags);
-    flipY(allPositions, (parser.document.viewBox.height - parser.document.viewBox.y) / pxPerInch * 25.4);
+    flipY(allPositions, parser.document.viewBox.height / pxPerInch * 25.4);
     return state;
 }
 
