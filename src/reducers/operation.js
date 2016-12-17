@@ -47,6 +47,7 @@ export function operation(state, action) {
 }
 
 export const operations = (state, action) => {
+    state = objectArray('operation', operation)(state, action);
     switch (action.type) {
         case 'OPERATION_MOVE_CURRENT':
             let index = state.findIndex(item => item.id == action.payload.id)
@@ -56,9 +57,15 @@ export const operations = (state, action) => {
             if (newIndex > state.length - 1)
                 newIndex = state.length - 1;
             return arrayMove(state.slice(), index, newIndex);
-        default:
-            return objectArray('operation', operation)(state, action);
+        case 'OPERATION_SET_ATTRS':
+            if (action.payload.attrs.expanded)
+                state = state.map(op => ({ ...op, expanded: op.id === action.payload.id }));
+            break;
+        case 'OPERATION_ADD':
+            state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
+            break;
     }
+    return state;
 }
 
 export function currentOperation(state = '', action) {
