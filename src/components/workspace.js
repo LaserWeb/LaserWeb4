@@ -262,9 +262,9 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                         buffer: o,
                         scale: document.scale,
                         translate: document.translate,
-                        thickness: 2,
-                        color1: [0.8, 0, 0, 1],
-                        color2: [1, 0.2, 0.2, 1],
+                        thickness: 5,
+                        color1: [0, 0, 1, 1],
+                        color2: [1, 1, 1, 1],
                     })
             });
         } else if (document.type === 'image') {
@@ -277,7 +277,7 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                             cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
                             1],
                         translate: document.translate,
-                        thickness: 2,
+                        thickness: 5,
                         color1: [0, 0, 1, 1],
                         color2: [1, 1, 1, 1],
                     })
