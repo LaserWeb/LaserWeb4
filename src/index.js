@@ -8,13 +8,16 @@ import persistState, {mergePersistedState} from 'redux-localstorage'
 import adapter from 'redux-localstorage/lib/adapters/localStorage';
 import filter from 'redux-localstorage-filter';
 
-
 const hot = (state, action) => {
     return require('./reducers').default(state, action);
 };
 
 const reducer = compose(
-  mergePersistedState()
+    mergePersistedState((initialState, persistedState) => {
+        let state = { ...initialState, ...persistedState };
+        state.camera = require('./reducers/camera').resetCamera(null, state.settings);
+        return state;
+    })
 )(hot);
 
 const storage = compose(
