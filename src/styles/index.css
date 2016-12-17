@@ -34,7 +34,7 @@ body, html, .full-height {
     overflow-x: hidden;
 }
 
-#sidebar .dock .notification {display:block; position:absolute; right:-8px; top:-8px; color: white; background: red; height: 16px; width: 16px; border-radius: 10px; font-size: 7px; line-height: 16px}
+#sidebar .dock .notification {display:block; position:absolute; right:-3px; top:-5px; color: white; background: red; height: 20px; width: 20px; border-radius: 10px; font-size: 7px; line-height: 22px}
 
 #sidebar .dock {
     min-width: 60px;
@@ -237,7 +237,7 @@ body, html, .full-height {
     white-space: nowrap;
 }
 
-.operationDoc { 
+.operationDoc {
     user-select: 'none';
     cursor: 'pointer';
     text-decoration: 'bold';
