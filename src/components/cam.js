@@ -46,8 +46,8 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div className="panel panel-success">
-                    <div className="panel-heading">
+                <div className="panel panel-success" style={{ marginBottom: 3 }}>
+                    <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>
                             <tbody>
                                 <tr>
@@ -70,13 +70,13 @@ class Cam extends React.Component {
                         </table>
                     </div>
                 </div>
-                <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 10, marginBottom: 10 }} splitterId="cam-documents">
+                <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 2, marginBottom: 2 }} splitterId="cam-documents">
                     <div style={{ overflowY: 'auto' }}>
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <div className="panel panel-success">
-                    <div className="panel-heading">
+                <div className="panel panel-success" style={{ marginBottom: 3 }}>
+                    <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>
                             <tbody>
                                 <tr>

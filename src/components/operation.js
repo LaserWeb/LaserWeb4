@@ -474,10 +474,9 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
                     <b>Drag document(s) here</b>
                 </div>
-                <br />
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation

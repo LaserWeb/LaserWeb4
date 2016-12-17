@@ -75,7 +75,9 @@ module.exports = {
     devServer: {
         contentBase: dist_path,
         inline: false,
-        hot: true
+        hot: true,
+        host: '0.0.0.0'
+
     },
     devtool: 'source-map'
 };
