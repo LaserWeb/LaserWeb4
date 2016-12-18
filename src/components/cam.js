@@ -46,7 +46,7 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div className="panel panel-success" style={{ marginBottom: 3 }}>
+                <div className="panel panel-info" style={{ marginBottom: 3 }}>
                     <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>
                             <tbody>
