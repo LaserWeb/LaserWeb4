@@ -87,10 +87,14 @@ export default class Capture extends React.Component {
     }
 
     render() {
+        let {Component, style, onTouchStart, onTouchMove, onTouchEnd, onTouchCancel} = this.props;
+        Component = Component || 'div';
         return (
-            <div onMouseDown={this.onMouseDown} onContextMenu={this.props.onContextMenu} onWheel={this.props.onWheel}>
+            <Component
+                onMouseDown={this.onMouseDown} onContextMenu={this.props.onContextMenu} onWheel={this.props.onWheel}
+                {...{ onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, style }}>
                 {this.props.children}
-            </div>
+            </Component>
         );
     }
 };

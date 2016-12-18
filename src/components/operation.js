@@ -17,7 +17,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
 
-import { addOperation, removeOperation, moveOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
 import { selectDocument } from '../actions/document'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
@@ -254,9 +254,6 @@ export const types = {
 
 class Operation extends React.Component {
     componentWillMount() {
-        this.onDragOver = this.onDragOver.bind(this);
-        this.onDrop = this.onDrop.bind(this);
-        this.onDropTabs = this.onDropTabs.bind(this);
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
@@ -264,31 +261,8 @@ class Operation extends React.Component {
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
     }
 
-    onDragOver(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            e.nativeEvent.dataTransfer.dropEffect = "copy";
-            e.preventDefault();
-        }
-    }
-
-    onDrop(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(operationAddDocuments(this.props.op.id, false, documents));
-            e.preventDefault();
-        }
-    }
-
-    onDropTabs(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(operationAddDocuments(this.props.op.id, true, documents));
-            e.preventDefault();
-        }
-    }
-
     render() {
-        let {op, documents, onDragOver, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
+        let {op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
@@ -307,7 +281,7 @@ class Operation extends React.Component {
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
         let rows = [
-            <GetBounds Type="div" key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+            <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
                 <div style={{ display: 'table-cell', cursor: 'pointer' }}>
                     <i
@@ -332,7 +306,7 @@ class Operation extends React.Component {
         ];
         if (op.expanded) {
             rows.push(
-                <div key="docs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div key="docs" style={{ display: 'table-row' }} data-operation-id={op.id}>
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
@@ -367,19 +341,19 @@ class Operation extends React.Component {
             );
             if (types[op.type].allowTabs) {
                 rows.push(
-                    <div key="space" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                    <div key="space" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                         <div style={leftStyle} />
                         <div style={{ display: 'table-cell' }}>&nbsp;</div>
                     </div>
                 );
                 if (op.tabDocuments.length) {
                     rows.push(
-                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabLabel" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell' }}><b>Tabs</b></div>
                         </div>,
-                        <div key="tabDocs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabDocs" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
@@ -414,7 +388,7 @@ class Operation extends React.Component {
                 }
                 else {
                     rows.push(
-                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabLabel" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', border: '2px dashed #ccc' }}><b>Drag document(s) here to create tabs</b></div>
@@ -430,26 +404,6 @@ class Operation extends React.Component {
 Operation = withStoredBounds(Operation);
 
 class Operations extends React.Component {
-    componentWillMount() {
-        this.onDragOver = this.onDragOver.bind(this);
-        this.onDrop = this.onDrop.bind(this);
-    }
-
-    onDragOver(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            e.nativeEvent.dataTransfer.dropEffect = "copy";
-            e.preventDefault();
-        }
-    }
-
-    onDrop(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(addOperation({ documents }));
-            e.preventDefault();
-        }
-    }
-
     render() {
         let {operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
         let fillColors = [];
@@ -474,7 +428,7 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
                     <b>Drag document(s) here</b>
                 </div>
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
