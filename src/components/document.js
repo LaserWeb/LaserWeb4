@@ -17,56 +17,50 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
-import Capture from './capture';
 import Subtree from './subtree';
 import { removeDocument, selectDocument, toggleSelectDocument } from '../actions/document';
 import { addOperation, operationAddDocuments } from '../actions/operation';
+import Pointable from '../lib/Pointable';
 
 class DocumentLabel extends React.Component {
     componentWillMount() {
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onTouchStart = this.onTouchStart.bind(this);
-        this.onMouseMove = this.onMouseMove.bind(this);
-        this.onTouchMove = this.onTouchMove.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
-        this.onTouchEnd = this.onTouchEnd.bind(this);
-        this.onTouchCancel = this.onTouchCancel.bind(this);
+        this.onPointerDown = this.onPointerDown.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onPointerUp = this.onPointerUp.bind(this);
+        this.onPointerCancel = this.onPointerCancel.bind(this);
     }
 
-    onMouseDown(e) {
-        this.needToSelect = false;
-        this.isToggle = e.ctrlKey || e.shiftKey;
-        this.dragStarted = false;
-        if (this.props.object.selected)
-            this.needToSelect = true;
-        else if (this.isToggle)
-            this.props.dispatch(toggleSelectDocument(this.props.object.id));
-        else
-            this.props.dispatch(selectDocument(this.props.object.id));
-    }
-
-    onTouchStart(e) {
+    onPointerDown(e) {
         e.preventDefault();
-        this.needToSelect = true;
-        this.wasSelected = this.props.object.selected;
-        this.dragStarted = false;
-        if (!this.wasSelected)
-            this.props.dispatch(toggleSelectDocument(this.props.object.id));
+        ReactDOM.findDOMNode(this).setPointerCapture(e.pointerId);
+        this.pointerType = e.pointerType;
+        if (this.pointerType === 'pen' || this.pointerType === 'touch') {
+            this.needToSelect = this.props.object.selected;
+            this.isToggle = true;
+            this.dragStarted = false;
+            if (!this.props.object.selected)
+                this.props.dispatch(toggleSelectDocument(this.props.object.id));
+        } else {
+            this.needToSelect = false;
+            this.isToggle = e.ctrlKey || e.shiftKey;
+            this.dragStarted = false;
+            if (this.props.object.selected)
+                this.needToSelect = true;
+            else if (this.isToggle)
+                this.props.dispatch(toggleSelectDocument(this.props.object.id));
+            else
+                this.props.dispatch(selectDocument(this.props.object.id));
+        }
     }
 
-    onMouseMove(e) {
+    onPointerMove(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
+        e.preventDefault();
         let elem = document.elementFromPoint(e.clientX, e.clientY);
-        if (elem != ReactDOM.findDOMNode(this))
+        if (elem != ReactDOM.findDOMNode(this) && !this.dragStarted) {
             this.dragStarted = true;
-    }
-
-    onTouchMove(e) {
-        e.preventDefault();
-        let touch = e.changedTouches[0];
-        let elem = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (elem != ReactDOM.findDOMNode(this)) {
-            this.dragStarted = true;
-            if (!this.wasSelected)
+            if ((this.pointerType === 'pen' || this.pointerType === 'touch') && !this.needToSelect)
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
     }
@@ -93,7 +87,10 @@ class DocumentLabel extends React.Component {
         }
     }
 
-    onMouseUp(e) {
+    onPointerUp(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
+        e.preventDefault();
         if (this.dragStarted) {
             this.drag(e.clientX, e.clientY);
         } else if (this.needToSelect) {
@@ -102,25 +99,14 @@ class DocumentLabel extends React.Component {
             else
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
-        this.needToSelect = false;
-        this.dragStarted = false;
+        this.pointerType = '';
     }
 
-    onTouchEnd(e) {
+    onPointerCancel(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
         e.preventDefault();
-        let touch = e.changedTouches[0];
-        if (this.dragStarted)
-            this.drag(touch.clientX, touch.clientY);
-        else if (this.wasSelected)
-            this.props.dispatch(toggleSelectDocument(this.props.object.id));
-        this.needToSelect = false;
-        this.dragStarted = false;
-    }
-
-    onTouchCancel(e) {
-        e.preventDefault();
-        this.needToSelect = false;
-        this.dragStarted = false;
+        this.pointerType = '';
     }
 
     render() {
@@ -132,12 +118,10 @@ class DocumentLabel extends React.Component {
             style = { userSelect: 'none', cursor: 'copy', paddingLeft: 5, paddingRight: 5, paddingBottom: 3 };
 
         return (
-            <Capture Component='span' style={style}
-                onMouseDown={this.onMouseDown} onTouchStart={this.onTouchStart}
-                onMouseMove={this.onMouseMove} onTouchMove={this.onTouchMove}
-                onMouseUp={this.onMouseUp} onTouchEnd={this.onTouchEnd} onTouchCancel={this.onTouchCancel}>
+            <Pointable tagName='span' style={style}
+                onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove} onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}>
                 {this.props.object.name}
-            </Capture>
+            </Pointable>
         );
     }
 };
@@ -159,7 +143,7 @@ DocumentRight = connect()(DocumentRight);
 export function Documents({documents, toggleExpanded}) {
     let rowNumber = { value: 0 };
     return (
-        <div>
+        <div style={{ touchAction: 'none' }}>
             {documents
                 .filter(document => document.isRoot)
                 .map(document => (
