@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -18,31 +18,36 @@ import ReactDOM from 'react-dom'
 import Snap from 'snapsvg-cjs';
 
 const hide = [
-    'svgCNCFlatBit',
-    'svgCNCVbit',
-    'svgInside',
-    'svgKnifeGrp',
-    'svgKnifeView',
-    'svgLaserGrp',
-    'svgLaserRasterToolpath',
-    'svgOpName',
-    'svgOutside',
-    'svgPocket',
-    'svgToolDiaGrp',
-    'svgToolpath',
-    'svgzClearance',
-    'svgZGrp',
-    'svgzmulti',
+    'LaserCut',
+    'LaserCutInside',
+    'LaserCutOutside',
+    'MillPocket',
+    'MillCut',
+    'MillCutInside',
+    'MillCutOutside',
+    'LaserFill',
+    'MillVCarve',
+    'CW',
+    'CCW',
+    'toolDia',
+    'toolAngle',
+    'lineSpace',
+    'zClearance',
+    'cutDirection',
+    'zStep',
+    'zDepth'
 ];
 
 const types = {
-    'Laser Cut': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath'] },
-    'Laser Cut Inside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgInside'] },
-    'Laser Cut Outside': { show: ['svgOpName', 'svgLaserGrp', 'svgToolpath', 'svgOutside'] },
-    'Mill Pocket': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgPocket', 'svgToolDiaGrp'] },
-    'Mill Cut': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti'] },
-    'Mill Cut Inside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgInside', 'svgToolDiaGrp'] },
-    'Mill Cut Outside': { show: ['svgOpName', 'svgCNCFlatBit', 'svgToolpath', 'svgzClearance', 'svgZGrp', 'svgzmulti', 'svgOutside', 'svgToolDiaGrp'] },
+    'Laser Cut': { show: ['LaserCut'] },
+    'Laser Cut Inside': { show: ['LaserCutInside', 'toolDia'] },
+    'Laser Cut Outside': { show: ['LaserCutOutside', 'toolDia'] },
+    'Laser Fill Path': { show: ['LaserFill', 'lineSpace'] },
+    'Mill Pocket': { show: ['MillPocket', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
+    'Mill Cut': { show: ['MillCut', 'toolDia', 'zStep', 'zDepth'] },
+    'Mill Cut Inside': { show: ['MillCutInside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
+    'Mill Cut Outside': { show: ['MillCutOutside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
+    'Mill V Carve': { show: ['MillVCarve', 'toolAngle', 'zClearance', 'zStep'] },
 };
 
 export class OperationDiagram extends React.Component {
@@ -72,11 +77,14 @@ export class OperationDiagram extends React.Component {
             return;
         for (let id of type.show)
             document.getElementById(id).style.display = 'inline';
-        document.getElementById('svgOpName').textContent = op.type;
-        document.getElementById('svgToolDia').textContent = op.toolDiameter + 'mm';
-        document.getElementById('svgZClear-8').textContent = op.clearance + 'mm';
-        document.getElementById('svgZDepth').textContent = op.passDepth + 'mm per pass';
-        document.getElementById('svgZFinal').textContent = op.cutDepth + 'mm';
+            document.getElementById('Labels').style.display = 'inline';
+            // document.getElementById('svgOpName').textContent = op.type;
+            document.getElementById('toolDia').textContent = op.laserDiameter + 'mm Diameter';
+            document.getElementById('zClearance').textContent = op.clearance + 'mm Clearance';
+            document.getElementById('lineSpace').textContent = op.lineDistance + 'mm Spacing';
+            document.getElementById('toolAngle').textContent = op.toolAngle + '\u00B0 Angle';
+            document.getElementById('zStep').textContent = op.passDepth + 'mm per pass';
+            document.getElementById('zDepth').textContent = op.cutDepth + 'mm depth';
     }
 
     render() {
