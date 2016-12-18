@@ -40,7 +40,7 @@ import {keyboardUndoAction} from '../actions/laserweb';
 
 import keydown, { Keys } from 'react-keydown';
 
-import {fireMacro} from '../actions/macros'
+import {fireMacroByKeyboard} from '../actions/macros'
 
 import {GlobalStore} from '../index'
 
