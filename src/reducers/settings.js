@@ -20,8 +20,8 @@ const version = require("../../package.json").version;
             "gcodeStart":"",
             "gcodeEnd":"",
             "gcodeHoming":";$H",
-            "gcodeLaserOn":"M3",
-            "gcodeLaserOff":"M5",
+            "gcodeToolOn":"M3",
+            "gcodeToolOff":"M5",
             
             "machineWidth": 420,
             "machineHeight": 297,
@@ -119,8 +119,8 @@ export const settings = objectNoId('settings', {
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M2          ; End\r\n",
     gcodeHoming:"",
-    gcodeLaserOn:"",
-    gcodeLaserOff:"",
+    gcodeToolOn:"",
+    gcodeToolOff:"",
     gcodeSMaxValue: 1,
     
     
