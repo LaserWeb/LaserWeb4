@@ -28,17 +28,17 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      laserPower:     [0, 100]
 //      passes:         Number of passes
 //      tabGeometry:    Tab geometry
-//      gcodeLaserOn:   Laser on (may be empty)
-//      gcodeLaserOff:  Laser off (may be empty)
+//      gcodeToolOn:   Laser on (may be empty)
+//      gcodeToolOff:  Laser off (may be empty)
 //      gcodeSMaxValue: Max S value
 export function getLaserCutGcode(props) {
     let {paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisStepsPerTurn, aAxisDiameter,
-        tabGeometry, gcodeLaserOn, gcodeLaserOff, gcodeSMaxValue} = props;
-    if (gcodeLaserOn)
-        gcodeLaserOn += '\r\n';
-    if (gcodeLaserOff)
-        gcodeLaserOff += '\r\n';
+        tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue} = props;
+    if (gcodeToolOn)
+        gcodeToolOn += '\r\n';
+    if (gcodeToolOff)
+        gcodeToolOff += '\r\n';
     let laserOnS = 'S' + (gcodeSMaxValue * laserPower / 100).toFixed(decimal);
 
     let lastX = 0, lastY = 0;
@@ -94,7 +94,7 @@ export function getLaserCutGcode(props) {
                     continue;
                 }
                 gcode += convertPoint(selectedPath[0], true) + '\r\n';
-                gcode += gcodeLaserOn;
+                gcode += gcodeToolOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
                     gcode += convertPoint(selectedPath[i], false);
                     if (i == 1)
@@ -103,7 +103,7 @@ export function getLaserCutGcode(props) {
                         gcode += ' F' + cutFeed;
                     gcode += '\r\n';
                 }
-                gcode += gcodeLaserOff;
+                gcode += gcodeToolOff;
             }
         }
     }
@@ -200,8 +200,8 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         aAxisStepsPerTurn: op.aAxisStepsPerTurn,
         aAxisDiameter: op.aAxisDiameter,
         tabGeometry: tabGeometry,
-        gcodeLaserOn: settings.gcodeLaserOn,
-        gcodeLaserOff: settings.gcodeLaserOff,
+        gcodeToolOn: settings.gcodeToolOn,
+        gcodeToolOff: settings.gcodeToolOff,
         gcodeSMaxValue: settings.gcodeSMaxValue,
     });
 
