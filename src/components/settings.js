@@ -172,10 +172,8 @@ class Settings extends React.Component {
                    <ToggleField {... {object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage'}} />
                    <Collapse in={this.props.settings.machineZEnabled}>
                    <div>
-                   <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist Compensation'}} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZMatThickness', setAttrs: setSettingsAttrs, description: 'Cutting Mat Compensation', labelAddon:false, units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZFocusOffset', setAttrs: setSettingsAttrs, description: 'Focus Height Compensation', labelAddon:false,units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZDefaultMaterialThickness', setAttrs: setSettingsAttrs, description: 'Default Material Thickness', labelAddon:false, units: 'mm' }} />
+                   <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist'}} />
+                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon:false,units: 'mm' }} />
                    </div>
                    </Collapse>
                    
