@@ -78,13 +78,28 @@ export class OperationDiagram extends React.Component {
         for (let id of type.show)
             document.getElementById(id).style.display = 'inline';
             document.getElementById('Labels').style.display = 'inline';
-            // document.getElementById('svgOpName').textContent = op.type;
             document.getElementById('toolDia').textContent = op.laserDiameter + 'mm Diameter';
             document.getElementById('zClearance').textContent = op.clearance + 'mm Clearance';
             document.getElementById('lineSpace').textContent = op.lineDistance + 'mm Spacing';
             document.getElementById('toolAngle').textContent = op.toolAngle + '\u00B0 Angle';
             document.getElementById('zStep').textContent = op.passDepth + 'mm per pass';
             document.getElementById('zDepth').textContent = op.cutDepth + 'mm depth';
+
+        if (op.type == 'Mill Cut' || op.type == 'Mill Cut Outside') {
+          if (op.direction == 'Conventional') {
+            document.getElementById('CCW').style.display = 'inline';
+          } else if (op.direction == 'Climb') {
+            document.getElementById('CW').style.display = 'inline';
+          }
+        }
+
+        if (op.type == 'Mill Cut Inside' ) {
+          if (op.direction == 'Conventional') {
+            document.getElementById('CW').style.display = 'inline';
+          } else if (op.direction == 'Climb') {
+            document.getElementById('CCW').style.display = 'inline';
+          }
+        }
     }
 
     render() {
