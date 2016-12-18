@@ -30,6 +30,7 @@ const hide = [
     'CW',
     'CCW',
     'toolDia',
+    'laserDia',
     'toolAngle',
     'lineSpace',
     'zClearance',
@@ -40,11 +41,11 @@ const hide = [
 
 const types = {
     'Laser Cut': { show: ['LaserCut'] },
-    'Laser Cut Inside': { show: ['LaserCutInside', 'toolDia'] },
-    'Laser Cut Outside': { show: ['LaserCutOutside', 'toolDia'] },
+    'Laser Cut Inside': { show: ['LaserCutInside', 'laserDia'] },
+    'Laser Cut Outside': { show: ['LaserCutOutside', 'laserDia'] },
     'Laser Fill Path': { show: ['LaserFill', 'lineSpace'] },
     'Mill Pocket': { show: ['MillPocket', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
-    'Mill Cut': { show: ['MillCut', 'toolDia', 'zStep', 'zDepth'] },
+    'Mill Cut': { show: ['MillCut', 'zStep', 'zDepth'] },
     'Mill Cut Inside': { show: ['MillCutInside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
     'Mill Cut Outside': { show: ['MillCutOutside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
     'Mill V Carve': { show: ['MillVCarve', 'toolAngle', 'zClearance', 'zStep'] },
@@ -78,7 +79,8 @@ export class OperationDiagram extends React.Component {
         for (let id of type.show)
             document.getElementById(id).style.display = 'inline';
             document.getElementById('Labels').style.display = 'inline';
-            document.getElementById('toolDia').textContent = op.laserDiameter + 'mm Diameter';
+            document.getElementById('laserDia').textContent = op.laserDiameter + 'mm Diameter';
+            document.getElementById('toolDia').textContent = op.toolDiameter + 'mm Diameter';
             document.getElementById('zClearance').textContent = op.clearance + 'mm Clearance';
             document.getElementById('lineSpace').textContent = op.lineDistance + 'mm Spacing';
             document.getElementById('toolAngle').textContent = op.toolAngle + '\u00B0 Angle';

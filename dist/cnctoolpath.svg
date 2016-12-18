@@ -70,10 +70,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="4"
-     inkscape:cx="365.46959"
-     inkscape:cy="103.36872"
+     inkscape:cx="278.46959"
+     inkscape:cy="80.868718"
      inkscape:document-units="px"
-     inkscape:current-layer="CCW"
+     inkscape:current-layer="MillCut"
      showgrid="true"
      showguides="true"
      objecttolerance="10000"
@@ -499,7 +499,7 @@
      inkscape:groupmode="layer"
      id="MillCut"
      inkscape:label="MillCut"
-     style="display:none">
+     style="display:inline">
     <g
        style="display:inline"
        id="g5029-7"
@@ -587,20 +587,6 @@
          id="path5811-7-2"
          d="m -130.0625,50.294784 6.375,-4.5625 -7.9375,-3 z"
          style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    </g>
-    <g
-       style="display:inline"
-       id="g4575-8-0">
-      <path
-         inkscape:connector-curvature="0"
-         id="path4571-8-3"
-         d="m 60.5,60.982283 -0.25,5.75 39.75,0 0,-5.5"
-         style="fill:none;fill-rule:evenodd;stroke:#ff0000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <path
-         inkscape:connector-curvature="0"
-         id="path4573-7-0"
-         d="m 100.25,64.482283 15.5,0 0,-43.25 14.5,0"
-         style="fill:none;fill-rule:evenodd;stroke:#ff0000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
     <path
        style="display:inline;fill:none;fill-rule:evenodd;stroke:#008000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -1011,7 +997,7 @@
      inkscape:groupmode="layer"
      id="CW"
      inkscape:label="CW"
-     style="display:inline">
+     style="display:none">
     <path
        style="display:inline;opacity:1;fill:none;stroke:#000080;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#Arrow1Lend)"
        d="m 398.20213,31.732285 c 6.53602,0 11.79787,5.261849 11.79787,11.797867 l 0,27.845009 0,28.559258 c 0,6.536021 -5.26185,11.797861 -11.79787,11.797861 l -38.28478,0 -40.65864,0 -37.46084,0 c -6.53602,0 -11.69258,-5.26269 -11.79787,-11.797861 l -0.5,-31.034132 c 0,-8.456712 1.59247,5.381126 0,-25.370135 3.84922,-9.441941 15.58934,-11.795908 27.54164,-11.821338 33.72017,-0.01523 67.4403,0.02347 101.16049,0.02347 z"
@@ -1124,5 +1110,17 @@
          id="tspan4335-47-7"
          x="133.11157"
          y="116.39232">Final Depth</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:15px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="133.11157"
+       y="26.392319"
+       id="laserDia"
+       sodipodi:linespacing="125%"
+       inkscape:label="#text4333-3"><tspan
+         sodipodi:role="line"
+         id="tspan4335-90-6"
+         x="133.11157"
+         y="26.392319">Tool Dia</tspan></text>
   </g>
 </svg>
