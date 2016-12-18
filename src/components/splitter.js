@@ -22,7 +22,10 @@ import { splitterSetSize } from '../actions/splitters'
 class Splitter extends React.Component {
     componentWillMount() {
         this.mouseDown = this.mouseDown.bind(this);
+        this.touchStart = this.touchStart.bind(this);
         this.mouseMove = this.mouseMove.bind(this);
+        this.touchMove = this.touchMove.bind(this);
+        this.touchEnd = this.touchEnd.bind(this);
     }
 
     mouseDown(e) {
@@ -30,12 +33,35 @@ class Splitter extends React.Component {
         this.mouseY = e.clientY;
     }
 
-    mouseMove(e) {
-        let delta = this.props.split === 'horizontal' ? e.clientY - this.mouseY : e.clientX - this.mouseX;
-        this.mouseX = e.clientX;
-        this.mouseY = e.clientY;
+    touchStart(e) {
+        e.preventDefault();
+        this.touching = true;
+        let touch = e.changedTouches[0];
+        this.mouseX = touch.clientX;
+        this.mouseY = touch.clientY;
+    }
+
+    move(clientX, clientY) {
+        let delta = this.props.split === 'horizontal' ? clientY - this.mouseY : clientX - this.mouseX;
+        this.mouseX = clientX;
+        this.mouseY = clientY;
         this.props.dispatch(splitterSetSize(this.props.splitterId, this.size + delta));
         this.forceUpdate();
+    }
+
+    mouseMove(e) {
+        this.move(e.clientX, e.clientY);
+    }
+
+    touchMove(e) {
+        e.preventDefault();
+        let touch = e.changedTouches[0];
+        if (this.touching)
+            this.move(touch.clientX, touch.clientY);
+    }
+
+    touchEnd(e) {
+        this.touching = false;
     }
 
     render() {
@@ -53,7 +79,8 @@ class Splitter extends React.Component {
                         }
                     }
                 )}
-                <Capture onMouseDown={this.mouseDown} onMouseMove={this.mouseMove}>
+                <Capture onMouseDown={this.mouseDown} onTouchStart={this.touchStart} onMouseMove={this.mouseMove} onTouchMove={this.touchMove}
+                    onTouchEnd={this.touchEnd} onTouchCancel={this.touchEnd}>
                     <div className={'Resizer ' + this.props.split} style={this.props.resizerStyle} />
                 </Capture>
             </div >
