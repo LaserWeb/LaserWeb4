@@ -40,11 +40,9 @@ export function document(state, action) {
 const documentsForest = forest('document', document);
 
 function loadSvg(state, settings, {file, content}) {
+    let {parser, tags} = content;
     state = state.slice();
-    let pxPerInch = +settings.pxPerInch || 96; // TODO: dpiIllustrator, dpiInkscape?
-
-    // TODO catch and report errors
-    let svg = Snap.parse(content).node.children[0];
+    let pxPerInch = +settings.pxPerInch || 96;
     let allPositions = [];
 
     function getColor(c, missingA) {
@@ -55,29 +53,32 @@ function loadSvg(state, settings, {file, content}) {
             return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
     }
 
-    function addChildren(parent, node) {
-        for (let child of node.children) {
+    function addChildren(parent, tag) {
+        for (let child of tag.children) {
             let c = {
                 id: uuid.v4(),
-                type: child.nodeName,
-                name: child.nodeName + ': ' + child.id,
+                type: child.name,
+                name: child.name + ': ' + child.attrs.id,
                 isRoot: false,
                 children: [],
                 selected: false,
             };
-            if (child.nodeName === 'path') {
-                // TODO: report errors
-                // TODO: settings for minNumSegments, minSegmentLength
-                c.rawPaths = elementToRawPaths(child, pxPerInch, 1, .01 * pxPerInch, error => console.log(error));
-                if (!c.rawPaths)
-                    continue;
-                allPositions.push(c.rawPaths);
+            let rawPaths = [];
+            for (let path of child.getPaths()) {
+                let p = [];
+                for (let point of path.points)
+                    p.push(point.x / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
+                if (p.length)
+                    rawPaths.push(p);
+            }
+            if (rawPaths.length) {
+                allPositions.push(rawPaths);
+                c.rawPaths = rawPaths;
                 c.translate = [0, 0, 0];
                 c.scale = [1, 1, 1];
-                c.strokeColor = getColor(child.style.stroke, 0);
-                c.fillColor = getColor(child.style.fill, c.strokeColor[3] ? 0 : .1);
-            } else if (child.nodeName !== 'g')
-                continue;
+                c.strokeColor = getColor(child.attrs.stroke, 0);
+                c.fillColor = getColor(child.attrs.fill, c.strokeColor[3] ? 0 : .1);
+            }
             state.push(c);
             parent.children.push(c.id);
             addChildren(c, child)
@@ -93,9 +94,8 @@ function loadSvg(state, settings, {file, content}) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, svg);
-    let viewBox = svg.viewBox.baseVal;
-    flipY(allPositions, (viewBox.y + viewBox.height) / pxPerInch * 25.4);
+    addChildren(doc, tags);
+    flipY(allPositions, parser.document.viewBox.height / pxPerInch * 25.4);
     return state;
 }
 

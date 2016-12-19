@@ -8,11 +8,10 @@ import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfil
 import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros' 
-import {PanelGroup, Panel} from 'react-bootstrap';
 
 
 
-import { Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse } from 'react-bootstrap';
+import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge } from 'react-bootstrap';
 
 import update from 'immutability-helper';
 
@@ -113,10 +112,11 @@ class SettingsPanel extends React.Component {
 
 
 
-export function SettingsValidator({style,...rest}){
+export function SettingsValidator({style, className='badge', noneOnSuccess=false,...rest}){
     let validator=ValidateSettings(false);
     let errors =  (validator.fails()) ? ("Please review Settings:\n\n" + Object.values(validator.errors.errors)) : undefined
-    return <Label bsStyle={errors? 'warning':'success'} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></Label>
+    if (noneOnSuccess && !errors) return null;
+    return <span className={className} title={errors? errors: "Good to go!"} style={style}><Icon name={errors? 'warning':'check'}/></span>
 }
 
 class Settings extends React.Component {
@@ -172,10 +172,8 @@ class Settings extends React.Component {
                    <ToggleField {... {object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage'}} />
                    <Collapse in={this.props.settings.machineZEnabled}>
                    <div>
-                   <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist Compensation'}} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZMatThickness', setAttrs: setSettingsAttrs, description: 'Cutting Mat Compensation', labelAddon:false, units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZFocusOffset', setAttrs: setSettingsAttrs, description: 'Focus Height Compensation', labelAddon:false,units: 'mm' }} />
-                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZDefaultMaterialThickness', setAttrs: setSettingsAttrs, description: 'Default Material Thickness', labelAddon:false, units: 'mm' }} />
+                   <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist'}} />
+                   <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon:false,units: 'mm' }} />
                    </div>
                    </Collapse>
                    
@@ -189,14 +187,11 @@ class Settings extends React.Component {
                 </SettingsPanel>
                 <SettingsPanel collapsible header="Gcode" eventKey="3"  bsStyle="info" errors={this.state.errors}>
                   <h4>Gcode generation</h4>
-                  <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5}} />
-                  <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5}} />
-                  <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5}} />
-                  
-                
-
-                  <TextField {...{ object: this.props.settings, field: 'gcodeLaserOn', setAttrs: setSettingsAttrs, description: 'Laser ON'}} />
-                  <TextField {...{ object: this.props.settings, field: 'gcodeLaserOff', setAttrs: setSettingsAttrs, description: 'Laser OFF'}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows:5, style:{resize: "vertical"}}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows:5, style:{resize: "vertical"}}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows:5, style:{resize: "vertical"}}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', rows:5, style:{resize: "vertical"}}} />
+                  <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', rows:5, style:{resize: "vertical"}}} />
                   <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
                 </SettingsPanel>
                 <SettingsPanel collapsible header="Application" eventKey="4"  bsStyle="info" errors={this.state.errors}>
@@ -206,7 +201,6 @@ class Settings extends React.Component {
                     <ToggleField {... {object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad'}} />
                     <ToggleField {... {object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay'}} />
                     <TextField   {... {object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url'}} />
-                    <hr/>
                     <QuadrantField {... {object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available:["TL","BL"]}} />
                 </SettingsPanel>
                 

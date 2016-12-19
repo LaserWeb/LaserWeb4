@@ -14,70 +14,114 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import React from 'react'
+import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
 import Subtree from './subtree';
 import { removeDocument, selectDocument, toggleSelectDocument } from '../actions/document';
+import { addOperation, operationAddDocuments } from '../actions/operation';
+import Pointable from '../lib/Pointable';
 
 class DocumentLabel extends React.Component {
     componentWillMount() {
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
-        this.onDragStart = this.onDragStart.bind(this);
+        this.onPointerDown = this.onPointerDown.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onPointerUp = this.onPointerUp.bind(this);
+        this.onPointerCancel = this.onPointerCancel.bind(this);
     }
 
-    onMouseDown(e) {
-        this.needToSelect = false;
-        this.isToggle = e.ctrlKey || e.shiftKey;
-        if (this.props.object.selected)
-            this.needToSelect = true;
-        else {
-            if (this.isToggle)
+    onPointerDown(e) {
+        e.preventDefault();
+        ReactDOM.findDOMNode(this).setPointerCapture(e.pointerId);
+        this.pointerType = e.pointerType;
+        if (this.pointerType === 'pen' || this.pointerType === 'touch') {
+            this.needToSelect = this.props.object.selected;
+            this.isToggle = true;
+            this.dragStarted = false;
+            if (!this.props.object.selected)
+                this.props.dispatch(toggleSelectDocument(this.props.object.id));
+        } else {
+            this.needToSelect = false;
+            this.isToggle = e.ctrlKey || e.shiftKey;
+            this.dragStarted = false;
+            if (this.props.object.selected)
+                this.needToSelect = true;
+            else if (this.isToggle)
                 this.props.dispatch(toggleSelectDocument(this.props.object.id));
             else
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
     }
 
-    onMouseUp(e) {
-        if (this.needToSelect) {
+    onPointerMove(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
+        e.preventDefault();
+        let elem = document.elementFromPoint(e.clientX, e.clientY);
+        if (elem != ReactDOM.findDOMNode(this) && !this.dragStarted) {
+            this.dragStarted = true;
+            if ((this.pointerType === 'pen' || this.pointerType === 'touch') && !this.needToSelect)
+                this.props.dispatch(selectDocument(this.props.object.id));
+        }
+    }
+
+    drag(clientX, clientY) {
+        let elem = document.elementFromPoint(clientX, clientY);
+        while (elem && !elem.dataset.operationId)
+            elem = elem.parentElement;
+        if (elem) {
+            let documents = this.props.documents
+                .filter(d => {
+                    if (!d.selected)
+                        return false;
+                    for (let p of this.props.documents)
+                        if (p.selected && p.children.includes(d.id))
+                            return false;
+                    return true;
+                })
+                .map(d => d.id);
+            if (elem.dataset.operationId === 'new')
+                this.props.dispatch(addOperation({ documents }));
+            else
+                this.props.dispatch(operationAddDocuments(elem.dataset.operationId, elem.dataset.operationTabs, documents));
+        }
+    }
+
+    onPointerUp(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
+        e.preventDefault();
+        if (this.dragStarted) {
+            this.drag(e.clientX, e.clientY);
+        } else if (this.needToSelect) {
             if (this.isToggle)
                 this.props.dispatch(toggleSelectDocument(this.props.object.id));
             else
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
+        this.pointerType = '';
     }
 
-    onDragStart(e) {
-        this.needToSelect = false;
-        let selected = this.props.documents.filter(d => {
-            if (!d.selected)
-                return false;
-            for (let p of this.props.documents)
-                if (p.selected && p.children.includes(d.id))
-                    return false;
-            return true;
-        });
-        e.nativeEvent.dataTransfer.setData('laserweb/docids', selected.map(d => d.id).join());
-        e.nativeEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
+    onPointerCancel(e) {
+        if (e.pointerType !== this.pointerType)
+            return;
+        e.preventDefault();
+        this.pointerType = '';
     }
 
     render() {
         let style;
         if (this.props.object.selected)
-            style = { userSelect: 'none', cursor: 'default', textDecoration: 'bold', color: '#cc0000' };
-            // error = <E />;
+            style = { userSelect: 'none', cursor: 'grab', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 };
+        // error = <E />;
         else
-            style = { userSelect: 'none', cursor: 'copy' };
-
-        let checked;
-        if (this.props.object.selected)
-            checked = <i className="fa fa-fw fa-check"></i>;
+            style = { userSelect: 'none', cursor: 'copy', paddingLeft: 5, paddingRight: 5, paddingBottom: 3 };
 
         return (
-            <span style={style} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp} onDragStart={this.onDragStart} draggable={true}>
-                {checked}{this.props.object.name}
-            </span>
+            <Pointable tagName='span' style={style}
+                onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove} onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}>
+                {this.props.object.name}
+            </Pointable>
         );
     }
 };
@@ -99,7 +143,7 @@ DocumentRight = connect()(DocumentRight);
 export function Documents({documents, toggleExpanded}) {
     let rowNumber = { value: 0 };
     return (
-        <div>
+        <div style={{ touchAction: 'none' }}>
             {documents
                 .filter(document => document.isRoot)
                 .map(document => (

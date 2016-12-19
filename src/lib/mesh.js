@@ -358,8 +358,8 @@ export function cPathsToCamPaths(memoryBlocks, cPathsRef, cNumPathsRef, cPathSiz
 export function clipperBounds(paths) {
     let minX = Number.MAX_VALUE;
     let minY = Number.MAX_VALUE;
-    let maxX = Number.MIN_VALUE;
-    let maxY = Number.MIN_VALUE;
+    let maxX = -Number.MAX_VALUE;
+    let maxY = -Number.MAX_VALUE;
     for (let path of paths) {
         for (let pt of path) {
             minX = Math.min(minX, pt.X);

@@ -1,10 +1,11 @@
+.quadrantField {float:right}
+.quadrantField .bkg { fill:#4C4D4D; }
+.quadrantField circle {fill: white}
+.quadrantField .area:not(.disabled):hover circle {fill: #cFd}
 
-.quadrantField {width: 100px; height: 100px; border: 1px solid #eee; border-radius: 5px;  display: flex; flex-direction:row; flex-wrap:wrap; justify-content: space-around; overflow: hidden}
-.quadrantField > label {position: relative;}
-.quadrantField > label > input:before{content:attr(value); font-size: 0.5em; position: absolute; width:100%; height: 100%; pointer-events:none;  left:0; top:0; z-index: 0; text-align: center }
-.quadrantField > label > input:disabled:before {opacity: 0.5}
-.quadrantField > label { width:50%; text-align: center; line-height: 30px}
-.quadrantField > label.C{ margin: 0 25% 0 25% }
+.quadrantField path {fill:black}
+.quadrantField .area.disabled {opacity: 0.2}
+.quadrantField .area.active circle {fill: #0e3}
 
 .checkboxListField { display:flex; flex-wrap: wrap; align-items: flex-start }
 .checkboxListField > .checkbox {flex-grow:1; margin:0; padding:3px}

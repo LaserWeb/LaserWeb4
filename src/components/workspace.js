@@ -142,7 +142,7 @@ class FloatingControls extends React.Component {
 
     render() {
         let found = false;
-        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
+        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
             let doc = cache.document;
             if (doc.selected && doc.translate && cache.bounds) {
@@ -172,31 +172,33 @@ class FloatingControls extends React.Component {
 
         return (
             <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee' }} className="floating-controls" >
-                <tr>
-                    <td></td>
-                    <td>Min</td>
-                    <td>Center</td>
-                    <td>Max</td>
-                    <td>Size</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><span className="label label-danger">X</span></td>
-                    <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" /></td>
-                    <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" /></td>
-                    <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" /></td>
-                    <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" /></td>
-                    <td rowSpan={2}>
-                        &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td>Min</td>
+                        <td>Center</td>
+                        <td>Max</td>
+                        <td>Size</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><span className="label label-danger">X</span></td>
+                        <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" /></td>
+                        <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" /></td>
+                        <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" /></td>
+                        <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" /></td>
+                        <td rowSpan={2}>
+                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
                     </td>
-                </tr>
-                <tr>
-                    <td><span className="label label-success">Y</span></td>
-                    <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" /></td>
-                    <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" /></td>
-                    <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
-                    <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" /></td>
-                </tr>
+                    </tr>
+                    <tr>
+                        <td><span className="label label-success">Y</span></td>
+                        <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" /></td>
+                        <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" /></td>
+                        <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
+                        <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" /></td>
+                    </tr>
+                </tbody>
             </table>
         );
     }
@@ -207,45 +209,43 @@ const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
 function drawDocuments(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
-        switch (document.type) {
-            case 'path':
-                drawCommands.noDepth(() => {
-                    drawCommands.blendAlpha(() => {
+        if (document.rawPaths) {
+            drawCommands.noDepth(() => {
+                drawCommands.blendAlpha(() => {
+                    drawCommands.simple2d({
+                        position: cachedDocument.triangles,
+                        scale: document.scale,
+                        translate: document.translate,
+                        color: document.fillColor,
+                        primitive: 'triangles',
+                        offset: 0,
+                        count: cachedDocument.triangles.length / 2,
+                    });
+                    for (let o of cachedDocument.outlines)
                         drawCommands.simple2d({
-                            position: cachedDocument.triangles,
+                            position: o,
                             scale: document.scale,
                             translate: document.translate,
-                            color: document.fillColor,
-                            primitive: 'triangles',
+                            color: document.strokeColor,
+                            primitive: 'line strip',
                             offset: 0,
-                            count: cachedDocument.triangles.length / 2,
+                            count: o.length / 2,
                         });
-                        for (let o of cachedDocument.outlines)
-                            drawCommands.simple2d({
-                                position: o,
-                                scale: document.scale,
-                                translate: document.translate,
-                                color: document.strokeColor,
-                                primitive: 'line strip',
-                                offset: 0,
-                                count: o.length / 2,
-                            });
+                });
+            });
+        } else if (document.type === 'image') {
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
+                drawCommands.noDepth(() => {
+                    drawCommands.image({
+                        translate: document.translate,
+                        size: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        texture: cachedDocument.texture,
+                        selected: false,
                     });
                 });
-                break;
-            case 'image':
-                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                    drawCommands.noDepth(() => {
-                        drawCommands.image({
-                            translate: document.translate,
-                            size: [
-                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                            texture: cachedDocument.texture,
-                            selected: false,
-                        });
-                    });
-                break;
+            break;
         }
     }
 } // drawDocuments
@@ -255,36 +255,34 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
         let {document} = cachedDocument;
         if (!document.selected)
             continue;
-        switch (document.type) {
-            case 'path':
+        if (document.rawPaths) {
+            drawCommands.noDepth(() => {
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 5,
+                        color1: [0, 0, 1, 1],
+                        color2: [1, 1, 1, 1],
+                    })
+            });
+        } else if (document.type === 'image') {
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
                 drawCommands.noDepth(() => {
-                    for (let o of cachedDocument.thickOutlines)
-                        drawCommands.thickLines({
-                            buffer: o,
-                            scale: document.scale,
-                            translate: document.translate,
-                            thickness: 6,
-                            color1: [0, 0, 1, 1],
-                            color2: [1, 1, 1, 1],
-                        })
+                    drawCommands.thickLines({
+                        buffer: thickSquare,
+                        scale: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                            1],
+                        translate: document.translate,
+                        thickness: 5,
+                        color1: [0, 0, 1, 1],
+                        color2: [1, 1, 1, 1],
+                    })
                 });
-                break;
-            case 'image':
-                if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                    drawCommands.noDepth(() => {
-                        drawCommands.thickLines({
-                            buffer: thickSquare,
-                            scale: [
-                                cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                                cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                                1],
-                            translate: document.translate,
-                            thickness: 6,
-                            color1: [0, 0, 1, 1],
-                            color2: [1, 1, 1, 1],
-                        })
-                    });
-                break;
+            break;
         }
     }
 } // drawSelectedDocuments
@@ -293,7 +291,7 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
-        if (document.type === 'path') {
+        if (document.rawPaths) {
             drawCommands.noDepth(() => {
                 drawCommands.simple2d({
                     position: cachedDocument.triangles,

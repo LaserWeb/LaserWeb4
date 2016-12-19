@@ -17,10 +17,13 @@ import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
 
-import { addOperation, removeOperation, moveOperation, operationAddDocuments, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { selectDocument } from '../actions/document'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
-import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
+import { GetBounds, withStoredBounds } from './get-bounds.js';
+
+import Toggle from 'react-toggle';
 
 function NumberInput(props) {
     let {op, field, fillColors, strokeColors, ...rest} = props;
@@ -38,6 +41,10 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
 
 function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
+}
+
+function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest}) {
+    return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
 function ColorBox(v) {
@@ -148,11 +155,11 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                    {documents.find(d => d.id === id).name}
+                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) } }>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
-                    <button className="btn btn-danger btn-xs" onClick={this.remove}>
-                        <i className="fa fa-times"></i>
+                    <button className="btn btn-default btn-xs" onClick={this.remove}>
+                        <i className="fa fa-trash"></i>
                     </button>
                 </td>
                 <td style={{ paddingLeft: 15 }} ></td>
@@ -204,7 +211,7 @@ const ifUseA = {
 export const fields = {
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    union: { name: 'union', label: 'Union', units: '', input: CheckboxInput },
+    union: { name: 'union', label: 'Combine Paths', units: '', input: ToggleInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -224,7 +231,7 @@ export const fields = {
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
 
-    useA: { name: 'useA', label: 'Use A Axis', units: '', input: CheckboxInput },
+    useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
     aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 };
@@ -247,47 +254,21 @@ export const types = {
 
 class Operation extends React.Component {
     componentWillMount() {
-        this.onDragOver = this.onDragOver.bind(this);
-        this.onDrop = this.onDrop.bind(this);
-        this.onDropTabs = this.onDropTabs.bind(this);
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
-        this.moveUp =  e => this.props.dispatch(moveOperation(this.props.op.id,-1));
-        this.moveDn=  e => this.props.dispatch(moveOperation(this.props.op.id,+1));
-    }
-
-    onDragOver(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            e.nativeEvent.dataTransfer.dropEffect = "copy";
-            e.preventDefault();
-        }
-    }
-
-    onDrop(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(operationAddDocuments(this.props.op.id, false, documents));
-            e.preventDefault();
-        }
-    }
-
-    onDropTabs(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(operationAddDocuments(this.props.op.id, true, documents));
-            e.preventDefault();
-        }
+        this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
+        this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
     }
 
     render() {
-        let {op, documents, onDragOver, selected, operationsBounds, dispatch, fillColors, strokeColors, settings} = this.props;
+        let {op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
                 if (field.check && !field.check(op[fieldName])) {
-                    error = <Error operationsBounds={operationsBounds} message="Expand to setup operation" />;
+                    error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
                 }
             }
@@ -300,7 +281,7 @@ class Operation extends React.Component {
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
         let rows = [
-            <GetBounds Type="div" key="header" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+            <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
                 <div style={{ display: 'table-cell', cursor: 'pointer' }}>
                     <i
@@ -309,14 +290,15 @@ class Operation extends React.Component {
                 </div>
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <select value={op.type} onChange={this.setType}>
+                        <select className="input-xs" value={op.type} onChange={this.setType}>
                             {Object.keys(types).map(type => <option key={type}>{type}</option>)}
                         </select>
-                        <div>
+                        <div className="btn-group">
                             <button className="btn btn-default btn-xs" onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
                             <button className="btn btn-default btn-xs" onClick={this.moveDn}><i className="fa fa-arrow-down"></i></button>
+                            <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
                         </div>
-                        <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
+
                     </span>
                     {error}
                 </div>
@@ -324,16 +306,16 @@ class Operation extends React.Component {
         ];
         if (op.expanded) {
             rows.push(
-                <div key="docs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div key="docs" style={{ display: 'table-row' }} data-operation-id={op.id}>
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                        <table style={{ width: '100%' }}>
+                        <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                             <tbody>
+                                <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
                                 {op.documents.map(id => {
                                     return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
                                 })}
-                                <tr><td>&nbsp;</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -350,7 +332,7 @@ class Operation extends React.Component {
                                         return <Field
                                             key={fieldName} op={op} field={fields[fieldName]} selected={selected}
                                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                            operationsBounds={operationsBounds} dispatch={dispatch} />
+                                            operationsBounds={bounds} dispatch={dispatch} />
                                     })}
                             </tbody>
                         </table>
@@ -359,28 +341,28 @@ class Operation extends React.Component {
             );
             if (types[op.type].allowTabs) {
                 rows.push(
-                    <div key="space" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                    <div key="space" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                         <div style={leftStyle} />
                         <div style={{ display: 'table-cell' }}>&nbsp;</div>
                     </div>
                 );
                 if (op.tabDocuments.length) {
                     rows.push(
-                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabLabel" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell' }}><b>Tabs</b></div>
                         </div>,
-                        <div key="tabDocs" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabDocs" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                                <table style={{ width: '100%' }}>
+                                <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                                     <tbody>
                                         {op.tabDocuments.map(id => {
                                             return <Doc key={id} op={op} documents={documents} id={id} isTab={true} dispatch={dispatch} />
                                         })}
-                                        <tr><td>&nbsp;</td></tr>
+                                        <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small></center></td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -395,7 +377,7 @@ class Operation extends React.Component {
                                     <table>
                                         <tbody>
                                             {tabFields.map(field => {
-                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={operationsBounds} dispatch={dispatch} />
+                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={bounds} dispatch={dispatch} />
                                             })}
                                         </tbody>
                                     </table>
@@ -406,7 +388,7 @@ class Operation extends React.Component {
                 }
                 else {
                     rows.push(
-                        <div key="tabLabel" style={{ display: 'table-row' }} onDragOver={this.onDragOver} onDrop={this.onDropTabs}>
+                        <div key="tabLabel" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                             <div style={leftStyle} />
                             <div style={{ display: 'table-cell' }} />
                             <div style={{ display: 'table-cell', border: '2px dashed #ccc' }}><b>Drag document(s) here to create tabs</b></div>
@@ -419,27 +401,9 @@ class Operation extends React.Component {
     }
 }; // Operation
 
+Operation = withStoredBounds(Operation);
+
 class Operations extends React.Component {
-    componentWillMount() {
-        this.onDragOver = this.onDragOver.bind(this);
-        this.onDrop = this.onDrop.bind(this);
-    }
-
-    onDragOver(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            e.nativeEvent.dataTransfer.dropEffect = "copy";
-            e.preventDefault();
-        }
-    }
-
-    onDrop(e) {
-        if (e.nativeEvent.dataTransfer.types.includes('laserweb/docids')) {
-            let documents = e.nativeEvent.dataTransfer.getData('laserweb/docids').split(',');
-            this.props.dispatch(addOperation({ documents }));
-            e.preventDefault();
-        }
-    }
-
     render() {
         let {operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
         let fillColors = [];
@@ -450,7 +414,7 @@ class Operations extends React.Component {
                 colors.push({ value: value, color: color });
         }
         for (let doc of documents) {
-            if (doc.type === 'path') {
+            if (doc.rawPaths) {
                 if (hasClosedRawPaths(doc.rawPaths))
                     addColor(fillColors, doc.fillColor);
                 addColor(strokeColors, doc.strokeColor);
@@ -464,18 +428,17 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc' }} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
                     <b>Drag document(s) here</b>
                 </div>
-                <br />
-                <div className="operations" style={{ display: 'table' }}>
+                <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation
                             key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                             operationsBounds={bounds} dispatch={dispatch} />
                     )}
-                </div>
+                </GetBounds>
             </div >
         );
     }
@@ -483,5 +446,5 @@ class Operations extends React.Component {
 
 Operations = connect(
     ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
-)(withGetBounds(Operations));
+)(Operations);
 export { Operations };

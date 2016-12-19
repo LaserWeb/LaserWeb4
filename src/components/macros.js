@@ -1,16 +1,18 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ReactDOM from 'react-dom';
-import {PanelGroup, Panel} from 'react-bootstrap';
+import {PanelGroup, Panel, Tooltip} from 'react-bootstrap';
 
 import Icon from './font-awesome'
-import {CheckBoxListField} from './forms';
 
 import {addMacro, removeMacro, setMacro, fireMacroById} from '../actions/macros'
 
 import {Button, FormControl, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
 import parseKeys from 'react-keydown/dist/lib/parse_keys'
+
+import Validator from 'validatorjs';
+import {MACRO_VALIDATION_RULES} from '../reducers/macros'
 
 export class Macros extends React.Component {
 
@@ -43,22 +45,28 @@ export class Macros extends React.Component {
     }
 
     handleAppend(e){
-        let macro;
-        if (macro=this.getForm())
+        let macro=this.getForm();
+        let errors=this.getErrors(macro);
+        
+        if (!errors) {
             this.props.handleSet({[macro.keybinding]: {label:macro.label, gcode:macro.gcode}})
-
+        } else {
+            console.error(JSON.stringify(errors))
+        }
+    
         this.setState({...macro, selected:[]})
     }
 
     handleRemove(e)
     {
         this.props.handleRemove(this.state.selected)
-        this.setState({selected:[]})
+        this.setState({selected:[], keybinding: "", label: "", gcode: "" })
     }
 
     handleFormChange(e,fieldid){
         this.setState({[fieldid]: e.target.value});
     }
+    
     handleMeta(e, item){
 
         let tokens=new Set(this.state.keybinding.trim().split("+"))
@@ -71,19 +79,24 @@ export class Macros extends React.Component {
 
         this.setState({keybinding: Array.from(tokens).sort().join('+')})
     }
+    
 
     getForm(){
         let label=ReactDOM.findDOMNode(this.refs.label).value
         let keybinding=ReactDOM.findDOMNode(this.refs.keybinding).value
         let gcode=ReactDOM.findDOMNode(this.refs.gcode).value
-        if (label && keybinding && gcode)
-            return { keybinding: [...this.state.meta, keybinding].join('+'), label, gcode}
-        return null;
+        
+        return { keybinding: [...this.state.meta, keybinding].join('+'), label, gcode}
+    }
+    
+    getErrors(macro){
+        let validator=new Validator(macro,MACRO_VALIDATION_RULES);
+        return (validator.passes()) ? undefined: validator.errors.errors;
     }
 
     render(){
-
-
+        
+        let errors=this.getErrors(this.state);
 
         return (
             <div className="macros">
@@ -98,7 +111,7 @@ export class Macros extends React.Component {
                 {this.metakeys.map((meta,i)=>{return <Button key={i} bsSize="xsmall" bsStyle={(this.state.keybinding.indexOf(meta)!==-1)? 'primary':'default'} onClick={(e)=>this.handleMeta(e,meta)}>{meta}</Button>})}
                 </ButtonGroup>
                 <FormControl componentClass="textarea" ref="gcode" placeholder="Gcode" value={this.state.gcode} onChange={(e)=>this.handleFormChange(e,'gcode')}/>
-                <Button bsStyle="primary" onClick={(e)=>this.handleAppend(e)} style={{float:"left"}}><Icon name="share"/> Set</Button>
+                <Button bsStyle="primary" onClick={(e)=>this.handleAppend(e)} style={{float:"left"}} disabled={errors!==undefined} title={JSON.stringify(errors)}><Icon name="share"/> Set</Button>
                 <Button bsStyle="danger" onClick={(e)=>this.handleRemove(e)} style={{float:"right"}}><Icon name="trash"/> Remove</Button>
             </div>
 

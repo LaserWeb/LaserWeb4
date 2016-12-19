@@ -71,64 +71,60 @@ export class DocumentCacheHolder extends React.Component {
 
     update(cachedDocument) {
         let {document} = cachedDocument;
-        switch (document.type) {
-            case 'path':
-                if (cachedDocument.rawPaths !== document.rawPaths) {
-                    cachedDocument.rawPaths = document.rawPaths;
-                    try {
-                        cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
-                    } catch (e) {
-                        cachedDocument.triangles = new Float32Array(0);
-                    }
-                    cachedDocument.outlines = [];
-                    cachedDocument.thickOutlines = [];
-                    let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: Number.MIN_VALUE, y2: Number.MIN_VALUE };
-                    for (let rawPath of document.rawPaths) {
-                        for (let i = 0; i < rawPath.length - 1; i += 2) {
-                            bounds.x1 = Math.min(bounds.x1, rawPath[i]);
-                            bounds.x2 = Math.max(bounds.x2, rawPath[i]);
-                            bounds.y1 = Math.min(bounds.y1, rawPath[i + 1]);
-                            bounds.y2 = Math.max(bounds.y2, rawPath[i + 1]);
-                        }
-                        cachedDocument.outlines.push(new Float32Array(rawPath));
-                        let thick = convertOutlineToThickLines(rawPath);
-                        if (thick)
-                            cachedDocument.thickOutlines.push(thick);
-                    }
+        if (document.rawPaths) {
+            if (cachedDocument.rawPaths !== document.rawPaths) {
+                cachedDocument.rawPaths = document.rawPaths;
+                try {
+                    cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
+                } catch (e) {
+                    cachedDocument.triangles = new Float32Array(0);
                 }
-                break;
-            case 'image': {
-                let updateTexture = () => {
-                    if (this.regl && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.regl !== this.regl)) {
-                        if (cachedDocument.texture)
-                            cachedDocument.texture.destroy();
-                        cachedDocument.regl = this.regl;
-                        cachedDocument.texture = this.regl.texture(cachedDocument.image);
-                        cachedDocument.bounds = {
-                            x1: 0,
-                            y1: 0,
-                            x2: cachedDocument.image.width / document.dpi * 25.4,
-                            y2: cachedDocument.image.height / document.dpi * 25.4
-                        };
+                cachedDocument.outlines = [];
+                cachedDocument.thickOutlines = [];
+                let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+                for (let rawPath of document.rawPaths) {
+                    for (let i = 0; i < rawPath.length - 1; i += 2) {
+                        bounds.x1 = Math.min(bounds.x1, rawPath[i]);
+                        bounds.x2 = Math.max(bounds.x2, rawPath[i]);
+                        bounds.y1 = Math.min(bounds.y1, rawPath[i + 1]);
+                        bounds.y2 = Math.max(bounds.y2, rawPath[i + 1]);
                     }
+                    cachedDocument.outlines.push(new Float32Array(rawPath));
+                    let thick = convertOutlineToThickLines(rawPath);
+                    if (thick)
+                        cachedDocument.thickOutlines.push(thick);
                 }
-                if (cachedDocument.dataURL !== document.dataURL) {
-                    cachedDocument.dataURL = document.dataURL;
-                    cachedDocument.texture = null;
-                    cachedDocument.imageLoaded = false;
-                    let image = cachedDocument.image = new Image();
-                    cachedDocument.image.src = document.dataURL;
-                    cachedDocument.image.onload = () => {
-                        if (cachedDocument.image === image) {
-                            cachedDocument.imageLoaded = true;
-                            updateTexture();
-                        }
-                    }
-                }
-                else
-                    updateTexture();
-                break;
             }
+        } else if (document.type === 'image') {
+            let updateTexture = () => {
+                if (this.regl && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.regl !== this.regl)) {
+                    if (cachedDocument.texture)
+                        cachedDocument.texture.destroy();
+                    cachedDocument.regl = this.regl;
+                    cachedDocument.texture = this.regl.texture(cachedDocument.image);
+                    cachedDocument.bounds = {
+                        x1: 0,
+                        y1: 0,
+                        x2: cachedDocument.image.width / document.dpi * 25.4,
+                        y2: cachedDocument.image.height / document.dpi * 25.4
+                    };
+                }
+            }
+            if (cachedDocument.dataURL !== document.dataURL) {
+                cachedDocument.dataURL = document.dataURL;
+                cachedDocument.texture = null;
+                cachedDocument.imageLoaded = false;
+                let image = cachedDocument.image = new Image();
+                cachedDocument.image.src = document.dataURL;
+                cachedDocument.image.onload = () => {
+                    if (cachedDocument.image === image) {
+                        cachedDocument.imageLoaded = true;
+                        updateTexture();
+                    }
+                }
+            }
+            else
+                updateTexture();
         }
     }
 

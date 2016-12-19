@@ -29,7 +29,7 @@ function Subtree(props) {
                     justifyContent: 'space-between',
                     marginLeft: indent,
                 }}>
-                    <div style={{cursor: 'pointer'}}>
+                    <div style={{ cursor: 'pointer' }}>
                         <i
                             onClick={() => toggleExpanded(object)}
                             className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
@@ -44,7 +44,7 @@ function Subtree(props) {
                     object.expanded ? object.children.map(childId => {
                         let child = objects.find(child => child.id == childId);
                         return (
-                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 30 }} />
+                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 18 }} />
                         )
                     }) : undefined
                 }
