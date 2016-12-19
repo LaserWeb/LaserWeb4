@@ -100,6 +100,7 @@ function loadSvg(state, settings, {file, content}) {
 }
 
 function loadImage(state, {file, content}) {
+    state = state.slice();
     let doc = {
         id: uuid.v4(),
         type: 'image',

@@ -245,7 +245,6 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                         selected: false,
                     });
                 });
-            break;
         }
     }
 } // drawDocuments
