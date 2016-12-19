@@ -15,6 +15,8 @@
 
 'use strict';
 
+import RasterToGcode from 'lw.raster-to-gcode';
+
 import { getLaserCutGcodeFromOp } from './cam-gcode-laser-cut'
 import { getMillGcodeFromOp } from './cam-gcode-mill'
 import { rawPathsToClipperPaths, union } from './mesh';
@@ -77,6 +79,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             if (!g)
                 return '';
             gcode += g;
+        } else if (op.type === 'Laser Raster') {
+            let g = getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages);
+            if (!g)
+                return '';
+            gcode += g;
         } else if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
@@ -88,3 +95,35 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     gcode += settings.gcodeEnd;
     return gcode;
 } // getGcode
+
+function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages) {
+    let gcode = '';
+    for (let doc of docsWithImages) {
+        let r2g = new RasterToGcode({
+            ppi: doc.dpi / doc.scale[0],
+            beamSize: op.laserDiameter,
+            beamRange: { min: 0, max: 1 },
+            beamPower: { min: 0, max: 100 },
+            feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
+            offsets: { X: doc.translate[0], Y: doc.translate[1] },
+            trimLine: op.trimLine,
+            joinPixel: op.joinPixel,
+            burnWhite: op.burnWhite,
+            verboseG: op.verboseGcode,
+            diagonal: op.diagonal,
+            nonBlocking: false,
+            filters: {
+                smoothing: op.smoothing,
+                brightness: op.brightness,
+                contrast: op.contrast,
+                gamma: op.gamma,
+                grayscale: op.grayscale,
+                shadesOfGray: op.shadesOfGray,
+            },
+        });
+        r2g.loadFromImage(doc.image);
+        r2g._processImage();
+        gcode += r2g.run().join('\r\n');
+    }
+    return gcode;
+}
