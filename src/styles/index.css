@@ -345,6 +345,25 @@ body, html, .full-height {
 .materialList .form-group {margin-bottom: 0}
 .materialList .form-group.has-error input {border: 1px solid red}
 
+
+
+.materialPicker small {color: #666; flex-grow: 2; text-align: right}
+
+
+.materialPicker .details {margin-top: 2px; margin-left: 1em}
+.materialPicker  > section > heading  {display:flex; flex-direction: row; align-items: center; border-bottom: 1px solid #eee; }
+
+.materialPicker .details .handler {display:flex; flex-direction: row; align-items: center; flex-grow:2}
+.materialPicker .details .handler > * {flex-grow:1}
+.materialPicker .details heading button {margin-left: 5px}
+.materialPicker .details heading {display:flex;margin:0}
+.materialPicker .details heading .summary { display:flex; flex-grow:1}
+.materialPicker .details heading .summary small {margin-left: 1em}
+.materialPicker table {font-size: 0.8em; margin-left: 1.2em; width: 98%; margin-top:0.5em}
+.materialPicker table td, 
+.materialPicker table th {padding: 2px !important}
+.materialPicker table td {text-align: right}
+
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
 
 /* macros*/

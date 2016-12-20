@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom'
 import { connect, dispatch } from 'react-redux'
 import { addMaterial, setMaterialAttrs, deleteMaterial,toggleMaterialView,toggleMaterialEdit,
         addMaterialOperation, deleteMaterialOperation, setMaterialOperationAttrs,  toggleMaterialOperationEdit,
-        uploadMaterialDatabase, downloadMaterialDatabase } from '../actions/material-database.js'
+        uploadMaterialDatabase, downloadMaterialDatabase,
+        applyMaterial } from '../actions/material-database.js'
 
 
 import * as operation from './operation'
@@ -43,23 +44,21 @@ export function ValidateMaterial(bool=true, rules=MATERIALDATABASE_VALIDATION_RU
     return check;
 }
 
-class FullSizeModal extends React.Component {
+function MaterialModal({modal, className,header, footer, children,...rest}){
     
-    render(){
         return (
-            <Modal show={this.props.modal.show} onHide={this.props.modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className="full-width">
+            <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
             <Modal.Header closeButton>
-              <Modal.Title id="contained-modal-title-lg">{this.props.modal.header}</Modal.Title>
+              <Modal.Title id="contained-modal-title-lg">{header}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-            {this.props.children}
+            {children}
             </Modal.Body>
-            <Modal.Footer>
-              {this.props.footer}
-            </Modal.Footer>
+            {footer? <Modal.Footer>{footer}</Modal.Footer> : undefined }
+            
           </Modal>
         )
-    }
+    
 }
 
 
@@ -209,7 +208,15 @@ MaterialOperationsDropdown = connect((state)=>{
         }
 })(MaterialOperationsDropdown)
 
+let shouldShow = (operation, filter)=>{
+        if (!filter)
+                return true;
+        if (filter === "*" || operation.machine_profile === null)
+                return true;
 
+        return filter.split(",").includes(operation.machine_profile)
+        
+}
 
 class MaterialOperations extends React.Component {
 
@@ -244,15 +251,7 @@ class MaterialOperations extends React.Component {
         const rest = this.props;
         
         
-        let shouldShow = (operation, filter)=>{
-                if (!filter)
-                        return true;
-                if (filter === "*" || operation.machine_profile === null)
-                        return true;
-
-                return filter.split(",").includes(operation.machine_profile)
-                
-        }
+        
         
             let data={};
             let tables={};
@@ -500,7 +499,8 @@ class MaterialDatabaseEditor extends React.Component {
         
         
         return (
-            <FullSizeModal modal={{show:this.props.show, onHide:this.props.onHide, header:"Material Database"}}
+            <MaterialModal modal={{show:this.props.show, onHide:this.props.onHide}} className='full-width'
+                header="Material Database"
                 footer={<ButtonToolbar>
                     <Button bsStyle="primary" onClick={(e)=>this.handleAddMaterial(e)}>Add new material</Button>
                     <Button bsStyle="info" onClick={(e)=>this.handleExport(e,'json')}><Icon name="download"/> .json</Button>
@@ -518,11 +518,115 @@ class MaterialDatabaseEditor extends React.Component {
               <hr/>
               
               
-            </FullSizeModal>
+            </MaterialModal>
          )
         
     }
     
+}
+
+class Details extends React.Component {
+
+    constructor(props){
+        super(props);
+        this.state={open: this.props.open || false}
+    }
+    
+    render(){
+        return <div className="details">
+            <heading>
+                
+                <div className="summary" onClick={ ()=> this.setState({ open: !this.state.open })}><Icon name={this.state.open? 'chevron-up':'chevron-down'}/>&nbsp;{this.props.handler}</div>
+                {this.props.header}
+            </heading>
+            <Collapse in={this.state.open}>
+              <div>{this.props.children}</div>
+            </Collapse>
+        </div>
+    
+    }
+
+}
+
+
+
+class MaterialDatabasePicker extends React.Component {
+
+    constructor(props){
+        super(props);
+        this.state={
+            selectedProfile: this.props.selectedProfile,
+        }
+        this.handleProfileSelect.bind(this);
+        this.handleApplyPreset.bind(this);
+    }
+    
+    handleProfileSelect(value) {
+        this.setState({selectedProfile:value})
+    }
+    
+    handleApplyPreset(material, operationIndex){
+        this.props.handleApply(material, operationIndex)
+    }
+    
+    explainOperation(op){
+        
+        const OPERATION_TYPES = operation.types;
+        const OPERATION_FIELDS = operation.fields;
+        
+        let currentOperation= OPERATION_TYPES[op.type];
+        return currentOperation.fields.map((field)=>{
+            return {
+                label:  OPERATION_FIELDS[field].label,
+                key: OPERATION_FIELDS[field].name,
+                value: op[field],
+                units: OPERATION_FIELDS[field].units
+            }    
+        })
+    }
+    
+    render(){
+    
+        
+    
+        return (
+            <MaterialModal modal={{show:this.props.show, onHide:this.props.onHide}} 
+                header="Operation Presets">
+                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selectedProfile} onChange={(value)=>{this.handleProfileSelect(value)}}/>
+                <div className="materialPicker">
+                {this.props.materials.map((item, i)=>{
+                    return  <section key={i}>
+                        <heading>
+                            <h4>{item.material.name} ({item.material.thickness} mm)</h4>
+                            <small>{item.material.notes}</small>
+                        </heading>
+                        
+                        {item.operations.map((op,j) => {
+                            if (shouldShow(op, this.state.selectedProfile)){
+                                return <Details key={j}
+                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
+                                         header = {<Button bsStyle="success" bsSize="xsmall" onClick={(e)=>{this.handleApplyPreset(item.id, j)}}><Icon name="share"/></Button>}
+                                         >
+                                         <table className="table table-sm">
+                                             <tbody>
+                                             {this.explainOperation(op).map((field, k)=>{
+                                                 return <tr key={k}><th title={field.key}>{field.label}{field.units? " ("+field.units+")": undefined}</th><td>{field.value}</td></tr>  
+                                             })}
+                                             </tbody>
+                                         </table>
+                                     </Details>
+                            }
+                        })}
+                    </section>
+                    
+                    
+                })}
+                </div>
+            </MaterialModal>
+        
+        )
+    }
+
 }
 
 
@@ -551,13 +655,32 @@ const mapDispatchToProps = (dispatch) => {
         },
         handleUpload:(name, action)=>{
             FileStorage.load(name, (file, result) => dispatch(action(file, result)));
+        },
+        handleApply:(materialPreset, operationPreset) => {
+            dispatch(applyMaterial(materialPreset, operationPreset))
         }
         
     }
 }
 
 MaterialDatabaseEditor = connect(mapStateToProps, mapDispatchToProps)(MaterialDatabaseEditor)
+MaterialDatabasePicker = connect(mapStateToProps, mapDispatchToProps)(MaterialDatabasePicker)
 
+
+export class MaterialPickerButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state={showModal:false}
+    }
+    
+    render() {
+        let closeModal = () => this.setState({ showModal: false });
+        
+        return (
+            <Button bsStyle="primary" className={this.props.className} onClick={()=>this.setState({ showModal: true })}>{this.props.children}<MaterialDatabasePicker show={this.state.showModal} onHide={closeModal}/></Button>
+        )
+    }
+}
 
 export class MaterialDatabaseButton extends React.Component {
     
@@ -568,11 +691,9 @@ export class MaterialDatabaseButton extends React.Component {
     
     render() {
         let closeModal = () => this.setState({ showModal: false });
+        
         return (
-            <div>
-            <Button bsStyle="primary" block onClick={()=>this.setState({ showModal: true })}>{this.props.label}</Button>
-            <MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal}/>
-            </div>
+            <Button bsStyle="primary" block onClick={()=>this.setState({ showModal: true })}>{this.props.children}<MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal}/></Button>
         )
     }
 }
