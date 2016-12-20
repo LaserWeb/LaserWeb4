@@ -20,7 +20,17 @@ import { connect } from 'react-redux';
 import Subtree from './subtree';
 import { removeDocument, selectDocument, toggleSelectDocument } from '../actions/document';
 import { addOperation, operationAddDocuments } from '../actions/operation';
+import { documents } from '../reducers/document';
 import Pointable from '../lib/Pointable';
+
+function isSelected(documents, d) {
+    if (!d.selected)
+        return false;
+    for (let p of documents)
+        if (p.selected && p.children.includes(d.id))
+            return false;
+    return true;
+}
 
 class DocumentLabel extends React.Component {
     componentWillMount() {
@@ -58,11 +68,15 @@ class DocumentLabel extends React.Component {
             return;
         e.preventDefault();
         let elem = document.elementFromPoint(e.clientX, e.clientY);
+        this.dragX = e.clientX;
+        this.dragY = e.clientY;
         if (elem != ReactDOM.findDOMNode(this) && !this.dragStarted) {
             this.dragStarted = true;
             if ((this.pointerType === 'pen' || this.pointerType === 'touch') && !this.needToSelect)
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
+        if (this.dragStarted)
+            this.forceUpdate();
     }
 
     drag(clientX, clientY) {
@@ -70,16 +84,7 @@ class DocumentLabel extends React.Component {
         while (elem && !elem.dataset.operationId)
             elem = elem.parentElement;
         if (elem) {
-            let documents = this.props.documents
-                .filter(d => {
-                    if (!d.selected)
-                        return false;
-                    for (let p of this.props.documents)
-                        if (p.selected && p.children.includes(d.id))
-                            return false;
-                    return true;
-                })
-                .map(d => d.id);
+            let documents = this.props.documents.filter(d => isSelected(this.props.documents, d)).map(d => d.id);
             if (elem.dataset.operationId === 'new')
                 this.props.dispatch(addOperation({ documents }));
             else
@@ -93,6 +98,7 @@ class DocumentLabel extends React.Component {
         e.preventDefault();
         if (this.dragStarted) {
             this.drag(e.clientX, e.clientY);
+            this.dragStarted = false;
         } else if (this.needToSelect) {
             if (this.isToggle)
                 this.props.dispatch(toggleSelectDocument(this.props.object.id));
@@ -100,27 +106,41 @@ class DocumentLabel extends React.Component {
                 this.props.dispatch(selectDocument(this.props.object.id));
         }
         this.pointerType = '';
+        this.forceUpdate();
     }
 
     onPointerCancel(e) {
         if (e.pointerType !== this.pointerType)
             return;
         e.preventDefault();
+        this.dragStarted = false;
         this.pointerType = '';
+        this.forceUpdate();
     }
 
     render() {
+        let {documents} = this.props;
         let style;
         if (this.props.object.selected)
             style = { userSelect: 'none', cursor: 'grab', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 };
-        // error = <E />;
         else
             style = { userSelect: 'none', cursor: 'copy', paddingLeft: 5, paddingRight: 5, paddingBottom: 3 };
+        let dragDiv;
+        if (this.dragStarted)
+            dragDiv = (
+                <div style={{ position: 'absolute', zIndex: 1000, left: this.dragX, top: this.dragY, pointerEvents: 'none' }}>
+                    <div style={{ position: 'relative', transform: 'translate(-50%,-50%)' }}>
+                        {documents.filter(d => isSelected(documents, d)).map(doc =>
+                            <div key={doc.id} style={{ color: '#FFF', backgroundColor: '#337AB7' }}>{doc.name}</div>)}
+                    </div>
+                </div>
+            );
 
         return (
             <Pointable tagName='span' style={style}
                 onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove} onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}>
                 {this.props.object.name}
+                {dragDiv}
             </Pointable>
         );
     }

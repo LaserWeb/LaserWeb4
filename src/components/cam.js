@@ -22,12 +22,21 @@ import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { setGcode } from '../actions/gcode';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
-import { Operations } from './operation';
+import { GetBounds, withGetBounds } from './get-bounds.js';
+import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
+
+function NoDocumentsError(props) {
+    let {documents, camBounds} = props;
+    if (documents.length === 0)
+        return <GetBounds Type="span"><Error operationsBounds={camBounds} message='Click here to begin' /></GetBounds>;
+    else
+        return <span />;
+}
 
 class Cam extends React.Component {
     componentWillMount() {
@@ -40,7 +49,7 @@ class Cam extends React.Component {
     }
 
     render() {
-        let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument} = this.props;
+        let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds} = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
 
@@ -58,6 +67,7 @@ class Cam extends React.Component {
                                         <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
                                             <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
+                                            <NoDocumentsError camBounds={bounds} documents={documents} />
                                         </span>
                                     </td>
                                 </tr>
@@ -135,6 +145,6 @@ Cam = connect(
     }),
 )(Cam);
 
-Cam = withDocumentCache(Cam);
+Cam = withDocumentCache(withGetBounds(Cam));
 
 export default Cam;
