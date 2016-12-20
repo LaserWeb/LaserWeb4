@@ -24,6 +24,7 @@ import {FileStorage, LocalStorage} from '../lib/storages';
 
 import Validator from 'validatorjs';
 import {GlobalStore} from '../index';
+import omit from 'object.omit';
 
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
@@ -565,8 +566,9 @@ class MaterialDatabasePicker extends React.Component {
         this.setState({selectedProfile:value})
     }
     
-    handleApplyPreset(material, operationIndex){
-        this.props.handleApply(material, operationIndex)
+    handleApplyPreset(materialId, operationIndex){
+        if (this.props.onApplyPreset)
+            this.props.onApplyPreset(materialId, operationIndex)
     }
     
     explainOperation(op){
@@ -655,9 +657,6 @@ const mapDispatchToProps = (dispatch) => {
         },
         handleUpload:(name, action)=>{
             FileStorage.load(name, (file, result) => dispatch(action(file, result)));
-        },
-        handleApply:(materialPreset, operationPreset) => {
-            dispatch(applyMaterial(materialPreset, operationPreset))
         }
         
     }
@@ -671,16 +670,34 @@ export class MaterialPickerButton extends React.Component {
     constructor(props) {
         super(props);
         this.state={showModal:false}
+        this.handleApplyPreset.bind(this);
+    }
+    
+    handleApplyPreset(materialId, operationIndex){
+        let material=this.props.materials.find((mat)=>{return mat.id == materialId})
+        let operation=material.operations[operationIndex];
+        this.props.onApplyPreset(operation.type, omit(operation.params, (val,key)=>{
+            return val!==undefined && val!==null;    
+        }))
+        this.setState({ showModal: false });
     }
     
     render() {
         let closeModal = () => this.setState({ showModal: false });
-        
+
         return (
-            <Button bsStyle="primary" className={this.props.className} onClick={()=>this.setState({ showModal: true })}>{this.props.children}<MaterialDatabasePicker show={this.state.showModal} onHide={closeModal}/></Button>
+            <Button bsStyle="primary" className={this.props.className} onClick={()=>this.setState({ showModal: true })}>{this.props.children}
+                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(materialId, operationIndex)=>{this.handleApplyPreset(materialId, operationIndex)}}/>
+            </Button>
         )
     }
 }
+
+MaterialPickerButton = connect((state)=> {
+    return {
+        materials: state.materialDatabase
+    }    
+})(MaterialPickerButton)
 
 export class MaterialDatabaseButton extends React.Component {
     

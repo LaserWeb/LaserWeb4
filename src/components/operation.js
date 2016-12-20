@@ -308,6 +308,7 @@ class Operation extends React.Component {
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
+        this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({type: type, ...attrs }, this.props.op.id))
     }
 
     render() {
@@ -343,7 +344,7 @@ class Operation extends React.Component {
                         <select className="input-xs" value={op.type} onChange={this.setType}>
                             {Object.keys(types).map(type => <option key={type}>{type}</option>)}
                         </select>
-                        <MaterialPickerButton className="btn btn-success btn-xs"><i className="fa fa-magic"></i></MaterialPickerButton>
+                        <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
                             
