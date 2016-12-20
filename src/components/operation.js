@@ -334,8 +334,7 @@ class Operation extends React.Component {
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
                 <div style={{ display: 'table-cell', cursor: 'pointer' }}>
-                    <i
-                        onClick={this.toggleExpanded}
+                    <i onClick={this.toggleExpanded}
                         className={op.expanded ? 'fa fa-fw fa-minus-circle' : 'fa fa-fw fa-plus-circle'} />
                 </div>
                 <div style={{ display: 'table-cell', width: '100%' }}>
@@ -347,12 +346,10 @@ class Operation extends React.Component {
                         <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
-                            
                             <button className="btn btn-default btn-xs" onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
                             <button className="btn btn-default btn-xs" onClick={this.moveDn}><i className="fa fa-arrow-down"></i></button>
                             <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
                         </div>
-
                     </span>
                     {error}
                 </div>

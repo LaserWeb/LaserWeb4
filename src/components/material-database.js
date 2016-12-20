@@ -588,9 +588,7 @@ class MaterialDatabasePicker extends React.Component {
     }
     
     render(){
-    
-        
-    
+
         return (
             <MaterialModal modal={{show:this.props.show, onHide:this.props.onHide}} 
                 header="Operation Presets">
@@ -620,12 +618,9 @@ class MaterialDatabasePicker extends React.Component {
                             }
                         })}
                     </section>
-                    
-                    
                 })}
                 </div>
             </MaterialModal>
-        
         )
     }
 
