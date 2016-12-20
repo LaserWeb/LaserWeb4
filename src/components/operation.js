@@ -21,7 +21,7 @@ import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDoc
 import { selectDocument } from '../actions/document'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input } from './forms.js';
-import { GetBounds, withStoredBounds } from './get-bounds.js';
+import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 
 import Toggle from 'react-toggle';
 
@@ -102,7 +102,7 @@ class FilterInput extends React.Component {
     }
 }
 
-function Error(props) {
+export function Error(props) {
     let {bounds, operationsBounds, message} = props;
     return (
         <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
@@ -116,6 +116,14 @@ function Error(props) {
     );
 }
 Error = withStoredBounds(Error);
+
+function NoOperationsError(props) {
+    let {documents, operations, operationsBounds} = props;
+    if (documents.length && !operations.length)
+        return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Documents(s) Here' /></GetBounds>;
+    else
+        return <span />;
+}
 
 class Field extends React.Component {
     componentWillMount() {
@@ -469,13 +477,14 @@ class Operations extends React.Component {
             <div style={this.props.style}>
                 <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
                     <b>Drag document(s) here</b>
+                    <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation
                             key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                            operationsBounds={bounds} dispatch={dispatch} />
+                            dispatch={dispatch} />
                     )}
                 </GetBounds>
             </div >
@@ -485,5 +494,5 @@ class Operations extends React.Component {
 
 Operations = connect(
     ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
-)(Operations);
+)(withGetBounds(Operations));
 export { Operations };
