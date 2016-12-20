@@ -31,6 +31,17 @@ const operationBase = object('operation', {
     useA: false,
     aAxisStepsPerTurn: 0,
     aAxisDiameter: 0,
+    smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
+    brightness: 0,          // lw.raster-to-gcode: Image brightness [-255 to +255]
+    contrast: 0,            // lw.raster-to-gcode: Image contrast [-255 to +255]
+    gamma: 0,               // lw.raster-to-gcode: Image gamma correction [0.01 to 7.99]
+    grayscale: 'none',      // lw.raster-to-gcode: Graysale algorithm [none, average, luma, luma-601, luma-709, luma-240, desaturation, decomposition-[min|max], [red|green|blue]-chanel]
+    shadesOfGray: 256,      // lw.raster-to-gcode: Number of shades of gray [2-256]
+    trimLine: true,         // lw.raster-to-gcode: Trim trailing white pixels
+    joinPixel: true,        // lw.raster-to-gcode: Join consecutive pixels with same intensity
+    burnWhite: true,        // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
+    verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
+    diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
 });
 
 export function operation(state, action) {
