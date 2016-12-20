@@ -120,7 +120,7 @@ Error = withStoredBounds(Error);
 function NoOperationsError(props) {
     let {documents, operations, operationsBounds} = props;
     if (documents.length && !operations.length)
-        return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Operation(s) Here' /></GetBounds>;
+        return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Documents(s) Here' /></GetBounds>;
     else
         return <span />;
 }
