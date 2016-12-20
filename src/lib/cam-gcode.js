@@ -100,10 +100,10 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages) {
     let gcode = '';
     for (let doc of docsWithImages) {
         let r2g = new RasterToGcode({
-            ppi: doc.dpi / doc.scale[0],
+            ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
             beamSize: op.laserDiameter,
-            beamRange: { min: 0, max: 1 },
-            beamPower: { min: 0, max: 100 },
+            beamRange: { min: 0, max: settings.gcodeSMaxValue },
+            beamPower: { min: 0, max: op.laserPower },
             feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
             offsets: { X: doc.translate[0], Y: doc.translate[1] },
             trimLine: op.trimLine,
