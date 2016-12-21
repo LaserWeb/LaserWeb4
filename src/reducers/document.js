@@ -78,6 +78,30 @@ function loadSvg(state, settings, {file, content}) {
                 c.scale = [1, 1, 1];
                 c.strokeColor = getColor(child.attrs.stroke, 0);
                 c.fillColor = getColor(child.attrs.fill, c.strokeColor[3] ? 0 : .1);
+            } else if (child.name === 'image') {
+                let element = child.element;
+                let mat = Snap(element).transform().globalMatrix;
+                let dataURL = element.getAttribute('xlink:href');
+                if (dataURL.substring(0, 5) !== 'data:')
+                    continue;
+                let i = new Image;
+                i.src = dataURL;
+                let rawX = element.x.baseVal.value;
+                let rawY = element.y.baseVal.value;
+                let rawW = element.width.baseVal.value;
+                let rawH = element.height.baseVal.value;
+                let x = (mat.x(rawX, rawY) + parser.document.viewBox.x) / pxPerInch * 25.4;
+                let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
+                let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
+                let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
+                c = {
+                    ...c,
+                    translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
+                    scale: [w / i.width, h / i.height, 1],
+                    mimeType: file.type,
+                    dataURL: dataURL,
+                    dpi: 25.4,
+                };
             }
             state.push(c);
             parent.children.push(c.id);
