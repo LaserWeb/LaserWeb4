@@ -14,5 +14,9 @@ export const setMaterialOperationAttrs = (materialId, operationIndex, attrs) => 
 export const toggleMaterialOperationEdit = (materialId, operationIndex) => ({type:"MATERIAL_OPERATION_TOGGLE_EDIT", payload: {materialId, operationIndex}});
 
 /*MATERIAL DB*/
-export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIALDB_UPLOAD", payload: {file, database:JSON.parse(content)}});
-export const downloadMaterialDatabase = (database) => ({ type:"MATERIALDB_DOWNLOAD", payload: {database}});
+export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIAL_DB_UPLOAD", payload: {file, database:JSON.parse(content)}});
+export const downloadMaterialDatabase = (database) => ({ type:"MATERIAL_DB_DOWNLOAD", payload: {database}});
+
+/*MATERIAL PICKER*/
+
+export const applyMaterial = (materialId, operationIndex) => ({ type: "MATERIAL_APPLY", payload: { materialId, operationIndex }});

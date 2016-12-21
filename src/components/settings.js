@@ -161,7 +161,7 @@ class Settings extends React.Component {
                 <Panel header="Machine Profiles"  bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
                     <MachineProfile onApply={this.props.handleApplyProfile}/>
                     
-                    <MaterialDatabaseButton label="Launch Material Database"/>
+                    <MaterialDatabaseButton>Launch Material Database</MaterialDatabaseButton>
                 </Panel>
                 <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                    <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
