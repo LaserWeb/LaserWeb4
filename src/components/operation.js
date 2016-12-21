@@ -317,8 +317,7 @@ class Operation extends React.Component {
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
-                if (field.check && !field.check(op[fieldName])) {
-                    console.warn(op.type + ' field "' + fieldName + '" failed check');
+                if (field.check && !field.check(op[fieldName]) && (!field.condition || field.condition(op))) {
                     error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
                 }
