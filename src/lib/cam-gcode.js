@@ -61,7 +61,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     }
                 }
             }
-            if (doc.isRoot && doc.type === 'image' && !isTab) {
+            if (doc.type === 'image' && !isTab) {
                 let cache = documentCacheHolder.cache.get(doc.id);
                 if (cache && cache.imageLoaded)
                     docsWithImages.push(Object.assign([], doc, { image: cache.image }));
@@ -80,10 +80,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 return '';
             gcode += g;
         } else if (op.type === 'Laser Raster') {
-            let g = getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages);
-            if (!g)
-                return '';
-            gcode += g;
+            gcode += getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages);
         } else if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
