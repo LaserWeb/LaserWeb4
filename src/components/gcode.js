@@ -11,6 +11,7 @@ class Gcode extends React.Component {
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div>
+                    <button onClick={this.props.loadGcode}>Load GCode</button>
                     <button onClick={this.props.saveGcode}>Save GCode</button>
                 </div>
                 {textArea}
@@ -18,12 +19,25 @@ class Gcode extends React.Component {
         )
     }
 };
+
 Gcode = connect(
     state => ({
         gcode: state.gcode,
         saveGcode: () => sendAsFile('gcode.gcode', state.gcode),
     }),
-    dispatch => ({ setGcode: e => dispatch(setGcode(e.target.value)) })
+    dispatch => ({
+        setGcode: e => dispatch(setGcode(e.target.value)),
+        loadGcode: e => {
+            let input = document.createElement('input');
+            input.type = "file";
+            input.onchange = e => {
+                let reader = new FileReader;
+                reader.onload = () => dispatch(setGcode(reader.result));
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        },
+    })
 )(Gcode);
 
 export default Gcode;
