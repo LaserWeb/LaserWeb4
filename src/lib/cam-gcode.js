@@ -118,6 +118,7 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages) {
                 gamma: op.gamma,
                 grayscale: op.grayscale,
                 shadesOfGray: op.shadesOfGray,
+                invertColor: op.invertColor,
             },
         });
         r2g.loadFromImage(doc.image);
