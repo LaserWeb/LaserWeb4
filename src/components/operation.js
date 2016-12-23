@@ -277,6 +277,7 @@ export const fields = {
     gamma: { name: 'gamma', label: 'Gamma', units: '', input: NumberInput, ...checkRange(0, 7.99) },                    // lw.raster-to-gcode: Image gamma correction [0.01 to 7.99]
     grayscale: { name: 'grayscale', label: 'Grayscale', units: '', input: GrayscaleInput },                             // lw.raster-to-gcode: Graysale algorithm [none, average, luma, luma-601, luma-709, luma-240, desaturation, decomposition-[min|max], [red|green|blue]-chanel]
     shadesOfGray: { name: 'shadesOfGray', label: 'Shades', units: '', input: NumberInput, ...checkRange(2, 256) },      // lw.raster-to-gcode: Number of shades of gray [2-256]
+    invertColor: { name: 'invertColor', label: 'Invert Color', units: '', input: ToggleInput },                         // lw.raster-to-gcode
     trimLine: { name: 'trimLine', label: 'Trim Pixels', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Trim trailing white pixels
     joinPixel: { name: 'joinPixel', label: 'Join Pixels', units: '', input: ToggleInput },                              // lw.raster-to-gcode: Join consecutive pixels with same intensity
     burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
@@ -293,7 +294,7 @@ export const types = {
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'lineDistance', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['laserPower', 'laserDiameter', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal',] },
+    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['laserPower', 'laserDiameter', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal',] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
@@ -340,10 +341,10 @@ class Operation extends React.Component {
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div>
-                        <select className="input-xs" value={op.type} onChange={this.setType}>
-                            {Object.keys(types).map(type => <option key={type}>{type}</option>)}
-                        </select>
-                        <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>
+                                {Object.keys(types).map(type => <option key={type}>{type}</option>)}
+                            </select>
+                            <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
                             <button className="btn btn-default btn-xs" onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
