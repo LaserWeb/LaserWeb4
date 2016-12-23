@@ -219,6 +219,11 @@ let shouldShow = (operation, filter)=>{
         
 }
 
+let cast= (value, def='') =>{
+    if (value===undefined) return def;
+    return String(value);
+}
+
 class MaterialOperations extends React.Component {
 
  
@@ -309,7 +314,7 @@ class MaterialOperations extends React.Component {
                                                            onChangeValue={(v)=>{this.handleCellChange( _operationindex, "params", {[key]:v})}} />
                                         </div>
                        } else {
-                        fields[key]    = <div className={className.join(" ")} title={hasError? currentParam.error:undefined}>{_operation.params[currentParam.name] || ""}</div>
+                        fields[key]    = <div className={className.join(" ")} title={hasError? currentParam.error:undefined}>{cast(_operation.params[currentParam.name],"")}</div>
                         
                        }
                 });
