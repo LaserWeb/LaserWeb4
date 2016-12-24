@@ -32,6 +32,10 @@ function isSelected(documents, d) {
     return true;
 }
 
+export function selectedDocuments(documents){
+    return documents.filter(d => isSelected(documents, d)).map(d => d.id);
+}
+
 class DocumentLabel extends React.Component {
     componentWillMount() {
         this.onPointerDown = this.onPointerDown.bind(this);
