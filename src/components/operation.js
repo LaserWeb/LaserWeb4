@@ -314,7 +314,7 @@ class Operation extends React.Component {
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
-        this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({type: type, ...attrs }, this.props.op.id))
+        this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ type: type, ...attrs }, this.props.op.id))
     }
 
     render() {
@@ -485,9 +485,9 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5}} data-operation-id="new">
-                    <b>Drag document(s) here</b> or<br/><OperationToolbar/>
-                    <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />                    
+                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
+                    <b>Drag document(s) here</b> or<br /><OperationToolbar />
+                    <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
@@ -509,36 +509,35 @@ export { Operations };
 
 
 class OperationToolbar extends React.Component {
-    
-    constructor(props)
-    {
+
+    constructor(props) {
         super(props);
         this.handleAddSingle.bind(this)
         this.handleAddMultiple.bind(this)
     }
-    
-    handleAddSingle()
-    {
+
+    handleAddSingle() {
         this.props.createSingle(selectedDocuments(this.props.documents));
     }
-    
-    handleAddMultiple()
-    {
+
+    handleAddMultiple() {
         this.props.createMultiple(selectedDocuments(this.props.documents));
     }
-    
-    render(){
+
+    render() {
         return <ButtonToolbar>
-            <Button onClick={(e)=>{this.handleAddSingle()}} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group"/> Create Single </Button>
-            <Button onClick={(e)=>{this.handleAddMultiple()}} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup"/> Create Multiple </Button>
+            <Button onClick={(e) => { this.handleAddSingle() } } bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button onClick={(e) => { this.handleAddMultiple() } } bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
         </ButtonToolbar>
     }
 }
 
 OperationToolbar = connect(
-    (state)=>{ return { documents: state.documents} },
-    (dispatch)=>{ return  {
-        createSingle: (documents)=>{ dispatch(addOperation({documents})) },
-        createMultiple: (documents)=>{ documents.forEach((doc)=>{ dispatch(addOperation({documents:[doc]}))})}
-    }}
+    (state) => { return { documents: state.documents } },
+    (dispatch) => {
+        return {
+            createSingle: (documents) => { dispatch(addOperation({ documents })) },
+            createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) }
+        }
+    }
 )(OperationToolbar);
