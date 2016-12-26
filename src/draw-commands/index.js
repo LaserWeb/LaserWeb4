@@ -63,10 +63,10 @@ export class DrawCommands {
         this.gl = gl;
         this.EXT_blend_minmax = gl.getExtension('EXT_blend_minmax');
         this.WEBGL_lose_context = gl.getExtension('WEBGL_lose_context');
-        this.glBuffer = this.gl.createBuffer(); // !!! leak
-        this.time = 0;
-        this.uniforms = {};
-        this.attributes = {};
+        this.glBuffer = this.gl.createBuffer();
+        this.buffers = [this.glBuffer];
+        this.shaders = [];
+        this.programs = [];
 
         this.basic = basic(this);
         this.basic2d = basic2d(this);
@@ -77,11 +77,19 @@ export class DrawCommands {
     }
 
     destroy() {
-        this.WEBGL_lose_context.loseContext();
+        for (let buffer of this.buffers)
+            this.gl.deleteBuffer(buffer);
+        for (let program of this.programs)
+            this.gl.deleteProgram(program);
+        for (let shader of this.shaders)
+            this.gl.deleteShader(shader);
+        if (this.WEBGL_lose_context)
+            this.WEBGL_lose_context.loseContext();
     }
 
     createBuffer(data) {
-        let buffer = this.gl.createBuffer(); // !!! leak
+        let buffer = this.gl.createBuffer();
+        this.buffers.push(buffer);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
@@ -90,7 +98,8 @@ export class DrawCommands {
 
     compile({vert, frag, attrs}) {
         let comp = (type, source) => {
-            let shader = this.gl.createShader(type); // !!! leak
+            let shader = this.gl.createShader(type);
+            this.shaders.push(shader);
             this.gl.shaderSource(shader, source);
             this.gl.compileShader(shader);
             if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS))
@@ -102,7 +111,8 @@ export class DrawCommands {
         let f = comp(this.gl.FRAGMENT_SHADER, frag);
         if (!v || !f)
             return;
-        let program = this.gl.createProgram(); // !!! leak
+        let program = this.gl.createProgram();
+        this.programs.push(program);
         this.gl.attachShader(program, v);
         this.gl.attachShader(program, f);
         this.gl.linkProgram(program);
@@ -197,7 +207,7 @@ export class DrawCommands {
         program.useAttrs = new Function('drawCommands', 'stride', 'offset', 'next', body);
     }
 
-    execute({program, primitive, uniforms, buffer, attributes, next}) {
+    execute({program, primitive, uniforms, buffer, attributes}) {
         let useBuffer = next => {
             if (buffer.data.isBuffer) {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.data.buffer);
@@ -219,8 +229,6 @@ export class DrawCommands {
             this.gl.useProgram(null);
         };
 
-        if (next)
-            return next(); // !!!
         useBuffer(() => {
             useProgram(() => {
                 program.useUniforms(this, uniforms, () => {
