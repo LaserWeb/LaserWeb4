@@ -66,14 +66,12 @@ class Grid {
             for (let y = 10; y < this.height; y += 10)
                 a.push(0, y, 0, this.width, y, 0);
             a.push(0, this.height, 0, this.width, this.height, 0);
-            if (this.position)
-                this.position.destroy();
-            this.position = drawCommands.regl.buffer(new Float32Array(a));
+            this.position = new Float32Array(a);
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
+        drawCommands.xsimple({ position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
+        drawCommands.xsimple({ position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
+        drawCommands.xsimple({ position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
     }
 };
 
@@ -250,22 +248,17 @@ function drawDocuments(drawCommands, documentCacheHolder) {
 } // drawDocuments
 
 function drawSelectedDocuments(drawCommands, documentCacheHolder) {
+    let selected = [];
+    let len = 0;
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (!document.selected)
             continue;
         if (document.rawPaths) {
-            drawCommands.noDepth(() => {
-                for (let o of cachedDocument.thickOutlines)
-                    drawCommands.thickLines({
-                        buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
-                        thickness: 5,
-                        color1: [0, 0, 1, 1],
-                        color2: [1, 1, 1, 1],
-                    })
-            });
+            for (let outline of cachedDocument.thickOutlines) {
+                selected.push({ document, outline });
+                len += outline.length;
+            }
         } else if (document.type === 'image') {
             if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
                 drawCommands.noDepth(() => {
@@ -283,6 +276,33 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                 });
             break;
         }
+    }
+    if (len) {
+        let combined = new Float32Array(len);
+        let pos = 0;
+        for (let s of selected) {
+            let {scale, translate} = s.document;
+            let o = s.outline;
+            for (let i = 0; i < o.length; i += 7) {
+                combined[pos++] = o[i + 0] * scale[0] + translate[0];
+                combined[pos++] = o[i + 1] * scale[1] + translate[1];
+                combined[pos++] = 0;
+                combined[pos++] = o[i + 3] * scale[0] + translate[0];
+                combined[pos++] = o[i + 4] * scale[1] + translate[1];
+                combined[pos++] = 0;
+                combined[pos++] = o[i + 6];
+            }
+        }
+        drawCommands.noDepth(() => {
+            drawCommands.thickLines({
+                buffer: combined,
+                scale: [1, 1, 1],
+                translate: [0, 0, 0],
+                thickness: 5,
+                color1: [0, 0, 1, 1],
+                color2: [1, 1, 1, 1],
+            })
+        });
     }
 } // drawSelectedDocuments
 
@@ -369,6 +389,8 @@ class WorkspaceContent extends React.Component {
                 color: [1, 1, 1, 1],
                 depth: 1
             })
+            this.drawCommands.viewportWidth = this.props.width;
+            this.drawCommands.viewportHeight = this.props.height;
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
                 this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 if (this.props.workspace.showDocuments)

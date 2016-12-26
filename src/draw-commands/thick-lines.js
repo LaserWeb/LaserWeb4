@@ -15,8 +15,8 @@
 
 const drawStride = 7;
 
-export function thickLines(regl) {
-    return regl({
+export function thickLines(drawCommands) {
+    let program = drawCommands.compile({
         vert: `
             precision mediump float;
 
@@ -76,37 +76,36 @@ export function thickLines(regl) {
                 else
                     gl_FragColor = color2;
             }`,
-        attributes: {
-            p1: {
-                buffer: regl.prop('buffer'),
-                offset: 0,
-                stride: drawStride * 4,
-            },
-            p2: {
-                buffer: regl.prop('buffer'),
-                offset: 12,
-                stride: drawStride * 4,
-            },
-            vertex: {
-                buffer: regl.prop('buffer'),
-                offset: 24,
-                stride: drawStride * 4,
-            },
-        },
-        uniforms: {
-            viewportWidth: regl.context('viewportWidth'),
-            viewportHeight: regl.context('viewportHeight'),
-            time: regl.context('time'),
-            scale: regl.prop('scale'),
-            translate: regl.prop('translate'),
-            thickness: regl.prop('thickness'),
-            color1: regl.prop('color1'),
-            color2: regl.prop('color2'),
-        },
-        primitive: 'triangle',
-        offset: 0,
-        count: (context, props, batchId) => props.buffer.length / drawStride,
     });
+    let startTime = Date.now();
+    return ({scale, translate, thickness, color1, color2, buffer}, next) => {
+        drawCommands.execute({
+            program,
+            primitive: 'triangles',
+            uniforms: {
+                viewportWidth: drawCommands.viewportWidth,
+                viewportHeight: drawCommands.viewportHeight,
+                time: (Date.now() - startTime) / 1000,
+                scale,
+                translate,
+                thickness,
+                color1,
+                color2,
+            },
+            buffer: {
+                data: buffer,
+                stride: drawStride * 4,
+                offset: 0,
+                count: buffer.length / drawStride,
+            },
+            attributes: {
+                p1: { offset: 0 },
+                p2: { offset: 12 },
+                vertex: { offset: 24 },
+            },
+            next,
+        });
+    };
 } // thickLines
 
 // outline: [x, y,  x, y,  ...]
