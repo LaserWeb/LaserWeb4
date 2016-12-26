@@ -391,21 +391,18 @@ class WorkspaceContent extends React.Component {
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
-            //console.log(gl.drawingBufferWidth, gl.drawingBufferHeight)
 
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
-            // if (this.props.workspace.showLaser) {
-            //     this.drawCommands.noDepth(() => {
-            //         this.props.laserPreview.draw(this.drawCommands, {
-            //             diameter: this.props.settings.machineBeamDiameter,
-            //             gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
-            //             g0Rate: this.props.workspace.g0Rate,
-            //             simTime: this.props.workspace.simTime,
-            //         });
-            //     });
-            // }
+            if (this.props.workspace.showLaser) {
+                gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
+                gl.blendFunc(gl.ONE, gl.ONE);
+                this.props.laserPreview.draw(
+                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter, this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                gl.blendEquation(gl.FUNC_ADD);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            }
             if (this.props.workspace.showGcode)
                 this.props.gcodePreview.draw(
                     this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);

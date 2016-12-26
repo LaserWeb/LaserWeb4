@@ -73,7 +73,7 @@ export class DrawCommands {
         //this.image = image(this);
         this.thickLines = thickLines(this);
         this.gcode = gcode(this);
-        //this.laser = laser(this);
+        this.laser = laser(this);
     }
 
     destroy() {
