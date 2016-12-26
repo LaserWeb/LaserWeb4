@@ -83,11 +83,12 @@ export function thickLines(drawCommands) {
         },
     });
     let startTime = Date.now();
-    return ({scale, translate, thickness, color1, color2, buffer}) => {
+    return ({perspective, view, scale, translate, thickness, color1, color2, buffer}) => {
         drawCommands.execute({
             program,
             primitive: 'triangles',
             uniforms: {
+                perspective, view,
                 viewportWidth: drawCommands.gl.drawingBufferWidth,
                 viewportHeight: drawCommands.gl.drawingBufferHeight,
                 time: (Date.now() - startTime) / 1000,

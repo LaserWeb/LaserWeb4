@@ -248,7 +248,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-function drawSelectedDocuments(drawCommands, documentCacheHolder) {
+function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     let selected = [];
     let len = 0;
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -262,18 +262,17 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
             }
         } else if (document.type === 'image') {
             if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
-                drawCommands.noDepth(() => {
-                    drawCommands.thickLines({
-                        buffer: thickSquare,
-                        scale: [
-                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                            1],
-                        translate: document.translate,
-                        thickness: 5,
-                        color1: [0, 0, 1, 1],
-                        color2: [1, 1, 1, 1],
-                    })
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: thickSquare,
+                    scale: [
+                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                        1],
+                    translate: document.translate,
+                    thickness: 5,
+                    color1: [0, 0, 1, 1],
+                    color2: [1, 1, 1, 1],
                 });
             break;
         }
@@ -294,15 +293,14 @@ function drawSelectedDocuments(drawCommands, documentCacheHolder) {
                 combined[pos++] = o[i + 6];
             }
         }
-        drawCommands.noDepth(() => {
-            drawCommands.thickLines({
-                buffer: combined,
-                scale: [1, 1, 1],
-                translate: [0, 0, 0],
-                thickness: 5,
-                color1: [0, 0, 1, 1],
-                color2: [1, 1, 1, 1],
-            })
+        drawCommands.thickLines({
+            perspective, view,
+            buffer: combined,
+            scale: [1, 1, 1],
+            translate: [0, 0, 0],
+            thickness: 5,
+            color1: [0, 0, 1, 1],
+            color2: [1, 1, 1, 1],
         });
     }
 } // drawSelectedDocuments
@@ -413,9 +411,8 @@ class WorkspaceContent extends React.Component {
             //         this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
             //     });
             // }
-            // if (this.props.workspace.showDocuments)
-            //     drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
-            //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
+            if (this.props.workspace.showDocuments)
+                drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
             requestAnimationFrame(draw);
         };
         draw();
