@@ -25,7 +25,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
-import { DrawCommands, simple2d } from '../draw-commands'
+import { DrawCommands, basic2d } from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
@@ -53,7 +53,7 @@ function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up
 }
 
 class Grid {
-    draw(drawCommands, {width, height}) {
+    draw(drawCommands, {perspective, view, width, height}) {
         if (!this.position || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
@@ -69,9 +69,9 @@ class Grid {
             this.position = new Float32Array(a);
             this.count = a.length / 3;
         }
-        drawCommands.xsimple({ position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
-        drawCommands.xsimple({ position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
-        drawCommands.xsimple({ position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
+        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
+        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
     }
 };
 
@@ -211,8 +211,8 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
             drawCommands.noDepth(() => {
                 drawCommands.blendAlpha(() => {
                     // if (!cachedDocument.drawTriangles)
-                    //     cachedDocument.drawTriangles = simple2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
-                    drawCommands.simple2d({
+                    //     cachedDocument.drawTriangles = basic2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
+                    drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
                         scale: document.scale,
@@ -223,9 +223,9 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         count: cachedDocument.triangles.length / 2,
                     });
                     // if (!cachedDocument.drawOutlines)
-                    //     cachedDocument.drawOutlines = simple2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
+                    //     cachedDocument.drawOutlines = basic2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
                     for (let o of cachedDocument.outlines)
-                        drawCommands.simple2d({
+                        drawCommands.basic2d({
                             perspective, view,
                             position: o,
                             scale: document.scale,
@@ -318,7 +318,7 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
             drawCommands.noDepth(() => {
-                drawCommands.simple2d({
+                drawCommands.basic2d({
                     position: cachedDocument.triangles,
                     scale: document.scale,
                     translate: document.translate,
@@ -341,7 +341,7 @@ function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
             drawCommands.noDepth(() => {
                 let w = cachedDocument.image.width / document.dpi * 25.4;
                 let h = cachedDocument.image.height / document.dpi * 25.4;
-                drawCommands.simple({
+                drawCommands.basic({
                     position: [[0, 0, 0], [w, 0, 0], [w, h, 0], [w, h, 0], [0, h, 0], [0, 0, 0]],
                     scale: document.scale,
                     translate: document.translate,
@@ -399,7 +399,7 @@ class WorkspaceContent extends React.Component {
             this.drawCommands.viewportWidth = this.props.width;
             this.drawCommands.viewportHeight = this.props.height;
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                //this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+                this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 if (this.props.workspace.showDocuments)
                     drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
                 // if (this.props.workspace.showLaser) {

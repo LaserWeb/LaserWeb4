@@ -54,39 +54,7 @@ function blendAlpha(regl) {
     });
 }
 
-function simple(regl) {
-    return regl({
-        vert: `
-            precision mediump float;
-            uniform mat4 perspective; 
-            uniform mat4 view; 
-            uniform vec3 scale; 
-            uniform vec3 translate; 
-            attribute vec3 position;
-            void main() {
-                gl_Position = perspective * view * vec4(scale * position + translate, 1);
-            }`,
-        frag: `
-            precision mediump float;
-            uniform vec4 color;
-            void main() {
-                gl_FragColor = color;
-            }`,
-        attributes: {
-            position: regl.prop('position'),
-        },
-        uniforms: {
-            scale: regl.prop('scale'),
-            translate: regl.prop('translate'),
-            color: regl.prop('color'),
-        },
-        primitive: regl.prop('primitive'),
-        offset: regl.prop('offset'),
-        count: regl.prop('count')
-    });
-}
-
-function xsimple(drawCommands) {
+function basic(drawCommands) {
     let program = drawCommands.compile({
         vert: `
             precision mediump float;
@@ -105,11 +73,11 @@ function xsimple(drawCommands) {
                 gl_FragColor = color;
             }`,
     });
-    return ({scale, translate, color, primitive, position, offset, count}, next) => {
+    return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
         drawCommands.execute({
             program,
             primitive,
-            uniforms: { scale, translate, color },
+            uniforms: { perspective, view, scale, translate, color },
             buffer: {
                 data: position,
                 stride: 12,
@@ -124,7 +92,7 @@ function xsimple(drawCommands) {
     };
 }
 
-export function simple2d(drawCommands) {
+export function basic2d(drawCommands) {
     let program = drawCommands.compile({
         vert: `
             precision mediump float;
@@ -217,9 +185,8 @@ export class DrawCommands {
         this.camera = camera(this);
         this.noDepth = noDepth(regl);
         this.blendAlpha = blendAlpha(regl);
-        this.simple = simple(regl);
-        this.xsimple = xsimple(this);
-        this.simple2d = simple2d(this);
+        this.basic = basic(this);
+        this.basic2d = basic2d(this);
         this.image = image(regl);
         this.thickLines = thickLines(this);
         this.gcode = gcode(regl);
