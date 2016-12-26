@@ -406,11 +406,9 @@ class WorkspaceContent extends React.Component {
             //         });
             //     });
             // }
-            // if (this.props.workspace.showGcode) {
-            //     this.drawCommands.noDepth(() => {
-            //         this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
-            //     });
-            // }
+            if (this.props.workspace.showGcode)
+                this.props.gcodePreview.draw(
+                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
             if (this.props.workspace.showDocuments)
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
             requestAnimationFrame(draw);

@@ -72,7 +72,7 @@ export class DrawCommands {
         this.basic2d = basic2d(this);
         //this.image = image(this);
         this.thickLines = thickLines(this);
-        //this.gcode = gcode(this);
+        this.gcode = gcode(this);
         //this.laser = laser(this);
     }
 
@@ -90,10 +90,21 @@ export class DrawCommands {
     createBuffer(data) {
         let buffer = this.gl.createBuffer();
         this.buffers.push(buffer);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        return { buffer, isBuffer: true };
+        let result = {
+            buffer,
+            isBuffer: true,
+            drawCommands: this,
+            setData(data) {
+                this.drawCommands.gl.bindBuffer(this.drawCommands.gl.ARRAY_BUFFER, buffer);
+                this.drawCommands.gl.bufferData(this.drawCommands.gl.ARRAY_BUFFER, data, this.drawCommands.gl.STATIC_DRAW);
+                this.drawCommands.gl.bindBuffer(this.drawCommands.gl.ARRAY_BUFFER, null);
+            },
+            destroy() {
+                this.drawCommands.gl.deleteBuffer(this.buffer);
+            },
+        };
+        result.setData(data);
+        return result;
     }
 
     compile({vert, frag, attrs}) {

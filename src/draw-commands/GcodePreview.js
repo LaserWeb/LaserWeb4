@@ -16,8 +16,8 @@
 const parsedStride = 9;
 const drawStride = 7;
 
-export function gcode(regl) {
-    return regl({
+export function gcode(drawCommands) {
+    let program = drawCommands.compile({
         vert: `
             precision mediump float;
             uniform mat4 perspective; 
@@ -63,41 +63,27 @@ export function gcode(regl) {
                 else
                     gl_FragColor = color;
             }`,
-        attributes: {
-            g: {
-                buffer: regl.prop('buffer'),
-                offset: 0,
-                stride: drawStride * 4,
-            },
-            position: {
-                buffer: regl.prop('buffer'),
-                offset: 4,
-                stride: drawStride * 4,
-            },
-            t: {
-                buffer: regl.prop('buffer'),
-                offset: 16,
-                stride: drawStride * 4,
-            },
-            g0Dist: {
-                buffer: regl.prop('buffer'),
-                offset: 20,
-                stride: drawStride * 4,
-            },
-            g1Time: {
-                buffer: regl.prop('buffer'),
-                offset: 24,
-                stride: drawStride * 4,
-            },
+        attrs: {
+            g: { offset: 0, },
+            position: { offset: 4, },
+            t: { offset: 16, },
+            g0Dist: { offset: 20, },
+            g1Time: { offset: 24, },
         },
-        uniforms: {
-            g0Rate: regl.prop('g0Rate'),
-            simTime: regl.prop('simTime'),
-        },
-        primitive: 'line',
-        offset: 0,
-        count: regl.prop('count')
     });
+    return ({perspective, view, g0Rate, simTime, data, count}) => {
+        drawCommands.execute({
+            program,
+            primitive: 'lines',
+            uniforms: { perspective, view, g0Rate, simTime },
+            buffer: {
+                data,
+                stride: drawStride * 4,
+                offset: 0,
+                count,
+            },
+        });
+    };
 } // gcode
 
 export class GcodePreview {
@@ -160,27 +146,30 @@ export class GcodePreview {
         }
     }
 
-    draw(drawCommands, {g0Rate, simTime}) {
-        if (this.regl !== drawCommands.regl) {
-            this.regl = drawCommands.regl;
+    draw(drawCommands, perspective, view, g0Rate, simTime) {
+        if (this.drawCommands !== drawCommands) {
+            this.drawCommands = drawCommands;
             if (this.buffer)
                 this.buffer.destroy();
             this.buffer = null;
         }
 
+        if (!this.array)
+            return;
+
         if (!this.buffer)
-            this.buffer = drawCommands.regl.buffer(this.array);
+            this.buffer = drawCommands.createBuffer(this.array);
         else if (this.arrayChanged)
-            this.buffer({ data: this.array });
+            this.buffer.setData(this.array);
         this.arrayChanged = false;
 
-        if (this.array) {
-            drawCommands.gcode({
-                buffer: this.buffer,
-                count: this.array.length / drawStride,
-                g0Rate,
-                simTime,
-            });
-        }
+        drawCommands.gcode({
+            perspective,
+            view,
+            g0Rate,
+            simTime,
+            data: this.buffer,
+            count: this.array.length / drawStride,
+        });
     }
 }; // GcodePreview
