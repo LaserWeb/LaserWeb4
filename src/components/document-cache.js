@@ -61,6 +61,7 @@ export class DocumentCacheHolder extends React.Component {
             for (let cachedDocument of oldCache.values()) {
                 if (!cachedDocument.used) {
                     cachedDocument.image = null;
+                    cachedDocument.drawCommands = null;
                     cachedDocument.regl = null;
                     if (cachedDocument.texture)
                         cachedDocument.texture.destroy();

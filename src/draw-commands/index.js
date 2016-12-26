@@ -124,7 +124,7 @@ function xsimple(drawCommands) {
     };
 }
 
-function simple2d(drawCommands) {
+export function simple2d(drawCommands) {
     let program = drawCommands.compile({
         vert: `
             precision mediump float;
@@ -143,11 +143,11 @@ function simple2d(drawCommands) {
                 gl_FragColor = color;
             }`,
     });
-    return ({scale, translate, color, primitive, position, offset, count}, next) => {
+    return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
         drawCommands.execute({
             program,
             primitive,
-            uniforms: { scale, translate, color },
+            uniforms: { perspective, view, scale, translate, color },
             buffer: {
                 data: position,
                 stride: 8,
@@ -202,7 +202,7 @@ function image(regl) {
     });
 }
 
-export default class DrawCommands {
+export class DrawCommands {
     constructor(regl) {
         this.regl = regl;
         this.gl = regl._gl;
@@ -224,6 +224,14 @@ export default class DrawCommands {
         this.thickLines = thickLines(this);
         this.gcode = gcode(regl);
         this.laser = laser(regl);
+    }
+
+    createBuffer(data) {
+        let buffer = this.gl.createBuffer(); // !!! leak
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        return { buffer, isBuffer: true };
     }
 
     compile({vert, frag}) {
@@ -268,7 +276,52 @@ export default class DrawCommands {
             }
             attributes.push({ name, size, type });
         }
-        return { program, uniforms, attributes };
+        let result = { program, uniforms, attributes };
+        this.generateUseUniforms(result, uniforms);
+        return result;
+    }
+
+    generateUseUniforms(program, uniforms) {
+        let body = 'let {' + uniforms.map(u => u.name) + '} = props;\n';
+        for (let uniform of uniforms) {
+            program[uniform.name + '_location'] = uniform.location;
+            let set;
+            switch (uniform.type) {
+                case this.gl.BOOL:
+                    set = 'drawCommands.gl.uniform1i(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT:
+                    set = 'drawCommands.gl.uniform1f(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_VEC2:
+                    set = 'drawCommands.gl.uniform2fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_VEC3:
+                    set = 'drawCommands.gl.uniform3fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_VEC4:
+                    set = 'drawCommands.gl.uniform4fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_MAT4:
+                    set = 'drawCommands.gl.uniformMatrix4fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
+                    break;
+                default:
+                    console.error('uniform', uniform.name, 'type', uniform.type.toString(16), 'size', uniform.size, 'unhandled');
+                    continue;
+            }
+
+            // body += 'console.log(this);\n';
+            // body += 'console.log(this.uniforms, "' + uniform.name + '");\n';
+            // body += 'console.log(this.' + uniform.name + '_location);\n';
+
+            body += 'if (' + uniform.name + ' !== this.' + uniform.name + ') {\n';
+            body += '    ' + set;
+            body += '    this.' + uniform.name + ' = ' + uniform.name + ';\n';
+            body += '}\n';
+        }
+        body += 'next();\n';
+        console.log(body);
+        program.useUniforms = new Function('drawCommands', 'props', 'next', body);
     }
 
     execute({program, primitive, uniforms, buffer, attributes, next}) {
@@ -283,14 +336,6 @@ export default class DrawCommands {
                 this.program = old;
                 this.gl.useProgram(old ? old.program : null);
             }
-        };
-
-        let addUniforms = next => {
-            let old = this.uniforms;
-            if (uniforms)
-                this.uniforms = { ...old, ...uniforms };
-            next();
-            this.uniforms = old;
         };
 
         let addAttributes = next => {
@@ -309,62 +354,17 @@ export default class DrawCommands {
             this.buffer = old;
         };
 
-        let useUniforms = next => {
-            for (let uniform of this.program.uniforms) {
-                let v = this.uniforms[uniform.name];
-                if (v === undefined) {
-                    console.error('uniform', uniform.name, 'missing in', this.uniforms);
-                    continue;
-                }
-
-                // if (uniform.value !== undefined && uniform.type !== this.gl.FLOAT_MAT4)
-                //     continue; // !!!!!!!!!!!!!!
-
-                switch (uniform.type) {
-                    case this.gl.BOOL:
-                        if (uniform.value !== v)
-                            this.gl.uniform1i(uniform.location, v);
-                        break;
-                    case this.gl.FLOAT:
-                        if (uniform.value !== v)
-                            this.gl.uniform1f(uniform.location, v);
-                        break;
-                    case this.gl.FLOAT_VEC2:
-                        if (!uniform.value || uniform.value[0] !== v[0] || uniform.value[1] !== v[1])
-                            this.gl.uniform2fv(uniform.location, v);
-                        break;
-                    case this.gl.FLOAT_VEC3:
-                        if (!uniform.value || uniform.value[0] !== v[0] || uniform.value[1] !== v[1] || uniform.value[2] !== v[2])
-                            this.gl.uniform3fv(uniform.location, v);
-                        break;
-                    case this.gl.FLOAT_VEC4:
-                        if (!uniform.value || uniform.value[0] !== v[0] || uniform.value[1] !== v[1] || uniform.value[2] !== v[2] || uniform.value[3] !== v[3])
-                            this.gl.uniform4fv(uniform.location, v);
-                        break;
-                    case this.gl.FLOAT_MAT4:
-                        let need = !uniform.value;
-                        if (uniform.value)
-                            for (let i = 0; i < 16; ++i)
-                                if (uniform.value[i] !== v[i])
-                                    need = true;
-                        if (need) {
-                            console.log('uniformMatrix4fv');
-                            this.gl.uniformMatrix4fv(uniform.location, false, v);
-                        }
-                        break;
-                    default:
-                        console.error('uniform', uniform.name, 'type', uniform.type.toString(16), 'size', uniform.size, 'unhandled');
-                }
-                uniform.value = v;
-            }
-            next();
-        };
-
         let useBuffer = next => {
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer.data, this.gl.DYNAMIC_DRAW);
-            next();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+            if (this.buffer.data.isBuffer) {
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer.data.buffer);
+                next();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+            } else {
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer.data, this.gl.DYNAMIC_DRAW);
+                next();
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+            }
         };
 
         let useAttrs = next => {
@@ -386,28 +386,26 @@ export default class DrawCommands {
 
         ++this.nest;
         useProgram(() => {
-            addUniforms(() => {
-                addAttributes(() => {
-                    setBuffer(() => {
-                        if (next)
-                            return next();
-                        if (!this.program || !this.buffer)
-                            return;
-                        useUniforms(() => {
-                            useBuffer(() => {
-                                useAttrs(() => {
-                                    let mode;
-                                    if (primitive === 'triangles')
-                                        mode = this.gl.TRIANGLES;
-                                    else if (primitive === 'lines')
-                                        mode = this.gl.LINES;
-                                    else if (primitive === 'line strip')
-                                        mode = this.gl.LINE_STRIP;
-                                    else
-                                        console.error('unknown primitive', primitive)
-                                    if (mode !== undefined)
-                                        this.gl.drawArrays(mode, 0, this.buffer.count);
-                                });
+            addAttributes(() => {
+                setBuffer(() => {
+                    if (next)
+                        return next();
+                    if (!this.program || !this.buffer)
+                        return;
+                    this.program.useUniforms(this, uniforms, () => {
+                        useBuffer(() => {
+                            useAttrs(() => {
+                                let mode;
+                                if (primitive === 'triangles')
+                                    mode = this.gl.TRIANGLES;
+                                else if (primitive === 'lines')
+                                    mode = this.gl.LINES;
+                                else if (primitive === 'line strip')
+                                    mode = this.gl.LINE_STRIP;
+                                else
+                                    console.error('unknown primitive', primitive)
+                                if (mode !== undefined)
+                                    this.gl.drawArrays(mode, 0, this.buffer.count);
                             });
                         });
                     });
@@ -420,3 +418,5 @@ export default class DrawCommands {
             this.regl._refresh();
     }
 };
+
+export default DrawCommands;

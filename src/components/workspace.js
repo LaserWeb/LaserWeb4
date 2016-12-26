@@ -25,7 +25,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
-import DrawCommands from '../draw-commands'
+import { DrawCommands, simple2d } from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
@@ -204,13 +204,16 @@ class FloatingControls extends React.Component {
 
 const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
 
-function drawDocuments(drawCommands, documentCacheHolder) {
+function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
             drawCommands.noDepth(() => {
                 drawCommands.blendAlpha(() => {
+                    // if (!cachedDocument.drawTriangles)
+                    //     cachedDocument.drawTriangles = simple2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
                     drawCommands.simple2d({
+                        perspective, view,
                         position: cachedDocument.triangles,
                         scale: document.scale,
                         translate: document.translate,
@@ -219,8 +222,11 @@ function drawDocuments(drawCommands, documentCacheHolder) {
                         offset: 0,
                         count: cachedDocument.triangles.length / 2,
                     });
+                    // if (!cachedDocument.drawOutlines)
+                    //     cachedDocument.drawOutlines = simple2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
                     for (let o of cachedDocument.outlines)
                         drawCommands.simple2d({
+                            perspective, view,
                             position: o,
                             scale: document.scale,
                             translate: document.translate,
@@ -382,6 +388,7 @@ class WorkspaceContent extends React.Component {
         });
         this.useHitTestFrameBuffer = this.regl({ framebuffer: this.hitTestFrameBuffer })
         this.drawCommands = new DrawCommands(this.regl);
+        this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.props.documentCacheHolder.regl = this.regl;
 
         this.regl.frame(() => {
@@ -392,26 +399,26 @@ class WorkspaceContent extends React.Component {
             this.drawCommands.viewportWidth = this.props.width;
             this.drawCommands.viewportHeight = this.props.height;
             this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+                //this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
                 if (this.props.workspace.showDocuments)
-                    drawDocuments(this.drawCommands, this.props.documentCacheHolder);
-                if (this.props.workspace.showLaser) {
-                    this.drawCommands.noDepth(() => {
-                        this.props.laserPreview.draw(this.drawCommands, {
-                            diameter: this.props.settings.machineBeamDiameter,
-                            gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
-                            g0Rate: this.props.workspace.g0Rate,
-                            simTime: this.props.workspace.simTime,
-                        });
-                    });
-                }
-                if (this.props.workspace.showGcode) {
-                    this.drawCommands.noDepth(() => {
-                        this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
-                    });
-                }
-                if (this.props.workspace.showDocuments)
-                    drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
+                    drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                // if (this.props.workspace.showLaser) {
+                //     this.drawCommands.noDepth(() => {
+                //         this.props.laserPreview.draw(this.drawCommands, {
+                //             diameter: this.props.settings.machineBeamDiameter,
+                //             gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
+                //             g0Rate: this.props.workspace.g0Rate,
+                //             simTime: this.props.workspace.simTime,
+                //         });
+                //     });
+                // }
+                // if (this.props.workspace.showGcode) {
+                //     this.drawCommands.noDepth(() => {
+                //         this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
+                //     });
+                // }
+                // if (this.props.workspace.showDocuments)
+                //     drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
             });
             //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
         });
@@ -458,6 +465,7 @@ class WorkspaceContent extends React.Component {
     }
 
     hitTest(pageX, pageY) {
+        return;
         if (!this.canvas || !this.regl || !this.drawCommands)
             return;
         this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
