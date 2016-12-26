@@ -62,7 +62,6 @@ export class DocumentCacheHolder extends React.Component {
                 if (!cachedDocument.used) {
                     cachedDocument.image = null;
                     cachedDocument.drawCommands = null;
-                    cachedDocument.regl = null;
                     if (cachedDocument.texture)
                         cachedDocument.texture.destroy();
                 }
@@ -98,11 +97,11 @@ export class DocumentCacheHolder extends React.Component {
             }
         } else if (document.type === 'image') {
             let updateTexture = () => {
-                if (this.regl && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.regl !== this.regl)) {
+                if (this.drawCommands && cachedDocument.imageLoaded && (!cachedDocument.texture || cachedDocument.drawCommands !== this.drawCommands)) {
                     if (cachedDocument.texture)
                         cachedDocument.texture.destroy();
-                    cachedDocument.regl = this.regl;
-                    cachedDocument.texture = this.regl.texture(cachedDocument.image);
+                    cachedDocument.drawCommands = this.drawCommands;
+                    cachedDocument.texture = this.drawCommands.texture(cachedDocument.image);
                     cachedDocument.bounds = {
                         x1: 0,
                         y1: 0,

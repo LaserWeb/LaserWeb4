@@ -18,43 +18,6 @@ import { gcode } from './GcodePreview';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
-function camera(drawCommands) {
-    let r = drawCommands.regl({
-        uniforms: {
-            perspective: drawCommands.regl.prop('perspective'),
-            view: drawCommands.regl.prop('view'),
-        }
-    });
-    return ({perspective, view}, next) => {
-        drawCommands.execute({
-            uniforms: { perspective, view },
-            next: () => r({ perspective, view }, next),
-        });
-    };
-}
-
-function noDepth(regl) {
-    return regl({
-        depth: {
-            enable: false,
-        }
-    });
-}
-
-function blendAlpha(regl) {
-    return regl({
-        blend: {
-            enable: true,
-            func: {
-                srcRGB: 'src alpha',
-                srcAlpha: 1,
-                dstRGB: 'one minus src alpha',
-                dstAlpha: 1
-            },
-        },
-    });
-}
-
 function image(regl) {
     return regl({
         vert: `
@@ -96,26 +59,25 @@ function image(regl) {
 }
 
 export class DrawCommands {
-    constructor(regl) {
-        this.regl = regl;
-        this.gl = regl._gl;
+    constructor(gl) {
+        this.gl = gl;
+        this.EXT_blend_minmax = gl.getExtension('EXT_blend_minmax');
+        this.WEBGL_lose_context = gl.getExtension('WEBGL_lose_context');
         this.glBuffer = this.gl.createBuffer(); // !!! leak
-        this.viewportWidth = 0;
-        this.viewportHeight = 0;
         this.time = 0;
-        this.nest = 0;
         this.uniforms = {};
         this.attributes = {};
 
-        this.camera = camera(this);
-        this.noDepth = noDepth(regl);
-        this.blendAlpha = blendAlpha(regl);
         this.basic = basic(this);
         this.basic2d = basic2d(this);
-        this.image = image(regl);
+        //this.image = image(this);
         this.thickLines = thickLines(this);
-        this.gcode = gcode(regl);
-        this.laser = laser(regl);
+        //this.gcode = gcode(this);
+        //this.laser = laser(this);
+    }
+
+    destroy() {
+        this.WEBGL_lose_context.loseContext();
     }
 
     createBuffer(data) {
@@ -207,11 +169,9 @@ export class DrawCommands {
                     console.error('uniform', uniform.name, 'type', uniform.type.toString(16), 'size', uniform.size, 'unhandled');
                     continue;
             }
-
             // body += 'console.log(this);\n';
             // body += 'console.log(this.uniforms, "' + uniform.name + '");\n';
             // body += 'console.log(this.' + uniform.name + '_location);\n';
-
             body += 'if (' + uniform.name + ' !== this.' + uniform.name + ') {\n';
             body += '    ' + set;
             body += '    this.' + uniform.name + ' = ' + uniform.name + ';\n';
@@ -238,25 +198,14 @@ export class DrawCommands {
     }
 
     execute({program, primitive, uniforms, buffer, attributes, next}) {
-        let useProgram = next => {
-            let old = this.program;
-            if (program) {
-                this.program = program;
-                this.gl.useProgram(program.program);
-            }
-            next();
-            if (program) {
-                this.program = old;
-                this.gl.useProgram(old ? old.program : null);
-            }
-        };
-
         let useBuffer = next => {
             if (buffer.data.isBuffer) {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.data.buffer);
                 next();
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
             } else {
+                if (!buffer.data.length)
+                    return;
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
                 this.gl.bufferData(this.gl.ARRAY_BUFFER, buffer.data, this.gl.DYNAMIC_DRAW);
                 next();
@@ -264,15 +213,18 @@ export class DrawCommands {
             }
         };
 
-        ++this.nest;
+        let useProgram = next => {
+            this.gl.useProgram(program.program);
+            next();
+            this.gl.useProgram(null);
+        };
+
         if (next)
-            return next();
-        useProgram(() => {
-            if (!this.program || !buffer)
-                return;
-            useBuffer(() => {
-                this.program.useUniforms(this, uniforms, () => {
-                    this.program.useAttrs(this, buffer.stride, buffer.offset, () => {
+            return next(); // !!!
+        useBuffer(() => {
+            useProgram(() => {
+                program.useUniforms(this, uniforms, () => {
+                    program.useAttrs(this, buffer.stride, buffer.offset, () => {
                         let mode;
                         if (primitive === 'triangles')
                             mode = this.gl.TRIANGLES;
@@ -288,10 +240,6 @@ export class DrawCommands {
                 });
             });
         });
-        --this.nest;
-
-        if (!this.nest)
-            this.regl._refresh();
     }
 };
 

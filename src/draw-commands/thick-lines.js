@@ -88,8 +88,8 @@ export function thickLines(drawCommands) {
             program,
             primitive: 'triangles',
             uniforms: {
-                viewportWidth: drawCommands.viewportWidth,
-                viewportHeight: drawCommands.viewportHeight,
+                viewportWidth: drawCommands.gl.drawingBufferWidth,
+                viewportHeight: drawCommands.gl.drawingBufferHeight,
                 time: (Date.now() - startTime) / 1000,
                 scale,
                 translate,
