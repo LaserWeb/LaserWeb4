@@ -25,7 +25,8 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
-import { DrawCommands, basic2d } from '../draw-commands'
+import { DrawCommands } from '../draw-commands'
+import { basic2d } from '../draw-commands/basic'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
