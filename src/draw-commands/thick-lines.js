@@ -83,7 +83,7 @@ export function thickLines(drawCommands) {
         },
     });
     let startTime = Date.now();
-    return ({scale, translate, thickness, color1, color2, buffer}, next) => {
+    return ({scale, translate, thickness, color1, color2, buffer}) => {
         drawCommands.execute({
             program,
             primitive: 'triangles',
@@ -103,7 +103,6 @@ export function thickLines(drawCommands) {
                 offset: 0,
                 count: buffer.length / drawStride,
             },
-            next,
         });
     };
 } // thickLines

@@ -35,7 +35,7 @@ export function basic(drawCommands) {
             position: { offset: 0 },
         },
     });
-    return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
+    return ({perspective, view, scale, translate, color, primitive, position, offset, count}) => {
         drawCommands.execute({
             program,
             primitive,
@@ -46,7 +46,6 @@ export function basic(drawCommands) {
                 offset: offset * 12,
                 count,
             },
-            next,
         });
     };
 }
@@ -73,7 +72,7 @@ export function basic2d(drawCommands) {
             position: { offset: 0 },
         },
     });
-    return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
+    return ({perspective, view, scale, translate, color, primitive, position, offset, count}) => {
         drawCommands.execute({
             program,
             primitive,
@@ -84,7 +83,6 @@ export function basic2d(drawCommands) {
                 offset: offset * 8,
                 count,
             },
-            next,
         });
     };
 }

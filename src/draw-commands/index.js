@@ -233,7 +233,7 @@ export class DrawCommands {
             teardown += 'drawCommands.gl.disableVertexAttribArray(' + i + ');\n';
         }
         let body = setup + 'next();\n' + teardown;
-        console.log(body);
+        //console.log(body);
         program.useAttrs = new Function('drawCommands', 'stride', 'offset', 'next', body);
     }
 
@@ -251,49 +251,39 @@ export class DrawCommands {
             }
         };
 
-        let setBuffer = next => {
-            let old = this.buffer;
-            if (buffer)
-                this.buffer = buffer;
-            next();
-            this.buffer = old;
-        };
-
         let useBuffer = next => {
-            if (this.buffer.data.isBuffer) {
-                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer.data.buffer);
+            if (buffer.data.isBuffer) {
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.data.buffer);
                 next();
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
             } else {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glBuffer);
-                this.gl.bufferData(this.gl.ARRAY_BUFFER, this.buffer.data, this.gl.DYNAMIC_DRAW);
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, buffer.data, this.gl.DYNAMIC_DRAW);
                 next();
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
             }
         };
 
         ++this.nest;
+        if (next)
+            return next();
         useProgram(() => {
-            setBuffer(() => {
-                if (next)
-                    return next();
-                if (!this.program || !this.buffer)
-                    return;
+            if (!this.program || !buffer)
+                return;
+            useBuffer(() => {
                 this.program.useUniforms(this, uniforms, () => {
-                    useBuffer(() => {
-                        this.program.useAttrs(this, this.buffer.stride, this.buffer.offset, () => {
-                            let mode;
-                            if (primitive === 'triangles')
-                                mode = this.gl.TRIANGLES;
-                            else if (primitive === 'lines')
-                                mode = this.gl.LINES;
-                            else if (primitive === 'line strip')
-                                mode = this.gl.LINE_STRIP;
-                            else
-                                console.error('unknown primitive', primitive)
-                            if (mode !== undefined)
-                                this.gl.drawArrays(mode, 0, this.buffer.count);
-                        });
+                    this.program.useAttrs(this, buffer.stride, buffer.offset, () => {
+                        let mode;
+                        if (primitive === 'triangles')
+                            mode = this.gl.TRIANGLES;
+                        else if (primitive === 'lines')
+                            mode = this.gl.LINES;
+                        else if (primitive === 'line strip')
+                            mode = this.gl.LINE_STRIP;
+                        else
+                            console.error('unknown primitive', primitive)
+                        if (mode !== undefined)
+                            this.gl.drawArrays(mode, 0, buffer.count);
                     });
                 });
             });
