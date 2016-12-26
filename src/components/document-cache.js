@@ -101,7 +101,7 @@ export class DocumentCacheHolder extends React.Component {
                     if (cachedDocument.texture)
                         cachedDocument.texture.destroy();
                     cachedDocument.drawCommands = this.drawCommands;
-                    cachedDocument.texture = this.drawCommands.texture(cachedDocument.image);
+                    cachedDocument.texture = this.drawCommands.createTexture(cachedDocument.image);
                     cachedDocument.bounds = {
                         x1: 0,
                         y1: 0,

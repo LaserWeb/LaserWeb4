@@ -15,48 +15,9 @@
 
 import { basic, basic2d } from './basic';
 import { gcode } from './GcodePreview';
+import { image } from './image';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
-
-function image(regl) {
-    return regl({
-        vert: `
-            precision mediump float;
-            uniform mat4 perspective; 
-            uniform mat4 view;
-            uniform vec3 translate;
-            uniform vec2 size;
-            attribute vec2 position;
-            varying vec2 coord;
-            void main() {
-                coord = position;
-                gl_Position = perspective * view * vec4(vec3(position * size, 0) + translate, 1);
-            }`,
-        frag: `
-            precision mediump float;
-            uniform sampler2D texture;
-            uniform bool selected;
-            varying vec2 coord;
-            void main() {
-                vec4 tex = texture2D(texture, vec2(coord.x, 1.0 - coord.y), 0.0);
-                if(selected)
-                    tex = mix(tex, vec4(0.0, 0.0, 1.0, 1.0), .5);
-                gl_FragColor = tex;
-            }`,
-        attributes: {
-            position: [[0, 0], [1, 0], [1, 1], [1, 1], [0, 1], [0, 0]],
-        },
-        uniforms: {
-            translate: regl.prop('translate'),
-            size: regl.prop('size'),
-            texture: regl.prop('texture'),
-            selected: regl.prop('selected'),
-        },
-        primitive: 'triangles',
-        offset: 0,
-        count: 6,
-    });
-}
 
 export class DrawCommands {
     constructor(gl) {
@@ -65,12 +26,13 @@ export class DrawCommands {
         this.WEBGL_lose_context = gl.getExtension('WEBGL_lose_context');
         this.glBuffer = this.gl.createBuffer();
         this.buffers = [this.glBuffer];
+        this.textures = [];
         this.shaders = [];
         this.programs = [];
 
         this.basic = basic(this);
         this.basic2d = basic2d(this);
-        //this.image = image(this);
+        this.image = image(this);
         this.thickLines = thickLines(this);
         this.gcode = gcode(this);
         this.laser = laser(this);
@@ -79,6 +41,8 @@ export class DrawCommands {
     destroy() {
         for (let buffer of this.buffers)
             this.gl.deleteBuffer(buffer);
+        for (let texture of this.textures)
+            this.gl.deleteTexture(texture);
         for (let program of this.programs)
             this.gl.deleteProgram(program);
         for (let shader of this.shaders)
@@ -104,6 +68,29 @@ export class DrawCommands {
             },
         };
         result.setData(data);
+        return result;
+    }
+
+    createTexture(image) {
+        let texture = this.gl.createTexture();
+        this.textures.push(texture);
+        let result = {
+            texture,
+            drawCommands: this,
+            setImage(image) {
+                let gl = this.drawCommands.gl;
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            },
+            destroy() {
+                this.drawCommands.gl.deleteTexture(this.texture);
+            },
+        };
+        result.setImage(image);
         return result;
     }
 
@@ -164,28 +151,36 @@ export class DrawCommands {
     generateUseUniforms(program) {
         let {uniforms} = program;
         let body = 'let {' + uniforms.map(u => u.name) + '} = props;\n';
+        body += 'let gl = drawCommands.gl;\n';
+        let numTextures = 0;
         for (let uniform of uniforms) {
             program[uniform.name + '_location'] = uniform.location;
             let set;
             switch (uniform.type) {
                 case this.gl.BOOL:
-                    set = 'drawCommands.gl.uniform1i(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    set = 'gl.uniform1i(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT:
-                    set = 'drawCommands.gl.uniform1f(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    set = 'gl.uniform1f(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT_VEC2:
-                    set = 'drawCommands.gl.uniform2fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    set = 'gl.uniform2fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT_VEC3:
-                    set = 'drawCommands.gl.uniform3fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    set = 'gl.uniform3fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT_VEC4:
-                    set = 'drawCommands.gl.uniform4fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    set = 'gl.uniform4fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT_MAT4:
-                    set = 'drawCommands.gl.uniformMatrix4fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
+                    set = 'gl.uniformMatrix4fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
                     break;
+                case this.gl.SAMPLER_2D:
+                    body += 'gl.activeTexture(' + (this.gl.TEXTURE0 + numTextures) + ');\n';
+                    body += 'gl.bindTexture(gl.TEXTURE_2D, ' + uniform.name + '.texture);\n';
+                    body += 'gl.uniform1i(this.' + uniform.name + '_location, ' + numTextures + ');\n';
+                    ++numTextures;
+                    continue;
                 default:
                     console.error('uniform', uniform.name, 'type', uniform.type.toString(16), 'size', uniform.size, 'unhandled');
                     continue;
@@ -199,6 +194,10 @@ export class DrawCommands {
             body += '}\n';
         }
         body += 'next();\n';
+        for (let i = 0; i < numTextures; ++i) {
+            body += 'drawCommands.gl.activeTexture(' + (this.gl.TEXTURE0 + i) + ');\n';
+            body += 'drawCommands.gl.bindTexture(gl.TEXTURE_2D, null);\n';
+        }
         //console.log(body);
         program.useUniforms = new Function('drawCommands', 'props', 'next', body);
     }

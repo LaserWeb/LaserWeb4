@@ -26,7 +26,6 @@ import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import { DrawCommands } from '../draw-commands'
-import { basic2d } from '../draw-commands/basic'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
@@ -209,8 +208,6 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-            // if (!cachedDocument.drawTriangles)
-            //     cachedDocument.drawTriangles = basic2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
             drawCommands.basic2d({
                 perspective, view,
                 position: cachedDocument.triangles,
@@ -221,8 +218,6 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                 offset: 0,
                 count: cachedDocument.triangles.length / 2,
             });
-            // if (!cachedDocument.drawOutlines)
-            //     cachedDocument.drawOutlines = basic2d(drawCommands); // !!! leak !!! regen when drawCommands replaced
             for (let o of cachedDocument.outlines)
                 drawCommands.basic2d({
                     perspective, view,
@@ -237,7 +232,8 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
         } else if (document.type === 'image') {
             if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
                 drawCommands.image({
-                    translate: document.translate,
+                    perspective, view,
+                    location: document.translate,
                     size: [
                         cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
                         cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
