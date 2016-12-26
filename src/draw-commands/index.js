@@ -126,7 +126,7 @@ export class DrawCommands {
         return { buffer, isBuffer: true };
     }
 
-    compile({vert, frag}) {
+    compile({vert, frag, attrs}) {
         let comp = (type, source) => {
             let shader = this.gl.createShader(type); // !!! leak
             this.gl.shaderSource(shader, source);
@@ -155,7 +155,7 @@ export class DrawCommands {
             uniforms.push({ name, size, type, location: this.gl.getUniformLocation(program, name) });
         }
         let numAttrs = this.gl.getProgramParameter(program, this.gl.ACTIVE_ATTRIBUTES);
-        let attributes = [];
+        let result = { program, uniforms, attrs: [] };
         for (let i = 0; i < numAttrs; ++i) {
             let {name, size, type} = this.gl.getActiveAttrib(program, i);
             if (type == this.gl.FLOAT_VEC2) {
@@ -166,14 +166,20 @@ export class DrawCommands {
                 type = this.gl.FLOAT;
                 size = 3;
             }
-            attributes.push({ name, size, type });
+            let attr = attrs[name];
+            if (!attr) {
+                console.error('missing attr', name);
+                return;
+            }
+            result.attrs.push({ ...attr, name, size, type });
         }
-        let result = { program, uniforms, attributes };
-        this.generateUseUniforms(result, uniforms);
+        this.generateUseUniforms(result);
+        this.generateUseAttrs(result);
         return result;
     }
 
-    generateUseUniforms(program, uniforms) {
+    generateUseUniforms(program) {
+        let {uniforms} = program;
         let body = 'let {' + uniforms.map(u => u.name) + '} = props;\n';
         for (let uniform of uniforms) {
             program[uniform.name + '_location'] = uniform.location;
@@ -212,8 +218,23 @@ export class DrawCommands {
             body += '}\n';
         }
         body += 'next();\n';
-        console.log(body);
+        //console.log(body);
         program.useUniforms = new Function('drawCommands', 'props', 'next', body);
+    }
+
+    generateUseAttrs(program) {
+        let {attrs} = program;
+        let setup = '';
+        let teardown = '';
+        for (let i = 0; i < attrs.length; ++i) {
+            let attr = attrs[i];
+            setup += 'drawCommands.gl.vertexAttribPointer(' + i + ', ' + attr.size + ', ' + attr.type + ', false, stride, offset + ' + attr.offset + ');\n';
+            setup += 'drawCommands.gl.enableVertexAttribArray(' + i + ');\n';
+            teardown += 'drawCommands.gl.disableVertexAttribArray(' + i + ');\n';
+        }
+        let body = setup + 'next();\n' + teardown;
+        console.log(body);
+        program.useAttrs = new Function('drawCommands', 'stride', 'offset', 'next', body);
     }
 
     execute({program, primitive, uniforms, buffer, attributes, next}) {
@@ -228,14 +249,6 @@ export class DrawCommands {
                 this.program = old;
                 this.gl.useProgram(old ? old.program : null);
             }
-        };
-
-        let addAttributes = next => {
-            let old = this.attributes;
-            if (attributes)
-                this.attributes = { ...old, ...attributes };
-            next();
-            this.attributes = old;
         };
 
         let setBuffer = next => {
@@ -259,46 +272,27 @@ export class DrawCommands {
             }
         };
 
-        let useAttrs = next => {
-            for (let i = 0; i < this.program.attributes.length; ++i) {
-                let attr = this.program.attributes[i];
-                let v = this.attributes[attr.name];
-                if (v === undefined) {
-                    console.error('attribute', uniform.name, 'missing');
-                    continue;
-                }
-                this.gl.vertexAttribPointer(
-                    i, attr.size, attr.type, false, this.buffer.stride, this.buffer.offset + v.offset);
-                this.gl.enableVertexAttribArray(i);
-            }
-            next();
-            for (let i = 0; i < this.program.attributes.length; ++i)
-                this.gl.disableVertexAttribArray(i);
-        };
-
         ++this.nest;
         useProgram(() => {
-            addAttributes(() => {
-                setBuffer(() => {
-                    if (next)
-                        return next();
-                    if (!this.program || !this.buffer)
-                        return;
-                    this.program.useUniforms(this, uniforms, () => {
-                        useBuffer(() => {
-                            useAttrs(() => {
-                                let mode;
-                                if (primitive === 'triangles')
-                                    mode = this.gl.TRIANGLES;
-                                else if (primitive === 'lines')
-                                    mode = this.gl.LINES;
-                                else if (primitive === 'line strip')
-                                    mode = this.gl.LINE_STRIP;
-                                else
-                                    console.error('unknown primitive', primitive)
-                                if (mode !== undefined)
-                                    this.gl.drawArrays(mode, 0, this.buffer.count);
-                            });
+            setBuffer(() => {
+                if (next)
+                    return next();
+                if (!this.program || !this.buffer)
+                    return;
+                this.program.useUniforms(this, uniforms, () => {
+                    useBuffer(() => {
+                        this.program.useAttrs(this, this.buffer.stride, this.buffer.offset, () => {
+                            let mode;
+                            if (primitive === 'triangles')
+                                mode = this.gl.TRIANGLES;
+                            else if (primitive === 'lines')
+                                mode = this.gl.LINES;
+                            else if (primitive === 'line strip')
+                                mode = this.gl.LINE_STRIP;
+                            else
+                                console.error('unknown primitive', primitive)
+                            if (mode !== undefined)
+                                this.gl.drawArrays(mode, 0, this.buffer.count);
                         });
                     });
                 });

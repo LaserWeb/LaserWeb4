@@ -31,6 +31,9 @@ export function basic(drawCommands) {
             void main() {
                 gl_FragColor = color;
             }`,
+        attrs: {
+            position: { offset: 0 },
+        },
     });
     return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
         drawCommands.execute({
@@ -42,9 +45,6 @@ export function basic(drawCommands) {
                 stride: 12,
                 offset: offset * 12,
                 count,
-            },
-            attributes: {
-                position: { offset: 0 },
             },
             next,
         });
@@ -69,6 +69,9 @@ export function basic2d(drawCommands) {
             void main() {
                 gl_FragColor = color;
             }`,
+        attrs: {
+            position: { offset: 0 },
+        },
     });
     return ({perspective, view, scale, translate, color, primitive, position, offset, count}, next) => {
         drawCommands.execute({
@@ -80,9 +83,6 @@ export function basic2d(drawCommands) {
                 stride: 8,
                 offset: offset * 8,
                 count,
-            },
-            attributes: {
-                position: { offset: 0 },
             },
             next,
         });

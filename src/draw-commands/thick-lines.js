@@ -76,6 +76,11 @@ export function thickLines(drawCommands) {
                 else
                     gl_FragColor = color2;
             }`,
+        attrs: {
+            p1: { offset: 0 },
+            p2: { offset: 12 },
+            vertex: { offset: 24 },
+        },
     });
     let startTime = Date.now();
     return ({scale, translate, thickness, color1, color2, buffer}, next) => {
@@ -97,11 +102,6 @@ export function thickLines(drawCommands) {
                 stride: drawStride * 4,
                 offset: 0,
                 count: buffer.length / drawStride,
-            },
-            attributes: {
-                p1: { offset: 0 },
-                p2: { offset: 12 },
-                vertex: { offset: 24 },
             },
             next,
         });
