@@ -258,6 +258,7 @@ export const fields = {
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
+    lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
     toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
@@ -298,7 +299,7 @@ export const types = {
     'Laser Cut': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'union', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'lineDistance', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Raster': { allowTabs: false, tabFields: false, fields: ['laserPower', 'laserDiameter', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal',] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'plungeRate', 'cutRate'] },

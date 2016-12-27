@@ -169,7 +169,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
     } else if (op.type === 'Laser Fill Path') {
         if (op.margin)
             geometry = offset(geometry, -op.margin * mmToClipperScale);
-        camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale);
+        camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale, op.lineAngle);
     }
 
     reduceCamPaths(camPaths, .5 * mmToClipperScale);
