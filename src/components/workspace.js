@@ -301,44 +301,43 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
     }
 } // drawSelectedDocuments
 
-function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
+function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-            drawCommands.noDepth(() => {
-                drawCommands.basic2d({
-                    position: cachedDocument.triangles,
-                    scale: document.scale,
-                    translate: document.translate,
-                    color,
-                    primitive: 'triangles',
-                    offset: 0,
-                    count: cachedDocument.triangles.length / 2,
-                });
-                for (let o of cachedDocument.thickOutlines)
-                    drawCommands.thickLines({
-                        buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
-                        thickness: 10,
-                        color1: color,
-                        color2: color,
-                    })
+            drawCommands.basic2d({
+                perspective, view,
+                position: cachedDocument.triangles,
+                scale: document.scale,
+                translate: document.translate,
+                color,
+                primitive: 'triangles',
+                offset: 0,
+                count: cachedDocument.triangles.length / 2,
             });
-        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
-            drawCommands.noDepth(() => {
-                let w = cachedDocument.image.width / document.dpi * 25.4;
-                let h = cachedDocument.image.height / document.dpi * 25.4;
-                drawCommands.basic({
-                    position: [[0, 0, 0], [w, 0, 0], [w, h, 0], [w, h, 0], [0, h, 0], [0, 0, 0]],
+            for (let o of cachedDocument.thickOutlines)
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: o,
                     scale: document.scale,
                     translate: document.translate,
-                    color,
-                    primitive: 'triangles',
-                    offset: 0,
-                    count: 6,
-                });
+                    thickness: 10,
+                    color1: color,
+                    color2: color,
+                })
+        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+            let w = cachedDocument.image.width / document.dpi * 25.4;
+            let h = cachedDocument.image.height / document.dpi * 25.4;
+            drawCommands.basic2d({
+                perspective, view,
+                position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
+                scale: document.scale,
+                translate: document.translate,
+                color,
+                primitive: 'triangles',
+                offset: 0,
+                count: 6,
             });
         }
     }
@@ -368,15 +367,10 @@ class WorkspaceContent extends React.Component {
         if (!canvas)
             return;
 
-        let gl = canvas.getContext('experimental-webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+        let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
         this.drawCommands = new DrawCommands(gl);
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
-
-        // this.hitTestFrameBuffer = this.regl.framebuffer({
-        //     width: this.props.width,
-        //     height: this.props.height,
-        // });
-        // this.useHitTestFrameBuffer = this.regl({ framebuffer: this.hitTestFrameBuffer })
+        this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -387,7 +381,6 @@ class WorkspaceContent extends React.Component {
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
-
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
@@ -454,26 +447,22 @@ class WorkspaceContent extends React.Component {
     }
 
     hitTest(pageX, pageY) {
-        return;
-        if (!this.canvas || !this.regl || !this.drawCommands)
+        if (!this.canvas || !this.drawCommands || !this.props.workspace.showDocuments)
             return;
-        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
-
         let result;
-        this.useHitTestFrameBuffer(() => {
-            this.regl.clear({
-                color: [0, 0, 0, 0],
-                depth: 1
-            })
-            this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                if (this.props.workspace.showDocuments)
-                    drawDocumentsHitTest(this.drawCommands, this.props.documentCacheHolder);
-            });
+        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
+        this.drawCommands.useFrameBuffer(this.hitTestFrameBuffer, () => {
+            let {gl} = this.drawCommands;
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
             let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
             if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
-                let pixel = this.regl.read({ x, y, width: 1, height: 1 });
+                drawDocumentsHitTest(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                let pixel = new Uint8Array(4);
+                gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
                 let hitTestId = (pixel[0] << 24) | (pixel[1] << 16) | (pixel[2] << 8) | pixel[3];
                 for (let cachedDocument of this.props.documentCacheHolder.cache.values())
                     if (cachedDocument.hitTestId === hitTestId)

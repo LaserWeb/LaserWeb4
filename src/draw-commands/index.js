@@ -27,6 +27,7 @@ export class DrawCommands {
         this.glBuffer = this.gl.createBuffer();
         this.buffers = [this.glBuffer];
         this.textures = [];
+        this.frameBuffers = [];
         this.shaders = [];
         this.programs = [];
 
@@ -45,6 +46,8 @@ export class DrawCommands {
             this.gl.deleteTexture(texture);
         for (let program of this.programs)
             this.gl.deleteProgram(program);
+        for (let frameBuffer of this.frameBuffers)
+            this.gl.deleteFramebuffer(frameBuffer);
         for (let shader of this.shaders)
             this.gl.deleteShader(shader);
         if (this.WEBGL_lose_context)
@@ -71,16 +74,19 @@ export class DrawCommands {
         return result;
     }
 
-    createTexture(image) {
+    createTexture(props) {
         let texture = this.gl.createTexture();
         this.textures.push(texture);
         let result = {
             texture,
             drawCommands: this,
-            setImage(image) {
+            set({image, width, height}) {
                 let gl = this.drawCommands.gl;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                if (image)
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                else
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -90,8 +96,35 @@ export class DrawCommands {
                 this.drawCommands.gl.deleteTexture(this.texture);
             },
         };
-        result.setImage(image);
+        result.set(props);
         return result;
+    }
+
+    createFrameBuffer(width, height) {
+        let frameBuffer = this.gl.createFramebuffer();
+        this.frameBuffers.push(frameBuffer);
+        let texture = this.createTexture({ width, height });
+        let result = {
+            frameBuffer,
+            texture,
+            resize(width, height) {
+                this.texture.set({ width, height });
+            },
+            destroy() {
+                this.drawCommands.gl.deleteFramebuffer(this.frameBuffer);
+            },
+        };
+        this.useFrameBuffer(result, () => {
+            this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture.texture, 0);
+        });
+        return result;
+    }
+
+    useFrameBuffer(frameBuffer, next) {
+        let old = this.gl.getParameter(this.gl.FRAMEBUFFER_BINDING);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer.frameBuffer);
+        next();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, old);
     }
 
     compile({vert, frag, attrs}) {
@@ -258,7 +291,7 @@ export class DrawCommands {
                 });
             });
         });
-    }
-};
+    } // execute
+}; // DrawCommands
 
 export default DrawCommands;
