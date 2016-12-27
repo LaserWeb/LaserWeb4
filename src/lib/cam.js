@@ -16,6 +16,7 @@
 'use strict';
 
 import ClipperLib from 'clipper-lib';
+import { mat3, vec2 } from 'gl-matrix';
 
 import { diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
 
@@ -238,20 +239,37 @@ export function cut(geometry, openGeometry, climb) {
     return result;
 };
 
-export function fillPath(geometry, lineDistance) {
+export function fillPath(geometry, lineDistance, angle) {
     if (!geometry.length || !geometry[0].length)
         return [];
     let bounds = clipperBounds(geometry);
-    let allPaths = [];
-    for (let y = bounds.minY; y <= bounds.maxY; y += lineDistance) {
-        let separated = separateTabs(
-            [{ X: bounds.minX, Y: y }, { X: bounds.maxX, Y: y }],
-            geometry);
-        for (let i = 1; i < separated.length; i += 2)
-            allPaths.push(separated[i]);
+    let cx = (bounds.minX + bounds.maxX) / 2;
+    let cy = (bounds.minY + bounds.maxY) / 2;
+    let r = dist(cx, cy, bounds.minX, bounds.minY) + lineDistance;
+
+    let m = mat3.fromTranslation([], [cx, cy]);
+    m = mat3.rotate([], m, angle * Math.PI / 180);
+    m = mat3.translate([], m, [-cx, -cy]);
+    let makePoint = (x, y) => {
+        let p = vec2.transformMat3([], [x, y], m);
+        return { X: p[0], Y: p[1] };
     }
-    let result = mergePaths(null, allPaths);
-    return result;
+
+    let scan = [];
+    for (let y = cy - r; y < cy + r; y += lineDistance * 2) {
+        scan.push(
+            makePoint(cx - r, y),
+            makePoint(cx + r, y),
+            makePoint(cx + r, y + lineDistance),
+            makePoint(cx - r, y + lineDistance),
+        );
+    }
+
+    let allPaths = [];
+    let separated = separateTabs(scan, geometry);
+    for (let i = 1; i < separated.length; i += 2)
+        allPaths.push(separated[i]);
+    return mergePaths(null, allPaths);
 };
 
 export function vCarve(geometry, cutterAngle, passDepth) {
