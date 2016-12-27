@@ -181,20 +181,20 @@ class FloatingControls extends React.Component {
                     </tr>
                     <tr>
                         <td><span className="label label-danger">X</span></td>
-                        <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" /></td>
-                        <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" /></td>
-                        <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" /></td>
-                        <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" /></td>
+                        <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" tabIndex="1" /></td>
+                        <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" tabIndex="3" /></td>
+                        <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
+                        <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
                         <td rowSpan={2}>
                             &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
                     </td>
                     </tr>
                     <tr>
                         <td><span className="label label-success">Y</span></td>
-                        <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" /></td>
-                        <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" /></td>
-                        <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" /></td>
-                        <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" /></td>
+                        <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" tabIndex="2" /></td>
+                        <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" tabIndex="4" /></td>
+                        <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" tabIndex="6" /></td>
+                        <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" tabIndex="8" /></td>
                     </tr>
                 </tbody>
             </table>
