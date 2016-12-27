@@ -245,16 +245,21 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 } // drawDocuments
 
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
-    let selected = [];
-    let len = 0;
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (!document.selected)
             continue;
         if (document.rawPaths) {
             for (let outline of cachedDocument.thickOutlines) {
-                selected.push({ document, outline });
-                len += outline.length;
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: outline,
+                    scale: document.scale,
+                    translate: document.translate,
+                    thickness: 5,
+                    color1: [0, 0, 1, 1],
+                    color2: [1, 1, 1, 1],
+                });
             }
         } else if (document.type === 'image') {
             if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
@@ -272,32 +277,6 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 });
             break;
         }
-    }
-    if (len) {
-        let combined = new Float32Array(len);
-        let pos = 0;
-        for (let s of selected) {
-            let {scale, translate} = s.document;
-            let o = s.outline;
-            for (let i = 0; i < o.length; i += 7) {
-                combined[pos++] = o[i + 0] * scale[0] + translate[0];
-                combined[pos++] = o[i + 1] * scale[1] + translate[1];
-                combined[pos++] = 0;
-                combined[pos++] = o[i + 3] * scale[0] + translate[0];
-                combined[pos++] = o[i + 4] * scale[1] + translate[1];
-                combined[pos++] = 0;
-                combined[pos++] = o[i + 6];
-            }
-        }
-        drawCommands.thickLines({
-            perspective, view,
-            buffer: combined,
-            scale: [1, 1, 1],
-            translate: [0, 0, 0],
-            thickness: 5,
-            color1: [0, 0, 1, 1],
-            color2: [1, 1, 1, 1],
-        });
     }
 } // drawSelectedDocuments
 
