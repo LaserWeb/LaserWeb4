@@ -25,7 +25,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
-import DrawCommands from '../draw-commands'
+import { DrawCommands } from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
@@ -53,7 +53,7 @@ function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up
 }
 
 class Grid {
-    draw(drawCommands, {width, height}) {
+    draw(drawCommands, {perspective, view, width, height}) {
         if (!this.position || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
@@ -66,14 +66,12 @@ class Grid {
             for (let y = 10; y < this.height; y += 10)
                 a.push(0, y, 0, this.width, y, 0);
             a.push(0, this.height, 0, this.width, this.height, 0);
-            if (this.position)
-                this.position.destroy();
-            this.position = drawCommands.regl.buffer(new Float32Array(a));
+            this.position = new Float32Array(a);
             this.count = a.length / 3;
         }
-        drawCommands.simple({ position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
-        drawCommands.simple({ position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
-        drawCommands.simple({ position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
+        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
+        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
     }
 };
 
@@ -206,124 +204,119 @@ class FloatingControls extends React.Component {
 
 const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
 
-function drawDocuments(drawCommands, documentCacheHolder) {
+function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-            drawCommands.noDepth(() => {
-                drawCommands.blendAlpha(() => {
-                    drawCommands.simple2d({
-                        position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
-                        color: document.fillColor,
-                        primitive: 'triangles',
-                        offset: 0,
-                        count: cachedDocument.triangles.length / 2,
-                    });
-                    for (let o of cachedDocument.outlines)
-                        drawCommands.simple2d({
-                            position: o,
-                            scale: document.scale,
-                            translate: document.translate,
-                            color: document.strokeColor,
-                            primitive: 'line strip',
-                            offset: 0,
-                            count: o.length / 2,
-                        });
-                });
+            drawCommands.basic2d({
+                perspective, view,
+                position: cachedDocument.triangles,
+                scale: document.scale,
+                translate: document.translate,
+                color: document.fillColor,
+                primitive: 'triangles',
+                offset: 0,
+                count: cachedDocument.triangles.length / 2,
             });
+            for (let o of cachedDocument.outlines)
+                drawCommands.basic2d({
+                    perspective, view,
+                    position: o,
+                    scale: document.scale,
+                    translate: document.translate,
+                    color: document.strokeColor,
+                    primitive: 'line strip',
+                    offset: 0,
+                    count: o.length / 2,
+                });
         } else if (document.type === 'image') {
-            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                drawCommands.noDepth(() => {
-                    drawCommands.image({
-                        translate: document.translate,
-                        size: [
-                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                        texture: cachedDocument.texture,
-                        selected: false,
-                    });
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
+                drawCommands.image({
+                    perspective, view,
+                    location: document.translate,
+                    size: [
+                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                    texture: cachedDocument.texture,
+                    selected: false,
                 });
         }
     }
 } // drawDocuments
 
-function drawSelectedDocuments(drawCommands, documentCacheHolder) {
+function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (!document.selected)
             continue;
         if (document.rawPaths) {
-            drawCommands.noDepth(() => {
-                for (let o of cachedDocument.thickOutlines)
-                    drawCommands.thickLines({
-                        buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
-                        thickness: 5,
-                        color1: [0, 0, 1, 1],
-                        color2: [1, 1, 1, 1],
-                    })
-            });
+            for (let outline of cachedDocument.thickOutlines) {
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: outline,
+                    scale: document.scale,
+                    translate: document.translate,
+                    thickness: 5,
+                    color1: [0, 0, 1, 1],
+                    color2: [1, 1, 1, 1],
+                });
+            }
         } else if (document.type === 'image') {
-            if (cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl)
-                drawCommands.noDepth(() => {
-                    drawCommands.thickLines({
-                        buffer: thickSquare,
-                        scale: [
-                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                            1],
-                        translate: document.translate,
-                        thickness: 5,
-                        color1: [0, 0, 1, 1],
-                        color2: [1, 1, 1, 1],
-                    })
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: thickSquare,
+                    scale: [
+                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
+                        1],
+                    translate: document.translate,
+                    thickness: 5,
+                    color1: [0, 0, 1, 1],
+                    color2: [1, 1, 1, 1],
                 });
             break;
         }
     }
 } // drawSelectedDocuments
 
-function drawDocumentsHitTest(drawCommands, documentCacheHolder) {
+function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-            drawCommands.noDepth(() => {
-                drawCommands.simple2d({
-                    position: cachedDocument.triangles,
-                    scale: document.scale,
-                    translate: document.translate,
-                    color,
-                    primitive: 'triangles',
-                    offset: 0,
-                    count: cachedDocument.triangles.length / 2,
-                });
-                for (let o of cachedDocument.thickOutlines)
-                    drawCommands.thickLines({
-                        buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
-                        thickness: 10,
-                        color1: color,
-                        color2: color,
-                    })
+            drawCommands.basic2d({
+                perspective, view,
+                position: cachedDocument.triangles,
+                scale: document.scale,
+                translate: document.translate,
+                color,
+                primitive: 'triangles',
+                offset: 0,
+                count: cachedDocument.triangles.length / 2,
             });
-        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.regl === drawCommands.regl) {
-            drawCommands.noDepth(() => {
-                let w = cachedDocument.image.width / document.dpi * 25.4;
-                let h = cachedDocument.image.height / document.dpi * 25.4;
-                drawCommands.simple({
-                    position: [[0, 0, 0], [w, 0, 0], [w, h, 0], [w, h, 0], [0, h, 0], [0, 0, 0]],
+            for (let o of cachedDocument.thickOutlines)
+                drawCommands.thickLines({
+                    perspective, view,
+                    buffer: o,
                     scale: document.scale,
                     translate: document.translate,
-                    color,
-                    primitive: 'triangles',
-                    offset: 0,
-                    count: 6,
-                });
+                    thickness: 10,
+                    color1: color,
+                    color2: color,
+                })
+        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+            let w = cachedDocument.image.width / document.dpi * 25.4;
+            let h = cachedDocument.image.height / document.dpi * 25.4;
+            drawCommands.basic2d({
+                perspective, view,
+                position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
+                scale: document.scale,
+                translate: document.translate,
+                color,
+                primitive: 'triangles',
+                offset: 0,
+                count: 6,
             });
         }
     }
@@ -339,74 +332,71 @@ class WorkspaceContent extends React.Component {
         this.mouseUp = this.mouseUp.bind(this);
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
+        this.setCamera(this.props);
     }
 
     setCanvas(canvas) {
         if (this.canvas === canvas)
             return;
         this.canvas = canvas;
-        if (this.regl) {
-            this.regl.destroy();
-            this.regl = null;
+        if (this.drawCommands) {
+            this.drawCommands.destroy();
+            this.drawCommands = null;
         }
         if (!canvas)
             return;
 
-        this.regl = require('regl')({
-            canvas: ReactDOM.findDOMNode(canvas),
-            extensions: ['EXT_blend_minmax'],
-        });
-        this.hitTestFrameBuffer = this.regl.framebuffer({
-            width: this.props.width,
-            height: this.props.height,
-        });
-        this.useHitTestFrameBuffer = this.regl({ framebuffer: this.hitTestFrameBuffer })
-        this.drawCommands = new DrawCommands(this.regl);
-        this.props.documentCacheHolder.regl = this.regl;
+        let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+        this.drawCommands = new DrawCommands(gl);
+        this.props.documentCacheHolder.drawCommands = this.drawCommands;
+        this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
-        this.regl.frame(() => {
-            this.regl.clear({
-                color: [1, 1, 1, 1],
-                depth: 1
-            })
-            this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                this.grid.draw(this.drawCommands, { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
-                if (this.props.workspace.showDocuments)
-                    drawDocuments(this.drawCommands, this.props.documentCacheHolder);
-                if (this.props.workspace.showLaser) {
-                    this.drawCommands.noDepth(() => {
-                        this.props.laserPreview.draw(this.drawCommands, {
-                            diameter: this.props.settings.machineBeamDiameter,
-                            gcodeSMaxValue: this.props.settings.gcodeSMaxValue,
-                            g0Rate: this.props.workspace.g0Rate,
-                            simTime: this.props.workspace.simTime,
-                        });
-                    });
-                }
-                if (this.props.workspace.showGcode) {
-                    this.drawCommands.noDepth(() => {
-                        this.props.gcodePreview.draw(this.drawCommands, this.props.workspace);
-                    });
-                }
-                if (this.props.workspace.showDocuments)
-                    drawSelectedDocuments(this.drawCommands, this.props.documentCacheHolder);
-            });
-            //console.log(this.regl.stats.bufferCount, this.regl.stats.cubeCount, this.regl.stats.elementsCount, this.regl.stats.framebufferCount, this.regl.stats.maxTextureUnits, this.regl.stats.renderbufferCount, this.regl.stats.shaderCount, this.regl.stats.textureCount, );
-        });
+        let draw = () => {
+            if (!this.canvas)
+                return;
+            gl.viewport(0, 0, this.props.width, this.props.height);
+            gl.clearColor(1, 1, 1, 1);
+            gl.clearDepth(1);
+            gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.BLEND);
+            this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
+            if (this.props.workspace.showDocuments)
+                drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+            if (this.props.workspace.showLaser) {
+                gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
+                gl.blendFunc(gl.ONE, gl.ONE);
+                this.props.laserPreview.draw(
+                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter, this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                gl.blendEquation(gl.FUNC_ADD);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            }
+            if (this.props.workspace.showGcode)
+                this.props.gcodePreview.draw(
+                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+            if (this.props.workspace.showDocuments)
+                drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+            requestAnimationFrame(draw);
+        };
+        draw();
     }
 
     componentWillReceiveProps(nextProps) {
+        this.setCamera(nextProps);
+    }
+
+    setCamera(props) {
         this.camera =
             camera({
-                viewportWidth: nextProps.width,
-                viewportHeight: nextProps.height,
-                fovy: nextProps.camera.fovy,
+                viewportWidth: props.width,
+                viewportHeight: props.height,
+                fovy: props.camera.fovy,
                 near: .1,
                 far: 2000,
-                eye: nextProps.camera.eye,
-                center: nextProps.camera.center,
-                up: nextProps.camera.up,
-                showPerspective: nextProps.camera.showPerspective,
+                eye: props.camera.eye,
+                center: props.camera.center,
+                up: props.camera.up,
+                showPerspective: props.camera.showPerspective,
             });
     }
 
@@ -436,25 +426,22 @@ class WorkspaceContent extends React.Component {
     }
 
     hitTest(pageX, pageY) {
-        if (!this.canvas || !this.regl || !this.drawCommands)
+        if (!this.canvas || !this.drawCommands || !this.props.workspace.showDocuments)
             return;
-        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
-
         let result;
-        this.useHitTestFrameBuffer(() => {
-            this.regl.clear({
-                color: [0, 0, 0, 0],
-                depth: 1
-            })
-            this.drawCommands.camera({ perspective: this.camera.perspective, view: this.camera.view, }, () => {
-                if (this.props.workspace.showDocuments)
-                    drawDocumentsHitTest(this.drawCommands, this.props.documentCacheHolder);
-            });
+        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
+        this.drawCommands.useFrameBuffer(this.hitTestFrameBuffer, () => {
+            let {gl} = this.drawCommands;
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
             let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
             if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
-                let pixel = this.regl.read({ x, y, width: 1, height: 1 });
+                drawDocumentsHitTest(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                let pixel = new Uint8Array(4);
+                gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
                 let hitTestId = (pixel[0] << 24) | (pixel[1] << 16) | (pixel[2] << 8) | pixel[3];
                 for (let cachedDocument of this.props.documentCacheHolder.cache.values())
                     if (cachedDocument.hitTestId === hitTestId)

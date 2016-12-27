@@ -77,7 +77,7 @@ function loadSvg(state, settings, {file, content}) {
                 c.translate = [0, 0, 0];
                 c.scale = [1, 1, 1];
                 c.strokeColor = getColor(child.attrs.stroke, 0);
-                c.fillColor = getColor(child.attrs.fill, c.strokeColor[3] ? 0 : .1);
+                c.fillColor = getColor(child.attrs.fill, c.strokeColor[3] ? 0 : .3);
             } else if (child.name === 'image') {
                 let element = child.element;
                 let mat = Snap(element).transform().globalMatrix;

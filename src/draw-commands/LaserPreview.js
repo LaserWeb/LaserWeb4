@@ -16,8 +16,8 @@
 const parsedStride = 9;
 const drawStride = 11;
 
-export function laser(regl) {
-    return regl({
+export function laser(drawCommands) {
+    let program = drawCommands.compile({
         vert: `
             precision mediump float;
 
@@ -78,67 +78,31 @@ export function laser(regl) {
                     gl_FragColor = vec4(s, s, s, 1.0);
                 }
             }`,
-        attributes: {
-            p1: {
-                buffer: regl.prop('buffer'),
-                offset: 0,
-                stride: drawStride * 4,
-            },
-            p2: {
-                buffer: regl.prop('buffer'),
-                offset: 8,
-                stride: drawStride * 4,
-            },
-            g: {
-                buffer: regl.prop('buffer'),
-                offset: 16,
-                stride: drawStride * 4,
-            },
-            s: {
-                buffer: regl.prop('buffer'),
-                offset: 20,
-                stride: drawStride * 4,
-            },
-            vertex: {
-                buffer: regl.prop('buffer'),
-                offset: 24,
-                stride: drawStride * 4,
-            },
-            g0Dist0: {
-                buffer: regl.prop('buffer'),
-                offset: 28,
-                stride: drawStride * 4,
-            },
-            g0Dist1: {
-                buffer: regl.prop('buffer'),
-                offset: 32,
-                stride: drawStride * 4,
-            },
-            g1Time0: {
-                buffer: regl.prop('buffer'),
-                offset: 36,
-                stride: drawStride * 4,
-            },
-            g1Time1: {
-                buffer: regl.prop('buffer'),
-                offset: 40,
-                stride: drawStride * 4,
-            },
+        attrs: {
+            p1: { offset: 0 },
+            p2: { offset: 8 },
+            g: { offset: 16 },
+            s: { offset: 20 },
+            vertex: { offset: 24 },
+            g0Dist0: { offset: 28 },
+            g0Dist1: { offset: 32 },
+            g1Time0: { offset: 36 },
+            g1Time1: { offset: 40 },
         },
-        uniforms: {
-            g0Rate: regl.prop('g0Rate'),
-            simTime: regl.prop('simTime'),
-            radius: regl.prop('radius'),
-            gcodeSMaxValue: regl.prop('gcodeSMaxValue'),
-        },
-        blend: {
-            enable: true,
-            equation: 'min',
-        },
-        primitive: 'triangle',
-        offset: 0,
-        count: regl.prop('count')
     });
+    return ({perspective, view, g0Rate, simTime, radius, gcodeSMaxValue, data, count}) => {
+        drawCommands.execute({
+            program,
+            primitive: 'triangles',
+            uniforms: { perspective, view, g0Rate, simTime, radius, gcodeSMaxValue },
+            buffer: {
+                data,
+                stride: drawStride * 4,
+                offset: 0,
+                count,
+            },
+        });
+    };
 } // laser
 
 export class LaserPreview {
@@ -197,29 +161,32 @@ export class LaserPreview {
         }
     }
 
-    draw(drawCommands, {diameter, gcodeSMaxValue, g0Rate, simTime}) {
-        if (this.regl !== drawCommands.regl) {
-            this.regl = drawCommands.regl;
+    draw(drawCommands, perspective, view, diameter, gcodeSMaxValue, g0Rate, simTime) {
+        if (this.drawCommands !== drawCommands) {
+            this.drawCommands = drawCommands;
             if (this.buffer)
                 this.buffer.destroy();
             this.buffer = null;
         }
 
+        if (!this.array)
+            return;
+
         if (!this.buffer)
-            this.buffer = drawCommands.regl.buffer(this.array);
+            this.buffer = drawCommands.createBuffer(this.array);
         else if (this.arrayChanged)
-            this.buffer({ data: this.array });
+            this.buffer.setData(this.array);
         this.arrayChanged = false;
 
-        if (this.array) {
-            drawCommands.laser({
-                buffer: this.buffer,
-                count: this.array.length / drawStride,
-                g0Rate,
-                simTime,
-                radius: diameter / 2,
-                gcodeSMaxValue: gcodeSMaxValue,
-            });
-        }
+        drawCommands.laser({
+            perspective,
+            view,
+            g0Rate,
+            simTime,
+            radius: diameter / 2,
+            gcodeSMaxValue: gcodeSMaxValue,
+            data: this.buffer,
+            count: this.array.length / drawStride,
+        });
     }
 }; // LaserPreview
