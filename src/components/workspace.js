@@ -432,7 +432,7 @@ class WorkspaceContent extends React.Component {
         this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
         this.drawCommands.useFrameBuffer(this.hitTestFrameBuffer, () => {
             let {gl} = this.drawCommands;
-            gl.clearColor(0, 0, 0, 1);
+            gl.clearColor(1, 1, 1, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
