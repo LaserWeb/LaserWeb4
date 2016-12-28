@@ -110,7 +110,7 @@ export function thickLines(drawCommands) {
 
 // outline: [x, y,  x, y,  ...]
 export function convertOutlineToThickLines(outline) {
-    if (outline.length < 6)
+    if (outline.length < 4)
         return [];
     let array = new Float32Array((outline.length - 2) / 2 * drawStride * 6);
     for (let i = 0; i < outline.length / 2 - 1; ++i) {
