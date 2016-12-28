@@ -21,7 +21,7 @@ const reducer = compose(
 )(hot);
 
 const storage = compose(
-  filter(['settings','macros'])
+  filter(['settings','macros','machineProfiles'])
 )(adapter(window.localStorage));
 
 const middleware = compose(

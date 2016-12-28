@@ -92,7 +92,7 @@ export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, set
 export const settings = objectNoId('settings', {
     
     __version: version,
-    __currentProfile:null,
+    __selectedProfile:null,
     
     machineWidth: 300,
     machineHeight: 300,

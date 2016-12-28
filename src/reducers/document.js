@@ -6,7 +6,7 @@ import Snap from 'snapsvg-cjs';
 
 import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
-import { elementToRawPaths, flipY } from '../lib/mesh'
+import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 
 const documentBase = object('document', {
     type: '?',
@@ -45,10 +45,10 @@ function loadSvg(state, settings, {file, content}) {
     let pxPerInch = +settings.pxPerInch || 96;
     let allPositions = [];
 
-    function getColor(c, missingA) {
+    function getColor(c) {
         let sc = Snap.color(c);
         if (sc.r === -1 || sc.g === -1 || sc.b === -1)
-            return [0, 0, 0, missingA];
+            return [0, 0, 0, 0];
         else
             return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
     }
@@ -76,8 +76,13 @@ function loadSvg(state, settings, {file, content}) {
                 c.rawPaths = rawPaths;
                 c.translate = [0, 0, 0];
                 c.scale = [1, 1, 1];
-                c.strokeColor = getColor(child.attrs.stroke, 0);
-                c.fillColor = getColor(child.attrs.fill, c.strokeColor[3] ? 0 : .3);
+                c.strokeColor = getColor(child.attrs.stroke);
+                c.fillColor = getColor(child.attrs.fill);
+                if (hasClosedRawPaths(rawPaths)) {
+                    if (!c.fillColor[3] && !c.strokeColor[3])
+                        c.fillColor[3] = .3;
+                } else if (!c.strokeColor[3])
+                    c.strokeColor[3] = .3;
             } else if (child.name === 'image') {
                 let element = child.element;
                 let mat = Snap(element).transform().globalMatrix;

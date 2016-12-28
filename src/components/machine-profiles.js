@@ -1,6 +1,6 @@
 import React from 'react';
 import { dispatch, connect } from 'react-redux';
-import {FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon} from 'react-bootstrap'
+import {FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
 import { addMachineProfile, delMachineProfileId } from '../actions/settings';
 
@@ -17,6 +17,7 @@ class MachineProfile extends React.Component {
         this.handleApply.bind(this);
         this.handleSelect.bind(this);
         this.handleInput.bind(this);
+        this.handleSave.bind(this);
         
         let selected = this.props.settings.__selectedProfile || "";
         
@@ -25,8 +26,9 @@ class MachineProfile extends React.Component {
     
     handleApply(e) {
        let selected=this._getSelectedProfile()
+       let profileId = this.state.selected
        if (selected && confirm("Are you sure? Current settings will be overwritten."))
-           return this.props.onApply({__selectedProfile: this.state.selected, ...selected.settings });
+           return this.props.onApply({...selected.settings , __selectedProfile: profileId });
        
        return ;
     }
@@ -40,6 +42,11 @@ class MachineProfile extends React.Component {
     handleDelete(e){
         this.props.dispatch(delMachineProfileId(this.state.selected));
         this.setState({selected: '', newLabel:'', newSlug:''})
+    }
+    
+    handleSave(e) {
+        let currentProfile = this._getSelectedProfile();
+        this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
     }
     
     handleAppend(e){
@@ -89,24 +96,22 @@ class MachineProfile extends React.Component {
                 <FormGroup controlId="formControlsSelect">
                     <h5>Apply predefined machine profile</h5>
                     {this.state.selected ? (<small>Machine Id: <code>{this.state.selected}</code></small>):undefined}
-                    <InputGroup>
-                    <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}} value={this.state.selected} ref="select">
+                    <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}} value={this.state.selected} ref="select" className="full-width">
                       <option value="">Select a Machine Profile</option>
                       {profileOptions}
                       
                     </FormControl>
                     
-                    <InputGroup.Button>
-                        <Button bsClass="btn btn-info" onClick={(e)=>{this.handleApply(e)}}><Icon name="share" /></Button>
-                        <Button bsClass="btn btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /></Button>
-                    </InputGroup.Button>
-                    </InputGroup>
                     
                     
-                    <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
+                    <ButtonGroup>
+                        <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}}><Icon name="share" /> Apply</Button>
+                        <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}}><Icon name="save" /> Save</Button>
+                        <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
+                    </ButtonGroup>
+                     <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
                     {description}
                     </FormGroup>
-                    
                     
                     
                     <FormGroup controlId="formControlsAppend">
