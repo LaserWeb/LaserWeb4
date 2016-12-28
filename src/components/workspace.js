@@ -285,16 +285,17 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-            drawCommands.basic2d({
-                perspective, view,
-                position: cachedDocument.triangles,
-                scale: document.scale,
-                translate: document.translate,
-                color,
-                primitive: 'triangles',
-                offset: 0,
-                count: cachedDocument.triangles.length / 2,
-            });
+            if (document.fillColor[3])
+                drawCommands.basic2d({
+                    perspective, view,
+                    position: cachedDocument.triangles,
+                    scale: document.scale,
+                    translate: document.translate,
+                    color,
+                    primitive: 'triangles',
+                    offset: 0,
+                    count: cachedDocument.triangles.length / 2,
+                });
             for (let o of cachedDocument.thickOutlines)
                 drawCommands.thickLines({
                     perspective, view,
