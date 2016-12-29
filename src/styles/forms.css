@@ -7,5 +7,5 @@
 .quadrantField .area.disabled {opacity: 0.2}
 .quadrantField .area.active circle {fill: #0e3}
 
-.checkboxListField { display:flex; flex-wrap: wrap; align-items: flex-start }
-.checkboxListField > .checkbox {flex-grow:1; margin:0; padding:3px}
+.checkboxListField { max-height: 400px; overflow-y:auto; overflow-x:hidden; margin-bottom: 0.5em; border: 1px solid #eee; border-radius: 5px; padding: 0.5em }
+

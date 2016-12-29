@@ -630,3 +630,5 @@ button:hover,
     -webkit-transform: scale(0.75, 0.75); /* Safari */
     transform: scale(0.75, 0.75);
 }
+
+#ApplicationSnapshot > section {margin-bottom: 0.5em}
