@@ -2,43 +2,40 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField } from './forms';
+import stringify from 'json-stringify-pretty-compact';
+import { FileStorage, LocalStorage } from '../lib/storages';
+import update from 'immutability-helper';
+import omit from 'object.omit';
+import Validator from 'validatorjs';
+
 import { setSettingsAttrs, uploadSettings, downloadSettings, uploadMachineProfiles, downloadMachineProfiles, uploadSnapshot, downloadSnapshot, storeSnapshot, recoverSnapshot } from '../actions/settings';
+import { SETTINGS_VALIDATION_RULES, ValidateSettings } from '../reducers/settings';
 
 import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
-
-
-import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge } from 'react-bootstrap';
-
-import update from 'immutability-helper';
-
-import stringify from 'json-stringify-pretty-compact';
-
-import { FileStorage, LocalStorage } from '../lib/storages';
-
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField } from './forms';
+import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
-
-import omit from 'object.omit';
-
-import Validator from 'validatorjs';
-
-
-import { SETTINGS_VALIDATION_RULES, ValidateSettings } from '../reducers/settings';
 
 export class ApplicationSnapshot extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = { keys: [] }
-
         this.handleChange.bind(this)
-
         this.handleDownload.bind(this)
         this.handleStore.bind(this)
         this.handleRecover.bind(this)
+    }
+
+    getExportData() {
+        let keys = this.state.keys;
+        let state = this.props.state;
+        let exp = {}
+        keys.forEach((o) => { exp[o] = state[o] })
+        return exp;
     }
 
     handleChange(data) {
@@ -46,16 +43,11 @@ export class ApplicationSnapshot extends React.Component {
     }
 
     handleDownload(e) {
-        let keys = this.state.keys;
-        let state = this.props.state;
-        let exp = {}
-        keys.forEach((o) => { exp[o] = state[o] })
-
-        this.props.onDownload(e, exp)
+        this.props.onDownload(e, this.getExportData())
     }
 
     handleStore(e) {
-        this.props.onStore(e, omit(this.props.state, ['documents', 'operations', 'gcode']))
+        this.props.onStore(e, this.getExportData())
     }
 
     handleRecover(e) {
@@ -63,18 +55,23 @@ export class ApplicationSnapshot extends React.Component {
     }
 
     render() {
-
         let data = Object.keys(this.props.state);
 
         return (
-            <div>
+            <div className="well well-sm " id="ApplicationSnapshot">
                 <CheckBoxListField onChange={(data) => this.handleChange(data)} data={data} />
-                <button onClick={() => this.handleDownload()} type="button" className="btn btn-success btn-sm" aria-label="Download Snapshot">Download Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>&nbsp;
-            <FileField label="Upload Snapshot" dispatch={(e) => this.props.handleUpload(e, uploadSnapshot)} buttonClass="btn btn-danger btn-sm " icon="fa-camera" />&nbsp;
-
-            <button onClick={(e) => this.handleStore(e)} type="button" className="btn btn-success btn-sm" aria-label="Store Snapshot">Store Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>&nbsp;
-            <button onClick={(e) => this.handleRecover(e)} type="button" className="btn btn-danger btn-sm" aria-label="Recover Snapshot">Recover Snapshot <span className="fa fa-camera fa-fw" aria-hidden="true"></span></button>
-
+                <section> To File
+                    <ButtonGroup style={{ float: "right" }}>
+                        <Button onClick={() => this.handleDownload()} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
+                        <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSnapshot)} buttonClass="btn btn-danger btn-xs" icon="upload" />
+                    </ButtonGroup>
+                </section>
+                <section>To LocalStorage
+                <ButtonGroup style={{ float: "right", clear: "right" }}>
+                        <Button onClick={(e) => this.handleStore(e)} bsClass="btn btn-success btn-xs"><Icon name="download" /></Button>
+                        <Button onClick={(e) => this.handleRecover(e)} bsClass="btn btn-danger btn-xs"><Icon name="upload" /></Button>
+                    </ButtonGroup>
+                </section>
             </div>
         )
     }
@@ -140,8 +137,6 @@ class Settings extends React.Component {
         this.setState({ errors: this.validate(nextProps.settings, this.rules()) })
     }
 
-
-
     render() {
 
         return (
@@ -150,7 +145,6 @@ class Settings extends React.Component {
                 <PanelGroup>
                     <Panel header="Machine Profiles" bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
                         <MachineProfile onApply={this.props.handleApplyProfile} />
-
                         <MaterialDatabaseButton>Launch Material Database</MaterialDatabaseButton>
                     </Panel>
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
@@ -197,13 +191,20 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="6" >
-                        <h5>Settings</h5>
-                        <button onClick={() => this.props.handleDownload('laserweb-settings.json', this.props.settings)} type="button" className="btn btn-success btn-sm" aria-label="Download Settings">Backup Settings <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
-                    <FileField label="Upload Settings" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSettings)} buttonClass="btn btn-danger btn-sm" />
-                        <h5>Profiles</h5>
-                        <button onClick={() => this.props.handleDownload('laserweb-profiles.json', this.props.profiles)} type="button" className="btn btn-success btn-sm" aria-label="Download Profiles">Backup Profiles <span className="fa fa-download fa-fw" aria-hidden="true"></span></button>&nbsp;
-                    <FileField label="Upload Machine Profiles" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMachineProfiles)} buttonClass="btn btn-danger btn-sm " />
-                        <h5>Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
+                        <h5 style={{ float: "left" }}>Settings </h5>
+                        <ButtonGroup style={{ float: "right" }}>
+                            <Button onClick={() => this.props.handleDownload('laserweb-settings.json', this.props.settings, downloadSettings)} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
+                            <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSettings)} buttonClass="btn btn-danger btn-xs" icon="upload" />
+                        </ButtonGroup>
+                        <hr style={{ clear: "both" }} />
+                        <h5 style={{ float: "left" }}>Profiles</h5>
+                        <ButtonGroup style={{ float: "right" }}>
+                            <Button onClick={() => this.props.handleDownload('laserweb-profiles.json', this.props.profiles, downloadMachineProfiles)} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
+                            <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMachineProfiles)} buttonClass="btn btn-danger btn-xs" icon="upload" />
+                        </ButtonGroup>
+                        <hr style={{ clear: "both" }} />
+                        <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
+                        <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot
                             onDownload={(e, state) => this.props.handleDownload("laserweb-snapshot.json", state, downloadSnapshot)}
                             onUpload={(e) => this.props.handleUpload(e.target.files[0], uploadSnapshot)}
@@ -230,26 +231,25 @@ const mapDispatchToProps = (dispatch) => {
             FileStorage.save(name, stringify(settings), "application/json")
             dispatch(action(settings));
         },
-        handleUpload: (name, action) => {
-            FileStorage.load(name, (file, result) => dispatch(action(file, result)));
+        handleUpload: (file, action) => {
+            FileStorage.load(file, (file, result) => dispatch(action(file, result)));
         },
 
         handleStore: (name, settings, action) => {
-            LocalStorage.save(name, stringify(settings), "application/json")
+            try {
+                LocalStorage.save(name, stringify(settings), "application/json")
+            } catch (e) {
+                console.error(e);
+                alert(e);
+            }
             dispatch(action(settings));
         },
-
         handleRecover: (name, action) => {
             LocalStorage.load(name, (file, result) => dispatch(action(file, result)));
         },
-
-
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
         },
-
-
-
     };
 };
 
