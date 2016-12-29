@@ -1,3 +1,18 @@
+// Copyright 2014, 2016 Todd Fleming
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 // TODO: need a better name than 'object'. Some name that's pretty general.
 
 // Actions:
@@ -13,6 +28,8 @@ export function object(objectType, initialState) {
             return Object.assign({}, initialState, action.payload.attrs);
         else if (action.type === setAttrs && action.payload.id === state.id)
             return Object.assign({}, state, action.payload.attrs);
+        else if (action.type === 'LOADED')
+            return loaded(objectType, state, initialState);
         else
             return state;
     };
@@ -31,6 +48,8 @@ export function objectNoId(objectType, initialState) {
             return Object.assign({}, initialState, action.payload.attrs);
         else if (action.type === setAttrs)
             return Object.assign({}, state, action.payload.attrs);
+        else if (action.type === 'LOADED')
+            return loaded(objectType, state, initialState);
         else
             return state;
     };
@@ -109,6 +128,20 @@ export function forest(objectType, objectReducer) {
         }
     };
 };
+
+function loaded(objectType, state, initialState) {
+    let merged = { ...initialState };
+    for (let attr in merged) {
+        if (attr in state)
+            merged[attr] = state[attr];
+        else
+            console.warn(objectType + '.' + attr, 'missing; setting to', merged[attr]);
+    }
+    for (let attr in state)
+        if (!(attr in initialState))
+            console.warn(objectType + '.' + attr, 'unknown; discarding');
+    return merged;
+}
 
 export function changedArray(state, newState) {
     if (newState.length !== state.length)

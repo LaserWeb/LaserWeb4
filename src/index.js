@@ -16,7 +16,7 @@ const reducer = compose(
     mergePersistedState((initialState, persistedState) => {
         let state = { ...initialState, ...persistedState };
         state.camera = require('./reducers/camera').resetCamera(null, state.settings);
-        return state;
+        return hot(state, { type: 'LOADED' });
     })
 )(hot);
 

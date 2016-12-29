@@ -8,13 +8,24 @@ import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 
-const documentBase = object('document', {
+const initialDocument = {
+    id: '',
     type: '?',
     name: '',
+    mimeType: '',
     isRoot: false,
     children: [],
     selected: false,
-});
+    translate: null,
+    scale: null,
+    rawPaths: null,
+    strokeColor: null,
+    fillColor: null,
+    dataURL: '',
+    dpi: 1,
+};
+
+const documentBase = object('document', initialDocument);
 
 export function document(state, action) {
     switch (action.type) {
@@ -56,6 +67,7 @@ function loadSvg(state, settings, {file, content}) {
     function addChildren(parent, tag) {
         for (let child of tag.children) {
             let c = {
+                ...initialDocument,
                 id: uuid.v4(),
                 type: child.name,
                 name: child.name + ': ' + child.attrs.id,
@@ -115,6 +127,7 @@ function loadSvg(state, settings, {file, content}) {
     }
 
     let doc = {
+        ...initialDocument,
         id: uuid.v4(),
         type: 'document',
         name: file.name,
@@ -131,6 +144,7 @@ function loadSvg(state, settings, {file, content}) {
 function loadImage(state, {file, content}) {
     state = state.slice();
     let doc = {
+        ...initialDocument,
         id: uuid.v4(),
         type: 'image',
         name: file.name,
