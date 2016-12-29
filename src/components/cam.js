@@ -29,6 +29,7 @@ import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
+import { ApplicationSnapshotToolbar } from './settings';
 
 function NoDocumentsError(props) {
     let {documents, camBounds} = props;
@@ -55,6 +56,7 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} label="Workspace" />
                 <div className="panel panel-info" style={{ marginBottom: 3 }}>
                     <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>

@@ -30,8 +30,7 @@ export class ApplicationSnapshot extends React.Component {
         this.handleRecover.bind(this)
     }
 
-    getExportData() {
-        let keys = this.state.keys;
+    getExportData(keys) {
         let state = this.props.state;
         let exp = {}
         keys.forEach((o) => { exp[o] = state[o] })
@@ -43,11 +42,11 @@ export class ApplicationSnapshot extends React.Component {
     }
 
     handleDownload(e) {
-        this.props.onDownload(e, this.getExportData())
+        this.props.onDownload(e, this.getExportData(this.state.keys))
     }
 
     handleStore(e) {
-        this.props.onStore(e, this.getExportData())
+        this.props.onStore(e, this.getExportData(this.state.keys))
     }
 
     handleRecover(e) {
@@ -55,14 +54,14 @@ export class ApplicationSnapshot extends React.Component {
     }
 
     render() {
-        let data = Object.keys(this.props.state);
+        let data = Object.keys(omit(this.props.state, "history"));
 
         return (
             <div className="well well-sm " id="ApplicationSnapshot">
                 <CheckBoxListField onChange={(data) => this.handleChange(data)} data={data} />
                 <section> To File
                     <ButtonGroup style={{ float: "right" }}>
-                        <Button onClick={() => this.handleDownload()} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
+                        <Button onClick={() => this.handleDownload()} bsClass="btn btn-success btn-xs"><Icon name="download" /></Button>
                         <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSnapshot)} buttonClass="btn btn-danger btn-xs" icon="upload" />
                     </ButtonGroup>
                 </section>
@@ -76,6 +75,47 @@ export class ApplicationSnapshot extends React.Component {
         )
     }
 
+}
+
+export class ApplicationSnapshotToolbar extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.handleDownload.bind(this)
+        this.handleUpload.bind(this)
+    }
+
+    getExportData(keys) {
+        let state = this.props.state;
+        let exp = {}
+        keys.forEach((o) => { exp[o] = state[o] })
+        return exp;
+    }
+
+    handleDownload(statekeys) {
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        let file = prompt("Save as", "laserweb-workspace.json")
+        let settings = this.getExportData(statekeys);
+        let action = downloadSnapshot;
+        this.props.handleDownload(file, settings, action)
+    }
+
+    handleUpload(file, statekeys) {
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        this.props.handleUpload(file, uploadSnapshot, statekeys)
+    }
+
+    render() {
+        let buttons = [];
+        if (this.props.loadButton) {
+            buttons.push(<FileField key="1" dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
+        }
+        if (this.props.saveButton) {
+            buttons.push(<Button key="0" onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+        }
+
+        return <div className="well well-sm">{this.props.label || "Snapshot"} <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons}</ButtonGroup></div>
+    }
 }
 
 class SettingsPanel extends React.Component {
@@ -227,12 +267,15 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        handleDownload: (name, settings, action) => {
-            FileStorage.save(name, stringify(settings), "application/json")
+        handleDownload: (file, settings, action) => {
+            FileStorage.save(file, stringify(settings), "application/json")
             dispatch(action(settings));
         },
-        handleUpload: (file, action) => {
-            FileStorage.load(file, (file, result) => dispatch(action(file, result)));
+        handleUpload: (file, action, onlyKeys) => {
+            console.log(onlyKeys)
+            FileStorage.load(file, (file, result) => {
+                dispatch(action(file, result, onlyKeys));
+            })
         },
 
         handleStore: (name, settings, action) => {
@@ -257,6 +300,10 @@ export { Settings }
 
 ApplicationSnapshot = connect((state) => {
     return { state: state }
-}, mapDispatchToProps)(ApplicationSnapshot);;
+}, mapDispatchToProps)(ApplicationSnapshot);
+
+ApplicationSnapshotToolbar = connect((state) => {
+    return { state: state }
+}, mapDispatchToProps)(ApplicationSnapshotToolbar);
 
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);
