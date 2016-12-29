@@ -275,6 +275,7 @@ const mapDispatchToProps = (dispatch) => {
             console.log(onlyKeys)
             FileStorage.load(file, (file, result) => {
                 dispatch(action(file, result, onlyKeys));
+                dispatch({ type: 'LOADED' });
             })
         },
 
