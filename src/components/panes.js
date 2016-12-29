@@ -46,29 +46,25 @@ class Pane extends React.Component {
  * @param {Object} props Component properties.
  */
 class Panes extends React.Component {
-    /**
-     * @type {Object}
-     * @member module:components/pane~Panes.prototype#props
-     * @property {module:react~React~Component|module:react~React~Component[]} children Component children.
-     */
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextProps.selected !== this.props.selected || nextProps.style.width !== this.props.style.width;
+    }
 
-    /**
-     * Render the component.
-     * @return {String}
-     */
     render() {
         return (
             <div className={"panes full-height"} style={this.props.style}>
                 {
-                    React.Children.map(this.props.children, item => (
-                        <Pane
-                            {...item.props}
-                            key={item.props.id}
-                            id ={item.props.id} 
-                            active={item.props.id === this.props.selected}
-                            >
-                            {item}
-                        </Pane>))
+                    this.props.children
+                        .filter(item => item.props.id === this.props.selected)
+                        .map(item => (
+                            <Pane
+                                {...item.props}
+                                key={item.props.id}
+                                id={item.props.id}
+                                active={item.props.id === this.props.selected}
+                                >
+                                {item}
+                            </Pane>))
                 }
             </div>
         )

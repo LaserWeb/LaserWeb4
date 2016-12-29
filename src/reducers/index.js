@@ -37,6 +37,7 @@ export default function reducer(state, action) {
             return {...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         case "SNAPSHOT_UPLOAD":
             let newState=omit(action.payload.snapshot,["history"]);
+            if (action.keys) newState = omit(newState,(val,key)=>{ return action.keys.includes(key)})
             return Object.assign({}, state, newState);
         default:
             return combined(state, action);

@@ -543,6 +543,16 @@ class WorkspaceContent extends React.Component {
         e.preventDefault();
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return (
+            nextProps.width !== this.props.width ||
+            nextProps.height !== this.props.height ||
+            nextProps.settings.machineWidth !== this.props.settings.machineWidth ||
+            nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
+            nextProps.documents !== this.props.documents ||
+            nextProps.camera !== this.props.camera);
+    }
+
     render() {
         return (
             <div>
@@ -647,7 +657,6 @@ class Workspace extends React.Component {
                     </div>
                     <CommandHistory />
                 </div>
-
             </div>
         )
     }

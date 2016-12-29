@@ -12,6 +12,6 @@ export const uploadMachineProfiles = (file, content) => ({ type:"MACHINEPROFILES
 export const downloadMachineProfiles = (machines) => ({ type:"MACHINEPROFILES_DOWNLOAD", payload: {machines}});
 
 /*SNAPSHOT*/
-export const uploadSnapshot = (file, content) => ({ type:"SNAPSHOT_UPLOAD", payload: {file, snapshot:JSON.parse(content)}});
+export const uploadSnapshot = (file, content, keys) => ({ type:"SNAPSHOT_UPLOAD", payload: {file, keys, snapshot:JSON.parse(content)}});
 export const downloadSnapshot = (snapshot) => ({ type:"SNAPSHOT_DOWNLOAD", payload: {snapshot}});
 export const storeSnapshot = (key, content) => ({ type:"SNAPSHOT_STORE", payload: {key, content}});

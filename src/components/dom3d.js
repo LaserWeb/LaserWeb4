@@ -85,19 +85,28 @@ export class Dom3d extends React.Component {
     }
 }
 
-export function Text3d(props) {
-    return (
-        <div style={{
-            position: 'absolute',
-            transform: 'translate3d(' + props.x + 'px,' + props.y + 'px,0) translate3d(-50%,-50%,0) scale(.1,-.1)',
-        }}>
-            <div style={Object.assign({}, props.style, {
-                left: 0,
-                top: 0,
-                fontSize: props.size * 10,
-            })}>
-                {props.children}
-            </div>
-        </div >
-    );
+export class Text3d extends React.Component {
+    shouldComponentUpdate(nextProps, nextState) {
+        return (
+            nextProps.x !== this.props.x ||
+            nextProps.y !== this.props.y ||
+            nextProps.size !== this.props.size);
+    }
+
+    render() {
+        return (
+            <div style={{
+                position: 'absolute',
+                transform: 'translate3d(' + this.props.x + 'px,' + this.props.y + 'px,0) translate3d(-50%,-50%,0) scale(.1,-.1)',
+            }}>
+                <div style={Object.assign({}, this.props.style, {
+                    left: 0,
+                    top: 0,
+                    fontSize: this.props.size * 10,
+                })}>
+                    {this.props.children}
+                </div>
+            </div >
+        );
+    }
 }
