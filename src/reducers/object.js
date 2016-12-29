@@ -50,7 +50,7 @@ export function objectArray(objectType, baseReducer) {
             case remove:
                 return state.filter(o => o.id !== action.payload);
             default:
-                return state.map(o => baseReducer(o, action));
+                return changedArray(state, state.map(o => baseReducer(o, action)));
         }
     };
 };
@@ -105,10 +105,19 @@ export function forest(objectType, objectReducer) {
                         children: parent.children.filter(childId => childId !== action.payload)
                     }));
             default:
-                return state.map(o => objectReducer(o, action));
+                return changedArray(state, state.map(o => objectReducer(o, action)));
         }
     };
 };
+
+export function changedArray(state, newState) {
+    if (newState.length !== state.length)
+        return newState;
+    for (let i = 0; i < state.length; ++i)
+        if (newState[i] !== state[i])
+            return newState;
+    return state;
+}
 
 export function getSubtreeIds(forest, rootId) {
     let ids = [rootId];

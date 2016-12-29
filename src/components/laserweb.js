@@ -58,12 +58,15 @@ class LaserWeb extends React.Component {
     @keydown('ctrl+z')
     keylogger( event ) {
         this.props.handleKeypress(event);
-
     }
 
     @keydown(Object.keys(GlobalStore().getState().macros))
     macro(event) {
         this.props.handleMacro(event, this.props.macros)
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextProps.documents !== this.props.documents;
     }
 
     render() {

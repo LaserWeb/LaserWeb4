@@ -49,6 +49,14 @@ class Cam extends React.Component {
         }
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return (
+            nextProps.documents !== this.props.documents ||
+            nextProps.operations !== this.props.operations ||
+            nextProps.currentOperation !== this.props.currentOperation ||
+            nextProps.bounds !== this.props.bounds);
+    }
+
     render() {
         let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds} = this.props;
         let validator = ValidateSettings(false)
