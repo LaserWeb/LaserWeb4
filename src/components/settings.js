@@ -272,7 +272,6 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(action(settings));
         },
         handleUpload: (file, action, onlyKeys) => {
-            console.log(onlyKeys)
             FileStorage.load(file, (file, result) => {
                 dispatch(action(file, result, onlyKeys));
                 dispatch({ type: 'LOADED' });
