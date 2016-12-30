@@ -25,9 +25,6 @@ export class ApplicationSnapshot extends React.Component {
         super(props);
         this.state = { keys: [] }
         this.handleChange.bind(this)
-        this.handleDownload.bind(this)
-        this.handleStore.bind(this)
-        this.handleRecover.bind(this)
     }
 
     getExportData(keys) {
@@ -41,35 +38,16 @@ export class ApplicationSnapshot extends React.Component {
         this.setState({ keys: data })
     }
 
-    handleDownload(e) {
-        this.props.onDownload(e, this.getExportData(this.state.keys))
-    }
-
-    handleStore(e) {
-        this.props.onStore(e, this.getExportData(this.state.keys))
-    }
-
-    handleRecover(e) {
-        this.props.onRecover(e)
-    }
-
     render() {
         let data = Object.keys(omit(this.props.state, "history"));
-
         return (
             <div className="well well-sm " id="ApplicationSnapshot">
                 <CheckBoxListField onChange={(data) => this.handleChange(data)} data={data} />
-                <section> To File
-                    <ButtonGroup style={{ float: "right" }}>
-                        <Button onClick={() => this.handleDownload()} bsClass="btn btn-success btn-xs"><Icon name="download" /></Button>
-                        <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSnapshot)} buttonClass="btn btn-danger btn-xs" icon="upload" />
-                    </ButtonGroup>
+                <section>
+                    <ApplicationSnapshotToolbar loadButton saveButton stateKeys={this.state.keys} label="On File" saveAs="laserweb-snapshot.json" />
                 </section>
-                <section>To LocalStorage
-                <ButtonGroup style={{ float: "right", clear: "right" }}>
-                        <Button onClick={(e) => this.handleStore(e)} bsClass="btn btn-success btn-xs"><Icon name="download" /></Button>
-                        <Button onClick={(e) => this.handleRecover(e)} bsClass="btn btn-danger btn-xs"><Icon name="upload" /></Button>
-                    </ButtonGroup>
+                <section>
+                    <ApplicationSnapshotToolbar recoverButton storeButton stateKeys={this.state.keys} label="On LocalStorage" />
                 </section>
             </div>
         )
@@ -83,6 +61,8 @@ export class ApplicationSnapshotToolbar extends React.Component {
         super(props);
         this.handleDownload.bind(this)
         this.handleUpload.bind(this)
+        this.handleStore.bind(this)
+        this.handleRecover.bind(this)
     }
 
     getExportData(keys) {
@@ -94,7 +74,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
 
     handleDownload(statekeys) {
         statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
-        let file = prompt("Save as", "laserweb-workspace.json")
+        let file = prompt("Save as", this.props.saveAs || "laserweb-snapshot.json")
         let settings = this.getExportData(statekeys);
         let action = downloadSnapshot;
         this.props.handleDownload(file, settings, action)
@@ -105,16 +85,35 @@ export class ApplicationSnapshotToolbar extends React.Component {
         this.props.handleUpload(file, uploadSnapshot, statekeys)
     }
 
+    handleStore(statekeys) {
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        this.props.handleStore("laserweb-snapshot", this.getExportData(statekeys), storeSnapshot)
+    }
+
+    handleRecover(statekeys) {
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        this.props.handleRecover("laserweb-snapshot", uploadSnapshot)
+    }
+
     render() {
         let buttons = [];
         if (this.props.loadButton) {
-            buttons.push(<FileField key="1" dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
+            buttons.push(<FileField dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
         }
         if (this.props.saveButton) {
-            buttons.push(<Button key="0" onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+            buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+        }
+        if (this.props.recoverButton) {
+            buttons.push(<Button  onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);
+        }
+        if (this.props.storeButton) {
+            buttons.push(<Button onClick={(e) => this.handleStore(this.props.storeButton)} bsClass="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
 
-        return <div className="well well-sm">{this.props.label || "Snapshot"} <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons}</ButtonGroup></div>
+        return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong> 
+                    <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button,i)=>React.cloneElement(button,{key:i}))}</ButtonGroup>
+                    <br style={{clear:'both'}}/>
+               </div>
     }
 }
 
@@ -231,26 +230,11 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="6" >
-                        <h5 style={{ float: "left" }}>Settings </h5>
-                        <ButtonGroup style={{ float: "right" }}>
-                            <Button onClick={() => this.props.handleDownload('laserweb-settings.json', this.props.settings, downloadSettings)} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
-                            <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadSettings)} buttonClass="btn btn-danger btn-xs" icon="upload" />
-                        </ButtonGroup>
-                        <hr style={{ clear: "both" }} />
-                        <h5 style={{ float: "left" }}>Profiles</h5>
-                        <ButtonGroup style={{ float: "right" }}>
-                            <Button onClick={() => this.props.handleDownload('laserweb-profiles.json', this.props.profiles, downloadMachineProfiles)} type="button" className="btn btn-success btn-xs"><Icon name="download" /></Button>
-                            <FileField dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMachineProfiles)} buttonClass="btn btn-danger btn-xs" icon="upload" />
-                        </ButtonGroup>
-                        <hr style={{ clear: "both" }} />
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr/>
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr/>
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
-                        <ApplicationSnapshot
-                            onDownload={(e, state) => this.props.handleDownload("laserweb-snapshot.json", state, downloadSnapshot)}
-                            onUpload={(e) => this.props.handleUpload(e.target.files[0], uploadSnapshot)}
-                            onStore={(e, state) => this.props.handleStore("snapshot", state, storeSnapshot)}
-                            onRecover={(e) => this.props.handleRecover("snapshot", uploadSnapshot)}
-                            />
+                        <ApplicationSnapshot/>
                     </Panel>
                 </PanelGroup>
             </div>
