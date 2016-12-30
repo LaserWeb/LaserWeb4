@@ -158,8 +158,8 @@ class FloatingControls extends React.Component {
             vec4.transformMat4([],
                 vec4.transformMat4([], [bounds.x1, bounds.y1, 0, 1], this.props.camera.view),
                 this.props.camera.perspective);
-        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2;
-        let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2;
+            let x = ((p[0] / p[3] + 1) * this.props.workspaceWidth / 2) - 20;
+            let y = (this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2) + 20;
 
         x = x / window.devicePixelRatio - this.props.width;
         y = y / window.devicePixelRatio;
