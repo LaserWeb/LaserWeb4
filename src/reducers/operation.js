@@ -6,6 +6,7 @@ import arrayMove from 'array-move'
 
 const operationBase = object('operation', {
     id: '',
+    name: '',
     documents: [],
     tabDocuments: [],
     expanded: false,

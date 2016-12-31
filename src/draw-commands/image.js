@@ -46,7 +46,7 @@ export function image(drawCommands) {
     return ({perspective, view, location, size, texture, selected}) => {
         drawCommands.execute({
             program,
-            primitive: 'triangles',
+            primitive: drawCommands.gl.TRIANGLES,
             uniforms: { perspective, view, location, size, texture, selected },
             buffer: {
                 data,

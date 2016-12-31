@@ -69,9 +69,9 @@ class Grid {
             this.position = new Float32Array(a);
             this.count = a.length / 3;
         }
-        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
-        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
-        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
+        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
+        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
     }
 };
 
@@ -215,7 +215,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                     scale: document.scale,
                     translate: document.translate,
                     color: document.fillColor,
-                    primitive: 'triangles',
+                    primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
                     count: cachedDocument.triangles.length / 2,
                 });
@@ -227,7 +227,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         scale: document.scale,
                         translate: document.translate,
                         color: document.strokeColor,
-                        primitive: 'line strip',
+                        primitive: drawCommands.gl.LINE_STRIP,
                         offset: 0,
                         count: o.length / 2,
                     });
@@ -294,7 +294,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                     scale: document.scale,
                     translate: document.translate,
                     color,
-                    primitive: 'triangles',
+                    primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
                     count: cachedDocument.triangles.length / 2,
                 });
@@ -317,7 +317,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                 scale: document.scale,
                 translate: document.translate,
                 color,
-                primitive: 'triangles',
+                primitive: drawCommands.gl.TRIANGLES,
                 offset: 0,
                 count: 6,
             });
