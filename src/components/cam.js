@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Parser from 'lw.svg-parser';
+import DxfParser from 'dxf-parser';
 import React from 'react'
 import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux';
@@ -146,7 +147,18 @@ Cam = connect(
                             .catch(e => console.log('error:', e))
                     }
                     reader.readAsText(file);
-                } else {
+                }
+                else if (file.name.substr(-4) === '.dxf') {
+                    reader.onload = () => {
+                        var parser = new DxfParser();
+                        var tags = {};
+                        var dxfTree = parser.parseSync(reader.result);
+                        dispatch(loadDocument(file, { dxfTree, tags }));
+                        console.log(dxfTree);
+                    }
+                    reader.readAsText(file);
+                }
+                else {
                     reader.onload = () => dispatch(loadDocument(file, reader.result));
                     reader.readAsDataURL(file);
                 }

@@ -161,9 +161,33 @@ function loadImage(state, {file, content}) {
     return state;
 }
 
+function loadDxf(state, settings, {file, content}) {
+  let {dxfTree, tags} = content;
+  state = state.slice();
+  let pxPerInch = +settings.pxPerInch || 96;
+  let allPositions = [];
+
+  let doc = {
+      ...initialDocument,
+      id: uuid.v4(),
+      type: 'document',
+      name: file.name,
+      isRoot: true,
+      children: [],
+      selected: false,
+  };
+  state.push(doc);
+
+  // TODO
+
+  return state;
+}
+
 export function documentsLoad(state, settings, action) {
     if (action.payload.file.type === 'image/svg+xml')
         return loadSvg(state, settings, action.payload);
+    else if (action.payload.file.type === 'image/vnd.dxf')
+        return loadDxf(state, settings, action.payload);
     else if (action.payload.file.type.substring(0, 6) === 'image/')
         return loadImage(state, action.payload);
     else {
