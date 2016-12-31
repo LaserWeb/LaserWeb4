@@ -93,7 +93,7 @@ export function laser(drawCommands) {
     return ({perspective, view, g0Rate, simTime, radius, gcodeSMaxValue, data, count}) => {
         drawCommands.execute({
             program,
-            primitive: 'triangles',
+            primitive: drawCommands.gl.TRIANGLES,
             uniforms: { perspective, view, g0Rate, simTime, radius, gcodeSMaxValue },
             buffer: {
                 data,
