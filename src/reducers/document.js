@@ -162,7 +162,6 @@ function loadImage(state, {file, content}) {
 }
 
 function loadDxf(state, settings, {file, content}) {
-  let {dxfTree, tags} = content;
   state = state.slice();
   let pxPerInch = +settings.pxPerInch || 96;
   let allPositions = [];
@@ -176,9 +175,35 @@ function loadDxf(state, settings, {file, content}) {
       children: [],
       selected: false,
   };
-  state.push(doc);
+  state.push(doc); // Update file tree with file.name
+  processDXF(doc, content);
 
-  // TODO
+  function processDXF(doc, dxfTree) {
+      console.log(dxfTree);
+
+      var i, entity;
+
+      for(i = 0; i < dxfTree.entities.length; i++) {
+          entity = dxfTree.entities[i];
+          console.log(entity)
+
+          if(entity.type === 'DIMENSION') {
+              if(entity.block) {
+                  var block = dxfTree.blocks[entity.block];
+                  for(j = 0; j < block.entities.length; j++) {
+                      //drawEntity(block.entities[j], data, j);
+                      console.log("DIMENSION: " + block.entities[j]);
+                  }
+              } else {
+                  console.log('WARNING: No block for DIMENSION entity');
+              }
+          } else {
+              //drawEntity(entity, dxfTree, 0);
+              console.log("loadEntity: " + entity);
+          }
+
+      }
+  }
 
   return state;
 }

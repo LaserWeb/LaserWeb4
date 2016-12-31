@@ -148,13 +148,11 @@ Cam = connect(
                     }
                     reader.readAsText(file);
                 }
-                else if (file.name.substr(-4) === '.dxf') {
+                else if (file.name.substr(-4) === '.dxf' || '.DXF') {
                     reader.onload = () => {
                         var parser = new DxfParser();
-                        var tags = {};
                         var dxfTree = parser.parseSync(reader.result);
-                        dispatch(loadDocument(file, { dxfTree, tags }));
-                        console.log(dxfTree);
+                        dispatch(loadDocument(file, dxfTree));
                     }
                     reader.readAsText(file);
                 }
