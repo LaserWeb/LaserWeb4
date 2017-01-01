@@ -180,10 +180,10 @@ function loadDxf(state, settings, {file, content}) {
 
     function processDXF(doc, dxfTree) {
 
-      var i, layerName, entity;
+      var layerName, entity;
       var fileLayers = [];
 
-      for(i = 0; i < dxfTree.entities.length; i++) {
+      for(let i = 0; i < dxfTree.entities.length; i++) {
           entity = dxfTree.entities[i];
           //console.log(entity)
 
@@ -200,6 +200,28 @@ function loadDxf(state, settings, {file, content}) {
               isRoot: false,
               children: [],
               selected: false,
+          }
+
+          // create geometry
+          let rawPaths = [];
+          for(let j = 0; j < entity.vertices.length; j++) {
+            let p = [];
+            let vertex = {};
+            vertex = entity.vertices[j];
+            p.push(vertex.x / pxPerInch * 25.4, vertex.y / pxPerInch * 25.4);
+            if (p.length)
+              rawPaths.push(p);
+          }
+          if (entity.shape) {
+            rawPaths.push(entity.vertices[0]); // To close off the shape
+          }
+
+          if (rawPaths.length) {
+            c.rawPaths = rawPaths;
+            c.translate = [0, 0, 0];
+            c.scale = [1, 1, 1];
+            c.strokeColor = [0,0,0,0.3];
+            c.fillColor = [0,0,0,0];
           }
 
           state.push(c);
