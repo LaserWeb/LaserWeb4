@@ -178,32 +178,35 @@ function loadDxf(state, settings, {file, content}) {
   state.push(doc); // Update file tree with file.name
   processDXF(doc, content);
 
-  function processDXF(doc, dxfTree) {
-      console.log(dxfTree);
+    function processDXF(doc, dxfTree) {
 
-      var i, entity;
+      var i, layerName, entity;
+      var fileLayers = [];
 
       for(i = 0; i < dxfTree.entities.length; i++) {
           entity = dxfTree.entities[i];
-          console.log(entity)
+          //console.log(entity)
 
-          if(entity.type === 'DIMENSION') {
-              if(entity.block) {
-                  var block = dxfTree.blocks[entity.block];
-                  for(j = 0; j < block.entities.length; j++) {
-                      //drawEntity(block.entities[j], data, j);
-                      console.log("DIMENSION: " + block.entities[j]);
-                  }
-              } else {
-                  console.log('WARNING: No block for DIMENSION entity');
-              }
-          } else {
-              //drawEntity(entity, dxfTree, 0);
-              console.log("loadEntity: " + entity);
+          if (entity.layer) {
+            layerName = entity.layer.replace(/[^a-z0-9-]/gim, '-');  // If layer doesn't start with a-z, 0-9 or -
+            fileLayers.push(layerName)  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
           }
 
+          let c = {
+              ...initialDocument,
+              id: uuid.v4(),
+              type: entity.type,
+              name: layerName + ': ' + entity.type + ': ' + entity.handle,
+              isRoot: false,
+              children: [],
+              selected: false,
+          }
+
+          state.push(c);
+          doc.children.push(c.id);
+        }
+        fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
       }
-  }
 
   return state;
 }
