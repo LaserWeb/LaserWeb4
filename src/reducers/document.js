@@ -163,8 +163,6 @@ function loadImage(state, {file, content}) {
 
 function loadDxf(state, settings, {file, content}) {
   state = state.slice();
-  let pxPerInch = +settings.pxPerInch || 96;
-  let allPositions = [];
 
   let doc = {
       ...initialDocument,
@@ -178,25 +176,50 @@ function loadDxf(state, settings, {file, content}) {
   state.push(doc); // Update file tree with file.name
   processDXF(doc, content);
 
-    function processDXF(doc, dxfTree) {
+  function processDXF(doc, dxfTree) {
+    var i, entity;
+    var layerName;
+    var fileLayers = [];
 
-      var layerName, entity;
-      var fileLayers = [];
+    for(i = 0; i < dxfTree.entities.length; i++) {
+      entity = dxfTree.entities[i];
+      if(entity.type === 'DIMENSION') {
+        console.log('WARNING: No block for DIMENSION entity');
+      } else {
+        drawEntity(entity, dxfTree, doc, i);
+      }
+      if (entity.layer) {
+        /**
+        layerName = entity.layer.replace(/[^a-z0-9-]/gim, '-');  // If layer doesn't start with a-z, 0-9 or -
+        fileLayers.push(layerName)  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
+        **/
+        fileLayers.push(entity.layer.replace(/[^a-z0-9-]/gim, '-'));  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
+      }
+    }
+    fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
+  }
 
-      for(let i = 0; i < dxfTree.entities.length; i++) {
-          entity = dxfTree.entities[i];
-          //console.log(entity)
+  function drawEntity(entity, dxfTree, doc, index) {
+    console.log('inside drawEntity:  Entity ', entity, '  Index: ', index)
+    if(entity.type === 'CIRCLE' || entity.type === 'ARC') {
+        drawCircle(entity, index);
+    } else if(entity.type === 'LWPOLYLINE' || entity.type === 'LINE' || entity.type === 'POLYLINE') {
+        drawLine(entity, index, doc);
+    } else if(entity.type === 'TEXT') {
+        drawText(entity, index);
+    } else if(entity.type === 'SOLID') {
+        drawSolid(entity, index);
+    } else if(entity.type === 'POINT') {
+        drawPoint(entity, index);
+    }
+  }
 
-          if (entity.layer) {
-            layerName = entity.layer.replace(/[^a-z0-9-]/gim, '-');  // If layer doesn't start with a-z, 0-9 or -
-            fileLayers.push(layerName)  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
-          }
-
+  function drawLine(entity, index, doc) {
           let c = {
               ...initialDocument,
               id: uuid.v4(),
               type: entity.type,
-              name: layerName + ': ' + entity.type + ': ' + entity.handle,
+              name: entity.layer + ': ' + entity.type + ': ' + entity.handle,
               isRoot: false,
               children: [],
               selected: false,
@@ -208,16 +231,17 @@ function loadDxf(state, settings, {file, content}) {
             let p = [];
             let vertex = {};
             vertex = entity.vertices[j];
-            p.push(vertex.x / pxPerInch * 25.4, vertex.y / pxPerInch * 25.4);
+            p.push(vertex.x, vertex.y);
             if (p.length)
-              rawPaths.push(p);
+              rawPaths = rawPaths.concat(p);
           }
           if (entity.shape) {
-            rawPaths.push(entity.vertices[0]); // To close off the shape
+            rawPaths = rawPaths.concat(entity.vertices[0].x, entity.vertices[0].y); // To close off the shape
           }
 
           if (rawPaths.length) {
-            c.rawPaths = rawPaths;
+            c.rawPaths = [];
+            c.rawPaths[0] = rawPaths;
             c.translate = [0, 0, 0];
             c.scale = [1, 1, 1];
             c.strokeColor = [0,0,0,0.3];
@@ -226,9 +250,7 @@ function loadDxf(state, settings, {file, content}) {
 
           state.push(c);
           doc.children.push(c.id);
-        }
-        fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
-      }
+  }
 
   return state;
 }
