@@ -18,10 +18,12 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
 import Subtree from './subtree';
-import { removeDocument, selectDocument, toggleSelectDocument } from '../actions/document';
+import { removeDocument, selectDocument, toggleSelectDocument, toggleVisibleDocument } from '../actions/document';
 import { addOperation, operationAddDocuments } from '../actions/operation';
 import { documents } from '../reducers/document';
 import Pointable from '../lib/Pointable';
+
+import Icon from './font-awesome';
 
 function isSelected(documents, d) {
     if (!d.selected)
@@ -32,7 +34,7 @@ function isSelected(documents, d) {
     return true;
 }
 
-export function selectedDocuments(documents){
+export function selectedDocuments(documents) {
     return documents.filter(d => isSelected(documents, d)).map(d => d.id);
 }
 
@@ -155,11 +157,18 @@ DocumentLabel = connect(
 
 function DocumentRight({object, dispatch}) {
     return (
-        <button
-            className="btn btn-danger btn-xs"
-            onClick={e => dispatch(removeDocument(object.id))}>
-            <i className="fa fa-times"></i>
-        </button>
+        <div className="btn-group">
+            <button
+                className="btn btn-default btn-xs"
+                onClick={e => dispatch(toggleVisibleDocument(object.id))}>
+                <Icon name={(object.visible === true || object.visible === undefined) ? "eye" : "eye-slash"} />
+            </button>
+            <button
+                className="btn btn-danger btn-xs"
+                onClick={e => dispatch(removeDocument(object.id))}>
+                <i className="fa fa-times"></i>
+            </button>
+        </div>
     );
 }
 DocumentRight = connect()(DocumentRight);
