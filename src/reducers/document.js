@@ -161,10 +161,14 @@ function loadImage(state, {file, content}) {
     return state;
 }
 
+// TODO: take out of global scope somehow
+var LayerLookup = new Map();
+
 function loadDxf(state, settings, {file, content}) {
   state = state.slice();
+  LayerLookup = new Map();
 
-  let doc = {
+  let docFile = {
       ...initialDocument,
       id: uuid.v4(),
       type: 'document',
@@ -173,38 +177,53 @@ function loadDxf(state, settings, {file, content}) {
       children: [],
       selected: false,
   };
-  state.push(doc); // Update file tree with file.name
-  processDXF(doc, content);
+  state.push(docFile); // state[0] is the file root structure
+  processDXF(docFile, content);
 
-  function processDXF(doc, dxfTree) {
-    var i, entity;
-    var layerName;
+  function processDXF(docFile, dxfTree) {
+    let i, entity;
+    let newLayer = false;
     var fileLayers = [];
+
+    let docLayer = {
+        ...initialDocument,
+        type: 'LAYER',
+        isRoot: false,
+        children: [],
+    }
 
     for(i = 0; i < dxfTree.entities.length; i++) {
       entity = dxfTree.entities[i];
       if(entity.type === 'DIMENSION') {
         console.log('WARNING: No block for DIMENSION entity');
       } else {
-        drawEntity(entity, dxfTree, doc, i);
-      }
-      if (entity.layer) {
-        /**
-        layerName = entity.layer.replace(/[^a-z0-9-]/gim, '-');  // If layer doesn't start with a-z, 0-9 or -
-        fileLayers.push(layerName)  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
-        **/
-        fileLayers.push(entity.layer.replace(/[^a-z0-9-]/gim, '-'));  //fileLayers = ["0", "SLD-0", "DEFAULT_3"], later just take uniques
+        // ID layers
+        if (!LayerLookup.get(entity.layer)) {
+          LayerLookup.set(entity.layer, uuid.v4())
+          newLayer = true;
+        }
+        if (newLayer) {
+          docLayer.id = LayerLookup.get(entity.layer);
+          docLayer.name = 'LAYER' + ': ' + entity.layer;
+          state.push(docLayer);
+          docFile.children.push(docLayer.id); // register layer under file
+          drawEntity(entity, dxfTree, docLayer, i);
+          newLayer = false;
+        } else {
+          drawEntity(entity, dxfTree, docLayer, i);
+        }
+        //drawEntity(entity, dxfTree, doc, i);
       }
     }
-    fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
+    //fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
   }
 
-  function drawEntity(entity, dxfTree, doc, index) {
-    console.log('inside drawEntity:  Entity ', entity, '  Index: ', index)
+  function drawEntity(entity, dxfTree, docLayer, index) {
+    //console.log('inside drawEntity:  Entity ', entity, '  Index: ', index)
     if(entity.type === 'CIRCLE' || entity.type === 'ARC') {
         drawCircle(entity, index);
     } else if(entity.type === 'LWPOLYLINE' || entity.type === 'LINE' || entity.type === 'POLYLINE') {
-        drawLine(entity, index, doc);
+        drawLine(entity, index, docLayer);
     } else if(entity.type === 'TEXT') {
         drawText(entity, index);
     } else if(entity.type === 'SOLID') {
@@ -214,8 +233,8 @@ function loadDxf(state, settings, {file, content}) {
     }
   }
 
-  function drawLine(entity, index, doc) {
-          let c = {
+  function drawLine(entity, index, docLayer) {
+          let docEntity = {
               ...initialDocument,
               id: uuid.v4(),
               type: entity.type,
@@ -240,16 +259,17 @@ function loadDxf(state, settings, {file, content}) {
           }
 
           if (rawPaths.length) {
-            c.rawPaths = [];
-            c.rawPaths[0] = rawPaths;
-            c.translate = [0, 0, 0];
-            c.scale = [1, 1, 1];
-            c.strokeColor = [0,0,0,0.3];
-            c.fillColor = [0,0,0,0];
+            docEntity.rawPaths = [];
+            docEntity.rawPaths[0] = rawPaths;
+            docEntity.translate = [0, 0, 0];
+            docEntity.scale = [1, 1, 1];
+            docEntity.strokeColor = [0,0,0,0.3];
+            docEntity.fillColor = [0,0,0,0];
           }
 
-          state.push(c);
-          doc.children.push(c.id);
+          state.push(docEntity);
+          docLayer.children.push(docEntity.id); // register feature under layer
+
   }
 
   return state;
