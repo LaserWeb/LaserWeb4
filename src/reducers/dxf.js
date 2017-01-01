@@ -4,6 +4,8 @@ import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
 
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
+import { documents } from '../reducers/document'
+import { addDocumentChild } from '../actions/document'
 
 const initialDocument = {
     id: '',
@@ -22,58 +24,49 @@ const initialDocument = {
     dpi: 1,
 };
 
-var LayerLookup = new Map();
-
 export function processDXF(state, docFile, dxfTree) {
-    LayerLookup = new Map(); // wipe layer ID on new file load
+    var LayerLookup = new Map();
     let i, entity;
-    var fileLayers = [];
-
-    let docLayer = {
-        ...initialDocument,
-        type: 'LAYER',
-        isRoot: false,
-        children: [],
-    }
+    let docLayer = {};
 
     for (i = 0; i < dxfTree.entities.length; i++) {
         entity = dxfTree.entities[i];
         if (entity.type === 'DIMENSION') {
             console.log('WARNING: No block for DIMENSION entity');
         } else {
-            // ID layers
-            if (!LayerLookup.has(entity.layer)) { // Does layer exist?
+            if (!LayerLookup.has(entity.layer)) { // Does layer exist, if not then proceed
                 LayerLookup.set(entity.layer, uuid.v4()) // Create an ID for it
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
-                state.push(docLayer);
-                docFile.children.push(docLayer.id); // register layer under file
-                drawEntity(state, entity, dxfTree, docLayer, i);
+                docLayer.type = 'LAYER';
+                state = documents(state, addDocumentChild(docFile.id, docLayer));
+                state = drawEntity(state, entity, docLayer, i);
             } else {
-                drawEntity(state, entity, dxfTree, docLayer, i);
+                state = drawEntity(state, entity, docLayer, i);
             }
-            //drawEntity(entity, dxfTree, doc, i);
         }
+        console.log('WARNING: entity not in a layer:', entity);
     }
-    //fileLayers = [ ...new Set(fileLayers) ]; // list of unique layer names
+    return state;
 }
 
-function drawEntity(state, entity, dxfTree, docLayer, index) {
+function drawEntity(state, entity, docLayer, index) {
     //console.log('inside drawEntity:  Entity ', entity, '  Index: ', index)
     if (entity.type === 'CIRCLE' || entity.type === 'ARC') {
-        drawCircle(entity, index);
+        state = drawCircle(state, entity, docLayer, index);
     } else if (entity.type === 'LWPOLYLINE' || entity.type === 'LINE' || entity.type === 'POLYLINE') {
-        drawLine(state, entity, index, docLayer);
+        state = drawLine(state, entity, docLayer, index);
     } else if (entity.type === 'TEXT') {
-        drawText(entity, index);
+        state = drawText(state, entity, docLayer, index);
     } else if (entity.type === 'SOLID') {
-        drawSolid(entity, index);
+        state = drawSolid(state, entity, docLayer, index);
     } else if (entity.type === 'POINT') {
-        drawPoint(entity, index);
+        state = drawPoint(state, entity, docLayer, index);
     }
+    return state;
 }
 
-function drawLine(state, entity, index, docLayer) {
+function drawLine(state, entity, docLayer, index) {
     let docEntity = {
         ...initialDocument,
         id: uuid.v4(),
@@ -107,6 +100,28 @@ function drawLine(state, entity, index, docLayer) {
         docEntity.fillColor = [0, 0, 0, 0];
     }
 
-    state.push(docEntity);
-    docLayer.children.push(docEntity.id); // register feature under layer
+    //state.push(docEntity);
+    //docLayer.children.push(docEntity.id); // register feature under layer
+    state = documents(state, addDocumentChild(docLayer.id, docEntity));
+    return state;
+}
+
+function drawCircle(state, entity, docLayer, index) {
+    //TODO
+    return state;
+}
+
+function drawText(state, entity, docLayer, index) {
+    //TODO
+    return state;
+}
+
+function drawSolid(state, entity, docLayer, index) {
+    //TODO
+    return state;
+}
+
+function drawPoint(state, entity, docLayer, index) {
+    //TODO
+    return state;
 }

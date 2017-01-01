@@ -4,7 +4,8 @@ import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
 import Snap from 'snapsvg-cjs';
 
-import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
+//import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
+import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../reducers/dxf'
@@ -174,7 +175,7 @@ function loadDxf(state, settings, {file, content}) {
       selected: false,
   };
   state.push(docFile); // state[0] is the file root structure
-  processDXF(state, docFile, content);
+  state = processDXF(state, docFile, content);
   return state;
 }
 
