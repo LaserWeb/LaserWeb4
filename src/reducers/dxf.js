@@ -107,7 +107,54 @@ function drawLine(state, entity, docLayer, index) {
 }
 
 function drawCircle(state, entity, docLayer, index) {
-    //TODO
+    let radius = entity.radius;
+    let arcTotalDeg = entity.startAngleDeg - entity.endAngleDeg;
+    let segments = 128;
+    let thetaStart = entity.startAngle !== undefined ? entity.startAngle : 0;
+    let thetaLength = entity.angleLength !== undefined ? entity.angleLength : Math.PI * 2;
+    let vertices = segments + 2;
+
+    let docEntity = {
+        ///id: uuid.v4(),
+        type: entity.type,
+        name: entity.type + ': ' + entity.handle,
+    }
+
+    /**
+    theta can be calculated as 2*pi radians divided by the number of points.
+    The first point is at theta*0 with respect to the x axis,
+    the second point at angle theta*1, the third point at angle theta*2, etc.
+
+    Using simple trigonometry, you can find the X and Y coordinates of any point
+    that lies on the edge of a circle.
+
+    xFromCenter = r*cos(ohm)
+    yFromCenter = r*sin(ohm)
+    **/
+
+    let p = [];
+    let theta = 2 * Math.PI / vertices;
+    for (let i = 0; i < vertices; i++) {
+        let angle = theta * i;
+        let dx = radius * Math.cos(angle);
+        let dy = radius * Math.sin(angle);
+        p.push(entity.center.x + dx);
+        p.push(entity.center.y + dy);
+    }
+
+    let rawPaths = [];
+    if (p.length)
+        rawPaths = rawPaths.concat(p);
+    if (rawPaths.length) {
+        docEntity.rawPaths = [];
+        docEntity.rawPaths[0] = rawPaths;
+        docEntity.translate = [0, 0, 0];
+        docEntity.scale = [1, 1, 1];
+        docEntity.strokeColor = [0, 0, 0, 1];
+        docEntity.fillColor = [0, 0, 0, 0];
+    }
+
+    state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
 }
 
