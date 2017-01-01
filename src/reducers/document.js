@@ -16,6 +16,7 @@ const initialDocument = {
     isRoot: false,
     children: [],
     selected: false,
+    visible: true,
     translate: null,
     scale: null,
     rawPaths: null,
@@ -188,6 +189,14 @@ export function documents(state, action) {
             state = reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { selected }));
             if (!selected)
                 state = reduceParents(state, action.payload.id, false, o => Object.assign({}, o, { selected: false }));
+            return state;
+        }
+        case 'DOCUMENT_TOGGLE_VISIBLE': {
+            let parent = state.find(o => o.id === action.payload.id);
+            if (!parent)
+                return state;
+            let visible = !parent.visible;
+            state = reduceSubtree(state, action.payload.id, true, o => Object.assign({}, o, { visible }));
             return state;
         }
         default:

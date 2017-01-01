@@ -208,29 +208,31 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-            if (document.fillColor[3])
-                drawCommands.basic2d({
-                    perspective, view,
-                    position: cachedDocument.triangles,
-                    scale: document.scale,
-                    translate: document.translate,
-                    color: document.fillColor,
-                    primitive: drawCommands.gl.TRIANGLES,
-                    offset: 0,
-                    count: cachedDocument.triangles.length / 2,
-                });
-            if (document.strokeColor[3])
-                for (let o of cachedDocument.outlines)
+            if (document.visible === true || document.visible === undefined) {
+                if (document.fillColor[3])
                     drawCommands.basic2d({
                         perspective, view,
-                        position: o,
+                        position: cachedDocument.triangles,
                         scale: document.scale,
                         translate: document.translate,
-                        color: document.strokeColor,
-                        primitive: drawCommands.gl.LINE_STRIP,
+                        color: document.fillColor,
+                        primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
-                        count: o.length / 2,
+                        count: cachedDocument.triangles.length / 2,
                     });
+                if (document.strokeColor[3])
+                    for (let o of cachedDocument.outlines)
+                        drawCommands.basic2d({
+                            perspective, view,
+                            position: o,
+                            scale: document.scale,
+                            translate: document.translate,
+                            color: document.strokeColor,
+                            primitive: drawCommands.gl.LINE_STRIP,
+                            offset: 0,
+                            count: o.length / 2,
+                        });
+            }
         } else if (document.type === 'image') {
             if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
                 drawCommands.image({
