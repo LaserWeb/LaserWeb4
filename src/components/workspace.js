@@ -208,7 +208,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-            if (document.visible === true || document.visible === undefined) {
+             if (document.visible !== false) {
                 if (document.fillColor[3])
                     drawCommands.basic2d({
                         perspective, view,
@@ -234,16 +234,19 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         });
             }
         } else if (document.type === 'image') {
-            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
-                drawCommands.image({
-                    perspective, view,
-                    location: document.translate,
-                    size: [
-                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                    texture: cachedDocument.texture,
-                    selected: false,
-                });
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+                if (document.visible !== false) {
+                    drawCommands.image({
+                        perspective, view,
+                        location: document.translate,
+                        size: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        texture: cachedDocument.texture,
+                        selected: false,
+                    });
+                }
+            }
         }
     }
 } // drawDocuments
@@ -289,40 +292,44 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-            if (document.fillColor[3])
+             if (document.visible !== false) {
+                if (document.fillColor[3])
+                    drawCommands.basic2d({
+                        perspective, view,
+                        position: cachedDocument.triangles,
+                        scale: document.scale,
+                        translate: document.translate,
+                        color,
+                        primitive: drawCommands.gl.TRIANGLES,
+                        offset: 0,
+                        count: cachedDocument.triangles.length / 2,
+                    });
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        perspective, view,
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 10,
+                        color1: color,
+                        color2: color,
+                    })
+            }
+        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+            if (document.visible !== false) {
+                let w = cachedDocument.image.width / document.dpi * 25.4;
+                let h = cachedDocument.image.height / document.dpi * 25.4;
                 drawCommands.basic2d({
                     perspective, view,
-                    position: cachedDocument.triangles,
+                    position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
                     scale: document.scale,
                     translate: document.translate,
                     color,
                     primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
-                    count: cachedDocument.triangles.length / 2,
+                    count: 6,
                 });
-            for (let o of cachedDocument.thickOutlines)
-                drawCommands.thickLines({
-                    perspective, view,
-                    buffer: o,
-                    scale: document.scale,
-                    translate: document.translate,
-                    thickness: 10,
-                    color1: color,
-                    color2: color,
-                })
-        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
-            let w = cachedDocument.image.width / document.dpi * 25.4;
-            let h = cachedDocument.image.height / document.dpi * 25.4;
-            drawCommands.basic2d({
-                perspective, view,
-                position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
-                scale: document.scale,
-                translate: document.translate,
-                color,
-                primitive: drawCommands.gl.TRIANGLES,
-                offset: 0,
-                count: 6,
-            });
+            }
         }
     }
 }
