@@ -71,7 +71,7 @@ function drawLine(state, entity, docLayer, index) {
         ...initialDocument,
         id: uuid.v4(),
         type: entity.type,
-        name: entity.layer + ': ' + entity.type + ': ' + entity.handle,
+        name: entity.type + ': ' + entity.handle,
         isRoot: false,
         children: [],
         selected: false,
@@ -100,8 +100,6 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.fillColor = [0, 0, 0, 0];
     }
 
-    //state.push(docEntity);
-    //docLayer.children.push(docEntity.id); // register feature under layer
     state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
 }
@@ -135,9 +133,9 @@ function drawCircle(state, entity, docLayer, index) {
     let p = [];
     let theta = 2 * Math.PI / vertices;
     for (let i = 0; i < vertices; i++) {
-        let angle = theta * i;
-        let dx = radius * Math.cos(angle);
-        let dy = radius * Math.sin(angle);
+        let segment = thetaStart + i / vertices * thetaLength;
+        let dx = radius * Math.cos(segment);
+        let dy = radius * Math.sin(segment);
         p.push(entity.center.x + dx);
         p.push(entity.center.y + dy);
     }
