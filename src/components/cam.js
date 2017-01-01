@@ -148,7 +148,7 @@ Cam = connect(
                     }
                     reader.readAsText(file);
                 }
-                else if (file.name.substr(-4) === '.dxf' || '.DXF') {
+                else if (file.name.substr(-4).toLowerCase() === '.dxf') {
                     reader.onload = () => {
                         var parser = new DxfParser();
                         var dxfTree = parser.parseSync(reader.result);
