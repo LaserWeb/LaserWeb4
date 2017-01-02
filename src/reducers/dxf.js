@@ -7,23 +7,6 @@ import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
-const initialDocument = {
-    id: '',
-    type: '?',
-    name: '',
-    mimeType: '',
-    isRoot: false,
-    children: [],
-    selected: false,
-    translate: null,
-    scale: null,
-    rawPaths: null,
-    strokeColor: null,
-    fillColor: null,
-    dataURL: '',
-    dpi: 1,
-};
-
 export function processDXF(state, docFile, dxfTree) {
     var LayerLookup = new Map();
     let i, entity;
@@ -31,21 +14,23 @@ export function processDXF(state, docFile, dxfTree) {
 
     for (i = 0; i < dxfTree.entities.length; i++) {
         entity = dxfTree.entities[i];
-        if (entity.type === 'DIMENSION') {
-            console.log('WARNING: No block for DIMENSION entity');
-        } else {
-            if (!LayerLookup.has(entity.layer)) { // Does layer exist, if not then proceed
-                LayerLookup.set(entity.layer, uuid.v4()) // Create an ID for it
+        if (entity.layer) {
+            if (!LayerLookup.has(entity.layer)) {
+                // Does layer exist?, if not then proceed
+                LayerLookup.set(entity.layer, uuid.v4())
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
             } else {
+                // Layer already listed
                 state = drawEntity(state, entity, docLayer, i);
             }
+        } else {
+            // Entity in not in any layer, child of docFile
+            state = drawEntity(state, entity, docFile, i);
         }
-        console.log('WARNING: entity not in a layer:', entity);
     }
     return state;
 }
@@ -62,35 +47,77 @@ function drawEntity(state, entity, docLayer, index) {
         state = drawSolid(state, entity, docLayer, index);
     } else if (entity.type === 'POINT') {
         state = drawPoint(state, entity, docLayer, index);
+    } else if (entity.type === 'DIMENSION') {
+        state = drawDimension(state, entity, docLayer, index);
     }
     return state;
 }
 
+function angle2 (p1, p2) {
+    p2.sub(p1); // sets v2 to be our chord
+    p2.normalize(); // normalize because cos(theta) =
+    // if(v2.y < 0) return Math.PI + (Math.PI - Math.acos(v2.x));
+    if(p2[1] < 0) return -Math.acos(p2[0]);
+    return Math.acos(p2[0]);
+}
+
+function polar (point, distance, angle) {
+    var result = [];
+    result[0] = point[0] + distance * Math.cos(angle);
+    result[1] = point[1] + distance * Math.sin(angle);
+    return result;
+}
+
 function drawLine(state, entity, docLayer, index) {
     let docEntity = {
-        ...initialDocument,
-        id: uuid.v4(),
         type: entity.type,
         name: entity.type + ': ' + entity.handle,
-        isRoot: false,
-        children: [],
-        selected: false,
     }
 
-    // create geometry
     let rawPaths = [];
-    for (let j = 0; j < entity.vertices.length; j++) {
-        let p = [];
-        let vertex = {};
-        vertex = entity.vertices[j];
-        p.push(vertex.x, vertex.y);
-        if (p.length)
-        rawPaths = rawPaths.concat(p);
+    let p = [];
+    let startPoint, endPoint, bulgeGeometry, bulge;
+
+    for (let i = 0; i < entity.vertices.length; i++) {
+        if (entity.vertices[i].bulge) {
+            console.log("BULGE: " + entity);
+            bulge = entity.vertices[i].bulge;
+            startPoint = entity.vertices[i];
+            endPoint = i + 1 < entity.vertices.length ? entity.vertices[i + 1] : {}; // no endpoint of bulge!
+
+            let vertex, i, center, p0, p1, angle, radius, startAngle, thetaAngle, dist, segments;
+
+            startPoint = p0 = [startPoint.x, startPoint.y] || [0,0];
+            endPoint = p1 = [endPoint.x, endPoint.y] || [1,0];
+            bulge = bulge || 1;
+
+            angle = 4 * Math.atan(bulge);
+            dist = Math.sqrt( (p0[0]-p0[1])*(p0[0]-p0[1]) + (p1[0]-p1[1])*(p1[0]-p1[1]) );
+
+            radius = dist / 2 / Math.sin(angle/2);
+            center = polar(startPoint, radius, angle2(p0,p1) + (Math.PI / 2 - angle/2));
+
+            segments = segments || Math.max( Math.abs(Math.ceil(angle/(Math.PI/18))), 6); // By default want a segment roughly every 10 degrees
+            startAngle = angle2(center, p0);
+            thetaAngle = angle / segments;
+
+            p.push(p0[0], p0[1]); // starting point
+            for(i = 1; i <= segments - 1; i++) {
+                let coords = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
+                p.push(coords[0], coords[1]);
+            }
+        } else {
+            let vertex = {};
+            vertex = entity.vertices[i];
+            p.push(vertex.x, vertex.y);
+        }
     }
+
+    if (p.length)
+        rawPaths = rawPaths.concat(p);
     if (entity.shape) {
         rawPaths = rawPaths.concat(entity.vertices[0].x, entity.vertices[0].y); // To close off the shape
     }
-
     if (rawPaths.length) {
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
@@ -113,7 +140,6 @@ function drawCircle(state, entity, docLayer, index) {
     let vertices = segments + 2;
 
     let docEntity = {
-        ///id: uuid.v4(),
         type: entity.type,
         name: entity.type + ': ' + entity.handle,
     }
@@ -157,16 +183,36 @@ function drawCircle(state, entity, docLayer, index) {
 }
 
 function drawText(state, entity, docLayer, index) {
+    console.log("TEXT: " + entity);
+    //TODO
+    return state;
+}
+
+function drawDimension(state, entity, docLayer, index) {
+    console.log("DIMENSION: " + entity);
     //TODO
     return state;
 }
 
 function drawSolid(state, entity, docLayer, index) {
+    console.log("SOLID: " + entity);
     //TODO
     return state;
 }
 
 function drawPoint(state, entity, docLayer, index) {
-    //TODO
+    // TODO: Currently points are mutated into circles with a
+    entity.radius = 0.1;
+    let x = entity.position.x;
+    let y = entity.position.y;
+    entity.center = { x, y };
+
+    let temp = drawCircle(state, entity, docLayer, index);
+    let docEntity = temp.slice(-1);
+    docEntity = docEntity[0];
+
+    docEntity.fillColor = [0, 0, 0, 1];
+
+    state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
 }
