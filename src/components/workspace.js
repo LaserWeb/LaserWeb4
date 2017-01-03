@@ -69,9 +69,9 @@ class Grid {
             this.position = new Float32Array(a);
             this.count = a.length / 3;
         }
-        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Gray grid
-        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Red
-        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: 'lines' }); // Green
+        drawCommands.basic({ perspective, view, position: this.position, offset: 4, count: this.count - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.position, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
+        drawCommands.basic({ perspective, view, position: this.position, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
     }
 };
 
@@ -158,8 +158,13 @@ class FloatingControls extends React.Component {
             vec4.transformMat4([],
                 vec4.transformMat4([], [bounds.x1, bounds.y1, 0, 1], this.props.camera.view),
                 this.props.camera.perspective);
+<<<<<<< HEAD
             let x = ((p[0] / p[3] + 1) * this.props.workspaceWidth / 2) - 20;
             let y = (this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2) + 20;
+=======
+        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20;
+        let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2 + 20;
+>>>>>>> d0f2e392d67e3ddbcc995daf8ee540fad00f0421
 
         x = x / window.devicePixelRatio - this.props.width;
         y = y / window.devicePixelRatio;
@@ -208,40 +213,45 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-            if (document.fillColor[3])
-                drawCommands.basic2d({
-                    perspective, view,
-                    position: cachedDocument.triangles,
-                    scale: document.scale,
-                    translate: document.translate,
-                    color: document.fillColor,
-                    primitive: 'triangles',
-                    offset: 0,
-                    count: cachedDocument.triangles.length / 2,
-                });
-            if (document.strokeColor[3])
-                for (let o of cachedDocument.outlines)
+             if (document.visible !== false) {
+                if (document.fillColor[3])
                     drawCommands.basic2d({
                         perspective, view,
-                        position: o,
+                        position: cachedDocument.triangles,
                         scale: document.scale,
                         translate: document.translate,
-                        color: document.strokeColor,
-                        primitive: 'line strip',
+                        color: document.fillColor,
+                        primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
-                        count: o.length / 2,
+                        count: cachedDocument.triangles.length / 2,
                     });
+                if (document.strokeColor[3])
+                    for (let o of cachedDocument.outlines)
+                        drawCommands.basic2d({
+                            perspective, view,
+                            position: o,
+                            scale: document.scale,
+                            translate: document.translate,
+                            color: document.strokeColor,
+                            primitive: drawCommands.gl.LINE_STRIP,
+                            offset: 0,
+                            count: o.length / 2,
+                        });
+            }
         } else if (document.type === 'image') {
-            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
-                drawCommands.image({
-                    perspective, view,
-                    location: document.translate,
-                    size: [
-                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
-                    texture: cachedDocument.texture,
-                    selected: false,
-                });
+            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+                if (document.visible !== false) {
+                    drawCommands.image({
+                        perspective, view,
+                        location: document.translate,
+                        size: [
+                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
+                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        texture: cachedDocument.texture,
+                        selected: false,
+                    });
+                }
+            }
         }
     }
 } // drawDocuments
@@ -287,40 +297,44 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-            if (document.fillColor[3])
+             if (document.visible !== false) {
+                if (document.fillColor[3])
+                    drawCommands.basic2d({
+                        perspective, view,
+                        position: cachedDocument.triangles,
+                        scale: document.scale,
+                        translate: document.translate,
+                        color,
+                        primitive: drawCommands.gl.TRIANGLES,
+                        offset: 0,
+                        count: cachedDocument.triangles.length / 2,
+                    });
+                for (let o of cachedDocument.thickOutlines)
+                    drawCommands.thickLines({
+                        perspective, view,
+                        buffer: o,
+                        scale: document.scale,
+                        translate: document.translate,
+                        thickness: 10,
+                        color1: color,
+                        color2: color,
+                    })
+            }
+        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
+            if (document.visible !== false) {
+                let w = cachedDocument.image.width / document.dpi * 25.4;
+                let h = cachedDocument.image.height / document.dpi * 25.4;
                 drawCommands.basic2d({
                     perspective, view,
-                    position: cachedDocument.triangles,
+                    position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
                     scale: document.scale,
                     translate: document.translate,
                     color,
-                    primitive: 'triangles',
+                    primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
-                    count: cachedDocument.triangles.length / 2,
+                    count: 6,
                 });
-            for (let o of cachedDocument.thickOutlines)
-                drawCommands.thickLines({
-                    perspective, view,
-                    buffer: o,
-                    scale: document.scale,
-                    translate: document.translate,
-                    thickness: 10,
-                    color1: color,
-                    color2: color,
-                })
-        } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
-            let w = cachedDocument.image.width / document.dpi * 25.4;
-            let h = cachedDocument.image.height / document.dpi * 25.4;
-            drawCommands.basic2d({
-                perspective, view,
-                position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
-                scale: document.scale,
-                translate: document.translate,
-                color,
-                primitive: 'triangles',
-                offset: 0,
-                count: 6,
-            });
+            }
         }
     }
 }

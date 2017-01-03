@@ -5,6 +5,8 @@ import { getParentIds, object, objectArray } from '../reducers/object'
 import arrayMove from 'array-move'
 
 const operationBase = object('operation', {
+    id: '',
+    name: '',
     documents: [],
     tabDocuments: [],
     expanded: false,

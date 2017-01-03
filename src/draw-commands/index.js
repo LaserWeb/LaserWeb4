@@ -112,6 +112,7 @@ export class DrawCommands {
             },
             destroy() {
                 this.drawCommands.gl.deleteFramebuffer(this.frameBuffer);
+                this.texture.destroy();
             },
         };
         this.useFrameBuffer(result, () => {
@@ -276,17 +277,7 @@ export class DrawCommands {
             useProgram(() => {
                 program.useUniforms(this, uniforms, () => {
                     program.useAttrs(this, buffer.stride, buffer.offset, () => {
-                        let mode;
-                        if (primitive === 'triangles')
-                            mode = this.gl.TRIANGLES;
-                        else if (primitive === 'lines')
-                            mode = this.gl.LINES;
-                        else if (primitive === 'line strip')
-                            mode = this.gl.LINE_STRIP;
-                        else
-                            console.error('unknown primitive', primitive)
-                        if (mode !== undefined)
-                            this.gl.drawArrays(mode, 0, buffer.count);
+                        this.gl.drawArrays(primitive, 0, buffer.count);
                     });
                 });
             });
