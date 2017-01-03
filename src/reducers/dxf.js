@@ -123,8 +123,11 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = [0, 0, 0, 1];
-        docEntity.fillColor = [0, 0, 0, 0];
+        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (entity.shape)
+            docEntity.fillColor = [0, 0, 0, 0.3]; // Shade in to show its a closed shape
+        else
+            docEntity.fillColor = [0, 0, 0, 0];
     }
 
     state = documents(state, addDocumentChild(docLayer.id, docEntity));
@@ -133,7 +136,7 @@ function drawLine(state, entity, docLayer, index) {
 
 function drawCircle(state, entity, docLayer, index) {
     let radius = entity.radius;
-    let arcTotalDeg = entity.startAngleDeg - entity.endAngleDeg;
+    let arcTotalDeg = entity.startAngle - entity.endAngle;
     let segments = 128;
     let thetaStart = entity.startAngle !== undefined ? entity.startAngle : 0;
     let thetaLength = entity.angleLength !== undefined ? entity.angleLength : Math.PI * 2;
@@ -166,6 +169,12 @@ function drawCircle(state, entity, docLayer, index) {
         p.push(entity.center.y + dy);
     }
 
+    // Close off the shape if not an ARC
+    if (!arcTotalDeg) {
+        p.push( p[0] );
+        p.push( p[1] );
+    }
+
     let rawPaths = [];
     if (p.length)
         rawPaths = rawPaths.concat(p);
@@ -174,8 +183,11 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = [0, 0, 0, 1];
-        docEntity.fillColor = [0, 0, 0, 0];
+        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (!arcTotalDeg)
+            docEntity.fillColor = [0, 0, 0, 0.3];  // Shade in to show its a closed shape
+        else
+            docEntity.fillColor = [0, 0, 0, 0];
     }
 
     state = documents(state, addDocumentChild(docLayer.id, docEntity));
@@ -215,4 +227,15 @@ function drawPoint(state, entity, docLayer, index) {
 
     state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
+}
+
+function idxToRGBColor(index) {
+    if (index) {
+	    let r = (index >> 16) & 0xFF;
+	    let g = (index >> 8) & 0xFF;
+	    let b = index & 0xFF;
+        let a = 1;
+        return [r, g, b, a];
+    } else
+	   return [0, 0, 0, 1];
 }
