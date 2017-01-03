@@ -53,12 +53,16 @@ function drawEntity(state, entity, docLayer, index) {
     return state;
 }
 
-function angle2 (p1, p2) {
-    p2.sub(p1); // sets v2 to be our chord
-    p2.normalize(); // normalize because cos(theta) =
+function angle2 (p1, p2) { // [x,y] arrays
+    let v1 = [0, 0];
+    let v2 = [ p2[0] - p1[0], p2[1] - p1[1] ]; // sets v2 to be our chord
+    //let hyp = Math.sqrt( (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]) );
+    let hyp = Math.sqrt( (v2[0]*v2[0])+(v2[1]*v2[1]) );
+    let norm = [ v2[0] / hyp, v2[1] / hyp ]; // normalize because cos(theta) =
     // if(v2.y < 0) return Math.PI + (Math.PI - Math.acos(v2.x));
-    if(p2[1] < 0) return -Math.acos(p2[0]);
-    return Math.acos(p2[0]);
+    if(norm[1] < 0)
+        return -Math.acos(norm[0]);
+    return Math.acos(norm[0]);
 }
 
 function polar (point, distance, angle) {
@@ -80,20 +84,18 @@ function drawLine(state, entity, docLayer, index) {
 
     for (let i = 0; i < entity.vertices.length; i++) {
         if (entity.vertices[i].bulge) {
-            console.log("BULGE: " + entity);
+            let vertex, center, p0, p1, angle, radius, startAngle, thetaAngle, dist, segments;
+
             bulge = entity.vertices[i].bulge;
             startPoint = entity.vertices[i];
-            endPoint = i + 1 < entity.vertices.length ? entity.vertices[i + 1] : {}; // no endpoint of bulge!
-
-            let vertex, i, center, p0, p1, angle, radius, startAngle, thetaAngle, dist, segments;
+            endPoint = i + 1 < entity.vertices.length ? entity.vertices[i + 1] : { x: p[0], y: p[1] }; // no endpoint of bulge!
 
             startPoint = p0 = [startPoint.x, startPoint.y] || [0,0];
             endPoint = p1 = [endPoint.x, endPoint.y] || [1,0];
             bulge = bulge || 1;
 
             angle = 4 * Math.atan(bulge);
-            dist = Math.sqrt( (p0[0]-p0[1])*(p0[0]-p0[1]) + (p1[0]-p1[1])*(p1[0]-p1[1]) );
-
+            dist = Math.sqrt( (p0[0]-p1[0])*(p0[0]-p1[0]) + (p0[1]-p1[1])*(p0[1]-p1[1]) );
             radius = dist / 2 / Math.sin(angle/2);
             center = polar(startPoint, radius, angle2(p0,p1) + (Math.PI / 2 - angle/2));
 
@@ -102,10 +104,12 @@ function drawLine(state, entity, docLayer, index) {
             thetaAngle = angle / segments;
 
             p.push(p0[0], p0[1]); // starting point
-            for(i = 1; i <= segments - 1; i++) {
-                let coords = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
+            for(let j = 1; j <= segments; j++) { //for(let j = 1; j <= segments - 1; j++) {
+                let coords = polar(center, Math.abs(radius), startAngle + thetaAngle * j);
                 p.push(coords[0], coords[1]);
             }
+            //p.push(p0[0], p0[1]); // close off the shape
+            console.log(entity, p);
         } else {
             let vertex = {};
             vertex = entity.vertices[i];
