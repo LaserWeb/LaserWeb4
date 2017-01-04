@@ -462,7 +462,7 @@ class Operation extends React.Component {
                 }
             } // types[op.type].allowTabs
         } // op.expanded
-        else if (op.name.length) {
+        else if (op.name && op.name.length) {
             rows.push(
                 <div key="attrs" style={{ display: 'table-row' }}>
                     <div style={leftStyle} />
