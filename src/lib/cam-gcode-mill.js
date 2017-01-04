@@ -241,7 +241,7 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
             point.Y = Math.round(point.Y / mmToClipperScale * 1000) * mmToClipperScale / 1000;
         }
     }
-    reduceCamPaths(camPaths, 0);
+    reduceCamPaths(camPaths, op.segmentLength * mmToClipperScale);
 
     let feedScale = 1;
     if (settings.toolFeedUnits === 'mm/s')

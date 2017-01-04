@@ -315,9 +315,11 @@ export function reduceCamPaths(camPaths, minDist) {
     for (let camPath of camPaths) {
         let path = camPath.path;
         let newPath = [path[0]];
-        for (let i = 1; i < path.length - 1; ++i)
-            if (distSqr(path[i], newPath[newPath.length - 1]) > minDistSqr)
+        for (let i = 1; i < path.length - 1; ++i) {
+            let sq = distSqr(path[i], newPath[newPath.length - 1]);
+            if (sq > 0 && sq >= minDistSqr)
                 newPath.push(path[i]);
+        }
         newPath.push(path[path.length - 1]);
         camPath.path = newPath;
     }
