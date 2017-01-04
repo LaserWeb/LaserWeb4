@@ -19,6 +19,8 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
+import { Webcam } from './webcam';
+
 export class ApplicationSnapshot extends React.Component {
 
     constructor(props) {
@@ -121,12 +123,13 @@ class SettingsPanel extends React.Component {
 
     render() {
         let filterProps = omit(this.props, ['header', 'errors', 'defaultExpanded']);
-        let childrenFields = this.props.children.map((item) => { return item.props.field })
+        let childrenFields = this.props.children.map((item) => { if (item) return item.props.field })
         let hasErrors = Object.keys(this.props.errors || []).filter((error) => { return childrenFields.includes(error) }).length;
 
         filterProps['defaultExpanded'] = (this.props.defaultExpanded || hasErrors) ? true : false
 
         let children = this.props.children.map((child, i) => {
+            if (!child) return 
             let props = { key: i }
             if (child.props.field) props['errors'] = this.props.errors;
             return React.cloneElement(child, props);
@@ -221,6 +224,9 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay' }} />
+
+                        {this.props.settings['toolUseVideo'] ? <Webcam width="320" height="240" perspective={{before: [175, 156, 496, 55, 161, 279, 504, 330], after:  [164, 174, 496, 55, 172, 309, 465, 241]}}/> : undefined }
+
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available: ["TL", "BL"] }} />
                     </SettingsPanel>
