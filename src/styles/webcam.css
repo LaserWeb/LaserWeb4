@@ -1,0 +1,3 @@
+.webcamViewport {border: 1px solid #eee}
+.webcamViewport img[src="#"] {display:none}
+.webcamViewport video {display:none}
