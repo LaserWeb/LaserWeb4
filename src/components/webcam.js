@@ -6,6 +6,9 @@ import { getUserMedia } from 'getusermedia-js';
 import fx from 'glfx'
 import '../styles/webcam.css';
 
+import Draggable from 'react-draggable';
+import Icon from './font-awesome'
+
 export class Webcam extends React.Component {
 
     componentWillUnmount() {
@@ -63,9 +66,89 @@ export class Webcam extends React.Component {
     }
 
     render() {
-        return <div className="webcamViewport"><div id="stream"></div></div>
+        return <div className="webcamViewport" style={{ width: this.props.width, height: this.props.height, overflow: "hidden" }}>
+            <div id="stream"></div>
+        </div>
+    }
+
+}
+
+export class Coordinator extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { position: this.props.position || [0, 0, 0, 0, 0, 0, 0, 0] }
+        this.handleDrag.bind(this)
+    }
+
+    handleDrag(e, ui, index) {
+        let position = Object.assign({}, this.state.position);
+        position[index * 2] = position[index * 2] + ui.deltaX;
+        position[index * 2 + 1] = position[index * 2 + 1] + ui.deltaY;
+        this.setState({ position: position });
+
+        if (this.props.onChange)
+            this.props.onChange(position)
+    }
+
+    render() {
+
+        let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
+        let dotSize = this.props.dotSize || 10;
+        let symbol = this.props.symbol || ((props)=>{ return <svg height="100%" width="100%"><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg>})
+        
+        return <div className="coordinator" style={{ width: this.props.width, height: this.props.height, position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
+            {dots.map((fill, i) => {
+                return <Draggable onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
+                    <div style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({fill})}</div>
+                </Draggable>
+            })}
+        </div>
+    }
+}
+
+export class PerspectiveWebcam extends React.Component {
+
+    constructor(props) {
+        super(props);
+        let w = this.props.width;
+        let h = this.props.height;
+        this.state = {
+            before: [
+                w * 0.2, h * 0.8,
+                w * 0.8, h * 0.8,
+                w * 0.8, h * 0.2,
+                w * 0.2, h * 0.2
+            ],
+            after: [
+                w * 0.2, h * 0.8,
+                w * 0.8, h * 0.8,
+                w * 0.8, h * 0.2,
+                w * 0.2, h * 0.2
+            ],
+        }
+        this.handleChange.bind(this)
+    }
+
+    handleChange(coords) {
+        this.setState({after: Object.values(coords)})
+    }
+
+    render() {
+
+        let before = this.state.before;
+        let after = this.state.after;
+        return <div className="perspectiveWebcam">
+            <div className="viewPort">
+                <Webcam width={this.props.width} height={this.props.height} perspective={{ before, after }} />
+                <Coordinator width={this.props.width} height={this.props.height} onChange={coords => { this.handleChange(coords) } } position={this.state.before} style={{ position: "absolute", top: "0px", left: "0px" }} />
+            </div>
+            <code>{JSON.stringify(this.state)}</code>
+        </div>
     }
 
 }
 
 Webcam = connect()(Webcam);
+Coordinator = connect()(Coordinator);
+PerspectiveWebcam = connect()(PerspectiveWebcam);
