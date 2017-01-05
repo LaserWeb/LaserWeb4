@@ -3,3 +3,6 @@
 .webcamViewport video {display:none}
 
 .perspectiveWebcam .viewPort { position:relative; overflow:hidden;}
+
+.coordinator {pointer-events: none}
+.coordinator .symbol {pointer-events: all}

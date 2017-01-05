@@ -61,7 +61,8 @@ export class Webcam extends React.Component {
     };
 
     _stopVideo(stream) {
-        this.video.parentNode.removeChild(this.video);
+        if (this.video)
+            this.video.parentNode.removeChild(this.video);
         window.URL.revokeObjectURL(stream);
     }
 
@@ -95,12 +96,12 @@ export class Coordinator extends React.Component {
 
         let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
         let dotSize = this.props.dotSize || 10;
-        let symbol = this.props.symbol || ((props)=>{ return <svg height="100%" width="100%"><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg>})
-        
+        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%"><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
+
         return <div className="coordinator" style={{ width: this.props.width, height: this.props.height, position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
             {dots.map((fill, i) => {
                 return <Draggable onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
-                    <div style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({fill})}</div>
+                    <div className="symbol" style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
                 </Draggable>
             })}
         </div>
@@ -130,8 +131,8 @@ export class PerspectiveWebcam extends React.Component {
         this.handleChange.bind(this)
     }
 
-    handleChange(coords) {
-        this.setState({after: Object.values(coords)})
+    handleChange(position, key) {
+        this.setState({ [key]: Object.values(position) })
     }
 
     render() {
@@ -141,7 +142,19 @@ export class PerspectiveWebcam extends React.Component {
         return <div className="perspectiveWebcam">
             <div className="viewPort">
                 <Webcam width={this.props.width} height={this.props.height} perspective={{ before, after }} />
-                <Coordinator width={this.props.width} height={this.props.height} onChange={coords => { this.handleChange(coords) } } position={this.state.before} style={{ position: "absolute", top: "0px", left: "0px" }} />
+                <Coordinator width={this.props.width} height={this.props.height}
+                    onChange={(position) => { this.handleChange(position,"before") } }
+                    position={this.state.before}
+                    style={{ position: "absolute", top: "0px", left: "0px" }}
+                    symbol = {
+                        (props) => { return <svg height="100%" width="100%"><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
+                    }
+                    />
+                <Coordinator width={this.props.width} height={this.props.height}
+                    onChange={(position) => { this.handleChange(position,"after") } }
+                    position={this.state.after}
+                    style={{ position: "absolute", top: "0px", left: "0px" }}
+                    />
             </div>
             <code>{JSON.stringify(this.state)}</code>
         </div>
