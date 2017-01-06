@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { PerspectiveWebcam } from './webcam';
+import { PerspectiveWebcam, VideoDeviceField } from './webcam';
 
 export class ApplicationSnapshot extends React.Component {
 
@@ -75,7 +75,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
     }
 
     handleDownload(statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
         let file = prompt("Save as", this.props.saveAs || "laserweb-snapshot.json")
         let settings = this.getExportData(statekeys);
         let action = downloadSnapshot;
@@ -83,17 +83,17 @@ export class ApplicationSnapshotToolbar extends React.Component {
     }
 
     handleUpload(file, statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
         this.props.handleUpload(file, uploadSnapshot, statekeys)
     }
 
     handleStore(statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
         this.props.handleStore("laserweb-snapshot", this.getExportData(statekeys), storeSnapshot)
     }
 
     handleRecover(statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys ||  []);
+        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
         this.props.handleRecover("laserweb-snapshot", uploadSnapshot)
     }
 
@@ -106,16 +106,16 @@ export class ApplicationSnapshotToolbar extends React.Component {
             buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
         if (this.props.recoverButton) {
-            buttons.push(<Button  onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);
+            buttons.push(<Button onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);
         }
         if (this.props.storeButton) {
             buttons.push(<Button onClick={(e) => this.handleStore(this.props.storeButton)} bsClass="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
 
-        return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong> 
-                    <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button,i)=>React.cloneElement(button,{key:i}))}</ButtonGroup>
-                    <br style={{clear:'both'}}/>
-               </div>
+        return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong>
+            <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</ButtonGroup>
+            <br style={{ clear: 'both' }} />
+        </div>
     }
 }
 
@@ -129,7 +129,7 @@ class SettingsPanel extends React.Component {
         filterProps['defaultExpanded'] = (this.props.defaultExpanded || hasErrors) ? true : false
 
         let children = this.props.children.map((child, i) => {
-            if (!child) return 
+            if (!child) return
             let props = { key: i }
             if (child.props.field) props['errors'] = this.props.errors;
             return React.cloneElement(child, props);
@@ -154,7 +154,6 @@ class Settings extends React.Component {
     constructor(props) {
         super(props);
         this.state = { errors: null }
-
     }
 
     validate(data, rules) {
@@ -178,6 +177,8 @@ class Settings extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState({ errors: this.validate(nextProps.settings, this.rules()) })
     }
+
+
 
     render() {
 
@@ -223,9 +224,13 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
-                        <ToggleField {... { object: this.props.settings, field: 'toolUseVideo', setAttrs: setSettingsAttrs, description: 'Use Video Overlay' }} />
 
-                        {this.props.settings['toolUseVideo'] ? <PerspectiveWebcam width="320" height="240" /> : undefined }
+                        <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} />
+                        
+                        {this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length ? <PerspectiveWebcam width="320" height="240"
+                            device={this.props.settings['toolVideoDevice']}
+                            perspective={this.props.settings['toolVideoPerspective']}
+                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) } } /> : undefined}
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', available: ["TL", "BL"] }} />
@@ -236,11 +241,11 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="6" >
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr/>
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr/>
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr />
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr />
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
-                        <ApplicationSnapshot/>
+                        <ApplicationSnapshot />
                     </Panel>
                 </PanelGroup>
             </div>
@@ -257,6 +262,9 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        handleSettingChange: (attrs) => {
+            dispatch(setSettingsAttrs(attrs, 'settings'))
+        },
         handleDownload: (file, settings, action) => {
             FileStorage.save(file, stringify(settings), "application/json")
             dispatch(action(settings));
