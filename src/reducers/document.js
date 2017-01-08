@@ -8,7 +8,7 @@ import Snap from 'snapsvg-cjs';
 import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
-import { processDXF } from '../reducers/dxf'
+import { processDXF } from '../lib/dxf'
 
 const initialDocument = {
     id: '',
