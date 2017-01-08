@@ -154,14 +154,17 @@ Cam = connect(
                         var dxfParser = new DxfParser({});
                         var dxfTree = dxfParser.parseSync(reader.result);
                         dispatch(loadDocument(file, dxfTree));
-                        let rawSVG = extractTEXT(dxfTree);
-                        let subFile = {
-                            name: 'DXF: Text Paths',
-                            type: 'image/svg+xml',
-                        };
-                        let parser = new Parser({});
-                        parser.parse(rawSVG)
-                            .then(tags => dispatch(loadDocument(subFile, { parser, tags })));
+
+
+                        extractTEXT(dxfTree).then(function(rawSVG) {
+                            let subFile = {
+                                name: 'DXF: Text Paths',
+                                type: 'image/svg+xml',
+                            };
+                            let parser = new Parser({});
+                            parser.parse(rawSVG)
+                                .then(tags => dispatch(loadDocument(subFile, { parser, tags })));
+                        });
 
                     }
                     reader.readAsText(file);

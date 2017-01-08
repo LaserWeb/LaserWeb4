@@ -31,19 +31,47 @@ import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
+let debugShape = [0, 0, 0, 0];
+
 // WARNING: async calls in this function!
 export function extractTEXT(dxfTree) {
-    let svgHeader = '';
-    let svgText = '<?xml version="1.0" encoding="utf-8"?><!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  --><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 300 300" style="enable-background:new 0 0 841.9 595.3;" xml:space="preserve"><path d="M22.96-10L22.96-41.57L11.17-41.57L11.17-45.79L39.54-45.79L39.54-41.57L27.70-41.57L27.70-10L22.96-10ZM56.04-18.35L60.59-17.79Q59.51-13.81 56.61-11.61Q53.70-9.41 49.18-9.41Q43.50-9.41 40.16-12.92Q36.83-16.42 36.83-22.74Q36.83-29.29 40.20-32.90Q43.57-36.51 48.94-36.51Q54.14-36.51 57.44-32.97Q60.73-29.43 60.73-23.01Q60.73-22.62 60.71-21.84L41.37-21.84Q41.62-17.57 43.79-15.30Q45.96-13.03 49.21-13.03Q51.63-13.03 53.33-14.30Q55.04-15.57 56.04-18.35M41.62-25.45L56.09-25.45Q55.80-28.73 54.43-30.36Q52.33-32.90 48.99-32.90Q45.96-32.90 43.90-30.87Q41.84-28.85 41.62-25.45ZM64.35-17.74L68.69-18.42Q69.06-15.81 70.73-14.42Q72.40-13.03 75.41-13.03Q78.43-13.03 79.90-14.26Q81.36-15.49 81.36-17.15Q81.36-18.64 80.07-19.50Q79.17-20.08 75.58-20.99Q70.74-22.21 68.87-23.10Q67.01-23.99 66.04-25.56Q65.08-27.14 65.08-29.04Q65.08-30.78 65.87-32.25Q66.67-33.73 68.03-34.71Q69.06-35.46 70.83-35.99Q72.60-36.51 74.62-36.51Q77.68-36.51 79.98-35.63Q82.29-34.76 83.39-33.25Q84.49-31.75 84.90-29.24L80.61-28.65Q80.31-30.65 78.91-31.78Q77.50-32.90 74.94-32.90Q71.91-32.90 70.62-31.90Q69.33-30.90 69.33-29.56Q69.33-28.70 69.86-28.02Q70.40-27.31 71.55-26.85Q72.21-26.60 75.43-25.72Q80.09-24.48 81.94-23.68Q83.78-22.89 84.83-21.38Q85.88-19.86 85.88-17.62Q85.88-15.42 84.60-13.48Q83.32-11.54 80.90-10.48Q78.48-9.41 75.43-9.41Q70.38-9.41 67.73-11.51Q65.08-13.61 64.35-17.74ZM100.70-13.93L101.33-10.05Q99.48-9.66 98.01-9.66Q95.62-9.66 94.30-10.42Q92.98-11.17 92.45-12.40Q91.91-13.64 91.91-17.59L91.91-32.51L88.69-32.51L88.69-35.93L91.91-35.93L91.91-42.35L96.28-44.99L96.28-35.93L100.70-35.93L100.70-32.51L96.28-32.51L96.28-17.35Q96.28-15.47 96.51-14.93Q96.74-14.39 97.27-14.08Q97.79-13.76 98.77-13.76Q99.50-13.76 100.70-13.93ZM117.18-20.74L117.18-25.16L130.68-25.16L130.68-20.74L117.18-20.74ZM151.77-18.89L150.43-37.86L150.43-45.79L155.87-45.79L155.87-37.86L154.60-18.89L151.77-18.89M150.63-10L150.63-15.00L155.68-15.00L155.68-10L150.63-10Z"/></svg>';
+    return new Promise(function (resolve, reject) {
+        //let pxPerInch = +settings.pxPerInch || 96;
+        let pxPerInch = 96;
+        let fontScale = 5.438;
+        let svgPaths = [];
 
-    opentype.load('./fonts/Arial.ttf', function(err, font) {
-        if (err) {
-            alert('Could not load font: ' + err + '\n\nMake sure the font is in the ./dist/fonts/ folder');
-        } else {
-            font.getPath();
-        }
+        opentype.load('./fonts/Arial.ttf', function(err, font) {
+            if (err) {
+                reject(alert('Could not load font: ' + err + '\n\nMake sure the font is in the ./dist/fonts/ folder'));
+            } else {
+                let xMax = 0;
+                let yMax = 0;
+
+                for (let entity of dxfTree.entities) {
+                    if (entity.type === "TEXT") {
+                        let dx = entity.startPoint.x;
+                        let dy = entity.startPoint.y;
+                        if (xMax < dx)
+                            xMax = (dx + entity.textHeight)  * 3.78;
+                        if (yMax < dy)
+                            yMax = (dy + (entity.text.length * entity.textHeight))  * 3.78;
+                        let path = font.getPath(entity.text, dx * pxPerInch / 25.4 , -dy * pxPerInch / 25.4 , entity.textHeight * fontScale);
+                        path.stroke = "rgba(0,0,0,1)";
+                        path.fill = "rgba(0,0,0,1)";
+                        svgPaths.push(path.toSVG());
+                    }
+                }
+
+                let combined = '';
+                for (let paths of svgPaths) {
+                    combined += paths;
+                }
+                let result = '<svg width="' + 0.2 + 'px" height="' + 0.2 + 'px">' + combined + '</svg>';
+                resolve(result);
+            }
+        });
     });
-    return svgText;
 }
 
 export function processDXF(state, docFile, dxfTree) {
@@ -168,7 +196,7 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (entity.shape)
-            docEntity.fillColor = [0, 0, 0, 0.3]; // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape; // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
@@ -228,7 +256,7 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (!arcTotalDeg)
-            docEntity.fillColor = [0, 0, 0, 0.3];  // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape;  // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
