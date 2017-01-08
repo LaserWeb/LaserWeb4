@@ -31,6 +31,7 @@ import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
+import { extractTEXT } from '../lib/dxf';
 
 function NoDocumentsError(props) {
     let {documents, camBounds} = props;
@@ -150,9 +151,18 @@ Cam = connect(
                 }
                 else if (file.name.substr(-4).toLowerCase() === '.dxf') {
                     reader.onload = () => {
-                        var parser = new DxfParser();
-                        var dxfTree = parser.parseSync(reader.result);
+                        var dxfParser = new DxfParser({});
+                        var dxfTree = dxfParser.parseSync(reader.result);
                         dispatch(loadDocument(file, dxfTree));
+                        let rawSVG = extractTEXT(dxfTree);
+                        let subFile = {
+                            name: 'DXF: Text Paths',
+                            type: 'image/svg+xml',
+                        };
+                        let parser = new Parser({});
+                        parser.parse(rawSVG)
+                            .then(tags => dispatch(loadDocument(subFile, { parser, tags })));
+
                     }
                     reader.readAsText(file);
                 }

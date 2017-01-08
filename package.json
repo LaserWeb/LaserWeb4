@@ -99,6 +99,7 @@
     "bootstrap-range-input": "^1.0.0",
     "dxf-parser": "^0.4.6",
     "immutability-helper": "^2.0.0",
+    "opentype.js": "^0.6.7",
     "react-addons-shallow-compare": "^15.4.1",
     "unicode": "^0.6.1"
   }
