@@ -41,7 +41,7 @@ export function extractTEXT(dxfTree) {
         let fontScale = 5.438;
         let svgPaths = [];
 
-        opentype.load('./fonts/Arial.ttf', function(err, font) {
+        opentype.load('./fonts/OpenSans-Regular.ttf', function(err, font) {
             if (err) {
                 reject(alert('Could not load font: ' + err + '\n\nMake sure the font is in the ./dist/fonts/ folder'));
             } else {
