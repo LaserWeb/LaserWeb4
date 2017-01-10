@@ -5,6 +5,10 @@ import { Input, NumberField, ToggleField } from './forms';
 import { setSettingsAttrs } from '../actions/settings';
 
 class Com extends React.Component {
+    useGcode() {
+        alert(this.props.gcode);
+    }
+
     render() {
         let {settings, dispatch} = this.props;
         return (
@@ -29,13 +33,15 @@ class Com extends React.Component {
                     checked={settings.toolCncMode}
                     onChange={e => dispatch(setSettingsAttrs({ toolCncMode: e.target.checked }))}
                     />
+                <br />
+                <button onClick={e => this.useGcode()}>Use gcode</button>
             </div>
         )
     }
 }
 
 Com = connect(
-    state => ({ settings: state.settings })
+    state => ({ settings: state.settings, gcode: state.gcode })
 )(Com);
 
 export default Com
