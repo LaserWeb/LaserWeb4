@@ -110,7 +110,8 @@ export const settings = objectNoId('settings', {
     toolCncMode:false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
-    toolUseVideo: false,
+    toolVideoDevice: null,
+    toolVideoPerspective: null,
     toolWebcamUrl:"",
     toolFeedUnits: 'mm/min',
     
