@@ -1,0 +1,8 @@
+.webcamViewport {border: 1px solid #eee; position:relative; width: 320px; height:240px; overflow:hidden}
+.webcamViewport img[src="#"] {display:none}
+.webcamViewport video {display:none}
+
+.perspectiveWebcam .viewPort { position:relative; overflow:hidden;}
+
+.coordinator {pointer-events: none}
+.coordinator .symbol {pointer-events: all}

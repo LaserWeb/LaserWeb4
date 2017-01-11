@@ -86,7 +86,7 @@ export function thickLines(drawCommands) {
     return ({perspective, view, scale, translate, thickness, color1, color2, buffer}) => {
         drawCommands.execute({
             program,
-            primitive: 'triangles',
+            primitive: drawCommands.gl.TRIANGLES,
             uniforms: {
                 perspective, view,
                 viewportWidth: drawCommands.gl.drawingBufferWidth,

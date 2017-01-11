@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { dist, cut, insideOutside, pocket, separateTabs, vCarve } from './cam';
+import { dist, cut, insideOutside, pocket, reduceCamPaths, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
 
 // Convert mill paths to gcode.
@@ -234,6 +234,15 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         camPaths = vCarve(geometry, op.toolAngle, op.passDepth * mmToClipperScale);
     }
 
+    for (let camPath of camPaths) {
+        let path = camPath.path;
+        for (let point of path) {
+            point.X = Math.round(point.X / mmToClipperScale * 1000) * mmToClipperScale / 1000;
+            point.Y = Math.round(point.Y / mmToClipperScale * 1000) * mmToClipperScale / 1000;
+        }
+    }
+    reduceCamPaths(camPaths, op.segmentLength * mmToClipperScale);
+
     let feedScale = 1;
     if (settings.toolFeedUnits === 'mm/s')
         feedScale = 60;
@@ -258,7 +267,7 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         useZ: op.type === 'Mill V Carve',
         offsetX: 0,
         offsetY: 0,
-        decimal: 4,
+        decimal: 3,
         topZ: 0,
         botZ: -op.cutDepth,
         safeZ: +op.clearance,

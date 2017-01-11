@@ -74,7 +74,7 @@ export function gcode(drawCommands) {
     return ({perspective, view, g0Rate, simTime, data, count}) => {
         drawCommands.execute({
             program,
-            primitive: 'lines',
+            primitive: drawCommands.gl.LINES,
             uniforms: { perspective, view, g0Rate, simTime },
             buffer: {
                 data,
