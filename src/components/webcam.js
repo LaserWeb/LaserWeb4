@@ -23,9 +23,9 @@ export class Webcam extends React.Component {
         this.video = ReactDOM.findDOMNode(this).querySelector('#stream video');
 
         ReactDOM.findDOMNode(this).appendChild(this.canvas)
-
+	    let texture = this.canvas.texture(this.video)
         const capture = () => {
-            let texture = this.canvas.texture(this.video)
+
             texture.loadContentsOf(this.video);
 
             this.canvas.draw(texture);
