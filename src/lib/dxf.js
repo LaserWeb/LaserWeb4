@@ -25,10 +25,54 @@
 
 import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
+import opentype from 'opentype.js';
 
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
+
+let debugShape = [0, 0, 0, 0];
+
+// WARNING: async calls in this function!
+export function extractTEXT(dxfTree) {
+    return new Promise(function (resolve, reject) {
+        //let pxPerInch = +settings.pxPerInch || 96;
+        let pxPerInch = 96;
+        let fontScale = 5.438;
+        let svgPaths = [];
+
+        opentype.load('./fonts/OpenSans-Regular.ttf', function(err, font) {
+            if (err) {
+                reject(alert('Could not load font: ' + err + '\n\nMake sure the font is in the ./dist/fonts/ folder'));
+            } else {
+                let xMax = 0;
+                let yMax = 0;
+
+                for (let entity of dxfTree.entities) {
+                    if (entity.type === "TEXT") {
+                        let dx = entity.startPoint.x;
+                        let dy = entity.startPoint.y;
+                        if (xMax < dx)
+                            xMax = (dx + entity.textHeight)  * 3.78;
+                        if (yMax < dy)
+                            yMax = (dy + (entity.text.length * entity.textHeight))  * 3.78;
+                        let path = font.getPath(entity.text, dx * pxPerInch / 25.4 , -dy * pxPerInch / 25.4 , entity.textHeight * fontScale);
+                        path.stroke = "rgba(0,0,0,1)";
+                        path.fill = "rgba(0,0,0,1)";
+                        svgPaths.push(path.toSVG());
+                    }
+                }
+
+                let combined = '';
+                for (let paths of svgPaths) {
+                    combined += paths;
+                }
+                let result = '<svg width="' + 0.2 + 'px" height="' + 0.2 + 'px">' + combined + '</svg>';
+                resolve(result);
+            }
+        });
+    });
+}
 
 export function processDXF(state, docFile, dxfTree) {
     var LayerLookup = new Map();
@@ -152,7 +196,7 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (entity.shape)
-            docEntity.fillColor = [0, 0, 0, 0.3]; // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape; // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
@@ -212,7 +256,7 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (!arcTotalDeg)
-            docEntity.fillColor = [0, 0, 0, 0.3];  // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape;  // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
