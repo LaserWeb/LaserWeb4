@@ -183,7 +183,7 @@ function loadDxf(state, settings, {file, content}) {
 export function documentsLoad(state, settings, action) {
     if (action.payload.file.type === 'image/svg+xml')
         return loadSvg(state, settings, action.payload);
-    else if (action.payload.file.type === 'image/vnd.dxf')
+    else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload);
     else if (action.payload.file.type.substring(0, 6) === 'image/')
         return loadImage(state, action.payload);
