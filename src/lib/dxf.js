@@ -30,6 +30,8 @@ import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
+const debugShape = [0, 0, 0, 0];
+
 export function processDXF(state, docFile, dxfTree) {
     var LayerLookup = new Map();
     let i, entity;
@@ -152,7 +154,7 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (entity.shape)
-            docEntity.fillColor = [0, 0, 0, 0.3]; // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape; // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
@@ -212,7 +214,7 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.scale = [1, 1, 1];
         docEntity.strokeColor = idxToRGBColor(entity.color);
         if (!arcTotalDeg)
-            docEntity.fillColor = [0, 0, 0, 0.3];  // Shade in to show its a closed shape
+            docEntity.fillColor = debugShape;  // Shade in to show its a closed shape
         else
             docEntity.fillColor = [0, 0, 0, 0];
     }
