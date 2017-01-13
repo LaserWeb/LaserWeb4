@@ -259,7 +259,9 @@ function drawPoint(state, entity, docLayer, index) {
 }
 
 function idxToRGBColor(index) {
-    if (index) {
+    if (index == 16777215) // Force white lines to become black
+        return [0, 0, 0, 1];
+    else if (index) {
 	    let r = (index >> 16) & 0xFF;
 	    let g = (index >> 8) & 0xFF;
 	    let b = index & 0xFF;
