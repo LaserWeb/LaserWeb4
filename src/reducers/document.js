@@ -4,9 +4,11 @@ import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
 import Snap from 'snapsvg-cjs';
 
-import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
+//import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
+import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
+import { processDXF } from '../lib/dxf'
 
 const initialDocument = {
     id: '',
@@ -162,9 +164,27 @@ function loadImage(state, {file, content}) {
     return state;
 }
 
+function loadDxf(state, settings, {file, content}) {
+  state = state.slice();
+  let docFile = {
+      ...initialDocument,
+      id: uuid.v4(),
+      type: 'document',
+      name: file.name,
+      isRoot: true,
+      children: [],
+      selected: false,
+  };
+  state.push(docFile); // state[0] is the file root structure
+  state = processDXF(state, docFile, content);
+  return state;
+}
+
 export function documentsLoad(state, settings, action) {
     if (action.payload.file.type === 'image/svg+xml')
         return loadSvg(state, settings, action.payload);
+    else if (action.payload.file.type === 'image/vnd.dxf')
+        return loadDxf(state, settings, action.payload);
     else if (action.payload.file.type.substring(0, 6) === 'image/')
         return loadImage(state, action.payload);
     else {

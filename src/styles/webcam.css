@@ -1,4 +1,4 @@
-.webcamViewport {border: 1px solid #eee; position:relative; width: 320px; height:240px; overflow:hidden}
+.webcamViewport {border: 1px solid #eee; position:relative; width: 100%; height:100%; overflow:hidden}
 .webcamViewport img[src="#"] {display:none}
 .webcamViewport video {display:none}
 
