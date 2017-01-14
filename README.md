@@ -80,8 +80,9 @@ Once tested, push updates to Github Pages
 
 ```
 git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6
-# LaserWeb Development Environment
 ```
+# LaserWeb Development Environment
+
 -------------------------------------------------------------
  * npm install          -  Install the development environment.
  * npm start            -  Start the live development server.
