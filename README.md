@@ -74,6 +74,12 @@ Don't commit changes that webpack makes to **docs/** and **dist/** . You have to
 
 The package list changes frequently; expect to do an **npm install** every time you do a git pull until things settle down.
 
+# Push update to live gh-pages version
+
+Once tested, push updates to Github Pages
+
+```
+git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6
 # LaserWeb Development Environment
 ```
 -------------------------------------------------------------
