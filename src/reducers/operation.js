@@ -13,7 +13,6 @@ const operationBase = object('operation', {
     type: 'Laser Cut',
     filterFillColor: null,
     filterStrokeColor: null,
-    union: true,
     direction: 'Conventional',
     laserPower: 100,
     laserDiameter: 0,

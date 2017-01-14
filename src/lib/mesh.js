@@ -391,6 +391,11 @@ export function diff(paths1, paths2) {
     return clip(paths1, paths2, ClipperLib.ClipType.ctDifference);
 }
 
+// Return xor of two Clipper geometries. Returns new geometry.
+export function xor(paths1, paths2) {
+    return clip(paths1, paths2, ClipperLib.ClipType.ctXor);
+}
+
 // Offset Clipper geometries by amount (positive expands, negative shrinks). Returns new geometry.
 export function offset(paths, amount, joinType, endType) {
     if (joinType === undefined)
