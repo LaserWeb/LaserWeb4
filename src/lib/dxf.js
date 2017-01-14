@@ -29,6 +29,7 @@ import uuid from 'node-uuid';
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
+import {FileStorage, LocalStorage} from '../lib/storages';
 
 const debugShape = [0, 0, 0, 0];
 
@@ -224,8 +225,58 @@ function drawCircle(state, entity, docLayer, index) {
 }
 
 function drawText(state, entity, docLayer, index) {
-    console.log("TEXT: " + entity);
-    //TODO
+    let docEntity = {
+        type: entity.type,
+        name: entity.type + ': ' + entity.handle,
+    }
+    let magicTranslate = 100;
+    let magicFontHeight = 0.357; // 0.357 for DPI 0.5
+    let magicDPIScale = 0.75;
+    let magicPixleScale = 0.5; // This needs to be a function of DPI, >font:>pixles
+
+    var cvs = document.createElement('canvas');
+    cvs.width = '1000';
+    cvs.height = '1000';
+    var ctx = cvs.getContext('2d');
+    //ctx.font = entity.textHeight + "px Arial";
+    ctx.font = entity.textHeight / magicFontHeight + "px Arial";
+    //ctx.fillText(entity.text, entity.startPoint.x/magicDPIScale, (-entity.startPoint.y/magicDPIScale) + magicTranslate);
+    //ctx.fillText(entity.text, entity.startPoint.x, -entity.startPoint.y + magicTranslate);
+    ctx.scale(1, 1);
+    ctx.fillText(entity.text, entity.startPoint.x, cvs.height-entity.startPoint.y);
+
+    let data = ctx.getImageData(0, 0, cvs.width, cvs.height);
+    let coords = [];
+    let x = 0;
+    let y = 0;
+
+    for (let i = 0; i < data.data.length; i += 4) {
+        if (x == cvs.width) {
+            x = 0;
+            y++;
+        }
+        if (data.data[i+3]) {
+            // 96 dpi	1 px	0.264583 mm
+            let dx = x * magicDPIScale;
+            let dy = -y * magicDPIScale;
+            coords.push([dx,dy,dx+magicPixleScale,dy,dx+magicPixleScale,dy+magicPixleScale,dx,dy+magicPixleScale,dx,dy])
+        }
+        x++;
+    }
+
+    //FileStorage.save(prompt("Save as", "coords.json"), JSON.stringify(coords), "application/json")
+
+    if (coords.length) {
+        //docEntity.rawPaths = [];
+        docEntity.rawPaths = coords;
+        //docEntity.translate = [0, magicTranslate/2, 0];
+        docEntity.translate = [0, 0, 0];
+        docEntity.scale = [1, 1, 1];
+        docEntity.strokeColor = [0, 0, 0, 1];
+        docEntity.fillColor = [0, 0, 0, 1];
+    }
+
+    state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
 }
 
