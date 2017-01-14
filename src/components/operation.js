@@ -259,7 +259,6 @@ export const fields = {
 
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    union: { name: 'union', label: 'Combine Paths', units: '', input: ToggleInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
@@ -304,7 +303,7 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'union', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },

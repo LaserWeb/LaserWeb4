@@ -19,7 +19,7 @@ import RasterToGcode from 'lw.raster-to-gcode';
 
 import { getLaserCutGcodeFromOp } from './cam-gcode-laser-cut'
 import { getMillGcodeFromOp } from './cam-gcode-mill'
-import { rawPathsToClipperPaths, union } from './mesh';
+import { rawPathsToClipperPaths, union, xor } from './mesh';
 
 function matchColor(filterColor, color) {
     if (!filterColor)
@@ -52,15 +52,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
                             isClosed = true;
                     let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
-                    if (isClosed && (op.type !== 'Laser Cut' || op.union))
-                        geometry = union(geometry, clipperPaths);
-                    else if (!op.filterFillColor) {
-                        if (isClosed)
-                            for (let path of clipperPaths)
-                                if (path.length)
-                                    path.push(path[0])
+                    if (isClosed)
+                        geometry = xor(geometry, clipperPaths);
+                    else if (!op.filterFillColor)
                         openGeometry = openGeometry.concat(clipperPaths);
-                    }
                 }
             }
             if (doc.type === 'image' && !isTab) {
