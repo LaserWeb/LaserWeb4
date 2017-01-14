@@ -55,7 +55,8 @@ class Cam extends React.Component {
             nextProps.documents !== this.props.documents ||
             nextProps.operations !== this.props.operations ||
             nextProps.currentOperation !== this.props.currentOperation ||
-            nextProps.bounds !== this.props.bounds);
+            nextProps.bounds !== this.props.bounds ||
+            nextProps.gcode !== this.props.gcode); // Needed for saveGcode() to work
     }
 
     render() {
@@ -129,7 +130,7 @@ class Cam extends React.Component {
 
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation,
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode,
         saveGcode: () => sendAsFile('gcode.gcode', state.gcode),
     }),
     dispatch => ({
