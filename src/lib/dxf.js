@@ -229,21 +229,23 @@ function drawText(state, entity, docLayer, index) {
         type: entity.type,
         name: entity.type + ': ' + entity.handle,
     }
-    let magicTranslate = 100;
-    let magicFontHeight = 0.357; // 0.357 for DPI 0.5
-    let magicDPIScale = 0.75;
-    let magicPixleScale = 0.5; // This needs to be a function of DPI, >font:>pixles
+    // from mesh.js
+    const inchToClipperScale = 1270000000;
+    const mmToClipperScale = inchToClipperScale / 25.4; // 50,000,000;
+    const clipperToCppScale = 1 / 128;
+
+    //let magicTranslate = 100;
+    let magicDPIScale = 1/4.28;
+    let magicFontHeight = 6;
+    let pixleSize = 1; //
 
     var cvs = document.createElement('canvas');
     cvs.width = '1000';
     cvs.height = '1000';
     var ctx = cvs.getContext('2d');
-    //ctx.font = entity.textHeight + "px Arial";
-    ctx.font = entity.textHeight / magicFontHeight + "px Arial";
-    //ctx.fillText(entity.text, entity.startPoint.x/magicDPIScale, (-entity.startPoint.y/magicDPIScale) + magicTranslate);
-    //ctx.fillText(entity.text, entity.startPoint.x, -entity.startPoint.y + magicTranslate);
-    ctx.scale(1, 1);
-    ctx.fillText(entity.text, entity.startPoint.x, cvs.height-entity.startPoint.y);
+    ctx.font = entity.textHeight * magicFontHeight + "px Arial";
+    ctx.scale(1, -1);
+    ctx.fillText(entity.text, 0, 0);
 
     let data = ctx.getImageData(0, 0, cvs.width, cvs.height);
     let coords = [];
@@ -256,22 +258,15 @@ function drawText(state, entity, docLayer, index) {
             y++;
         }
         if (data.data[i+3]) {
-            // 96 dpi	1 px	0.264583 mm
-            let dx = x * magicDPIScale;
-            let dy = -y * magicDPIScale;
-            coords.push([dx,dy,dx+magicPixleScale,dy,dx+magicPixleScale,dy+magicPixleScale,dx,dy+magicPixleScale,dx,dy])
+            coords.push([x,y,x+pixleSize,y,x+pixleSize,y+pixleSize,x,y+pixleSize,x,y])
         }
         x++;
     }
 
-    //FileStorage.save(prompt("Save as", "coords.json"), JSON.stringify(coords), "application/json")
-
     if (coords.length) {
-        //docEntity.rawPaths = [];
         docEntity.rawPaths = coords;
-        //docEntity.translate = [0, magicTranslate/2, 0];
-        docEntity.translate = [0, 0, 0];
-        docEntity.scale = [1, 1, 1];
+        docEntity.translate = [entity.startPoint.x, entity.startPoint.y, 0];
+        docEntity.scale = [magicDPIScale, magicDPIScale, 1];
         docEntity.strokeColor = [0, 0, 0, 1];
         docEntity.fillColor = [0, 0, 0, 1];
     }
