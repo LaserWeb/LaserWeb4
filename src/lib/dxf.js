@@ -230,6 +230,15 @@ function drawText(state, entity, docLayer, index) {
         name: entity.type + ': ' + entity.handle,
     }
 
+    // Create defualt font settings
+    entity = {
+        ...entity,
+        fontStyle: 'normal', // normal italic oblique
+        fontWeight: 'normal', // normal bold
+        fontFamily: 'Ariel',
+    }
+
+
     let magicDPIScale = 0.37;
     let magicFontHeight = 6;
     let pixleSize = 1; //
@@ -242,6 +251,7 @@ function drawText(state, entity, docLayer, index) {
                 y: entity.position.y
             },
             textHeight: entity.height,
+            text: 'regex_here', // regex needed
         }
     }
 
@@ -249,7 +259,7 @@ function drawText(state, entity, docLayer, index) {
     cvs.width = '1000';
     cvs.height = '1000';
     var ctx = cvs.getContext('2d');
-    ctx.font = entity.textHeight + "mm Arial";
+    ctx.font = entity.fontStyle + ' ' + entity.fontWeight + ' ' + entity.textHeight + 'mm ' + entity.fontFamily;
     ctx.scale(1, -1);
     ctx.fillText(entity.text, 0, - 100); // add 100 for font tails. eg, pjg
 
