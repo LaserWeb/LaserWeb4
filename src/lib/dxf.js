@@ -248,8 +248,8 @@ function drawText(state, entity, docLayer, index) {
     // Create defualt font settings
     entity = {
         ...entity,
-        fontStyle: 'normal', // normal italic oblique
-        fontWeight: 'normal', // normal bold
+        fontStyle: '', // normal italic oblique
+        fontWeight: '', // normal bold
         fontFamily: 'Ariel',
     }
 
@@ -259,6 +259,17 @@ function drawText(state, entity, docLayer, index) {
     let pixleSize = 1;
 
     if (entity.type == "MTEXT") {
+        const regex = /\{\\f(.*?)\|(\w+)\|(\w+)\|(\w+)\|(\w+)\;(.*?)\}$/g;
+        //const str = `{\\fTimes New Roman|b0|i0|c0|p0;call.me({obj});}`;
+        let regexString = regex.exec(entity.text); // 0: origStrng, 1: font, 2: bold, 3: italics, 6: text
+        console.log(regexString)
+
+        let style, weight;
+        if (regexString[2] == 'b1')
+            entity.fontWeight = 'bold';
+        if (regexString[3] == 'i1')
+            entity.fontWeight = 'italic';
+
         entity = {
             ...entity,
             startPoint: {
@@ -266,7 +277,8 @@ function drawText(state, entity, docLayer, index) {
                 y: entity.position.y
             },
             textHeight: entity.height,
-            text: 'regex_here', // regex needed
+            fontFamily: regexString[1],
+            text: regexString[6],
         }
     }
 
