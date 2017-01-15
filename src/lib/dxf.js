@@ -67,7 +67,7 @@ function drawEntity(state, entity, docLayer, index) {
         state = drawCircle(state, entity, docLayer, index);
     } else if (entity.type === 'LWPOLYLINE' || entity.type === 'LINE' || entity.type === 'POLYLINE') {
         state = drawLine(state, entity, docLayer, index);
-    } else if (entity.type === 'TEXT') {
+    } else if (entity.type === 'TEXT' || entity.type === 'MTEXT') {
         state = drawText(state, entity, docLayer, index);
     } else if (entity.type === 'SOLID') {
         state = drawSolid(state, entity, docLayer, index);
@@ -229,23 +229,29 @@ function drawText(state, entity, docLayer, index) {
         type: entity.type,
         name: entity.type + ': ' + entity.handle,
     }
-    // from mesh.js
-    const inchToClipperScale = 1270000000;
-    const mmToClipperScale = inchToClipperScale / 25.4; // 50,000,000;
-    const clipperToCppScale = 1 / 128;
 
-    //let magicTranslate = 100;
-    let magicDPIScale = 1/4.28;
+    let magicDPIScale = 0.37;
     let magicFontHeight = 6;
     let pixleSize = 1; //
+
+    if (entity.type == "MTEXT") {
+        entity = {
+            ...entity,
+            startPoint: {
+                x: entity.position.x,
+                y: entity.position.y
+            },
+            textHeight: entity.height,
+        }
+    }
 
     var cvs = document.createElement('canvas');
     cvs.width = '1000';
     cvs.height = '1000';
     var ctx = cvs.getContext('2d');
-    ctx.font = entity.textHeight * magicFontHeight + "px Arial";
+    ctx.font = entity.textHeight + "mm Arial";
     ctx.scale(1, -1);
-    ctx.fillText(entity.text, 0, 0);
+    ctx.fillText(entity.text, 0, - 100); // add 100 for font tails. eg, pjg
 
     let data = ctx.getImageData(0, 0, cvs.width, cvs.height);
     let coords = [];
@@ -258,7 +264,8 @@ function drawText(state, entity, docLayer, index) {
             y++;
         }
         if (data.data[i+3]) {
-            coords.push([x,y,x+pixleSize,y,x+pixleSize,y+pixleSize,x,y+pixleSize,x,y])
+            let dy = y - 100;
+            coords.push([x,dy,x+pixleSize,dy,x+pixleSize,dy+pixleSize,x,dy+pixleSize,x,dy])
         }
         x++;
     }
