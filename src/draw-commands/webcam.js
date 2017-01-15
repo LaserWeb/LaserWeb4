@@ -5,9 +5,11 @@ export const drawCommand = (regl) =>{
             precision mediump float;
             attribute vec2 position;
             varying vec2 uv;
+            uniform float flipX;
+            uniform float flipY;
             void main () {
                 uv = position;
-                gl_Position = vec4(1.0 - 2.0 * position, 0, 1);
+                gl_Position = vec4(flipX + 2.0 * position.x, flipY + 2.0 * position.y, 0, 1);
             }
         `,
         frag: `
@@ -26,7 +28,11 @@ export const drawCommand = (regl) =>{
             ]
         },
         framebuffer: regl.prop('dest'),
-        uniforms: {texture: regl.prop('src')},
+        uniforms: {
+            texture: regl.prop('src'),
+            flipX: regl.prop('flipX')? -1 : 1,
+            flipY: regl.prop('flipY')? -1 : 1
+        },
         depth: {enable: false},
         count: 3
     });
@@ -225,7 +231,8 @@ export const perspectiveDistort = (regl, src, dest, before, after ) => {
                 varying vec2 texCoord;
                 void main () {
                     texCoord = position;
-                    gl_Position = vec4(1.0 - 2.0 * texCoord, 0, 1);
+                    gl_Position = vec4( -1.0 + 2.0 * position.x, -1.0 + 2.0 * position.y, 0, 1);
+                    
                 }
             `,
             attributes:{

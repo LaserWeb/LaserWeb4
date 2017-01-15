@@ -23,23 +23,35 @@ export class Webcam extends React.Component {
         this.video = ReactDOM.findDOMNode(this).querySelector('#stream video');
         this.canvas = ReactDOM.findDOMNode(this).querySelector('#stream canvas');
 
-
+        // resolution adjustment
         const ratio = (value, index) => {
             let wh = !(index % 2) ? this.props.width : this.props.height;
             let rwh = !(index % 2) ? this.props.resolution.width : this.props.resolution.height;
             return parseInt((value / wh) * rwh);
         }
 
-        const capture = () => {
+        // coordinates adjustment
+        const swap = (set) =>{
+            return [
+                set[0], this.props.height-set[1],
+                set[2], this.props.height-set[3],
+                set[4], this.props.height-set[5],
+                set[6], this.props.height-set[7],
+            ]
+        }
+
+        const capture = (src) => {
             const regl = require('regl')(this.canvas);
             const pipe = drawCommand(regl)
+            const fbopts= {
+                width: this.props.resolution.width, height: this.props.resolution.height
+            }
 
             this.loop = regl.frame(() => {
                 try {
-                    const video = regl.texture(this.video); video.mipmap = 'nice'
-                    const fbo = regl.framebuffer({ width: this.props.resolution.width, height: this.props.resolution.height })
-                    const fbo2 = regl.framebuffer({ width: this.props.resolution.width, height: this.props.resolution.height })
-                    video(this.video)
+                    const video = regl.texture({data:src, min:'linear', mag:'linear'}); 
+                    const fbo = regl.framebuffer(fbopts)
+                    const fbo2 = regl.framebuffer(fbopts)
 
                     pipe({ src: video, dest: fbo })
                     
@@ -51,7 +63,7 @@ export class Webcam extends React.Component {
 
                     if (this.props.perspective) {
                         let {before, after} = this.props.perspective;
-                        perspectiveDistort(regl, fbo2, null, before.map(ratio), after.map(ratio))
+                        perspectiveDistort(regl, fbo2, null, swap(before).map(ratio), swap(after).map(ratio)) 
                     } else {
                         pipe({ src: fbo2 })
                     }
@@ -80,7 +92,6 @@ export class Webcam extends React.Component {
                 this._startVideo(this.stream, capture)
 
             }
-
         })
     }
 
@@ -89,7 +100,7 @@ export class Webcam extends React.Component {
         this.video.src = window.URL.createObjectURL(stream);
         this.video.addEventListener('loadeddata', (e) => {
             if (this.video.readyState === 4) {
-                callback.apply(that)
+                callback.apply(that, [this.video])
             }
         }, false)
 
@@ -289,7 +300,6 @@ export class VideoControls extends React.Component{
 
     render(){
         return <FormGroup className="videoControls">
-            
             <InputGroup><InputGroup.Addon>a</InputGroup.Addon>        <input className="form-control" value={this.props.lens.a} onChange={(e)=>{this.handleChange(e, "lens","a");}} type="range"  min="0" max="4" step="any"/></InputGroup>
             <InputGroup><InputGroup.Addon>b</InputGroup.Addon>        <input className="form-control" value={this.props.lens.b} onChange={(e)=>{this.handleChange(e, "lens","b");}} type="range"  min="0" max="4" step="any"/></InputGroup>
             <InputGroup><InputGroup.Addon>F</InputGroup.Addon>        <input className="form-control" value={this.props.lens.f} onChange={(e)=>{this.handleChange(e, "lens","F");}} type="range"  min="0" max="4" step="any" /></InputGroup>
