@@ -47,6 +47,15 @@ export function processDXF(state, docFile, dxfTree) {
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
+
+                let layers = dxfTree.tables.layer.layers;
+                for (var prop in layers) {
+                    if (layers[prop].name == entity.layer)
+                        if(layers[prop].color)
+                            docLayer.color = layers[prop].color;
+                }
+
+
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
             } else {
@@ -153,7 +162,10 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
         if (entity.shape)
             docEntity.fillColor = debugShape; // Shade in to show its a closed shape
         else
@@ -213,7 +225,10 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
         if (!arcTotalDeg)
             docEntity.fillColor = debugShape;  // Shade in to show its a closed shape
         else
@@ -238,10 +253,10 @@ function drawText(state, entity, docLayer, index) {
         fontFamily: 'Ariel',
     }
 
-
-    let magicDPIScale = 0.37;
-    let magicFontHeight = 6;
-    let pixleSize = 1; //
+    // pixels = px * window.devicePixelRatio﻿
+    let magicDPIScale = 0.4; // 0.37
+    //let magicFontHeight = 6;
+    let pixleSize = 1;
 
     if (entity.type == "MTEXT") {
         entity = {
@@ -256,6 +271,7 @@ function drawText(state, entity, docLayer, index) {
     }
 
     var cvs = document.createElement('canvas');
+    cvs.setAttribute('zoom', 'reset');
     cvs.width = '1000';
     cvs.height = '1000';
     var ctx = cvs.getContext('2d');
@@ -284,7 +300,10 @@ function drawText(state, entity, docLayer, index) {
         docEntity.rawPaths = coords;
         docEntity.translate = [entity.startPoint.x, entity.startPoint.y, 0];
         docEntity.scale = [magicDPIScale, magicDPIScale, 1];
-        docEntity.strokeColor = [0, 0, 0, 1];
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
         docEntity.fillColor = [0, 0, 0, 1];
     }
 
@@ -322,7 +341,9 @@ function drawPoint(state, entity, docLayer, index) {
 }
 
 function idxToRGBColor(index) {
-    if (index) {
+    if (index == 16777215) // Force white lines to become black
+        return [0, 0, 0, 1];
+    else if (index) {
 	    let r = (index >> 16) & 0xFF;
 	    let g = (index >> 8) & 0xFF;
 	    let b = index & 0xFF;
