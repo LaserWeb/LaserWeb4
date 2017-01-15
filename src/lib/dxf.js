@@ -259,16 +259,25 @@ function drawText(state, entity, docLayer, index) {
     let pixleSize = 1;
 
     if (entity.type == "MTEXT") {
-        const regex = /\{\\f(.*?)\|(\w+)\|(\w+)\|(\w+)\|(\w+)\;(.*?)\}$/g;
-        //const str = `{\\fTimes New Roman|b0|i0|c0|p0;call.me({obj});}`;
+        let regex = /\{\\f(.*?)\|(\w+)\|(\w+)\|(\w+)\|(\w+)\;(.*?)\}$/g;
         let regexString = regex.exec(entity.text); // 0: origStrng, 1: font, 2: bold, 3: italics, 6: text
-        console.log(regexString)
-
-        let style, weight;
-        if (regexString[2] == 'b1')
-            entity.fontWeight = 'bold';
-        if (regexString[3] == 'i1')
-            entity.fontWeight = 'italic';
+        if (regexString) {
+            let style, weight;
+            if (regexString[2] == 'b1')
+                entity.fontWeight = 'bold';
+            if (regexString[3] == 'i1')
+                entity.fontWeight = 'italic';
+            if (regexString[1])
+                entity.fontFamily = regexString[1];
+            if (regexString[6])
+                entity.text = regexString[6];
+        } else {
+            regex = /\{(.*?)\}$/g;
+            regexString = regex.exec(entity.text);
+            if (regexString) {
+                entity.text = regexString[1];
+            }
+        }
 
         entity = {
             ...entity,
@@ -277,8 +286,6 @@ function drawText(state, entity, docLayer, index) {
                 y: entity.position.y
             },
             textHeight: entity.height,
-            fontFamily: regexString[1],
-            text: regexString[6],
         }
     }
 
