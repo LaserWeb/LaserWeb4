@@ -77,7 +77,7 @@ class Cam extends React.Component {
                                     </td>
                                     <td>
                                         <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
-                                            <button className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
+                                            <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                                             <NoDocumentsError camBounds={bounds} documents={documents} />
                                         </span>
@@ -107,9 +107,10 @@ class Cam extends React.Component {
                                     </td>
                                     <td>
                                         <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
-                                            <ButtonGroup title={"On Settings: " + Object.values(validator.errors.errors).join("\n")}>
-                                                <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
-                                                <button className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                                            <ButtonGroup>
+                                                <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                                                <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                                                <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
                                             </ButtonGroup>
                                         </span>
                                     </td>
@@ -162,7 +163,17 @@ Cam = connect(
                     reader.readAsDataURL(file);
                 }
             }
-        }
+        },
+        loadGcode: e => {
+            let input = document.createElement('input');
+            input.type = "file";
+            input.onchange = e => {
+                let reader = new FileReader;
+                reader.onload = () => dispatch(setGcode(reader.result));
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        },
     }),
 )(Cam);
 

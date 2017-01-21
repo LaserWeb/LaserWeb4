@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import { Input, NumberField, ToggleField } from './forms';
 import { setSettingsAttrs } from '../actions/settings';
+import { setWorkspaceAttrs } from '../actions/workspace';
 
 class Com extends React.Component {
     useGcode() {
@@ -35,6 +36,12 @@ class Com extends React.Component {
                     />
                 <br />
                 <button onClick={e => this.useGcode()}>Use gcode</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 0, 0] }))}>Set Work Pos A</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, -50] }))}>Set Work Pos C</button>
             </div>
         )
     }

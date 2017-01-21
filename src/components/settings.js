@@ -226,7 +226,7 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
 
                         <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} />
-                        
+
                         {this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length ? <PerspectiveWebcam width="320" height="240"
                             device={this.props.settings['toolVideoDevice']}
                             perspective={this.props.settings['toolVideoPerspective']}
@@ -234,9 +234,9 @@ class Settings extends React.Component {
                             fov={this.props.settings['toolVideoFov']}
                             onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) } } /> : undefined}
 
-                        {this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length ? <VideoControls 
-                            lens={this.props.settings['toolVideoLens']} 
-                            fov={this.props.settings['toolVideoFov']} 
+                        {this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length ? <VideoControls
+                            lens={this.props.settings['toolVideoLens']}
+                            fov={this.props.settings['toolVideoFov']}
                             onChange={(v)=>this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov })}/> : undefined}
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
