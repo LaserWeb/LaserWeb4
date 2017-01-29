@@ -317,11 +317,6 @@ export const types = {
 
 class Operation extends React.Component {
 
-    constructor(props) {
-        super(props)
-        this.state = { docs_visible: true }
-    }
-
     componentWillMount() {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
@@ -329,6 +324,7 @@ class Operation extends React.Component {
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
         this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ type: type, ...attrs }, this.props.op.id))
+        this.toggleDocs = e => this.props.dispatch(setOperationAttrs({ _docs_visible: !this.props.op._docs_visible }, this.props.op.id));
     }
 
     render() {
@@ -385,13 +381,13 @@ class Operation extends React.Component {
                             <thead>
                                 <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
                             </thead>
-                            <tbody style={{ display: this.state.docs_visible ? 'block' : 'none' }}>
+                            <tbody style={{ display: op._docs_visible ? 'block' : 'none' }}>
                                 {op.documents.map(id => {
                                     return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
                                 })}
                             </tbody>
                             <tfoot>
-                                <tr><td colSpan='3' style={{ textAlign: 'right' }}><a onClick={(e) => { this.setState({ docs_visible: !this.state.docs_visible }) } }><small>{this.state.docs_visible ? 'Hide Docs' : 'Show Docs (' + op.documents.length + ')'}</small></a></td></tr>
+                                <tr><td colSpan='3' style={{ textAlign: 'right' }}><a onClick={this.toggleDocs}><small>{op._docs_visible ? 'Hide Docs' : 'Show Docs (' + op.documents.length + ')'}</small></a></td></tr>
                             </tfoot>
                         </table>
                     </div>

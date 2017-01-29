@@ -46,6 +46,7 @@ const operationBase = object('operation', {
     burnWhite: true,        // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+    _docs_visible: true,
 });
 
 export function operation(state, action) {
