@@ -13,32 +13,17 @@ import keydown, { Keys } from 'react-keydown';
 const keystrokes = ["shift+up", "shift+down", "shift+enter"]
 
 // level STD, INFO, WARN, DANGER
-const COMMANDLOG_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle'];
-const COMMANDLOG_CLASS = ['default', 'info', 'warning', 'danger'];
+const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle'];
+const CommandHistory_CLASS = ['default', 'info', 'warning', 'danger'];
 
-class CommandLog extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { lines: this.props.lines };
-    }
-    render() {
-        return <div>{this.state.lines.map((line, i) => { return React.cloneElement(line, { key: i }) })}</div>;
-    }
-    log(message, level = 0, icon = undefined) {
-        if (typeof icon == 'undefined') icon = level;
-        level = isNaN(level) ? level : COMMANDLOG_CLASS[level]
-        icon = isNaN(icon) ? icon : COMMANDLOG_ICON[icon]
-
-        let line = <code><Label bsStyle={level}><Icon name={icon} /></Label> {message}</code>
-        
-        this.setState({ lines: [...this.state.lines, line] })
-    }
-
-    componentDidUpdate()
-    {
-        let parent = ReactDOM.findDOMNode(this).parentNode;
-            parent.scrollTop = parent.scrollHeight
-    }
+const createCommandLogLine = (message, level = 0, icon = undefined) => {
+    if (typeof icon == 'undefined') icon = level;
+    level = isNaN(level) ? level : CommandHistory_CLASS[level]
+    icon = isNaN(icon) ? icon : CommandHistory_ICON[icon]
+    let line = document.createElement('code')
+    line.className = level;
+    line.innerHTML = `<i class="fa fa-${icon}"></i> ${message}`
+    return line;
 }
 
 export default class CommandHistory extends React.Component {
@@ -105,9 +90,8 @@ export default class CommandHistory extends React.Component {
             this.scrollToBottom = true
             this.setState({ currentLine: '', lines, cursor: lines.length });
 
-            if (window.commandHistory) {
-                window.commandHistory.log(value);
-            }
+            if (window.commandLog)
+                CommandHistory.log(value)
 
         }
         if (typeof this.props.onCommandExec !== "undefined")
@@ -123,18 +107,28 @@ export default class CommandHistory extends React.Component {
     }
 
     componentDidMount() {
-        if (!window.commandHistory) {
-            window.commandHistory = ReactDOM.render(<CommandLog lines={this.state.lines} />, ReactDOM.findDOMNode(this.refs['code']))
-        }
+        if (!window.commandLog)
+            window.commandLog = document.createElement('div')
+
+        ReactDOM.findDOMNode(this.refs['code']).appendChild(window.commandLog)
     }
     componentWillUnmount() {
-        if (window.commandHistory)
-            ReactDOM.unmountComponentAtNode(ReactDOM.findDOMNode(this.refs['code']))
+        if (window.commandLog)
+            ReactDOM.findDOMNode(this.refs['code']).removeChild(window.commandLog)
+
     }
 
     static log(message, level, icon) {
-        if (window.commandHistory)
-            window.commandHistory.log(message, level, icon);
+        if (!window.commandLog)
+            window.commandLog = document.createElement('div')
+
+        window.commandLog.appendChild(createCommandLogLine(message, level, icon));
+
+        if (window.commandLog.parentNode){
+            let node = window.commandLog.parentNode;
+                node.scrollTop = node.scrollHeight
+        }
+
     }
 
     render() {
