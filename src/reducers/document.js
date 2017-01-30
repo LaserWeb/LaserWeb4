@@ -9,6 +9,7 @@ import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentId
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
+import { GlobalStore } from '../index';
 
 const initialDocument = {
     id: '',
@@ -56,7 +57,7 @@ const documentsForest = forest('document', document);
 function loadSvg(state, settings, {file, content}) {
     let {parser, tags} = content;
     state = state.slice();
-    let pxPerInch = +settings.pxPerInch || 96;
+    let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
 
     function getColor(c) {
@@ -144,7 +145,34 @@ function loadSvg(state, settings, {file, content}) {
     return state;
 }
 
-function loadImage(state, {file, content}) {
+function processImage(doc, settings, context) {
+    // Adjusting by Quadrant setting.
+    let imageWidth= context.naturalWidth/doc.dpi * 25.4;
+    let imageHeight= context.naturalHeight/doc.dpi * 25.4;
+
+    switch (settings.toolImagePosition) {
+        case 'TL':
+            doc.translate = [0, settings.machineHeight - imageHeight,0]
+        break;
+        case 'TR':
+            doc.translate = [settings.machineWidth - imageWidth, settings.machineHeight - imageHeight,0]
+        break;
+        case 'BL':
+            doc.translate = [0, 0, 0]
+        break;
+        case 'BR':
+            doc.translate = [settings.machineWidth - imageWidth, 0,0]
+        break;
+        case 'C':
+            doc.translate = [(settings.machineWidth - imageWidth) /2, (settings.machineHeight - imageHeight)/2,0]
+        break;
+    }
+
+    return doc;
+    
+}
+
+function loadImage(state, settings, {file, content, context}) {
     state = state.slice();
     let doc = {
         ...initialDocument,
@@ -158,26 +186,28 @@ function loadImage(state, {file, content}) {
         scale: [1, 1, 1],
         mimeType: file.type,
         dataURL: content,
-        dpi: 96, // TODO
+        dpi: (settings.pxPerInch)? +settings.pxPerInch:96, // TODO,
     };
+
+    doc = processImage(doc, settings, context);
     state.push(doc);
     return state;
 }
 
 function loadDxf(state, settings, {file, content}) {
-  state = state.slice();
-  let docFile = {
-      ...initialDocument,
-      id: uuid.v4(),
-      type: 'document',
-      name: file.name,
-      isRoot: true,
-      children: [],
-      selected: false,
-  };
-  state.push(docFile); // state[0] is the file root structure
-  state = processDXF(state, docFile, content);
-  return state;
+    state = state.slice();
+    let docFile = {
+        ...initialDocument,
+        id: uuid.v4(),
+        type: 'document',
+        name: file.name,
+        isRoot: true,
+        children: [],
+        selected: false,
+    };
+    state.push(docFile); // state[0] is the file root structure
+    state = processDXF(state, docFile, content);
+    return state;
 }
 
 export function documentsLoad(state, settings, action) {
@@ -185,9 +215,9 @@ export function documentsLoad(state, settings, action) {
         return loadSvg(state, settings, action.payload);
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload);
-    else if (action.payload.file.type.substring(0, 6) === 'image/')
-        return loadImage(state, action.payload);
-    else {
+    else if (action.payload.file.type.substring(0, 6) === 'image/'){
+        return loadImage(state, settings, action.payload);
+    } else {
         // TODO: show error in gui
         console.log('Unsupported file type:', action.payload.file.type)
         return state;
