@@ -4,6 +4,8 @@ import { getParentIds, object, objectArray } from '../reducers/object'
 
 import arrayMove from 'array-move'
 
+import { GlobalStore } from '../index';
+
 const operationBase = object('operation', {
     id: '',
     name: '',
@@ -24,6 +26,7 @@ const operationBase = object('operation', {
     cutWidth: 0,
     stepOver: 0.4,
     passDepth: 0,
+    startHeight: 0,
     cutDepth: 0,
     segmentLength: 0,
     tabDepth: 0,
@@ -48,6 +51,12 @@ const operationBase = object('operation', {
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     _docs_visible: true,
 });
+
+export const OPERATION_DEFAULTS = () => {
+    return {
+        laserDiameter: GlobalStore().getState().settings.machineBeamDiameter
+    }
+}
 
 export function operation(state, action) {
     state = operationBase(state, action);
