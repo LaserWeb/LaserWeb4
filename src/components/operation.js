@@ -166,7 +166,7 @@ class Field extends React.Component {
         let error;
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
-        if (field.check && !field.check(op[field.name]))
+        if (field.check && !field.check(op[field.name],settings))
             error = <Error operationsBounds={operationsBounds} message={field.error} />;
         return (
             <GetBounds Type="tr">
@@ -254,6 +254,18 @@ const ifUseA = {
     condition: op => op.useA
 };
 
+const checkZHeight = {
+    check: (v, settings) => settings.machineZEnabled,
+    error: 'Laser Z Stage must be enabled'
+}
+
+const ifUseZ = {
+    condition: (op,settings) => {
+        if (!op.type.match(/^Laser/)) return true;
+        return settings.machineZEnabled
+    }
+};
+
 export const fields = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
 
@@ -272,8 +284,9 @@ export const fields = {
     passes: { name: 'passes', label: 'Passes', units: '', input: NumberInput, ...checkPositiveInt },
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
     stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput, ...checkStepOver },
-    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkGE0, ...ifUseZ },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    startHeight: {name: 'startHeight', label: 'Start Height', units: 'mm', input: NumberInput, ...checkZHeight, ...ifUseZ},
     clearance: { name: 'clearance', label: 'Clearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
 
@@ -303,11 +316,11 @@ const tabFields = [
 ];
 
 export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPower', 'laserDiameter', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal',] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth','startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth','startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter'] },
+    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPower', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal',] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
@@ -333,7 +346,7 @@ class Operation extends React.Component {
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
                 let field = fields[fieldName];
-                if (field.check && !field.check(op[fieldName]) && (!field.condition || field.condition(op))) {
+                if (field.check && !field.check(op[fieldName], settings) && (!field.condition || field.condition(op, settings))) {
                     error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
                 }
@@ -399,7 +412,7 @@ class Operation extends React.Component {
                         <table>
                             <tbody>
                                 {types[op.type].fields
-                                    .filter(fieldName => { let f = fields[fieldName]; return !f.condition || f.condition(op); })
+                                    .filter(fieldName => { let f = fields[fieldName]; return !f.condition || f.condition(op, settings); })
                                     .map(fieldName => {
                                         return <Field
                                             key={fieldName} op={op} field={fields[fieldName]} selected={selected}
