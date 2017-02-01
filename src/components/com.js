@@ -5,6 +5,8 @@ import { Input, NumberField, ToggleField } from './forms';
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
+import CommandHistory from './command-history';
+
 class Com extends React.Component {
     useGcode() {
         alert(this.props.gcode);
@@ -42,6 +44,13 @@ class Com extends React.Component {
                 <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
                 <br />
                 <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, -50] }))}>Set Work Pos C</button>
+
+
+                <hr />
+
+                <button onClick={e => { CommandHistory.log("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
+
+                <CommandHistory />
             </div>
         )
     }

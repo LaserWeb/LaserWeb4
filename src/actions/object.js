@@ -15,10 +15,11 @@ export function setAttrs(objectType) {
 // Add an object to a container.
 //
 // objectType:  e.g. 'document', 'operation'. Case ignored.
+// defaults: altered state callback for the first population
 // attrs:       optional. e.g. {type: 'pocket', depth: 7}
-export function add(objectType) {
+export function add(objectType, defaults=function(){return {}}) {
     let type = objectType.toUpperCase() + '_ADD';
-    return (attrs) => ({ type, payload: { attrs: { ...attrs, id: attrs.id || uuid.v4() } } });
+    return (attrs) => ({ type, payload: { attrs: { ...defaults(), ...attrs, id: attrs.id || uuid.v4() } } });
 };
 
 // Add a child to a parent. attrs is optional.

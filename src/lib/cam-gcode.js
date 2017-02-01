@@ -77,7 +77,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 return '';
             gcode += g;
         } else if (op.type === 'Laser Raster') {
-            gcode += getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages);
+            gcode += getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert);
         } else if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
             if (!g)
@@ -90,8 +90,23 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     return gcode;
 } // getGcode
 
-function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages) {
+function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert) {
     let gcode = '';
+    let ok=true;
+
+    if (!(op.laserDiameter>0)) {
+        showAlert("LaserDiameter should be greater than 0");
+        ok = false;
+    }
+
+    if (!(op.cutRate > 0)) {
+        showAlert("CutRate should be greater than 0");
+        ok = false;
+    }
+   
+    if (!ok) 
+        return gcode;
+
     for (let doc of docsWithImages) {
         let r2g = new RasterToGcode({
             ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
@@ -118,7 +133,25 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages) {
         });
         r2g.loadFromImage(doc.image);
         r2g._processImage();
-        gcode += r2g.run().join('\r\n');
+
+        let raster=r2g.run().join('\r\n');
+
+        if (op.passes>1){
+            for (let pass = 0; pass < op.passes; ++pass) {
+                gcode += '\n\n; Pass ' + pass + '\r\n';
+
+                if (settings.machineZEnabled){
+                    let zHeight = op.startHeight+settings.machineZFocusOffset - (op.passDepth*pass);
+                    gcode+='\r\n; Pass Z Height '+ zHeight +'mm\r\n';
+                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n;';
+                }
+                gcode += raster;
+            }
+        } else {
+            gcode += raster;    
+        }
+
+        
     }
     return gcode;
 }

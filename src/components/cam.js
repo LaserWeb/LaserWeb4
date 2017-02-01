@@ -158,6 +158,25 @@ Cam = connect(
                     }
                     reader.readAsText(file);
                 }
+                else if (file.type.substring(0, 6) === 'image/') {
+
+                    const promisedImage = (path) => {
+                        return new Promise(resolve => {
+                            let img = new Image();
+                            img.onload = () => { resolve(img) }
+                            img.src = path;
+                        })
+                    }
+
+                    reader.onload = () => {
+                        promisedImage(reader.result)
+                            .then((img) => {
+                                dispatch(loadDocument(file, reader.result, img));
+                            })
+                            .catch(e => console.log('error:', e))
+                    }
+                    reader.readAsDataURL(file);
+                }
                 else {
                     reader.onload = () => dispatch(loadDocument(file, reader.result));
                     reader.readAsDataURL(file);

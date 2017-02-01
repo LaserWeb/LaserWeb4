@@ -1,7 +1,9 @@
 import { setAttrs, add, remove } from '../actions/object'
 
+import { OPERATION_DEFAULTS } from '../reducers/operation'
+
 export const setOperationAttrs = setAttrs('operation');
-export const addOperation = add('operation');
+export const addOperation = add('operation',OPERATION_DEFAULTS);
 export const removeOperation = remove('operation');
 
 export function operationAddDocuments(id, isTab, documents) {
