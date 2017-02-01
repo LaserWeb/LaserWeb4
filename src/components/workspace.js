@@ -33,7 +33,6 @@ import { Input } from './forms.js';
 import SetSize from './setsize';
 import { parseGcode } from '../lib/tmpParseGcode';
 
-import CommandHistory from './command-history'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -182,7 +181,7 @@ class FloatingControls extends React.Component {
                     <tr>
                         <td><span className="label label-danger">X</span></td>
                         <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" tabIndex="1" /></td>
-                        <td><Input value={round((bounds.x1 + bounds.x2) / 2)} onChangeValue={this.setCenterX} type="number" step="any" tabIndex="3" /></td>
+                        <td><Input value={round((bounds.x1 + bounds.x2) * .5)} onChangeValue={this.setCenterX} type="number" step="any" tabIndex="3" /></td>
                         <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
                         <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
                         <td rowSpan={2}>
@@ -192,7 +191,7 @@ class FloatingControls extends React.Component {
                     <tr>
                         <td><span className="label label-success">Y</span></td>
                         <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" tabIndex="2" /></td>
-                        <td><Input value={round((bounds.y1 + bounds.y2) / 2)} onChangeValue={this.setCenterY} type="number" step="any" tabIndex="4" /></td>
+                        <td><Input value={round((bounds.y1 + bounds.y2) * .5)} onChangeValue={this.setCenterY} type="number" step="any" tabIndex="4" /></td>
                         <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" tabIndex="6" /></td>
                         <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" tabIndex="8" /></td>
                     </tr>
@@ -208,7 +207,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
-             if (document.visible !== false) {
+            if (document.visible) {
                 if (document.fillColor[3])
                     drawCommands.basic2d({
                         perspective, view,
@@ -292,7 +291,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
         let {document, hitTestId} = cachedDocument;
         let color = [((hitTestId >> 24) & 0xff) / 0xff, ((hitTestId >> 16) & 0xff) / 0xff, ((hitTestId >> 8) & 0xff) / 0xff, (hitTestId & 0xff) / 0xff];
         if (document.rawPaths) {
-             if (document.visible !== false) {
+            if (document.visible !== false) {
                 if (document.fillColor[3])
                     drawCommands.basic2d({
                         perspective, view,
@@ -332,6 +331,39 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
             }
         }
     }
+}
+
+function initWorkPosMarker() {
+    let numSides = 10;
+    let a = [];
+    for (let i = 0; i < numSides; ++i)
+        a.push(
+            0, 0, 0,
+            Math.cos(i * Math.PI * 2 / numSides) / 2,
+            Math.sin(i * Math.PI * 2 / numSides) / 2,
+            1,
+            Math.cos((i + 1) * Math.PI * 2 / numSides) / 2,
+            Math.sin((i + 1) * Math.PI * 2 / numSides) / 2,
+            1,
+        );
+    return new Float32Array(a);
+}
+const workPosMarker = initWorkPosMarker();
+
+function drawWorkPos(perspective, view, drawCommands, workPos) {
+    let height = 40;
+    let diameter = 20;
+    drawCommands.basic({
+        perspective,
+        view,
+        scale: new Float32Array([diameter, diameter, height]),
+        translate: new Float32Array(workPos),
+        color: new Float32Array([0, 0, 1, .5]),
+        primitive: drawCommands.gl.TRIANGLES,
+        position: workPosMarker,
+        offset: 0,
+        count: workPosMarker.length / 3,
+    });
 }
 
 class WorkspaceContent extends React.Component {
@@ -388,6 +420,8 @@ class WorkspaceContent extends React.Component {
                     this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
             if (this.props.workspace.showDocuments)
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+            if (this.props.workspace.showWorkPos)
+                drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
             requestAnimationFrame(draw);
         };
         draw();
@@ -664,7 +698,6 @@ class Workspace extends React.Component {
                             </tbody>
                         </table>
                     </div>
-                    <CommandHistory />
                 </div>
             </div>
         )

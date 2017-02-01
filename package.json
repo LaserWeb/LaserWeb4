@@ -4,7 +4,7 @@
   "description": "LaserWeb UI...",
   "main": "./src/index.js",
   "scripts": {
-    "start": "webpack-dev-server --progress --colors",
+    "start": "webpack-dev-server --progress --colors --open",
     "bundle-dev": "webpack --progress --colors",
     "bundle-prod": "webpack -p --progress --colors",
     "build-docs": "jsdoc -c ./jsdoc.json",
@@ -101,6 +101,7 @@
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
+    "dxf-parser": "^0.4.6",
     "immutability-helper": "^2.0.0",
     "react-addons-shallow-compare": "^15.4.1",
     "unicode": "^0.6.1"
