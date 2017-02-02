@@ -101,7 +101,7 @@ export const settings = objectNoId('settings', {
     machineZEnabled: false,
     machineZBlowerEnabled: false,
     machineZMatThickness: 0,
-    machineZFocusOffset: 0,
+    machineZToolOffset: 0,
     
     pxPerInch: 96,
     dpiRasterBmp:300,

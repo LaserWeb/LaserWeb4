@@ -34,7 +34,9 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 export function getLaserCutGcode(props) {
     let {paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisStepsPerTurn, aAxisDiameter,
-        tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue} = props;
+        tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue,
+        useZ
+    } = props;
     if (gcodeToolOn)
         gcodeToolOn += '\r\n';
     if (gcodeToolOff)
@@ -78,6 +80,13 @@ export function getLaserCutGcode(props) {
         gcode += 'M92 A' + (aAxisStepsPerTurn / Math.PI / aAxisDiameter).toFixed(decimal) + '; ' + aAxisStepsPerTurn + ' steps per turn, ' + aAxisDiameter + 'mm diameter';
     for (let pass = 0; pass < passes; ++pass) {
         gcode += '\n\n; Pass ' + pass + '\r\n';
+
+        if (useZ){
+            let zHeight = useZ.startZ+useZ.offsetZ - (useZ.passDepth*pass);
+            gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
+            gcode+='G1 Z'+zHeight.toFixed(decimal)+'\r\n';
+        }
+
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
             let path = paths[pathIndex].path;
             if (path.length === 0)
@@ -197,6 +206,11 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         laserPower: op.laserPower,
         passes: op.passes,
         useA: op.useA,
+        useZ: settings.machineZEnabled ? {
+            startZ: op.startHeight,
+            offsetZ: settings.machineZToolOffset,
+            passDepth: op.passDepth,
+        }:false,
         aAxisStepsPerTurn: op.aAxisStepsPerTurn,
         aAxisDiameter: op.aAxisDiameter,
         tabGeometry: tabGeometry,
