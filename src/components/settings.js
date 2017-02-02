@@ -206,6 +206,14 @@ class Settings extends React.Component {
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
+                        <hr />
+                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist' }} />
+                        <Collapse in={this.props.settings.machineBlowerEnabled}>
+                            <div>
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode AA ON', rows: 5, style: { resize: "vertical" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode AA OFF', rows: 5, style: { resize: "vertical" } }} />
+                            </div>
+                        </Collapse>
                     </SettingsPanel>
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
                         <h4>SVG</h4>
