@@ -52,9 +52,10 @@ const operationBase = object('operation', {
     _docs_visible: true,
 });
 
-export const OPERATION_DEFAULTS = () => {
+export const OPERATION_DEFAULTS = (state) => {
+    if (!state) state=GlobalStore().getState()
     return {
-        laserDiameter: GlobalStore().getState().settings.machineBeamDiameter
+        laserDiameter: state.settings.machineBeamDiameter,
     }
 }
 

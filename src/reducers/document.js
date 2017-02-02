@@ -9,7 +9,6 @@ import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentId
 import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
-import { GlobalStore } from '../index';
 
 const initialDocument = {
     id: '',

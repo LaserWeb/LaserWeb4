@@ -24,13 +24,24 @@ const storage = compose(
   filter(['settings','macros','machineProfiles'])
 )(adapter(window.localStorage));
 
+
+// adds getState() to any action to get the global Store :slick:
+const globalstoreMiddleWare =  store => next => action => {
+  next({ ...action, getState: store.getState });
+};
+
+
 const middleware = compose(
-  applyMiddleware( logger({ collapsed: true })),
-  persistState(storage, 'LaserWeb')
+  applyMiddleware(
+      logger({ collapsed: true }),
+      globalstoreMiddleWare
+  ),
+  persistState(storage, 'LaserWeb'),
 );
 
 const store = createStore(reducer, middleware);
 
+// Bad bad bad
 export function GlobalStore()
 {
     return store;
