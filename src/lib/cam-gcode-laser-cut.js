@@ -82,9 +82,9 @@ export function getLaserCutGcode(props) {
         gcode += '\n\n; Pass ' + pass + '\r\n';
 
         if (useZ){
-            let zHeight = useZ.startZ - (useZ.passDepth*pass);
-            gcode+='\r\n; Pass Z Height '+ zHeight +'mm\r\n';
-            gcode+='G1 Z'+zHeight.toFixed(decimal)+'\r\n;';
+            let zHeight = useZ.startZ+useZ.offsetZ - (useZ.passDepth*pass);
+            gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
+            gcode+='G1 Z'+zHeight.toFixed(decimal)+'\r\n';
         }
 
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
@@ -207,7 +207,8 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         passes: op.passes,
         useA: op.useA,
         useZ: settings.machineZEnabled ? {
-            startZ: op.startHeight + settings.machineZFocusOffset,
+            startZ: op.startHeight,
+            offsetZ: settings.machineZToolOffset,
             passDepth: op.passDepth,
         }:false,
         aAxisStepsPerTurn: op.aAxisStepsPerTurn,

@@ -141,9 +141,9 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
                 gcode += '\n\n; Pass ' + pass + '\r\n';
 
                 if (settings.machineZEnabled){
-                    let zHeight = op.startHeight+settings.machineZFocusOffset - (op.passDepth*pass);
-                    gcode+='\r\n; Pass Z Height '+ zHeight +'mm\r\n';
-                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n;';
+                    let zHeight = op.startHeight+settings.machineZToolOffset - (op.passDepth*pass);
+                    gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n';
                 }
                 gcode += raster;
             }
