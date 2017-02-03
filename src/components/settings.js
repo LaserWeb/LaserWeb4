@@ -250,7 +250,7 @@ class Settings extends React.Component {
 
                         {isVideoDeviceSelected ? <PerspectiveWebcam
                             showCoordinators={this.state.showVideoControls}
-                            width="320" height="240"
+                            width="640" height="480"
                             device={this.props.settings['toolVideoDevice']}
                             perspective={this.props.settings['toolVideoPerspective']}
                             lens={this.props.settings['toolVideoLens']}
@@ -261,7 +261,7 @@ class Settings extends React.Component {
                         <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
                             lens={this.props.settings['toolVideoLens']}
                             fov={this.props.settings['toolVideoFov']}
-                            videoWidth="320" videoHeight="240"
+                            videoWidth="640" videoHeight="480"
                             perspective={this.props.settings['toolVideoPerspective']}
                             onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} /></div></Collapse>
 
