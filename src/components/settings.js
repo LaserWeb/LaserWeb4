@@ -186,6 +186,8 @@ class Settings extends React.Component {
             this.setState({showVideoControls: !this.state.showVideoControls})
         }
 
+        let isVideoDeviceSelected=Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
+
         return (
             <div className="form">
 
@@ -240,11 +242,11 @@ class Settings extends React.Component {
                         <InputGroup>
                         <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }}/>
                         <InputGroup.Button>
-                        <Button onClick={showVideoControls} bsStyle={this.state.showVideoControls? 'primary':'default'} style={{float:"right"}}><Icon name="gears"/></Button>
+                        <Button onClick={showVideoControls} bsStyle={this.state.showVideoControls? 'primary':'default'} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} style={{float:"right"}}><Icon name="gears"/></Button>
                         </InputGroup.Button>
                         </InputGroup>
                         </FormGroup>
-                        {this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length ? <PerspectiveWebcam 
+                        {isVideoDeviceSelected ? <PerspectiveWebcam 
                             showCoordinators = {this.state.showVideoControls}
                             width="320" height="240"
                             device={this.props.settings['toolVideoDevice']}
@@ -253,9 +255,10 @@ class Settings extends React.Component {
                             fov={this.props.settings['toolVideoFov']}
                             onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) } } /> : undefined}
 
-                        <Collapse in={this.state.showVideoControls}><div><VideoControls
+                        <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
                             lens={this.props.settings['toolVideoLens']}
                             fov={this.props.settings['toolVideoFov']}
+                            videoWidth="320" videoHeight="240"
                             perspective={this.props.settings['toolVideoPerspective']}
                             onChange={(v)=>this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })}/></div></Collapse>
 
