@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { PerspectiveWebcam, VideoDeviceField, VideoControls } from './webcam';
+import { PerspectiveWebcam, VideoDeviceField, VideoControls, VideoResolutionField } from './webcam';
 
 export class ApplicationSnapshot extends React.Component {
 
@@ -153,7 +153,7 @@ class Settings extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { errors: null, showVideoControls:false }
+        this.state = { errors: null, showVideoControls: false }
     }
 
     validate(data, rules) {
@@ -182,11 +182,11 @@ class Settings extends React.Component {
 
     render() {
 
-        const showVideoControls= (e)=>{
-            this.setState({showVideoControls: !this.state.showVideoControls})
+        const showVideoControls = (e) => {
+            this.setState({ showVideoControls: !this.state.showVideoControls })
         }
 
-        let isVideoDeviceSelected=Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
+        let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
         return (
             <div className="form">
@@ -239,28 +239,31 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
 
                         <FormGroup>
-                        <InputGroup>
-                        <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }}/>
-                        <InputGroup.Button>
-                        <Button onClick={showVideoControls} bsStyle={this.state.showVideoControls? 'primary':'default'} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} style={{float:"right"}}><Icon name="gears"/></Button>
-                        </InputGroup.Button>
-                        </InputGroup>
+                            <InputGroup>
+                                <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} />
+                                <VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} />
+                                <InputGroup.Button>
+                                    <Button onClick={showVideoControls} bsStyle={this.state.showVideoControls ? 'primary' : 'default'} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} style={{ float: "right" }}><Icon name="gears" /></Button>
+                                </InputGroup.Button>
+                            </InputGroup>
                         </FormGroup>
-                        {isVideoDeviceSelected ? <PerspectiveWebcam 
-                            showCoordinators = {this.state.showVideoControls}
+
+                        {isVideoDeviceSelected ? <PerspectiveWebcam
+                            showCoordinators={this.state.showVideoControls}
                             width="320" height="240"
                             device={this.props.settings['toolVideoDevice']}
                             perspective={this.props.settings['toolVideoPerspective']}
                             lens={this.props.settings['toolVideoLens']}
                             fov={this.props.settings['toolVideoFov']}
-                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) } } /> : undefined}
+                            resolution={this.props.settings['toolVideoResolution']}
+                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) }} /> : undefined}
 
                         <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
                             lens={this.props.settings['toolVideoLens']}
                             fov={this.props.settings['toolVideoFov']}
                             videoWidth="320" videoHeight="240"
                             perspective={this.props.settings['toolVideoPerspective']}
-                            onChange={(v)=>this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })}/></div></Collapse>
+                            onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} /></div></Collapse>
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />

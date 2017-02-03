@@ -1,5 +1,5 @@
 
-export const drawCommand = (regl) =>{ 
+export const pipeImageCommand = (regl) =>{ 
     return regl({
         vert: `
             precision mediump float;
