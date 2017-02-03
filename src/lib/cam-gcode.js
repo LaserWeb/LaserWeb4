@@ -136,14 +136,20 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
 
         let raster=r2g.run().join('\r\n');
 
+        if (op.useBlower){
+            if (settings.machineBlowerGcodeOn){
+                gcode+=`\r\n`+settings.machineBlowerGcodeOn+'; Enable Air assist\r\n';
+            }
+        }
+
         if (op.passes>1){
             for (let pass = 0; pass < op.passes; ++pass) {
                 gcode += '\n\n; Pass ' + pass + '\r\n';
 
                 if (settings.machineZEnabled){
-                    let zHeight = op.startHeight+settings.machineZFocusOffset - (op.passDepth*pass);
-                    gcode+='\r\n; Pass Z Height '+ zHeight +'mm\r\n';
-                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n;';
+                    let zHeight = op.startHeight+settings.machineZToolOffset - (op.passDepth*pass);
+                    gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n';
                 }
                 gcode += raster;
             }
@@ -151,7 +157,12 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
             gcode += raster;    
         }
 
-        
+        if (op.useBlower){
+            if (settings.machineBlowerGcodeOff){
+                 gcode+=`\r\n`+settings.machineBlowerGcodeOff+'; Disable Air assist\r\n';
+            }
+        }
+
     }
     return gcode;
 }
