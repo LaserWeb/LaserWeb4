@@ -28,6 +28,8 @@ import Validator from 'validatorjs';
 import { GlobalStore } from '../index';
 import omit from 'object.omit';
 
+import { cast } from '../lib/helpers'
+
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
     name: 'required'
@@ -221,10 +223,7 @@ let shouldShow = (operation, filter) => {
 
 }
 
-let cast = (value, def = '') => {
-    if (value === undefined) return def;
-    return String(value);
-}
+
 
 class MaterialOperations extends React.Component {
 
@@ -257,9 +256,6 @@ class MaterialOperations extends React.Component {
     render() {
         const operations = this.props.operations
         const rest = this.props;
-
-
-
 
         let data = {};
         let tables = {};
@@ -593,7 +589,7 @@ class MaterialDatabasePicker extends React.Component {
             return {
                 label: OPERATION_FIELDS[field].label,
                 key: OPERATION_FIELDS[field].name,
-                value: op[field],
+                value: op.params[field],
                 units: OPERATION_FIELDS[field].units
             }
         })
@@ -622,7 +618,7 @@ class MaterialDatabasePicker extends React.Component {
                                         <table className="table table-sm">
                                             <tbody>
                                                 {this.explainOperation(op).map((field, k) => {
-                                                    return <tr key={k}><th title={field.key}>{field.label}{field.units ? " (" + field.units + ")" : undefined}</th><td>{field.value}</td></tr>
+                                                    return <tr key={k}><th title={field.key}>{field.label}{field.units ? " (" + field.units + ")" : undefined}</th><td>{cast(field.value,'')}</td></tr>
                                                 })}
                                             </tbody>
                                         </table>

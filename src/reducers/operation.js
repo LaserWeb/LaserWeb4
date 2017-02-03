@@ -37,6 +37,7 @@ const operationBase = object('operation', {
     useA: false,
     aAxisStepsPerTurn: 0,
     aAxisDiameter: 0,
+    useBlower: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
     brightness: 0,          // lw.raster-to-gcode: Image brightness [-255 to +255]
     contrast: 0,            // lw.raster-to-gcode: Image contrast [-255 to +255]
@@ -52,9 +53,11 @@ const operationBase = object('operation', {
     _docs_visible: true,
 });
 
-export const OPERATION_DEFAULTS = () => {
+export const OPERATION_DEFAULTS = (state) => {
+    if (!state) state=GlobalStore().getState()
     return {
-        laserDiameter: GlobalStore().getState().settings.machineBeamDiameter
+        laserDiameter: state.settings.machineBeamDiameter,
+        useBlower: state.settings.machineBlowerEnabled,
     }
 }
 

@@ -31,48 +31,54 @@ export class Webcam extends React.Component {
         }
 
         // coordinates adjustment
-        const swap = (set) =>{
+        const swap = (set) => {
             return [
-                set[0], this.props.height-set[1],
-                set[2], this.props.height-set[3],
-                set[4], this.props.height-set[5],
-                set[6], this.props.height-set[7],
+                set[0], this.props.height - set[1],
+                set[2], this.props.height - set[3],
+                set[4], this.props.height - set[5],
+                set[6], this.props.height - set[7],
             ]
         }
 
         const capture = (src) => {
             const regl = require('regl')(this.canvas);
             const pipe = drawCommand(regl)
-            const fbopts= {
+            const fbopts = {
                 width: this.props.resolution.width, height: this.props.resolution.height
             }
 
+
+
             this.loop = regl.frame(() => {
                 try {
-                    const video = regl.texture({data:src, min:'linear', mag:'linear'}); 
-                    const fbo = regl.framebuffer(fbopts)
-                    const fbo2 = regl.framebuffer(fbopts)
+                    this.resources = {
+                        video: regl.texture({ data: src, min: 'linear', mag: 'linear' }),
+                        fbo: regl.framebuffer(fbopts),
+                        fbo2: regl.framebuffer(fbopts),
+                    }
 
-                    pipe({ src: video, dest: fbo })
-                    
+                    pipe({ src: this.resources.video, dest: this.resources.fbo })
+
                     if (this.props.lens || this.props.fov) {
-                        barrelDistort(regl, fbo, fbo2, this.props.lens, this.props.fov)
+                        barrelDistort(regl, this.resources.fbo, this.resources.fbo2, this.props.lens, this.props.fov)
                     } else {
-                        pipe({ src: fbo, dest: fbo2 })
+                        pipe({ src: this.resources.fbo, dest: this.resources.fbo2 })
                     }
 
                     if (this.props.perspective) {
                         let {before, after} = this.props.perspective;
-                        perspectiveDistort(regl, fbo2, null, swap(before).map(ratio), swap(after).map(ratio)) 
+                        perspectiveDistort(regl, this.resources.fbo2, null, swap(before).map(ratio), swap(after).map(ratio))
                     } else {
-                        pipe({ src: fbo2 })
+                        pipe({ src: this.resources.fbo2 })
                     }
-                    
-                    fbo.destroy();
-                    fbo2.destroy();
-                    video.destroy();
-                } catch(e) {
-                    this.loop.cancel();
+
+                    this.resources.fbo.destroy(); this.resources.fbo = null
+                    this.resources.fbo2.destroy(); this.resources.fbo2 = null;
+                    this.resources.video.destroy(); this.resources.video = null;
+                } catch (e) {
+                    this.loop.cancel(); this.loop = null;
+                    barrelDistort.COMMAND = null;
+                    perspectiveDistort.COMMAND = null;
                 }
             })
 
@@ -112,9 +118,28 @@ export class Webcam extends React.Component {
 
     _stopVideo(stream) {
         try {
-            if (this.loop) this.loop.cancel();
-        } catch(e){}
-        
+            if (this.loop) {
+                this.loop.cancel();
+                this.loop = null;
+            }
+            if (this.resources.video) {
+                this.resources.video.destroy()
+                this.resources.fbo = null
+            }
+            if (this.resources.fbo) {
+                this.resources.fbo.destroy()
+                this.resources.fbo = null
+            }
+            if (this.resources.fbo2) {
+                this.resources.fbo2.destroy()
+                this.resources.fbo2 = null
+            }
+
+            barrelDistort.COMMAND = null;
+            perspectiveDistort.COMMAND = null;
+
+        } catch (e) { }
+
         if (this.video)
             this.video.parentNode.removeChild(this.video);
         window.URL.revokeObjectURL(stream);
@@ -143,7 +168,7 @@ export class Coordinator extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { position: this.props.position || [0, 0, 0, 0, 0, 0, 0, 0] }
+        this.state = { position: this.props.position.map(parseFloat) || [0, 0, 0, 0, 0, 0, 0, 0] }
         this.handleDrag.bind(this)
         this.handleStop.bind(this)
     }
@@ -163,6 +188,10 @@ export class Coordinator extends React.Component {
             this.props.onStop(this.state.position)
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({ position: nextProps.position.map(parseFloat) })
+    }
+
     render() {
 
         let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
@@ -171,11 +200,28 @@ export class Coordinator extends React.Component {
 
         return <div className="coordinator" style={{ width: this.props.width + "px", height: this.props.height + "px", position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
             {dots.map((fill, i) => {
-                return <Draggable onStop={(e, ui) => { this.handleStop(e, ui, i) } } onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
+                return <Draggable onStop={(e, ui) => { this.handleStop(e, ui, i) }} onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
                     <div className="symbol" style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
                 </Draggable>
             })}
         </div >
+    }
+}
+
+const getDefaultPerspective = (p, w=0, h=0) => {
+    return {
+        before: (p && p.before) ? p.before : [
+            w * 0.2, h * 0.8,
+            w * 0.8, h * 0.8,
+            w * 0.8, h * 0.2,
+            w * 0.2, h * 0.2
+        ],
+        after: (p && p.after) ? p.after : [
+            w * 0.2, h * 0.8,
+            w * 0.8, h * 0.8,
+            w * 0.8, h * 0.2,
+            w * 0.2, h * 0.2
+        ],
     }
 }
 
@@ -187,20 +233,7 @@ export class PerspectiveWebcam extends React.Component {
         let h = this.props.height;
         let p = this.props.perspective;
 
-        this.state = {
-            before: (p && p.before) ? p.before : [
-                w * 0.2, h * 0.8,
-                w * 0.8, h * 0.8,
-                w * 0.8, h * 0.2,
-                w * 0.2, h * 0.2
-            ],
-            after: (p && p.after) ? p.after : [
-                w * 0.2, h * 0.8,
-                w * 0.8, h * 0.8,
-                w * 0.8, h * 0.2,
-                w * 0.2, h * 0.2
-            ],
-        }
+        this.state = getDefaultPerspective(p, w, h);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
     }
@@ -214,33 +247,44 @@ export class PerspectiveWebcam extends React.Component {
             this.props.onStop(this.state);
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({ ...nextProps.perspective })
+    }
+
+    componentDidMount()
+    {
+        this.handleStop();
+    }
+
     render() {
 
-        let before = this.state.before;
-        let after = this.state.after;
+        let {before, after} = this.state;
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
                 <Webcam width={this.props.width} height={this.props.height} perspective={{ before, after }} lens={this.props.lens} fov={this.props.fov} device={this.props.device} />
-                <Coordinator width={this.props.width} height={this.props.height}
-                    onChange={(position) => { this.handlePerspectiveChange(position, "before") } }
-                    onStop={(position) => { this.handleStop() } }
+                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                    onChange={(position) => { this.handlePerspectiveChange(position, "before") }}
+                    onStop={(position) => { this.handleStop() }}
                     position={this.state.before}
                     style={{ position: "absolute", top: "0px", left: "0px" }}
                     symbol={
                         (props) => { return <svg height="100%" width="100%"><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
                     }
-                    />
-                <Coordinator width={this.props.width} height={this.props.height}
-                    onChange={(position) => { this.handlePerspectiveChange(position, "after") } }
-                    onStop={(position) => { this.handleStop() } }
+                />) : undefined}
+                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                    onChange={(position) => { this.handlePerspectiveChange(position, "after") }}
+                    onStop={(position) => { this.handleStop() }}
                     position={this.state.after}
                     style={{ position: "absolute", top: "0px", left: "0px" }}
-                    />
+                />) : undefined}
             </div>
         </div>
     }
 
+}
+PerspectiveWebcam.defaultProps = {
+    showCoordinators: true
 }
 
 export class VideoDeviceField extends React.Component {
@@ -278,37 +322,95 @@ export class VideoDeviceField extends React.Component {
 }
 
 
-export class VideoControls extends React.Component{
+export class VideoControls extends React.Component {
 
-    constructor(props){
+    constructor(props) {
         super(props)
         this.handleChange.bind(this)
-        this.state={
-            lens:this.props.lens,
+        this.handlePerspective.bind(this)
+        this.state = {
+            lens: this.props.lens,
             fov: this.props.fov,
+            perspective: getDefaultPerspective(this.props.perspective, this.props.videoWidth, this.props.videoHeight)
         }
     }
 
-    handleChange(e,key,prop){
-        let state={...this.state};
-            state[key][prop]= e.target.value;
+    handleChange(e, key, prop) {
+        let state = { ...this.state };
+        state[key][prop] = e.target.value;
         this.setState(state)
         if (this.props.onChange)
             this.props.onChange(state);
-        
+
     }
 
-    render(){
-        return <FormGroup className="videoControls">
-            <InputGroup><InputGroup.Addon>a</InputGroup.Addon>        <input className="form-control" value={this.props.lens.a} onChange={(e)=>{this.handleChange(e, "lens","a");}} type="range"  min="0" max="4" step="any"/></InputGroup>
-            <InputGroup><InputGroup.Addon>b</InputGroup.Addon>        <input className="form-control" value={this.props.lens.b} onChange={(e)=>{this.handleChange(e, "lens","b");}} type="range"  min="0" max="4" step="any"/></InputGroup>
-            <InputGroup><InputGroup.Addon>F</InputGroup.Addon>        <input className="form-control" value={this.props.lens.f} onChange={(e)=>{this.handleChange(e, "lens","F");}} type="range"  min="0" max="4" step="any" /></InputGroup>
-            <InputGroup><InputGroup.Addon>scale</InputGroup.Addon>    <input className="form-control" value={this.props.lens.scale} onChange={(e)=>{this.handleChange(e, "lens","scale");}} type="range"  min="0" max="20" step="any"/></InputGroup>
-            <InputGroup><InputGroup.Addon>Fov X</InputGroup.Addon>    <input className="form-control" value={this.props.fov.x} onChange={(e)=>{this.handleChange(e, "fov","x");}} type="range"  min="0" max="2" step="any" /></InputGroup>
-            <InputGroup><InputGroup.Addon>Fov Y </InputGroup.Addon>   <input className="form-control" value={this.props.fov.y} onChange={(e)=>{this.handleChange(e, "fov","y");}} type="range"  min="0" max="2" step="any" /></InputGroup>
-        </FormGroup>
+    handlePerspective(key, index, value) {
+        let state = Object.assign({}, this.state);
+        let position = this.state.perspective[key].slice();
+        position[index] = parseFloat(value);
+        state.perspective[key] = position;
+        this.setState(state)
+        if (this.props.onChange)
+            this.props.onChange(state);
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            lens: nextProps.lens,
+            fov: nextProps.fov,
+            perspective: getDefaultPerspective(nextProps.perspective, nextProps.videoWidth, nextProps.videoHeight)
+        })
+    }
+
+    render() {
+
+        let {before, after} = this.state.perspective;
+        return <div className="videoControls ">
+            <table width="100%" className="table table-compact">
+                <tbody>
+                    <tr><th>Before</th>
+                        {before.map((value, i) => {
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('before', i, e.target.value) }} step="any" /></td>
+                        })}
+                    </tr>
+                    <tr><th>After</th>
+                        {after.map((value, i) => {
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('after', i, e.target.value) }} step="any" /></td>
+                        })}
+                    </tr>
+                </tbody>
+            </table>
+            <table width="100%" className="table table-compact">
+                <tbody>
+                    <tr>
+                        <th>a</th>
+                        <td><input type="number" step="any" value={parseFloat(this.props.lens.a)} onChange={(e) => { this.handleChange(e, "lens", "a"); }} /></td>
+                        <td width="100%"><input className="form-control" value={parseFloat(this.props.lens.a)} onChange={(e) => { this.handleChange(e, "lens", "a"); }} type="range" min="0" max="4" step="any" />    </td>
+                    </tr>
+                    <tr>
+                        <th>b</th>
+                        <td><input type="number" step="any" value={parseFloat(this.props.lens.b)} onChange={(e) => { this.handleChange(e, "lens", "b"); }} /></td>
+                        <td width="100%"><input className="form-control" value={parseFloat(this.props.lens.b)} onChange={(e) => { this.handleChange(e, "lens", "b"); }} type="range" min="0" max="4" step="any" /></td>
+                    </tr>
+                    <tr>
+                        <th>F</th>
+                        <td><input type="number" step="any" value={parseFloat(this.props.lens.F)} onChange={(e) => { this.handleChange(e, "lens", "F"); }} /> </td>
+                        <td width="100%"><input className="form-control" value={parseFloat(this.props.lens.F)} onChange={(e) => { this.handleChange(e, "lens", "F"); }} type="range" min="-1" max="4" step="any" />  </td>
+                    </tr>
+                    <tr>
+                        <th>scale</th>
+                        <td><input type="number" step="any" value={parseFloat(this.props.lens.scale)} onChange={(e) => { this.handleChange(e, "lens", "scale"); }} /> </td>
+                        <td width="100%"><input className="form-control" value={parseFloat(this.props.lens.scale)} onChange={(e) => { this.handleChange(e, "lens", "scale"); }} type="range" min="0" max="20" step="any" /> </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    }
+
+}
+
+VideoControls.defaultProps={
+    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] }
 }
 
 Webcam = connect()(Webcam);

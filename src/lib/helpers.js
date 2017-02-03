@@ -29,3 +29,10 @@ export function deepMerge(target, source) {
   }
   return output;
 }
+
+export function cast(value, def = '') {
+    if (value === undefined) return def;
+    if (value === false) return "No";
+    if (value === true) return "Yes";
+    return String(value);
+}

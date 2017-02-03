@@ -35,8 +35,9 @@ export function getLaserCutGcode(props) {
     let {paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisStepsPerTurn, aAxisDiameter,
         tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue,
-        useZ
+        useZ, useBlower,
     } = props;
+
     if (gcodeToolOn)
         gcodeToolOn += '\r\n';
     if (gcodeToolOff)
@@ -81,6 +82,11 @@ export function getLaserCutGcode(props) {
     for (let pass = 0; pass < passes; ++pass) {
         gcode += '\n\n; Pass ' + pass + '\r\n';
 
+        if (useBlower){
+            if (useBlower.blowerOn){
+                gcode+=`\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
+            }
+        }
         if (useZ){
             let zHeight = useZ.startZ+useZ.offsetZ - (useZ.passDepth*pass);
             gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
@@ -115,6 +121,13 @@ export function getLaserCutGcode(props) {
                 gcode += gcodeToolOff;
             }
         }
+
+        if (useBlower){
+            if (useBlower.blowerOff){
+                gcode+=`\r\n ${useBlower.blowerOff}; Disable Air assist\r\n`;
+            }
+        }
+
     }
 
     return gcode;
@@ -211,6 +224,10 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
             offsetZ: settings.machineZToolOffset,
             passDepth: op.passDepth,
         }:false,
+        useBlower: op.useBlower ? {
+            blowerOn: settings.machineBlowerGcodeOn,
+            blowerOff: settings.machineBlowerGcodeOff,
+        }:false, 
         aAxisStepsPerTurn: op.aAxisStepsPerTurn,
         aAxisDiameter: op.aAxisDiameter,
         tabGeometry: tabGeometry,
