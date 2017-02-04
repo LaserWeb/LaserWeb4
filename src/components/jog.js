@@ -37,11 +37,9 @@ class Jog extends React.Component {
     }
 
     runJob() {
-        console.log('runJob');
-        let gcode = this.props.gcode;
-        if (gcode) {
-            runJob(gcode);
-        }
+        let cmd = this.props.gcode;
+        console.log('runJob(' + cmd.length + ')');
+        runJob(cmd);
     }
 
     pauseJob() {
@@ -63,7 +61,7 @@ class Jog extends React.Component {
 
     setZero() {
         console.log('setZero');
-        setZero();
+        setZero('all');
     }
 
     checkSize() {

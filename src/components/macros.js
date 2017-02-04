@@ -122,17 +122,16 @@ export class Macros extends React.Component {
 export class MacrosBar extends React.Component{
 
     render(){
-        return <fieldset>
-        <Panel collapsible defaultExpanded={true} header="Macros" bsStyle="primary" eventKey="3" >
-          <ButtonToolbar>
-          {Object.entries(this.props.macros).map((macro,i)=>{
-              let [keybinding, data] = macro;
-              return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
-          }
-          </ButtonToolbar>
-        </Panel>
-
-        </fieldset>
+        return (
+            <Panel collapsible header="Macros" bsStyle="primary" eventKey="3" defaultExpanded={true}>
+                <ButtonToolbar>
+                    {Object.entries(this.props.macros).map((macro,i)=>{
+                        let [keybinding, data] = macro;
+                        return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+                    }
+                </ButtonToolbar>
+            </Panel>
+        )
     }
 }
 

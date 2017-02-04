@@ -99,6 +99,14 @@ class Com extends React.Component {
             console.log('error: ' + data);
         });
 
+        socket.on('runStatus', function (status) {
+            //CommandHistory.log('runStatus: ' + status);
+            console.log('runStatus: ' + status);
+            if (status === 'Alarm') {
+//                socket.emit('clearAlarm', 2);
+            }
+        });
+
         socket.on('data', function (data) {
             serverConnected = true;
             if (data.indexOf('<') === 0) {
@@ -409,12 +417,15 @@ export function runCommand(gcode) {
     }
 }
 
-export function runJob(gcode) {
+export function runJob(job) {
+    console.log('runJob(' + job.lenght + ')');
     if (serverConnected) {
         if (machineConnected){
-            if (gcode) {
-                console.log('runJob', gcode);
-                socket.emit('runJob', gcode);
+            if (job) {
+                CommandHistory.log('runJob(' + job.lenght + ')', CommandHistory.DANGER);
+                socket.emit('runJob', job);
+            } else {
+                CommandHistory.log('Job empty!', CommandHistory.DANGER);
             }
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
@@ -459,10 +470,24 @@ export function resumeJob(gcode = null) {
 }
 
 export function abortJob() {
-    //console.log('abortJob');
+    console.log('abortJob');
     if (serverConnected) {
         if (machineConnected){
-            socket.emit('abort');
+            CommandHistory.log('Abort job', CommandHistory.DANGER);
+            socket.emit('stop');
+        } else {
+            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+        }
+    } else {
+        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+    }
+}
+
+export function setZero(axis) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.log('Zero ' + axis + ' axis', CommandHistory.DANGER);
+            socket.emit('zeroAxis', axis);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }
