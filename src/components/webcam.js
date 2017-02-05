@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
-import { FormGroup, InputGroup, ControlLabel } from 'react-bootstrap'
+import Toggle from 'react-toggle'
+import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 
 import getUserMedia from 'getusermedia';
 import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
@@ -198,12 +199,12 @@ export class Coordinator extends React.Component {
 
         let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
         let dotSize = this.props.dotSize || 10;
-        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%"><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
+        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%" style={{ position: "absolute", left: 0, top: 0 }}><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
 
         return <div className="coordinator" style={{ width: this.props.width + "px", height: this.props.height + "px", position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
             {dots.map((fill, i) => {
                 return <Draggable onStop={(e, ui) => { this.handleStop(e, ui, i) }} onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
-                    <div className="symbol" style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
+                    <div className="symbol" style={{ position: "absolute", left: 0, top: 0, cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
                 </Draggable>
             })}
         </div >
@@ -211,7 +212,7 @@ export class Coordinator extends React.Component {
 }
 
 const getDefaultPerspective = (p, w = 0, h = 0) => {
-    return {
+    return Object.assign(p, {
         before: (p && p.before) ? p.before : [
             w * 0.2, h * 0.8,
             w * 0.8, h * 0.8,
@@ -224,17 +225,23 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
             w * 0.8, h * 0.2,
             w * 0.2, h * 0.2
         ],
-    }
+    })
+}
+
+const getSizeByVideoRatio = (height, ratio)=>{
+    if (isNaN(ratio)){
+        let p=ratio.split(":")
+        ratio = p[0]/p[1];
+    }  
+    return {width: height*ratio, height}
 }
 
 export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let w = this.props.width;
-        let h = this.props.height;
         let p = this.props.perspective;
-
+        let { w,h } =  getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
         this.state = getDefaultPerspective(p, w, h);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
@@ -259,23 +266,24 @@ export class PerspectiveWebcam extends React.Component {
 
     render() {
 
-        let {before, after} = this.state;
+        let { before, after, enabled } = this.state;
+        let { width, height } = getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
-                <Webcam width={this.props.width} height={this.props.height}
-                    perspective={{ before, after }}
+                <Webcam width={width} height={height}
+                    perspective={enabled ? { before, after } : undefined}
                     lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={this.props.resolution} />
-                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "before") }}
                     onStop={(position) => { this.handleStop() }}
                     position={this.state.before}
                     style={{ position: "absolute", top: "0px", left: "0px" }}
                     symbol={
-                        (props) => { return <svg height="100%" width="100%"><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
+                        (props) => { return <svg height="100%" width="100%" style={{ position: "absolute", left: 0, top: 0 }}><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
                     }
                 />) : undefined}
-                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "after") }}
                     onStop={(position) => { this.handleStop() }}
                     position={this.state.after}
@@ -417,11 +425,17 @@ export class VideoControls extends React.Component {
     constructor(props) {
         super(props)
         this.handleChange.bind(this)
-        this.handlePerspective.bind(this)
+        this.handlePerspectiveCoord.bind(this)
+        this.handlePerspectiveReset.bind(this)
+        this.handlePerspectiveToggle.bind(this)
+
+        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+
         this.state = {
             lens: this.props.lens,
             fov: this.props.fov,
-            perspective: getDefaultPerspective(this.props.perspective, this.props.videoWidth, this.props.videoHeight)
+            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective, width,height ) },
+           
         }
     }
 
@@ -434,43 +448,67 @@ export class VideoControls extends React.Component {
 
     }
 
-    handlePerspective(key, index, value) {
+    handlePerspectiveCoord(key, index, value) {
         let state = Object.assign({}, this.state);
-        let position = this.state.perspective[key].slice();
-        position[index] = parseFloat(value);
-        state.perspective[key] = position;
+        state.perspective[key][index] = parseFloat(value);
+        this.setState(state)
+        if (this.props.onChange)
+            this.props.onChange(state);
+    }
+
+    handlePerspectiveReset() {
+
+        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+
+        let state = Object.assign({}, this.state);
+            state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
+
+        this.setState(state)
+        if (this.props.onChange)
+            this.props.onChange(state);
+    }
+
+    handlePerspectiveToggle() {
+        let state = Object.assign({}, this.state);
+        state.perspective.enabled = !state.perspective.enabled
         this.setState(state)
         if (this.props.onChange)
             this.props.onChange(state);
     }
 
     componentWillReceiveProps(nextProps) {
+        let {width,height} = getSizeByVideoRatio(nextProps.videoHeight, VIDEO_RESOLUTIONS[nextProps.resolution].ratio)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: getDefaultPerspective(nextProps.perspective, nextProps.videoWidth, nextProps.videoHeight)
+            perspective: { enabled: nextProps.perspective.enabled, ...getDefaultPerspective(nextProps.perspective, width,height) }
         })
     }
 
     render() {
 
-        let {before, after} = this.state.perspective;
+        let {before, after, enabled} = this.state.perspective;
         return <div className="videoControls ">
             <table width="100%" className="table table-compact">
+                <caption>Perspective</caption>
                 <tbody>
+                    <tr>
+                        <th>Enable</th><td colSpan="2"><Toggle checked={enabled} onChange={e => this.handlePerspectiveToggle(e)} /></td><td colSpan="6"><Button bsStyle="warning" onClick={e => this.handlePerspectiveReset()}>Reset</Button></td>
+                    </tr>
                     <tr><th>Before</th>
                         {before.map((value, i) => {
-                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('before', i, e.target.value) }} step="any" /></td>
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('before', i, e.target.value) }} step="any" /></td>
                         })}
                     </tr>
                     <tr><th>After</th>
                         {after.map((value, i) => {
-                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('after', i, e.target.value) }} step="any" /></td>
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('after', i, e.target.value) }} step="any" /></td>
                         })}
                     </tr>
                 </tbody>
             </table>
             <table width="100%" className="table table-compact">
+                <caption>Lens</caption>
                 <tbody>
                     <tr>
                         <th>a</th>

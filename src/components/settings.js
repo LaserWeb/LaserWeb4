@@ -238,15 +238,19 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
 
-                        <FormGroup>
-                            <InputGroup>
-                                <VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} />
-                                <VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} />
-                                <InputGroup.Button>
-                                    <Button onClick={showVideoControls} bsStyle={this.state.showVideoControls ? 'primary' : 'default'} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} style={{ float: "right" }}><Icon name="gears" /></Button>
-                                </InputGroup.Button>
-                            </InputGroup>
-                        </FormGroup>
+                        
+                        
+
+                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
+                    </SettingsPanel>
+
+                    <Panel collapsible header="Camera" bsStyle="info" eventKey="6">
+                        <table width="100%"><tbody><tr>
+                            <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} /></td>
+                            <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
+                            <td width="10%" style={{verticalAlign:'bottom'}}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
+                        </tr></tbody></table>
+                        
 
                         {isVideoDeviceSelected ? <PerspectiveWebcam
                             showCoordinators={this.state.showVideoControls}
@@ -263,17 +267,17 @@ class Settings extends React.Component {
                             fov={this.props.settings['toolVideoFov']}
                             videoWidth="640" videoHeight="480"
                             perspective={this.props.settings['toolVideoPerspective']}
+                            resolution={this.props.settings['toolVideoResolution']}
                             onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} /></div></Collapse>
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
-                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
-                    </SettingsPanel>
+                    </Panel>
 
-                    <Panel collapsible header="Macros" bsStyle="info" eventKey="5">
+                    <Panel collapsible header="Macros" bsStyle="info" eventKey="7">
                         <Macros />
                     </Panel>
 
-                    <Panel collapsible header="Tools" bsStyle="danger" eventKey="6" >
+                    <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
                         <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr />
                         <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr />
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
