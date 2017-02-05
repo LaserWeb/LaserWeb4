@@ -17,6 +17,7 @@ const operationBase = object('operation', {
     filterStrokeColor: null,
     direction: 'Conventional',
     laserPower: 100,
+    laserPowerRange: {min:0, max:100},
     laserDiameter: 0,
     toolDiameter: 0,
     lineDistance: 0,

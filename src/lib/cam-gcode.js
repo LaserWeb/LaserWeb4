@@ -112,7 +112,7 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
             ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
             beamSize: op.laserDiameter,
             beamRange: { min: 0, max: settings.gcodeSMaxValue },
-            beamPower: { min: 0, max: op.laserPower },
+            beamPower: op.laserPowerRange, //Go go power rangeR!
             feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
             offsets: { X: doc.translate[0], Y: doc.translate[1] },
             trimLine: op.trimLine,
