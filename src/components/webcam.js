@@ -228,7 +228,8 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoRatio = (height, ratio)=>{
+const getSizeByVideoResolution = (height, resolution=DEFAULT_VIDEO_RESOLUTION)=>{
+    let ratio=VIDEO_RESOLUTIONS[resolution].ratio;
     if (isNaN(ratio)){
         let p=ratio.split(":")
         ratio = p[0]/p[1];
@@ -241,8 +242,7 @@ export class PerspectiveWebcam extends React.Component {
     constructor(props) {
         super(props);
         let p = this.props.perspective || {};
-        let resolution=this.props.resolution || '720p(HD)';
-        let { w,h } =  getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[resolution].ratio);
+        let { w,h } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
         this.state = getDefaultPerspective(p, w, h);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
@@ -268,14 +268,13 @@ export class PerspectiveWebcam extends React.Component {
     render() {
 
         let { before, after, enabled } = this.state;
-        let resolution=this.props.resolution || '720p(HD)';
-        let { width, height } = getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[resolution].ratio);
+        let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
                 <Webcam width={width} height={height}
                     perspective={enabled ? { before, after } : undefined}
-                    lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={resolution} />
+                    lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={this.props.resolution} />
                 {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "before") }}
                     onStop={(position) => { this.handleStop() }}
@@ -333,6 +332,7 @@ export class VideoDeviceField extends React.Component {
 
 }
 
+const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
 const VIDEO_RESOLUTIONS = {
     "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
     "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
@@ -431,8 +431,7 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveReset.bind(this)
         this.handlePerspectiveToggle.bind(this)
 
-        let resolution=this.props.resolution || VideoControls.defaultProps.resolution;
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
         
 
         this.state = {
@@ -460,8 +459,7 @@ export class VideoControls extends React.Component {
     }
 
     handlePerspectiveReset() {
-        let resolution=this.props.resolution || VideoControls.defaultProps.resolution;
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
         let state = Object.assign({}, this.state);
             state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
@@ -480,8 +478,7 @@ export class VideoControls extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let resolution=nextProps.resolution || VideoControls.defaultProps.resolution;
-        let {width,height} = getSizeByVideoRatio(nextProps.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
