@@ -240,8 +240,9 @@ export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let p = this.props.perspective;
-        let { w,h } =  getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
+        let p = this.props.perspective || {};
+        let resolution=this.props.resolution || '720p(HD)';
+        let { w,h } =  getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[resolution].ratio);
         this.state = getDefaultPerspective(p, w, h);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
@@ -267,13 +268,14 @@ export class PerspectiveWebcam extends React.Component {
     render() {
 
         let { before, after, enabled } = this.state;
-        let { width, height } = getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
+        let resolution=this.props.resolution || '720p(HD)';
+        let { width, height } = getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[resolution].ratio);
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
                 <Webcam width={width} height={height}
                     perspective={enabled ? { before, after } : undefined}
-                    lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={this.props.resolution} />
+                    lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={resolution} />
                 {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "before") }}
                     onStop={(position) => { this.handleStop() }}
