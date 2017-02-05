@@ -429,13 +429,14 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveReset.bind(this)
         this.handlePerspectiveToggle.bind(this)
 
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+        let resolution=this.props.resolution || VideoControls.defaultProps.resolution;
+        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
+        
 
         this.state = {
             lens: this.props.lens,
             fov: this.props.fov,
-            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective, width,height ) },
-           
+            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective || {}, width,height ) },
         }
     }
 
@@ -457,8 +458,8 @@ export class VideoControls extends React.Component {
     }
 
     handlePerspectiveReset() {
-
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+        let resolution=this.props.resolution || VideoControls.defaultProps.resolution;
+        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
 
         let state = Object.assign({}, this.state);
             state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
@@ -477,11 +478,12 @@ export class VideoControls extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let {width,height} = getSizeByVideoRatio(nextProps.videoHeight, VIDEO_RESOLUTIONS[nextProps.resolution].ratio)
+        let resolution=nextProps.resolution || VideoControls.defaultProps.resolution;
+        let {width,height} = getSizeByVideoRatio(nextProps.videoHeight, VIDEO_RESOLUTIONS[resolution].ratio)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: { enabled: nextProps.perspective.enabled, ...getDefaultPerspective(nextProps.perspective, width,height) }
+            perspective: { enabled: nextProps.perspective.enabled, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
         })
     }
 
@@ -538,7 +540,8 @@ export class VideoControls extends React.Component {
 }
 
 VideoControls.defaultProps = {
-    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] }
+    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] },
+    resolution: '720p(HD)'
 }
 
 Webcam = connect()(Webcam);
