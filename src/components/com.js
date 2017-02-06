@@ -25,10 +25,14 @@ class Com extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { ports: [] }
+        this.state = {ports: new Array()}
+        if (!serverConnected) {
+            this.handleConnectServer();
+        }
     }
 
     handleConnectServer() {
+        let that = this;
         let {settings, documents, dispatch} = this.props;
         let server = settings.commServerIP;
         CommandHistory.log('Connecting to Server ' + server, CommandHistory.WARNING);
@@ -64,13 +68,13 @@ class Com extends React.Component {
 
         socket.on('ports', function (data) {
             serverConnected = true;
-            let ports = [];
+            let ports = new Array();
             for (var i = 0; i < data.length; i++) {
                 ports.push(data[i].comName);
             }
-            //this.setState({ ports: com_ports });
+            that.setState({ports: ports});
             console.log('ports: ' + ports);
-            CommandHistory.log('ports: ' + ports);
+            //CommandHistory.log('ports: ' + ports);
             $('#connect').removeClass('disabled');
             // Might as well pre-select the last-used port and buffer
             //var lastConn = loadSetting("lastUsedConn");
@@ -266,7 +270,7 @@ class Com extends React.Component {
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
-                    <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={true}>
+                    <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
                         <TextField {...{ object: settings, field: 'commServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
                             <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
@@ -278,7 +282,7 @@ class Com extends React.Component {
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: ['USB', 'Telnet', 'ESP8266'], defaultValue: 'USB', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
-                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: ['COM3',' COM4'], defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
+                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.ports, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
                                 <SelectField {...{ object: settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
                             </div>
                         </Collapse>
@@ -575,7 +579,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, documents: state.documents, gcode: state.gcode })
+    state => ({ settings: state.settings, ports: state.ports, documents: state.documents, gcode: state.gcode })
 )(Com);
 
 export default Com
