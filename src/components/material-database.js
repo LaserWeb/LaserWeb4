@@ -30,6 +30,9 @@ import omit from 'object.omit';
 
 import { cast } from '../lib/helpers'
 
+import { AllowCapture } from './capture'
+import Splitter from './splitter'
+
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
     name: 'required'
@@ -138,7 +141,7 @@ class Table extends React.Component {
 
                                     onRowClick={this.props.onRowClick}
                                     rowClass="tableRow"
-                                    >
+                                >
 
                                     {this.props.columns.map((column, j) => <FlexData.TableRowColumn key={column.id} columnClass={"column " + column.id} >
                                         {(!j && this.props.data[i].collapseContent) ? (<div style={{ float: "left" }}><Icon name={(this.props.data[i].collapseContent.props.isOpened) ? "minus-square-o" : "plus-square-o"} />&nbsp;</div>) : undefined}
@@ -197,7 +200,7 @@ class MaterialOperationsDropdown extends React.Component {
                         {Object.keys(operation.types).map((item, i) => { return <option key={i} value={item}>{item}</option> })}
                     </FormControl>
                     <InputGroup.Button>
-                        <Button bsClass="btn btn-success" onClick={(e) => { this.handleClick(e) } }><Icon name="share" /></Button>
+                        <Button bsClass="btn btn-success" onClick={(e) => { this.handleClick(e) }}><Icon name="share" /></Button>
                     </InputGroup.Button>
                 </InputGroup>
             </FormGroup>
@@ -289,7 +292,7 @@ class MaterialOperations extends React.Component {
 
             if (_operation.isEditable) {
                 //writes operation[i][key]
-                fields['_name'] = <div><input type="text" key="name" value={_operation.name} onChange={(e) => { this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value) } } /></div>
+                fields['_name'] = <div><input type="text" key="name" value={_operation.name} onChange={(e) => { this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value) }} /></div>
             } else {
                 fields['_name'] = <div><strong>{_operation.name}</strong>{(_operation.machine_profile) ? <small><code>{_operation.machine_profile}</code></small> : undefined}</div>
             }
@@ -309,7 +312,7 @@ class MaterialOperations extends React.Component {
                     //writes operation.params[i][key]
                     fields[key] = <div className={className.join(" ")} title={hasError ? currentParam.error : undefined}>
                         <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}}
-                            onChangeValue={(v) => { this.handleCellChange(_operationindex, "params", { [key]: v }) } } />
+                            onChangeValue={(v) => { this.handleCellChange(_operationindex, "params", { [key]: v }) }} />
                     </div>
                 } else {
                     fields[key] = <div className={className.join(" ")} title={hasError ? currentParam.error : undefined}>{cast(_operation.params[currentParam.name], "")}</div>
@@ -320,9 +323,9 @@ class MaterialOperations extends React.Component {
             if (this.props.canEdit) {
                 fields['_actions'] = <MaterialActions
                     isEditable={_operation.isEditable}
-                    onEdit={(e) => { this.handleRowEdit(_operationindex) } }
-                    onDelete={(e) => { this.handleRowDelete(_operationindex) } }
-                    />
+                    onEdit={(e) => { this.handleRowEdit(_operationindex) }}
+                    onDelete={(e) => { this.handleRowDelete(_operationindex) }}
+                />
             }
 
 
@@ -416,9 +419,9 @@ class Material extends React.Component {
         let row = {};
         if (this.props.data.material.isEditable) {
             row = {
-                name: <div title={hasError('name')} className={hasError('name') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.name} onChange={(e) => { this.handleCellChange(e, "name") } } /></div>,
-                thickness: <div title={hasError('thickness')} className={hasError('thickness') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.thickness} onChange={(e) => { this.handleCellChange(e, "thickness") } } /></div>,
-                notes: <div title={hasError('notes')} className={hasError('notes') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.notes} onChange={(e) => { this.handleCellChange(e, "notes") } } /></div>
+                name: <div title={hasError('name')} className={hasError('name') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.name} onChange={(e) => { this.handleCellChange(e, "name") }} /></div>,
+                thickness: <div title={hasError('thickness')} className={hasError('thickness') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.thickness} onChange={(e) => { this.handleCellChange(e, "thickness") }} /></div>,
+                notes: <div title={hasError('notes')} className={hasError('notes') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.notes} onChange={(e) => { this.handleCellChange(e, "notes") }} /></div>
             }
         } else {
             row = {
@@ -433,12 +436,12 @@ class Material extends React.Component {
 
         row["_actions"] = <MaterialActions
             isEditable={this.props.data.material.isEditable}
-            onEdit={(e) => { this.handleRowEdit(e) } }
-            onDelete={(e) => { this.handleRowDelete(e) } }
+            onEdit={(e) => { this.handleRowEdit(e) }}
+            onDelete={(e) => { this.handleRowDelete(e) }}
 
-            />
+        />
 
-        return (<Table columns={columns} data={[row]} rowHeight={36} tableClass="flexTable" columnRatio={[2, 1, 5]} onRowClick={(e, rowIndex) => { this.handleRowClick(e, rowIndex) } } />);
+        return (<Table columns={columns} data={[row]} rowHeight={36} tableClass="flexTable" columnRatio={[2, 1, 5]} onRowClick={(e, rowIndex) => { this.handleRowClick(e, rowIndex) }} />);
     }
 }
 
@@ -468,7 +471,7 @@ class MaterialMachineProfile extends React.Component {
     render() {
         let {profiles, selected, onChange, blank = "*", label = "Profile Filter", ...rest} = this.props;
         let options = Object.entries(profiles).map((entry) => { let [value, item] = entry; return { value, label: item.machineLabel } });
-        return <Select multi simpleValue delimiter="," value={selected} placeholder={label} options={options} onChange={(v) => { onChange(v) } } />
+        return <Select multi simpleValue delimiter="," value={selected} placeholder={label} options={options} onChange={(v) => { onChange(v) }} />
     }
 
 }
@@ -516,20 +519,48 @@ class MaterialDatabaseEditor extends React.Component {
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
                     <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)} buttonClass="btn btn-danger" />
                 </ButtonToolbar>}
-                >
-                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) } } />
+            >
+                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) }} />
 
+                <AllowCapture style={{ height: '400px' }}>
+                <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%'  }}>
+                    <MaterialsPane style={{ flexGrow: 0, flexShrink: 0 }} />
+                    <OperationsPane style={{ flexGrow: 1 }} />
+                </div>
+                </AllowCapture>
+
+            </MaterialModal>
+        )
+
+    }
+
+    /*
                 <div className="materialList">
                     {this.props.materials.map((item) => {
                         return (<Material key={item.id} data={item} onChange={(data) => this.handleMaterialChange(data)} profileFilter={this.state.selected} />)
                     })}
                 </div>
                 <hr />
+*/
 
 
-            </MaterialModal>
-        )
+}
 
+
+class MaterialsPane extends React.Component {
+
+    render() {
+        return <div id="materialsPane" className="full-height" style={this.props.style}>
+            <Splitter split="vertical" initialSize={300} splitterId="materialsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
+                <div className="full-height">aaaa</div>
+            </Splitter>
+        </div>
+    }
+}
+
+class OperationsPane extends React.Component {
+    render() {
+        return <div className="full-height" id="operationsPane" style={this.props.style}>bbbb</div>
     }
 
 }
@@ -600,7 +631,7 @@ class MaterialDatabasePicker extends React.Component {
         return (
             <MaterialModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Operation Presets">
-                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selectedProfile} onChange={(value) => { this.handleProfileSelect(value) } } />
+                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selectedProfile} onChange={(value) => { this.handleProfileSelect(value) }} />
                 <div className="materialPicker">
                     {this.props.materials.map((item, i) => {
                         return <section key={i}>
@@ -613,12 +644,12 @@ class MaterialDatabasePicker extends React.Component {
                                 if (shouldShow(op, this.state.selectedProfile)) {
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
-                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(item.id, j) } }><Icon name="share" /></Button>}
-                                        >
+                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(item.id, j) }}><Icon name="share" /></Button>}
+                                    >
                                         <table className="table table-sm">
                                             <tbody>
                                                 {this.explainOperation(op).map((field, k) => {
-                                                    return <tr key={k}><th title={field.key}>{field.label}{field.units ? " (" + field.units + ")" : undefined}</th><td>{cast(field.value,'')}</td></tr>
+                                                    return <tr key={k}><th title={field.key}>{field.label}{field.units ? " (" + field.units + ")" : undefined}</th><td>{cast(field.value, '')}</td></tr>
                                                 })}
                                             </tbody>
                                         </table>
@@ -669,6 +700,25 @@ MaterialDatabaseEditor = connect(mapStateToProps, mapDispatchToProps)(MaterialDa
 MaterialDatabasePicker = connect(mapStateToProps, mapDispatchToProps)(MaterialDatabasePicker)
 
 
+
+
+export class MaterialDatabaseButton extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { showModal: false }
+    }
+
+    render() {
+        let closeModal = () => this.setState({ showModal: false });
+
+        return (
+            <Button bsStyle="primary" block onClick={() => this.setState({ showModal: true })}>{this.props.children}<MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal} /></Button>
+        )
+    }
+}
+
+
 export class MaterialPickerButton extends React.Component {
     constructor(props) {
         super(props);
@@ -690,7 +740,7 @@ export class MaterialPickerButton extends React.Component {
 
         return (
             <Button bsStyle="primary" className={this.props.className} onClick={() => this.setState({ showModal: true })}>{this.props.children}
-                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(materialId, operationIndex) => { this.handleApplyPreset(materialId, operationIndex) } } />
+                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(materialId, operationIndex) => { this.handleApplyPreset(materialId, operationIndex) }} />
             </Button>
         )
     }
@@ -701,22 +751,3 @@ MaterialPickerButton = connect((state) => {
         materials: state.materialDatabase
     }
 })(MaterialPickerButton)
-
-export class MaterialDatabaseButton extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = { showModal: false }
-    }
-
-    render() {
-        let closeModal = () => this.setState({ showModal: false });
-
-        return (
-            <Button bsStyle="primary" block onClick={() => this.setState({ showModal: true })}>{this.props.children}<MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal} /></Button>
-        )
-    }
-}
-
-
-

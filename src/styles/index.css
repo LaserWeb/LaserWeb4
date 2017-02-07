@@ -638,3 +638,25 @@ button:hover,
 }
 
 #ApplicationSnapshot > section {margin-bottom: 0.5em}
+
+
+
+.paneContainer { margin-top: 10px; padding: 2px; border: 1px solid #eee; border-radius: 5px}
+
+#operationsPane, #materialsPane {
+    overflow: hidden;
+}
+
+#materialsPane {
+    flex-grow: 1;
+    min-width: 60px;
+    /*max-width: 380px;*/
+    display: flex;
+}
+
+
+#operationsPane {
+    flex-grow: 10;
+    display: flex;
+    flex-direction: column;
+}
