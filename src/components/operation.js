@@ -90,9 +90,9 @@ class InputRange extends React.Component {
 
     handleChange(key, v) {
         let state = Object.assign(this.state, { [key]: parseFloat(v) })
-            state.min = !isNaN(state.min) ? Math.max(state.min, this.props.minValue) : this.props.minValue;
-            state.max = !isNaN(state.max) ? Math.min(state.max, this.props.maxValue) : this.props.maxValue;
-            state.min = Math.min(state.max, state.min)
+            state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
+            state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
+            
 
         this.setState(state)
         this.props.onChangeValue(state);
@@ -284,12 +284,10 @@ function checkRange(min, max) {
             if (isFinite(v)) {
                 return v >= min && v <= max;
             } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
-                if ((parseInt(v.min) >= parseInt(v.max) || parseInt(v.min) < min || parseInt(v.max) > max))
-                    return false;
-                return true;
+                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max) 
             }
         },
-        error: 'Must be in range [' + min + ' < ' + max + ']',
+        error: 'Must be in range [' + min + ' , ' + max + ']',
     }
 }
 

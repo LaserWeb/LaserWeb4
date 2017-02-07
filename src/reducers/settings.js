@@ -115,10 +115,10 @@ export const settings = objectNoId('settings', {
     toolUseNumpad: false,
 
     toolVideoDevice: null,
-    toolVideoPerspective: null,
+    toolVideoPerspective: {enabled:false},
     toolVideoLens: {a:1,b:1,F:1,scale:1},
     toolVideoFov: {x:1,y:1},
-    toolVideoResolution: null,
+    toolVideoResolution: "720p(HD)",
 
     toolWebcamUrl:"",
     toolFeedUnits: 'mm/min',

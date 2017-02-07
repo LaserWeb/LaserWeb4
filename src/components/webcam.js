@@ -228,7 +228,9 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoRatio = (height, ratio)=>{
+const getSizeByVideoResolution = (height, resolution)=>{
+    if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
+    let ratio=VIDEO_RESOLUTIONS[resolution].ratio;
     if (isNaN(ratio)){
         let p=ratio.split(":")
         ratio = p[0]/p[1];
@@ -240,9 +242,9 @@ export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let p = this.props.perspective;
-        let { w,h } =  getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
-        this.state = getDefaultPerspective(p, w, h);
+        let p = this.props.perspective || {};
+        let { width,height } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
+        this.state = getDefaultPerspective(p, width,height);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
     }
@@ -267,7 +269,7 @@ export class PerspectiveWebcam extends React.Component {
     render() {
 
         let { before, after, enabled } = this.state;
-        let { width, height } = getSizeByVideoRatio(this.props.height, VIDEO_RESOLUTIONS[this.props.resolution].ratio);
+        let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
@@ -331,6 +333,7 @@ export class VideoDeviceField extends React.Component {
 
 }
 
+const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
 const VIDEO_RESOLUTIONS = {
     "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
     "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
@@ -429,13 +432,13 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveReset.bind(this)
         this.handlePerspectiveToggle.bind(this)
 
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+
 
         this.state = {
             lens: this.props.lens,
             fov: this.props.fov,
-            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective, width,height ) },
-           
+            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective || {}, width,height ) },
         }
     }
 
@@ -457,8 +460,7 @@ export class VideoControls extends React.Component {
     }
 
     handlePerspectiveReset() {
-
-        let {width,height} = getSizeByVideoRatio(this.props.videoHeight, VIDEO_RESOLUTIONS[this.props.resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
         let state = Object.assign({}, this.state);
             state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
@@ -477,11 +479,11 @@ export class VideoControls extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let {width,height} = getSizeByVideoRatio(nextProps.videoHeight, VIDEO_RESOLUTIONS[nextProps.resolution].ratio)
+        let {width,height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: { enabled: nextProps.perspective.enabled, ...getDefaultPerspective(nextProps.perspective, width,height) }
+            perspective: { enabled: false, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
         })
     }
 
@@ -538,7 +540,8 @@ export class VideoControls extends React.Component {
 }
 
 VideoControls.defaultProps = {
-    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] }
+    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] },
+    resolution: '720p(HD)'
 }
 
 Webcam = connect()(Webcam);
