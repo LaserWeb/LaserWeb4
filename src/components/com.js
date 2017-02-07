@@ -26,14 +26,17 @@ class Com extends React.Component {
     constructor(props) {
         super(props);
         this.state = {ports: new Array()}
-        if (!serverConnected) {
+    }
+
+    componentDidMount() {
+        if (!socket && !serverConnected) {
             this.handleConnectServer();
         }
     }
 
     handleConnectServer() {
         let that = this;
-        let {settings, documents, dispatch} = this.props;
+        let {settings, dispatch} = this.props;
         let server = settings.commServerIP;
         CommandHistory.log('Connecting to Server ' + server, CommandHistory.WARNING);
         console.log('Connecting to Server ' + server);
@@ -43,6 +46,7 @@ class Com extends React.Component {
             CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.WARNING);
             console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
+            machineConnected = false;
         });
         
         socket.emit('firstload');
@@ -51,18 +55,18 @@ class Com extends React.Component {
             serverConnected = true;
             // Web Socket is connected
             //console.log('open ' + data);
-            CommandHistory.log('Socket opened: ' + data, CommandHistory.INFO);
+            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.WARNING); //INFO
         });
 
         socket.on('config', function (data) {
             serverConnected = true;
-            CommandHistory.log('config: ' + data, CommandHistory.INFO);
+            //CommandHistory.log('config: ' + data, CommandHistory.INFO);
             console.log('config: ' + data);
         });
 
         socket.on('activePorts', function (data) {
             serverConnected = true;
-            CommandHistory.log('activePorts: ' + data);
+            //CommandHistory.log('activePorts: ' + data);
             console.log('activePorts: ' + data);
         });
 
@@ -76,20 +80,12 @@ class Com extends React.Component {
             console.log('ports: ' + ports);
             //CommandHistory.log('ports: ' + ports);
             $('#connect').removeClass('disabled');
-            // Might as well pre-select the last-used port and buffer
-            //var lastConn = loadSetting("lastUsedConn");
-            //var lastUsed = loadSetting("lastUsedPort");
-            //var lastBaud = loadSetting("lastUsedBaud");
-            //$("#connectVia option:contains(" + lastConn + ")").attr('selected', 'selected');
-            //$("#port option:contains(" + lastUsed + ")").attr('selected', 'selected');
-            //$("#baud option:contains(" + lastBaud + ")").attr('selected', 'selected');
         });
 
         socket.on('connectStatus', function (data) {
             CommandHistory.log('connectStatus: ' + data);
             console.log('connectStatus: ' + data);
             serverConnected = true;
-            machineConnected = true;
             if (data.indexOf('opened') >= 0) {
                 machineConnected = true;
             }
@@ -199,14 +195,14 @@ class Com extends React.Component {
         socket.on('laserTest', function (data) {
             serverConnected = true;
             CommandHistory.log('laserTest: ' + data);
-            //console.log('laserTest ' + data);
-            //if (data >= 1){
-            //    laserTestOn = true;
-            //    $("#lT").addClass('btn-highlight');
-            //} else if (data === 0) {
-            //    laserTestOn = false;
-            //    $('#lT').removeClass('btn-highlight');
-            //}
+            console.log('laserTest ' + data);
+            if (data >= 1){
+                laserTestOn = true;
+                $("#lT").addClass('btn-highlight');
+            } else if (data === 0) {
+                laserTestOn = false;
+                $('#lT').removeClass('btn-highlight');
+            }
         });
 
         socket.on('runningJob', function (data) {
@@ -298,7 +294,7 @@ class Com extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Console" bsStyle="primary" eventKey="3" defaultExpanded={true}>
-                        <CommandHistory />
+                        <CommandHistory onCommandExec={(e) => {runCommand(e)}}/>
                     </Panel>
                 </PanelGroup>
             </div>    
@@ -492,6 +488,19 @@ export function setZero(axis) {
         if (machineConnected){
             CommandHistory.log('Zero ' + axis + ' axis', CommandHistory.DANGER);
             socket.emit('zeroAxis', axis);
+        } else {
+            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+        }
+    } else {
+        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+    }
+}
+
+export function laserTest(power, duration, maxS) {
+    if (serverConnected) {
+        if (machineConnected){
+            console.log('laserTest(' + power + ', ' + duration + ', ' + maxS + ')');
+            socket.emit('laserTest', power + ',' + duration + ',' + maxS);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }

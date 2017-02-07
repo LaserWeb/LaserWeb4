@@ -13,7 +13,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 
 import CommandHistory from './command-history';
 
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, checkSize, jog, feedOverride, spindleOverride } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, checkSize, laserTest, jog, feedOverride, spindleOverride } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -29,6 +29,11 @@ var ovLoop;
  * @param {Object} props Component properties.
  */
 class Jog extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {stepsize: this.props.settings.stepsize}
+    }
 
     homeAll() {
         console.log('homeAll');
@@ -68,8 +73,16 @@ class Jog extends React.Component {
         console.log('checkSize');
     }
 
+    laserTest() {
+        console.log('laserTest');
+        let power = this.props.settings.gcodeToolTestPower;
+        let duration = this.props.settings.gcodeToolTestDuration;
+        let maxS = this.props.settings.gcodeSMaxValue;
+        laserTest(power, duration, maxS);
+    }
+
     jog(axis, dir) {
-        let dist = jQuery('input[name=stp]:checked', '#stepsize').val();
+        let dist = this.stepsize; //jQuery('input[name=stp]:checked', '#stepsize').val();
         let feed;
         switch (axis) {
             case 'X':
@@ -88,9 +101,11 @@ class Jog extends React.Component {
     }
 
     changeStepsize() {
+        let that = this;
         let newJogSize = jQuery('input[name=stp]:checked', '#stepsize').val();
+        that.setState({stepsize: newJogSize});
         console.log('Jog will use ' + newJogSize + ' mm per click');
-        CommandHistory.log('Jog will use ' + newJogSize + ' mm per click', CommandHistory.INFO);
+        CommandHistory.log('Jog will use ' + newJogSize + ' mm per click', CommandHistory.WARNING);
         $('.stepsizeval').empty();
         $('.stepsizeval').html(newJogSize + 'mm');
     }
@@ -324,7 +339,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-up fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Y+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -342,7 +357,7 @@ class Jog extends React.Component {
                                         <button id="zP" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e)=>{this.jog('Z', '+')}}>
                                             <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Z+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -353,7 +368,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-left fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">X-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -362,7 +377,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-down fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Y-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -371,7 +386,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-right fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">X+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -383,7 +398,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-down fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Z-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">10mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -401,10 +416,10 @@ class Jog extends React.Component {
                                 </tr>
                                 <tr>
                                     <td colSpan="5">
-                                        <form id="stepsize" onChange={()=>{this.changeStepsize()}}>
+                                        <form id="stepsize" onChange={(e)=>{this.changeStepsize(e)}}>
                                             <div data-toggle="buttons">
                                                 <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="0.1" onClick={()=>{this.changeStepsize()}} />
+                                                    <input type="radio" name="stp" defaultValue="0.1" onClick={(e)=>{this.changeStepsize(e)}} />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
@@ -412,7 +427,7 @@ class Jog extends React.Component {
                                                     </span>
                                                 </label>
                                                 <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="1" onChange={()=>{this.changeStepsize()}} />
+                                                    <input type="radio" name="stp" defaultValue="1" onChange={(e)=>{this.changeStepsize(e)}} />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
@@ -446,7 +461,7 @@ class Jog extends React.Component {
                     <MacrosBar/>
 
                     <Panel collapsible header="Console" bsStyle="primary" eventKey="4" defaultExpanded={true}>
-                        <CommandHistory />
+                        <CommandHistory onCommandExec={(e) => {this.runCommand(e)}}/>
                     </Panel>
                             
                 </PanelGroup>
@@ -457,7 +472,7 @@ class Jog extends React.Component {
 }
 
 Jog = connect(
-    state => ({ settings: state.settings, gcode: state.gcode })
+    state => ({ settings: state.settings, stepsize: state.stepsize, gcode: state.gcode })
 )(Jog);
 
 // Exports
