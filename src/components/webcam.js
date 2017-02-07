@@ -228,7 +228,8 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoResolution = (height, resolution=DEFAULT_VIDEO_RESOLUTION)=>{
+const getSizeByVideoResolution = (height, resolution)=>{
+    if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
     let ratio=VIDEO_RESOLUTIONS[resolution].ratio;
     if (isNaN(ratio)){
         let p=ratio.split(":")
@@ -242,8 +243,8 @@ export class PerspectiveWebcam extends React.Component {
     constructor(props) {
         super(props);
         let p = this.props.perspective || {};
-        let { w,h } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
-        this.state = getDefaultPerspective(p, w, h);
+        let { width,height } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
+        this.state = getDefaultPerspective(p, width,height);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
     }
@@ -432,7 +433,7 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveToggle.bind(this)
 
         let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
-        
+
 
         this.state = {
             lens: this.props.lens,
@@ -482,7 +483,7 @@ export class VideoControls extends React.Component {
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: { enabled: nextProps.perspective.enabled, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
+            perspective: { enabled: false, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
         })
     }
 
