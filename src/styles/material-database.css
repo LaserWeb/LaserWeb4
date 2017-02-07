@@ -67,7 +67,10 @@
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
 
 
-
-#materialsPane heading {display:block; background: #f6f6f6; border-bottom: 1px solid #eee; margin-bottom: 2px}
+#materialsPane {min-width: 200px}
+#materialsPane heading {display:block; border: 1px solid #eee; padding: 2px; margin-bottom: 1px; border-radius: 5px}
+#materialsPane heading:hover {background: #f6f6f6}
 #materialsPane heading > * {display:block}
-#materialsPane heading small { margin-left: 1em}
+#materialsPane heading h5 {margin-top: 0}
+#materialsPane heading small { margin: 0 0 5px 5px}
+#materialsPane heading.active {background: rgba(0, 126, 255, 0.08); border: 1px solid rgba(0, 126, 255, 0.24)}

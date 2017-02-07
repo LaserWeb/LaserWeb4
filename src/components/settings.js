@@ -237,10 +237,6 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolSafetyLockDisabled', setAttrs: setSettingsAttrs, description: 'Disable Safety Lock' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
-
-                        
-                        
-
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                     </SettingsPanel>
 
@@ -248,9 +244,9 @@ class Settings extends React.Component {
                         <table width="100%"><tbody><tr>
                             <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} /></td>
                             <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
-                            <td width="10%" style={{verticalAlign:'bottom'}}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
+                            <td width="10%" style={{ verticalAlign: 'bottom' }}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
                         </tr></tbody></table>
-                        
+
 
                         {isVideoDeviceSelected ? <PerspectiveWebcam
                             showCoordinators={this.state.showVideoControls}

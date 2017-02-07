@@ -33,6 +33,10 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
+
+import '../styles/material-database.css'
+
+
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
     name: 'required'
@@ -482,11 +486,13 @@ class MaterialDatabaseEditor extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { selected: this.props.selectedProfile }
+        this.state = { selected: this.props.selectedProfile, materialId:null }
         this.handleProfileSelect.bind(this)
         this.handleMaterialChange.bind(this)
         this.handleAddMaterial.bind(this)
         this.handleExport.bind(this)
+
+        this.handleMaterialSelected.bind(this)
     }
 
     handleProfileSelect(value) {
@@ -505,6 +511,9 @@ class MaterialDatabaseEditor extends React.Component {
         this.props.handleDownload(this.props.materials, format)
     }
 
+    handleMaterialSelected(id){
+        this.setState({materialId: id})
+    }
 
     render() {
 
@@ -523,10 +532,12 @@ class MaterialDatabaseEditor extends React.Component {
                 <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) }} />
 
                 <AllowCapture style={{ height: '400px' }}>
-                <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%'  }}>
-                    <MaterialsPane style={{ flexGrow: 0, flexShrink: 0 }} />
-                    <OperationsPane style={{ flexGrow: 1 }} />
-                </div>
+                    <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                        <MaterialsPane style={{ flexGrow: 0, flexShrink: 0 }} 
+                            onMaterialSelected={(id)=>this.handleMaterialSelected(id)} materialId={this.state.materialId}
+                        />
+                        <OperationsPane style={{ flexGrow: 1 }} materialId={this.state.materialId} selectedProfile={this.state.selected}/>
+                    </div>
                 </AllowCapture>
 
             </MaterialModal>
@@ -534,36 +545,83 @@ class MaterialDatabaseEditor extends React.Component {
 
     }
 
-    /*
-                <div className="materialList">
-                    {this.props.materials.map((item) => {
-                        return (<Material key={item.id} data={item} onChange={(data) => this.handleMaterialChange(data)} profileFilter={this.state.selected} />)
-                    })}
-                </div>
-                <hr />
-*/
-
-
 }
-
 
 class MaterialsPane extends React.Component {
 
     render() {
         return <div id="materialsPane" className="full-height" style={this.props.style}>
             <Splitter split="vertical" initialSize={300} splitterId="materialsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-                <div className="full-height">aaaa</div>
+                <div className="full-height">
+                    {this.props.materials.map((item, i) => {
+                        return <heading id={item.id} onClick={(e)=>this.props.onMaterialSelected(item.id)} className={(this.props.materialId==item.id)? 'active':undefined}>
+                            <h5>{item.material.name} ({item.material.thickness} mm)</h5>
+                            <small>{item.material.notes}</small>
+                        </heading>
+                    })}
+                </div>
             </Splitter>
         </div>
     }
 }
 
-class OperationsPane extends React.Component {
-    render() {
-        return <div className="full-height" id="operationsPane" style={this.props.style}>bbbb</div>
+MaterialsPane = connect(
+    state => {
+        return {
+            materials: state.materialDatabase
+        }
+    },
+    dispatch => {
+        return {}
     }
 
+)(MaterialsPane)
+
+class OperationsPane extends React.Component {
+    render() {
+        let materialId=this.props.materialId;
+        let item=this.props.materials.find((item, i, obj)=>{ return item.id==materialId})
+        let heading, operations;
+        if (item){
+            heading= (<heading><h5>{item.material.name} ({item.material.thickness} mm)</h5><small>{item.material.notes}</small></heading>)
+            operations = item.operations;
+        } else {
+            heading=undefined
+            operations=[]
+        }
+
+        return <div className="full-height" id="operationsPane" style={this.props.style}>
+            {heading}
+            <PanelGroup defaultActiveKey="0">
+            {operations.map((operation, i)=>{
+                if (!shouldShow(operation, this.props.selectedProfile)) return;
+                return <Panel collapsible key={i} eventKey={i} header={operation.name+" ("+operation.type+") - "+operation.notes}><OperationsPaneOperation key={i} operation={operation}/></Panel>
+            })}
+            </PanelGroup>
+        </div>
+    }
 }
+
+OperationsPane = connect(
+    state => {
+        return {
+            materials: state.materialDatabase
+        }
+    },
+    dispatch => {
+        return {}
+    }
+
+)(OperationsPane)
+
+class OperationsPaneOperation extends React.Component {
+    render()
+    {
+        return <div><pre>{JSON.stringify(this.props.operation)}</pre></div>
+    }
+}
+
+
 
 class Details extends React.Component {
 
