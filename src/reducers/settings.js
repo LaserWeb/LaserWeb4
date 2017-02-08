@@ -22,6 +22,8 @@ const version = require("../../package.json").version;
             "gcodeHoming":";$H",
             "gcodeToolOn":"M3",
             "gcodeToolOff":"M5",
+            "gcodeToolTestPower":"0",
+            "gcodeToolTestDuration":"0",
             
             "machineWidth": 420,
             "machineHeight": 297,
@@ -66,6 +68,8 @@ export const SETTINGS_VALIDATION_RULES = {
     
     gcodeSMaxValue: 'required|numeric|min:1',
     gcodeMoveUnits: 'in:mm/s,mm/min',
+    gcodeToolTestPower: 'required|numeric|min:0|max:100',
+    gcodeToolTestDuration: 'required|numeric|min:0',
     
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
@@ -119,8 +123,6 @@ export const settings = objectNoId('settings', {
     toolVideoFov: {x:1,y:1},
     toolWebcamUrl:"",
     toolFeedUnits: 'mm/min',
-    toolTestSValue: 1, 
-    toolTestDuration: 0,
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M2          ; End\r\n",
@@ -128,13 +130,16 @@ export const settings = objectNoId('settings', {
     gcodeToolOn:"",
     gcodeToolOff:"",
     gcodeSMaxValue: 1,
+    gcodeToolTestPower: 0, 
+    gcodeToolTestDuration: 0,
     
-    commServerIP: 'localhost:8080',
+    commServerIP: 'localhost:8000',
     commServerConnect: false,
 
     connectVia: 'USB',
     connectPort: '',
     connectBaud: '',
     connectIP: '',
-    
+
+    jogStepsize: 1,
 });
