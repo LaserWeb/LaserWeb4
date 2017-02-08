@@ -36,6 +36,11 @@ class Jog extends React.Component {
         runCommand(cmd);
     }
 
+    runCommand(e) {
+        console.log('runCommand');
+        runCommand(e + '\n');
+    }
+
     runJob() {
         let cmd = this.props.gcode;
         console.log('runJob(' + cmd.length + ')');
@@ -446,7 +451,7 @@ class Jog extends React.Component {
                     <MacrosBar/>
 
                     <Panel collapsible header="Console" bsStyle="primary" eventKey="4" defaultExpanded={true}>
-                        <CommandHistory />
+                        <CommandHistory onCommandExec={(e)=>{this.runCommand(e)}} />
                     </Panel>
                             
                 </PanelGroup>
