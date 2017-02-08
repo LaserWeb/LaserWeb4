@@ -83,14 +83,17 @@ class Jog extends React.Component {
         let power = this.props.settings.gcodeToolTestPower;
         let duration = this.props.settings.gcodeToolTestDuration;
         let maxS = this.props.settings.gcodeSMaxValue;
+        console.log('laserTest(' + power + ',' + duration + ',' + maxS + ')');
         laserTest(power, duration, maxS);
     }
 
     jog(axis, dir) {
-        let dist = this.stepsize; //jQuery('input[name=stp]:checked', '#stepsize').val();
+        let dist = jQuery('input[name=stp]:checked', '#stepsize').val(); //this.stepsize;
         let feed;
         switch (axis) {
             case 'X':
+                feed = jQuery('#jogfeedxy').val() * 60;                
+                break;
             case 'Y':
                 feed = jQuery('#jogfeedxy').val() * 60;                
                 break;
@@ -694,60 +697,6 @@ export default Jog
 //    if (isConnected) {
 //        console.log('Turning Off Motor Power');
 //        sendCommand('M84\n');
-//    }
-//});
-//
-//$('#xP').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedxy').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' X' + dist + '\nG90\n');
-//    }
-//});
-//
-//$('#yP').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedxy').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' Y' + dist + '\nG90\n');
-//    }
-//});
-//
-//$('#zP').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedz').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' Z' + dist + '\nG90\n');
-//    }
-//});
-//
-//$('#xM').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedxy').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' X-' + dist + '\nG90\n');
-//    }
-//});
-//
-//$('#yM').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedxy').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' Y-' + dist + '\nG90\n');
-//    }
-//});
-//
-//$('#zM').on('click', function () {
-//    if (isConnected) {
-//        var dist = $('input[name=stp]:checked', '#stepsize').val();
-//        var feedrate = $('#jogfeedz').val() * 60;
-//        console.log('Jog Distance', dist);
-//        sendCommand('G91\nG0 F' + feedrate + ' Z-' + dist + '\nG90\n');
 //    }
 //});
 //
