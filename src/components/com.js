@@ -72,14 +72,18 @@ class Com extends React.Component {
 
         socket.on('ports', function (data) {
             serverConnected = true;
-            let ports = new Array();
-            for (var i = 0; i < data.length; i++) {
-                ports.push(data[i].comName);
+            if (data.length > 0) {
+                let ports = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    ports.push(data[i].comName);
+                }
+                that.setState({ports: ports});
+                console.log('ports: ' + ports);
+                //CommandHistory.log('ports: ' + ports);
+                $('#connect').removeClass('disabled');
+            } else {
+                CommandHistory.log('No serial ports found on server!', CommandHistory.DANGER);
             }
-            that.setState({ports: ports});
-            console.log('ports: ' + ports);
-            //CommandHistory.log('ports: ' + ports);
-            $('#connect').removeClass('disabled');
         });
 
         socket.on('connectStatus', function (data) {
@@ -139,9 +143,9 @@ class Com extends React.Component {
                 //updateStatusTinyG(data);
             } else if (data === 'ok') {
                 machineConnected = true;
-                //printLog(data, '#cccccc', "usb");
+                //CommandHistory.log(data, '#cccccc', "usb");
             } else {
-                //printLog(data, msgcolor, "usb");
+                //CommandHistory.log(data, msgcolor, "usb");
             }
             if (data.indexOf('LPC176')) { //LPC1768 or LPC1769 should be Smoothie
                 machineConnected = true;
@@ -213,13 +217,38 @@ class Com extends React.Component {
 
         socket.on('qCount', function (data) {
             serverConnected = true;
-            //CommandHistory.log('qCount: ' + data);
-            //console.log('qCount ' + data);
+            console.log('qCount ' + data);
+            data = parseInt(data);
+            $('#queueCnt').html('Queued: ' + data);
+            if (data === 0) {
+                queueEmptyCount++;
+                if (queueEmptyCount == 4) {
+                    playing = false;
+                    paused = false;
+                    $('#playicon').removeClass('fa-pause');
+                    $('#playicon').addClass('fa-play');
+
+                    if (jobStartTime >= 0) {
+                        var jobFinishTime = new Date(Date.now());
+                        var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
+                        var elapsedTime = Math.round(elapsedTimeMS / 1000);
+                        CommandHistory.log("Job started at " + jobStartTime.toString(), msgcolor, "file");
+                        CommandHistory.log("Job finished at " + jobFinishTime.toString(), msgcolor, "file");
+                        CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.", msgcolor, "file");
+                        jobStartTime = -1;
+
+                        // Update accumulated job time
+                        var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
+
+                        CommandHistory.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
+                    }
+                }
+            }
         });
 
         socket.on('close', function() { 
             serverConnected = false;
-            CommandHistory.log('Server connection closed');
+            CommandHistory.log('Server connection closed', CommandHistory.DANGER);
             machineConnected = false;
             // websocket is closed.
             //console.log('Server connection closed'); 
@@ -376,7 +405,7 @@ function updateStatus(data) {
     var startOv = data.search(/ov:/i) + 3;
     if (startOv > 3) {
         var ov = data.replace('>', '').substr(startOv).split(/,|\|/, 3);
-        //printLog("Overrides: " + ov[0] + ',' + ov[1] + ',' + ov[2],  msgcolor, "USB");
+        //CommandHistory.log("Overrides: " + ov[0] + ',' + ov[1] + ',' + ov[2],  msgcolor, "USB");
         if (Array.isArray(ov)) {
             $('#oF').html(ov[0].trim() + '<span class="drounitlabel"> %</span>');
             //$('#oR').html(ov[1].trim() + '<span class="drounitlabel"> %</span>');
