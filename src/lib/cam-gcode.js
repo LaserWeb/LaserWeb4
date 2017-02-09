@@ -29,7 +29,7 @@ function matchColor(filterColor, color) {
     return filterColor[0] == color[0] && filterColor[1] == color[1] && filterColor[2] == color[2] && filterColor[3] == color[3];
 }
 
-export function getGcode(settings, documents, operations, documentCacheHolder, showAlert) {
+export function getGcode(settings, documents, operations, documentCacheHolder, showAlert, done, progress) {
     "use strict";
 
     var gcode = settings.gcodeStart;
@@ -73,28 +73,25 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
             let g = getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
-            if (!g)
-                return '';
-            gcode += g;
+            if (!g) done('');
+            done(settings.codeStart + g + settings.gcodeEnd)
         } else if (op.type === 'Laser Raster') {
-            gcode += getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert);
+            getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, (g) => { done(settings.codeStart + g + settings.gcodeEnd) }, progress);
         } else if (op.type.substring(0, 5) === 'Mill ') {
             let g = getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert);
-            if (!g)
-                return '';
-            gcode += g;
+            if (!g) done('');
+            done(settings.codeStart + g + settings.gcodeEnd)
         }
     } // opIndex
 
-    gcode += settings.gcodeEnd;
-    return gcode;
+
 } // getGcode
 
-function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert) {
-    let gcode = '';
-    let ok=true;
+function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress) {
 
-    if (!(op.laserDiameter>0)) {
+    let ok = true;
+
+    if (!(op.laserDiameter > 0)) {
         showAlert("LaserDiameter should be greater than 0");
         ok = false;
     }
@@ -103,9 +100,49 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
         showAlert("CutRate should be greater than 0");
         ok = false;
     }
-   
-    if (!ok) 
-        return gcode;
+
+    if (!ok)
+        done({ gcode });
+
+    const doneProcessing = (ev) => {
+        let gcode = '';
+        let raster = ev.gcode.join('\r\n');
+
+        if (op.useBlower) {
+            if (settings.machineBlowerGcodeOn) {
+                gcode += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+            }
+        }
+
+        if (op.passes > 1) {
+            for (let pass = 0; pass < op.passes; ++pass) {
+                gcode += '\n\n; Pass ' + pass + '\r\n';
+
+                if (settings.machineZEnabled) {
+                    let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
+                    gcode += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                    gcode += 'G1 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
+                }
+                gcode += raster;
+            }
+        } else {
+            gcode += raster;
+        }
+
+        if (op.useBlower) {
+            if (settings.machineBlowerGcodeOff) {
+                gcode += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+            }
+        }
+
+        done(gcode);
+    }
+
+    const percentProcessing = (ev, index) => {
+        console.log(`Rasterizing ${ev.doc.name} ...${ev.percent}%`)
+        let overall = (isNaN(index)) ? 1 : index / docsWithImages.length
+        progress(ev.percent * overall)
+    }
 
     for (let doc of docsWithImages) {
         let r2g = new RasterToGcode({
@@ -120,7 +157,7 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
             burnWhite: op.burnWhite,
             verboseG: op.verboseGcode,
             diagonal: op.diagonal,
-            nonBlocking: false,
+            nonBlocking: done ? true : false,
             filters: {
                 smoothing: op.smoothing,
                 brightness: op.brightness,
@@ -130,39 +167,18 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
                 shadesOfGray: op.shadesOfGray,
                 invertColor: op.invertColor,
             },
+            progress: (ev) => { percentProcessing({ ...ev, doc }) },
+            done: doneProcessing
         });
         r2g.loadFromImage(doc.image);
         r2g._processImage();
 
-        let raster=r2g.run().join('\r\n');
-
-        if (op.useBlower){
-            if (settings.machineBlowerGcodeOn){
-                gcode+=`\r\n`+settings.machineBlowerGcodeOn+'; Enable Air assist\r\n';
-            }
-        }
-
-        if (op.passes>1){
-            for (let pass = 0; pass < op.passes; ++pass) {
-                gcode += '\n\n; Pass ' + pass + '\r\n';
-
-                if (settings.machineZEnabled){
-                    let zHeight = op.startHeight+settings.machineZToolOffset - (op.passDepth*pass);
-                    gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
-                    gcode+='G1 Z'+zHeight.toFixed(settings.decimal || 3)+'\r\n';
-                }
-                gcode += raster;
-            }
+        if (done) {
+            r2g.run()   //doneProcessing at the end, my friend
         } else {
-            gcode += raster;    
-        }
-
-        if (op.useBlower){
-            if (settings.machineBlowerGcodeOff){
-                 gcode+=`\r\n`+settings.machineBlowerGcodeOff+'; Disable Air assist\r\n';
-            }
+            doneProcessing({ gcode: r2g.run() })
         }
 
     }
-    return gcode;
+
 }

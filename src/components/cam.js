@@ -16,7 +16,7 @@
 import Parser from 'lw.svg-parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
-import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
+import { ButtonToolbar, ButtonGroup, ProgressBar } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
@@ -41,12 +41,30 @@ function NoDocumentsError(props) {
 }
 
 class Cam extends React.Component {
+
+    constructor(props){
+        super(props)
+        this.state={gcoding: false}
+    }
+
     componentWillMount() {
         this.generate = e => {
             let {settings, documents, operations} = this.props;
             // TODO: show errors
-            let gcode = getGcode(settings, documents, operations, this.props.documentCacheHolder, msg => console.log(msg));
-            this.props.dispatch(setGcode(gcode));
+            this.setState({gcoding: true, percent:100})
+            getGcode(settings, documents, operations, this.props.documentCacheHolder, 
+                msg => console.log(msg), 
+                (gcode) => {
+                    this.setState({gcoding: false})
+                    this.forceUpdate();
+                    this.props.dispatch(setGcode(gcode));
+                },
+                (percent) => {
+                    this.setState({percent})
+                    this.forceUpdate();
+                }
+            );
+            
         }
     }
 
@@ -102,21 +120,18 @@ class Cam extends React.Component {
                         <table style={{ width: 100 + '%' }}>
                             <tbody>
                                 <tr>
-                                    <td>
+                                    <td >
                                         <label>GCODE</label>
                                     </td>
-                                    <td>
-                                        <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
+                                    <td width="50%">
+                                        {!this.state.gcoding ? (<span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
                                             <ButtonGroup>
-                                                <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
-                                                <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                                                <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
+                                                <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid || this.state.gcoding} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                                                <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.state.gcoding} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                                                <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid || this.state.gcoding} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
                                             </ButtonGroup>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colSpan='2'>
+                                        </span>) : <ProgressBar now={this.state.percent} active label={`${this.state.percent}%`} />}
+                                        
                                     </td>
                                 </tr>
                             </tbody>
