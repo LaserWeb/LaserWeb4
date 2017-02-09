@@ -130,7 +130,7 @@ class Cam extends React.Component {
                                                 <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.state.gcoding} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
                                                 <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid || this.state.gcoding} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
                                             </ButtonGroup>
-                                        </span>) : <ProgressBar now={this.state.percent} active label={`${this.state.percent}%`} />}
+                                        </span>) : <ProgressBar now={this.state.percent===true? 100: this.state.percent} active label={ this.state.percent!==true? `${this.state.percent}%`:undefined} />}
                                         
                                     </td>
                                 </tr>
