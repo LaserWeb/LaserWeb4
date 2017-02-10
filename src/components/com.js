@@ -213,8 +213,29 @@ class Com extends React.Component {
 
         socket.on('qCount', function (data) {
             serverConnected = true;
-            //CommandHistory.log('qCount: ' + data);
-            //console.log('qCount ' + data);
+            data = parseInt(data);
+            $('#queueCnt').html('Queued: ' + data);
+            if (data === 0) {
+                queueEmptyCount++;
+                if (queueEmptyCount == 4) {
+                    playing = false;
+                    paused = false;
+                    $('#playicon').removeClass('fa-pause');
+                    $('#playicon').addClass('fa-play');
+
+                    if (jobStartTime >= 0) {
+                        var jobFinishTime = new Date(Date.now());
+                        var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
+                        var elapsedTime = Math.round(elapsedTimeMS / 1000);
+                        console.log("Job started at " + jobStartTime.toString());
+                        console.log("Job finished at " + jobFinishTime.toString());
+                        console.log("Elapsed time: " + elapsedTime + " seconds.");
+                        jobStartTime = -1;
+                        var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
+                        console.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
+                    }
+                }
+            }
         });
 
         socket.on('close', function() { 

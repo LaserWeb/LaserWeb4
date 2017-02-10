@@ -7,7 +7,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 
-import { PanelGroup, Panel } from 'react-bootstrap';
+import { PanelGroup, Panel, ProgressBar } from 'react-bootstrap';
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
