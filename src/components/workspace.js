@@ -704,7 +704,7 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode, workspace: state.workspace }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace }),
     dispatch => ({
         dispatch,
         reset: () => dispatch(resetCamera()),

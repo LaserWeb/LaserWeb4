@@ -81,8 +81,7 @@ module.exports = {
         contentBase: dist_path,
         inline: false,
         hot: true,
-        host: 'localhost'
-
+        host: 'localhost' // originally 0.0.0.0
     },
     devtool: 'source-map'
 };
