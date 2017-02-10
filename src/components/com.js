@@ -20,15 +20,18 @@ var paused = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware;
+var xpos, ypos, zpos;
 
 class Com extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {ports: new Array()}
+        this.state = {interfaces: new Array(), ports: new Array()}
     }
 
     componentDidMount() {
+        $('#disconnectS').addClass('disabled');
+        $('#disconnect').addClass('disabled');
         if (!socket && !serverConnected) {
             this.handleConnectServer();
         }
@@ -41,56 +44,133 @@ class Com extends React.Component {
         CommandHistory.log('Connecting to Server ' + server, CommandHistory.WARNING);
         console.log('Connecting to Server ' + server);
         socket = io('ws://' + server);
+
+        socket.on('connect', function(data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            socket.emit('firstload', 0);
+            CommandHistory.log('Server connected', CommandHistory.WARNING);
+        });
         
         socket.on('disconnect', function() {
             CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.WARNING);
             console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
             machineConnected = false;
-        });
-        
-        socket.emit('firstload');
-
-        socket.on('open', function(data) {
-            serverConnected = true;
-            // Web Socket is connected
-            //console.log('open ' + data);
-            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.WARNING); //INFO
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
         });
 
-        socket.on('config', function (data) {
+//        socket.on('open', function(data) {
+//            serverConnected = true;
+//            $('#connectS').addClass('disabled');
+//            $('#disconnectS').removeClass('disabled');
+//            // Web Socket is connected
+//            //console.log('open ' + data);
+//            socket.emit('getInterfaces');
+//            socket.emit('getPorts');
+//            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.WARNING); //INFO
+//        });
+
+        socket.on('serverConfig', function (data) {
             serverConnected = true;
             //CommandHistory.log('config: ' + data, CommandHistory.INFO);
-            console.log('config: ' + data);
+            console.log('serverConfig: ' + data);
         });
-
-        socket.on('activePorts', function (data) {
+        
+        socket.on('interfaces', function(data) {
             serverConnected = true;
-            //CommandHistory.log('activePorts: ' + data);
-            console.log('activePorts: ' + data);
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                let interfaces = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    interfaces.push(data[i]);
+                }
+                that.setState({interfaces: interfaces});
+                console.log('interfaces: ' + interfaces);
+                //CommandHistory.log('interfaces: ' + interfaces);
+            } else {
+                CommandHistory.log('No supported interfaces found on server!', CommandHistory.DANGER);
+            }
         });
 
         socket.on('ports', function (data) {
             serverConnected = true;
-            let ports = new Array();
-            for (var i = 0; i < data.length; i++) {
-                ports.push(data[i].comName);
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                let ports = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    ports.push(data[i].comName);
+                }
+                that.setState({ports: ports});
+                console.log('ports: ' + ports);
+                //CommandHistory.log('ports: ' + ports);
+            } else {
+                CommandHistory.log('No serial ports found on server!', CommandHistory.DANGER);
             }
-            that.setState({ports: ports});
-            console.log('ports: ' + ports);
-            //CommandHistory.log('ports: ' + ports);
-            $('#connect').removeClass('disabled');
+        });
+
+        socket.on('activeInterface', function (data) {
+            serverConnected = true;
+            if (data.length > 0) {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                //set the actual interface
+            }
+            console.log('activeInterface: ' + data);
+        });
+
+        socket.on('activePort', function (data) {
+            serverConnected = true;
+            if (data.length > 0) {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                //set the actual port
+            }
+            console.log('activePorts: ' + data);
+        });
+
+        socket.on('activeBaudRate', function (data) {
+            serverConnected = true;
+            if (data.length > 0) {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                //set the actual baudrate
+            }
+            console.log('activeBaudrate: ' + data);
+        });
+
+        socket.on('activeIP', function (data) {
+            serverConnected = true;
+            if (data.length > 0) {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                //set the actual machine IP
+            }
+            console.log('activeIP: ' + data);
         });
 
         socket.on('connectStatus', function (data) {
-            CommandHistory.log('connectStatus: ' + data);
             console.log('connectStatus: ' + data);
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.indexOf('opened') >= 0) {
                 machineConnected = true;
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                CommandHistory.log('Machine connectd');
             }
             if (data.indexOf('Connect') >= 0) {
                 machineConnected = false;
+                $('#connect').removeClass('disabled');
+                $('#disconnect').addClass('disabled');
+                CommandHistory.log('Machine disconnected');
             }
         });
 
@@ -112,36 +192,15 @@ class Com extends React.Component {
             if (data.indexOf('<') === 0) {
                 //CommandHistory.log('statusReport: ' + data);
                 machineConnected = true;
-                // Extract Pos
-                var startPos = data.search(/wpos:/i) + 5;
-                var pos;
-                if (startPos > 5) {
-                    pos = data.replace('>', '').substr(startPos).split(/,|\|/, 3);
-                } else {
-                    startPos = data.search(/mpos:/i) + 5;
-                    if (startPos > 5) {
-                        pos = data.replace('>', '').substr(startPos).split(/,|\|/, 3);
-                    }
-                }
-                if (Array.isArray(pos)) {
-                    var xpos = parseFloat(pos[0]).toFixed(2);
-                    var ypos = parseFloat(pos[1]).toFixed(2);
-                    var zpos = parseFloat(pos[2]).toFixed(2);
-
-                    $('#mX').html(xpos);
-                    $('#mY').html(ypos);
-                    $('#mZ').html(zpos);
-                    dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
-                }
                 updateStatus(data);
             } else if (data.indexOf('{\"sr\"') === 0) {
                 machineConnected = true;
                 //updateStatusTinyG(data);
             } else if (data === 'ok') {
                 machineConnected = true;
-                //printLog(data, '#cccccc', "usb");
+                //CommandHistory.log(data, '#cccccc', "usb");
             } else {
-                //printLog(data, msgcolor, "usb");
+                //CommandHistory.log(data, msgcolor, "usb");
             }
             if (data.indexOf('LPC176')) { //LPC1768 or LPC1769 should be Smoothie
                 machineConnected = true;
@@ -160,35 +219,63 @@ class Com extends React.Component {
             }
         });
 
-        socket.on('wpos', function (wpos) {
+        socket.on('wPos', function (wpos) {
             serverConnected = true;
             machineConnected = true;
             var pos = wpos.split(',');
-            var xpos = parseFloat(pos[0]).toFixed(2);
-            var ypos = parseFloat(pos[1]).toFixed(2);
-            var zpos = parseFloat(pos[2]).toFixed(2);
-            //CommandHistory.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
-            console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
-            $('#mX').html(xpos);
-            $('#mY').html(ypos);
-            $('#mZ').html(zpos);
-            dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+            var posChanged = false;
+            if (xpos !== parseFloat(pos[0]).toFixed(4)) {
+                xpos = parseFloat(pos[0]).toFixed(4);
+                posChanged = true;
+            }
+            if (ypos !== parseFloat(pos[1]).toFixed(4)) {
+                ypos = parseFloat(pos[1]).toFixed(4);
+                posChanged = true;
+            }
+            if (zpos !== parseFloat(pos[2]).toFixed(4)) {
+                zpos = parseFloat(pos[2]).toFixed(4);
+                posChanged = true;
+            }
+            if (posChanged) {
+                //CommandHistory.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                $('#mX').html(xpos);
+                $('#mY').html(ypos);
+                $('#mZ').html(zpos);
+                dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+            }
         });
 
-        // smoothie feed override report (from server)
+        // feed override report (from server)
         socket.on('feedOverride', function (data) {
             serverConnected = true;
             //CommandHistory.log('feedOverride: ' + data);
-            //console.log('feedOverride ' + data);
-            //$('#oF').html(data.toString() + '<span class="drounitlabel"> %</span>');
+            console.log('feedOverride ' + data);
+            $('#oF').html(data.toString() + '<span class="drounitlabel"> %</span>');
         });
 
-        // smoothie spindle override report (from server)
+        // spindle override report (from server)
         socket.on('spindleOverride', function (data) {
             serverConnected = true;
             //CommandHistory.log('spindleOverride: ' + data);
-            //console.log('spindleOverride ' + data);
-            //$('#oS').html(data.toString() + '<span class="drounitlabel"> %</span>');
+            console.log('spindleOverride ' + data);
+            $('#oS').html(data.toString() + '<span class="drounitlabel"> %</span>');
+        });
+
+        // real feed report (from server)
+        socket.on('realFeed', function (data) {
+            serverConnected = true;
+            //CommandHistory.log('realFeed: ' + data);
+            console.log('realFeed ' + data);
+            //$('#mF').html(data);
+        });
+
+        // real spindle report (from server)
+        socket.on('realSpindle', function (data) {
+            serverConnected = true;
+            //CommandHistory.log('realSpindle: ' + data);
+            console.log('realSpindle ' + data);
+            //$('#mS').html(data);
         });
 
         // laserTest state
@@ -196,7 +283,7 @@ class Com extends React.Component {
             serverConnected = true;
             CommandHistory.log('laserTest: ' + data);
             console.log('laserTest ' + data);
-            if (data >= 1){
+            if (data > 0){
                 laserTestOn = true;
                 $("#lT").addClass('btn-highlight');
             } else if (data === 0) {
@@ -213,6 +300,9 @@ class Com extends React.Component {
 
         socket.on('qCount', function (data) {
             serverConnected = true;
+            $('#connect').addClass('disabled');
+            $('#disconnect').removeClass('disabled');
+            console.log('qCount ' + data);
             data = parseInt(data);
             $('#queueCnt').html('Queued: ' + data);
             if (data === 0) {
@@ -227,12 +317,12 @@ class Com extends React.Component {
                         var jobFinishTime = new Date(Date.now());
                         var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
                         var elapsedTime = Math.round(elapsedTimeMS / 1000);
-                        console.log("Job started at " + jobStartTime.toString());
-                        console.log("Job finished at " + jobFinishTime.toString());
-                        console.log("Elapsed time: " + elapsedTime + " seconds.");
+                        CommandHistory.log("Job started at " + jobStartTime.toString());
+                        CommandHistory.log("Job finished at " + jobFinishTime.toString());
+                        CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.");
                         jobStartTime = -1;
                         var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
-                        console.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
+                        CommandHistory.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
                     }
                 }
             }
@@ -240,8 +330,12 @@ class Com extends React.Component {
 
         socket.on('close', function() { 
             serverConnected = false;
-            CommandHistory.log('Server connection closed');
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
             machineConnected = false;
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
+            CommandHistory.log('Server connection closed', CommandHistory.DANGER);
             // websocket is closed.
             //console.log('Server connection closed'); 
         });
@@ -290,13 +384,13 @@ class Com extends React.Component {
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
                         <TextField {...{ object: settings, field: 'commServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
-                            <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
-                            <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
                     <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="2" defaultExpanded={true}>
-                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: ['USB', 'Telnet', 'ESP8266'], defaultValue: 'USB', description: 'Machine Connection', selectProps: { clearable: false } }} />
+                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.interfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
                                 <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.ports, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
@@ -309,8 +403,8 @@ class Com extends React.Component {
                             </div>
                         </Collapse>
                         <ButtonGroup>
-                            <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
-                            <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
@@ -393,33 +487,33 @@ function updateStatus(data) {
     }
     $('#machineStatus').html(state);
 
-    // Extract override values (for Grbl > v1.1 only!)
-    var startOv = data.search(/ov:/i) + 3;
-    if (startOv > 3) {
-        var ov = data.replace('>', '').substr(startOv).split(/,|\|/, 3);
-        //printLog("Overrides: " + ov[0] + ',' + ov[1] + ',' + ov[2],  msgcolor, "USB");
-        if (Array.isArray(ov)) {
-            $('#oF').html(ov[0].trim() + '<span class="drounitlabel"> %</span>');
-            //$('#oR').html(ov[1].trim() + '<span class="drounitlabel"> %</span>');
-            $('#oS').html(ov[2].trim() + '<span class="drounitlabel"> %</span>');
-        }
-    }
-
-    // Extract realtime Feedrate (for Grbl > v1.1 only!)
-    var startFS = data.search(/FS:/i) + 3;
-    if (startFS > 3) {
-        var fs = data.replace('>', '').substr(startFS).split(/,|\|/, 2);
-        if (Array.isArray(fs)) {
-            //$('#mF').html(fs[0].trim());
-            //$('#mS').html(fs[1].trim());
-            if (laserTestOn === true) {
-                if (fs[1].trim() === 0) {
-                    laserTestOn = false;
-                    $('#lT').removeClass('btn-highlight');
-                }
-            }
-        }
-    }
+//    // Extract override values (for Grbl > v1.1 only!)
+//    var startOv = data.search(/ov:/i) + 3;
+//    if (startOv > 3) {
+//        var ov = data.replace('>', '').substr(startOv).split(/,|\|/, 3);
+//        //CommandHistory.log("Overrides: " + ov[0] + ',' + ov[1] + ',' + ov[2],  msgcolor, "USB");
+//        if (Array.isArray(ov)) {
+//            $('#oF').html(ov[0].trim() + '<span class="drounitlabel"> %</span>');
+//            //$('#oR').html(ov[1].trim() + '<span class="drounitlabel"> %</span>');
+//            $('#oS').html(ov[2].trim() + '<span class="drounitlabel"> %</span>');
+//        }
+//    }
+//
+//    // Extract realtime Feedrate (for Grbl > v1.1 only!)
+//    var startFS = data.search(/FS:/i) + 3;
+//    if (startFS > 3) {
+//        var fs = data.replace('>', '').substr(startFS).split(/,|\|/, 2);
+//        if (Array.isArray(fs)) {
+//            //$('#mF').html(fs[0].trim());
+//            //$('#mS').html(fs[1].trim());
+//            if (laserTestOn === true) {
+//                if (fs[1].trim() === 0) {
+//                    laserTestOn = false;
+//                    $('#lT').removeClass('btn-highlight');
+//                }
+//            }
+//        }
+//    }
 }
 
 
@@ -442,7 +536,7 @@ export function runJob(job) {
     console.log('runJob(' + job.lenght + ')');
     if (serverConnected) {
         if (machineConnected){
-            if (job) {
+            if (job.length > 0) {
                 CommandHistory.log('runJob(' + job.lenght + ')', CommandHistory.DANGER);
                 socket.emit('runJob', job);
             } else {
@@ -609,7 +703,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, ports: state.ports, documents: state.documents, gcode: state.gcode })
+    state => ({ settings: state.settings, interfaces: state.interfaces, ports: state.ports, documents: state.documents, gcode: state.gcode })
 )(Com);
 
 export default Com
