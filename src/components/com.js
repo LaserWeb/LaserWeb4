@@ -57,7 +57,7 @@ class Com extends React.Component {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, gcode: state.gcode })
+    state => ({ settings: state.settings, gcode: state.gcode.content })
 )(Com);
 
 export default Com

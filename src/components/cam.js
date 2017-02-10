@@ -16,11 +16,12 @@
 import Parser from 'lw.svg-parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
-import { ButtonToolbar, ButtonGroup } from 'react-bootstrap'
+import ReactDOM from 'react-dom'
+import { ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
-import { setGcode } from '../actions/gcode';
+import { setGcode, generatingGcode } from '../actions/gcode';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
 import { GetBounds, withGetBounds } from './get-bounds.js';
@@ -40,14 +41,33 @@ function NoDocumentsError(props) {
         return <span />;
 }
 
+function GcodeProgress({gcoding}){
+    return <ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{marginBottom: "0px"}}/>
+}
+
+GcodeProgress = connect((state)=>{return {gcoding: state.gcode.gcoding}})(GcodeProgress)
+
 class Cam extends React.Component {
+
+ 
     componentWillMount() {
-        this.generate = e => {
-            let {settings, documents, operations} = this.props;
-            // TODO: show errors
-            let gcode = getGcode(settings, documents, operations, this.props.documentCacheHolder, msg => console.log(msg));
-            this.props.dispatch(setGcode(gcode));
-        }
+        
+            window.generateGcode = e => {
+                let that=this
+                let {settings, documents, operations} = that.props;
+                
+                getGcode(settings, documents, operations, that.props.documentCacheHolder, 
+                    msg => console.log(msg), 
+                    (gcode) => {
+                        that.props.dispatch(generatingGcode(false))
+                        that.props.dispatch(setGcode(gcode));
+                    },
+                    (percent) => {
+                        that.props.dispatch(generatingGcode(true,percent))
+                    }
+                );
+
+            }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -56,7 +76,10 @@ class Cam extends React.Component {
             nextProps.operations !== this.props.operations ||
             nextProps.currentOperation !== this.props.currentOperation ||
             nextProps.bounds !== this.props.bounds ||
-            nextProps.gcode !== this.props.gcode); // Needed for saveGcode() to work
+            nextProps.gcode !== this.props.gcode ||    // Needed for saveGcode() to work
+            nextProps.gcoding.percent !== this.props.gcoding.percent ||
+            nextProps.gcoding.enable !== this.props.gcoding.enable
+        ); 
     }
 
     render() {
@@ -97,32 +120,18 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <div className="panel panel-success" style={{ marginBottom: 3 }}>
-                    <div className="panel-heading" style={{ padding: 2 }}>
-                        <table style={{ width: 100 + '%' }}>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <label>GCODE</label>
-                                    </td>
-                                    <td>
-                                        <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
-                                            <ButtonGroup>
-                                                <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid} onClick={this.generate}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
-                                                <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                                                <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
-                                            </ButtonGroup>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colSpan='2'>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <Alert bsStyle="success" style={{padding: "4px"}}>
+                    <table style={{ width: 100 + '%' }}>
+                        <tbody><tr>
+                            <th>GCODE</th>
+                            <td style={{width:"80%", textAlign:"right"}}>{!this.props.gcoding.enable ? ( <ButtonGroup>
+                        <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={window.generateGcode}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                        <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                        <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
+                    </ButtonGroup>):<GcodeProgress/>}</td>
+                        </tr></tbody>
+                    </table>
+                </Alert>
                 <OperationDiagram {...{ operations, currentOperation }} />
                 <Operations style={{ flexGrow: 2, display: "flex", flexDirection: "column" }} />
             </div>);
@@ -131,8 +140,8 @@ class Cam extends React.Component {
 
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode,
-        saveGcode: () => sendAsFile('gcode.gcode', state.gcode),
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding,
+        saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
     }),
     dispatch => ({
         dispatch,
