@@ -538,6 +538,9 @@ export function runJob(job) {
         if (machineConnected){
             if (job.length > 0) {
                 CommandHistory.log('runJob(' + job.lenght + ')', CommandHistory.DANGER);
+                playing = true;
+                $('#playicon').removeClass('fa-play');
+                $('#playicon').addClass('fa-pause');
                 socket.emit('runJob', job);
             } else {
                 CommandHistory.log('Job empty!', CommandHistory.DANGER);
@@ -550,15 +553,14 @@ export function runJob(job) {
     }
 }
 
-export function pauseJob(gcode) {
-    //console.log('pauseJob', gcode);
+export function pauseJob() {
+    console.log('pauseJob');
     if (serverConnected) {
         if (machineConnected){
-            if (gcode) {
-                socket.emit('pause', gcode);
-            } else {
-                socket.emit('pause', 0);
-            }
+            paused = true;
+            $('#playicon').removeClass('fa-pause');
+            $('#playicon').addClass('fa-play');
+            socket.emit('pause');
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }
@@ -567,15 +569,14 @@ export function pauseJob(gcode) {
     }
 }
 
-export function resumeJob(gcode = null) {
-    //console.log('resumeJpb', gcode);
+export function resumeJob() {
+    console.log('resumeJob');
     if (serverConnected) {
         if (machineConnected){
-            if (gcode) {
-                socket.emit('resume', gcode);
-            } else {
-                socket.emit('resume', 0);
-            }
+            paused = false;
+            $('#playicon').removeClass('fa-play');
+            $('#playicon').addClass('fa-pause');
+            socket.emit('resume');
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }
@@ -589,6 +590,10 @@ export function abortJob() {
     if (serverConnected) {
         if (machineConnected){
             CommandHistory.log('Abort job', CommandHistory.DANGER);
+            playing = false;
+            paused = false;
+            $('#playicon').removeClass('fa-pause');
+            $('#playicon').addClass('fa-play');
             socket.emit('stop');
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);

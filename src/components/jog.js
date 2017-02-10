@@ -21,6 +21,8 @@ import Icon from './font-awesome'
 
 var ovStep = 1;
 var ovLoop;
+var playing = false;
+var paused = false;
 
 /**
  * Jog component.
@@ -47,25 +49,40 @@ class Jog extends React.Component {
     }
 
     runJob() {
-        let cmd = this.props.gcode;
-        console.log('runJob(' + cmd.length + ')');
-        runJob(cmd);
+        if (!playing) {
+            let cmd = this.props.gcode;
+            console.log('runJob(' + cmd.length + ')');
+            playing = true;
+            runJob(cmd);
+        } else {
+            if (!paused) {
+                console.log('pauseJob');
+                paused = true;
+                pauseJob();
+            } else {
+                console.log('resumeJob');
+                paused = false;
+                resumeJob();
+            }
+        }
     }
 
     pauseJob() {
         console.log('pauseJob');
         let cmd = this.props.settings.gcodeToolOff;
-        pauseJob(cmd);
+        pauseJob();
     }
 
     resumeJob() {
         console.log('resumeJob');
         let cmd = this.props.settings.gcodeToolOn;
-        resumeJob(cmd);
+        resumeJob();
     }
 
     abortJob() {
         console.log('abortJob');
+        paused = false;
+        playing = false;
         abortJob();
     }
 
