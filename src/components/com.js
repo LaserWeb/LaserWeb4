@@ -29,8 +29,11 @@ class Com extends React.Component {
     }
 
     componentDidMount() {
+        $('#disconnectS').addClass('disabled');
+        $('#disconnect').addClass('disabled');
         if (!socket && !serverConnected) {
             this.handleConnectServer();
+            socket.emit('firstload', 1);
         }
     }
 
@@ -46,13 +49,17 @@ class Com extends React.Component {
             CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.WARNING);
             console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
             machineConnected = false;
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
         });
-        
-        socket.emit('firstload');
 
         socket.on('open', function(data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             // Web Socket is connected
             //console.log('open ' + data);
             CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.WARNING); //INFO
@@ -64,14 +71,20 @@ class Com extends React.Component {
             console.log('config: ' + data);
         });
 
-        socket.on('activePorts', function (data) {
+        socket.on('activePort', function (data) {
             serverConnected = true;
+            if (data.length > 0) {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+            }
             //CommandHistory.log('activePorts: ' + data);
             console.log('activePorts: ' + data);
         });
 
         socket.on('ports', function (data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
                 let ports = new Array();
                 for (var i = 0; i < data.length; i++) {
@@ -80,21 +93,27 @@ class Com extends React.Component {
                 that.setState({ports: ports});
                 console.log('ports: ' + ports);
                 //CommandHistory.log('ports: ' + ports);
-                $('#connect').removeClass('disabled');
             } else {
                 CommandHistory.log('No serial ports found on server!', CommandHistory.DANGER);
             }
         });
 
         socket.on('connectStatus', function (data) {
-            CommandHistory.log('connectStatus: ' + data);
             console.log('connectStatus: ' + data);
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.indexOf('opened') >= 0) {
                 machineConnected = true;
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                CommandHistory.log('Machine connectd');
             }
             if (data.indexOf('Connect') >= 0) {
                 machineConnected = false;
+                $('#connect').removeClass('disabled');
+                $('#disconnect').addClass('disabled');
+                CommandHistory.log('Machine disconnected');
             }
         });
 
@@ -217,6 +236,8 @@ class Com extends React.Component {
 
         socket.on('qCount', function (data) {
             serverConnected = true;
+            $('#connect').addClass('disabled');
+            $('#disconnect').removeClass('disabled');
             console.log('qCount ' + data);
             data = parseInt(data);
             $('#queueCnt').html('Queued: ' + data);
@@ -248,8 +269,12 @@ class Com extends React.Component {
 
         socket.on('close', function() { 
             serverConnected = false;
-            CommandHistory.log('Server connection closed', CommandHistory.DANGER);
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
             machineConnected = false;
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
+            CommandHistory.log('Server connection closed', CommandHistory.DANGER);
             // websocket is closed.
             //console.log('Server connection closed'); 
         });
@@ -298,8 +323,8 @@ class Com extends React.Component {
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
                         <TextField {...{ object: settings, field: 'commServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
-                            <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
-                            <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
@@ -317,8 +342,8 @@ class Com extends React.Component {
                             </div>
                         </Collapse>
                         <ButtonGroup>
-                            <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
-                            <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
