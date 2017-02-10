@@ -100,9 +100,15 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         }
     } // opIndex
-    progress(true)
+
+    QE.total= QE.length
+    QE.chunk= 100 / QE.total
+    
+    progress(0)
     QE.on('success', (result, job) => {
-        progress(parseInt(gcode.length/(QE.length + gcode.length)*100));
+        let jobIndex = gcode.length;
+        let p=parseInt(jobIndex * QE.chunk)
+        progress(p);
     })
 
     QE.start((err) => {
@@ -129,11 +135,18 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
     if (!ok)
         done(false);
 
-    for (let index = 0; index<docsWithImages.length; index++) {
-        
+    
+    const percentProcessing = (ev) => {
+            let jobIndex=QE.total - QE.length
+            let p=parseInt((jobIndex * QE.chunk) + (ev.percent*QE.chunk/100))
+            progress(p);
+    }
+
+    for (let index = 0; index < docsWithImages.length; index++) {
+
         QE.push((cb) => {
-            
-            const doc=docsWithImages[index]
+
+            const doc = docsWithImages[index]
             const doneProcessing = (ev) => {
                 let g = '';
                 let raster = ev.gcode.join('\r\n');
@@ -167,10 +180,6 @@ function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAl
                 done(g, cb)
             }
 
-            const percentProcessing = (ev) => {
-                //let p = parseInt((index/docsWithImages.length*100) + ev.percent/docsWithImages.length);
-                console.log(`Rasterizing ${ev.doc.name} ...${ev.percent}%`)
-            }
 
             let r2g = new RasterToGcode({
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
