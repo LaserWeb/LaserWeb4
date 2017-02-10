@@ -117,9 +117,9 @@ class Com extends React.Component {
 
         socket.on('activeInterface', function (data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
-                $('#connect').addClass('disabled');
-                $('#disconnect').removeClass('disabled');
                 //set the actual interface
             }
             console.log('activeInterface: ' + data);
@@ -127,9 +127,9 @@ class Com extends React.Component {
 
         socket.on('activePort', function (data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
-                $('#connect').addClass('disabled');
-                $('#disconnect').removeClass('disabled');
                 //set the actual port
             }
             console.log('activePorts: ' + data);
@@ -137,9 +137,9 @@ class Com extends React.Component {
 
         socket.on('activeBaudRate', function (data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
-                $('#connect').addClass('disabled');
-                $('#disconnect').removeClass('disabled');
                 //set the actual baudrate
             }
             console.log('activeBaudrate: ' + data);
@@ -147,9 +147,9 @@ class Com extends React.Component {
 
         socket.on('activeIP', function (data) {
             serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
-                $('#connect').addClass('disabled');
-                $('#disconnect').removeClass('disabled');
                 //set the actual machine IP
             }
             console.log('activeIP: ' + data);

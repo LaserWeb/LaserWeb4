@@ -425,6 +425,10 @@ button:hover,
     border-radius: 4px;
 }
 
+.btn-highlight {
+    border-color: red !important;
+}
+
 .fa-stack{
     width: 1.28571em;
 }
