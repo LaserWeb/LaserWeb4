@@ -26,6 +26,7 @@ import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 import { selectedDocuments } from './document'
 
 import Toggle from 'react-toggle';
+import { isObject } from '../lib/helpers';
 
 import { MaterialPickerButton } from './material-database'
 
@@ -76,6 +77,40 @@ function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...r
 
 function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest}) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
+}
+
+
+class InputRange extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.handleChange.bind(this)
+        this.state = this.props.value;
+    }
+
+    handleChange(key, v) {
+        let state = Object.assign(this.state, { [key]: parseFloat(v) })
+            state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
+            state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
+            
+
+        this.setState(state)
+        this.props.onChangeValue(state);
+    }
+
+    render() {
+        let { min, max } = this.state;
+        return <div>
+            <input type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} />/
+            <input type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} />
+        </div>
+    }
+}
+
+function RangeInput(minValue, maxValue) {
+    return ({op, field, onChangeValue, ...rest}) => {
+        return <InputRange maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
+    }
 }
 
 function ColorBox(v) {
@@ -194,7 +229,7 @@ class Doc extends React.Component {
         return (
             <tr>
                 <td style={{ width: '100%' }}>
-                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) } }>{documents.find(d => d.id === id).name}</a>
+                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) }}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
                     <button className="btn btn-default btn-xs" onClick={this.remove}>
@@ -245,8 +280,14 @@ const checkToolAngle = {
 
 function checkRange(min, max) {
     return {
-        check: v => v >= min && v <= max,
-        error: 'Must be in range [' + min + ', ' + max + ']',
+        check: (v) => {
+            if (isFinite(v)) {
+                return v >= min && v <= max;
+            } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
+                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max) 
+            }
+        },
+        error: 'Must be in range [' + min + ' , ' + max + ']',
     }
 }
 
@@ -286,6 +327,7 @@ export const fields = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
+    laserPowerRange: { name: 'laserPowerRange', label: 'Laser Power Range', units: '%', input: RangeInput(0, 100), ...checkRange(0, 100) },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
     lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
@@ -309,7 +351,7 @@ export const fields = {
     aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 
-    useBlower: {name: 'useBlower', label:'Use Air Assist', units:'', input: ToggleInput, ...ifUseBlower},
+    useBlower: { name: 'useBlower', label: 'Use Air Assist', units: '', input: ToggleInput, ...ifUseBlower },
 
     smoothing: { name: 'smoothing', label: 'Smoothing', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Smoothing the input image ?
     brightness: { name: 'brightness', label: 'Brightness', units: '', input: NumberInput, ...checkRange(-255, 255) },   // lw.raster-to-gcode: Image brightness [-255 to +255]
@@ -334,7 +376,7 @@ export const types = {
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPower', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'useBlower'] },
+    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'useBlower'] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
@@ -579,8 +621,8 @@ class OperationToolbar extends React.Component {
 
     render() {
         return <ButtonToolbar>
-            <Button onClick={(e) => { this.handleAddSingle() } } bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
-            <Button onClick={(e) => { this.handleAddMultiple() } } bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
         </ButtonToolbar>
     }
 }

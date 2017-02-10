@@ -113,10 +113,13 @@ export const settings = objectNoId('settings', {
     toolCncMode:false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
+
     toolVideoDevice: null,
-    toolVideoPerspective: null,
+    toolVideoPerspective: {enabled:false},
     toolVideoLens: {a:1,b:1,F:1,scale:1},
     toolVideoFov: {x:1,y:1},
+    toolVideoResolution: "720p(HD)",
+
     toolWebcamUrl:"",
     toolFeedUnits: 'mm/min',
     toolTestSValue: 1, 

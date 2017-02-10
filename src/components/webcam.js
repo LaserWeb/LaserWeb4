@@ -5,10 +5,11 @@ import { connect } from 'react-redux';
 import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
-import { FormGroup, InputGroup, ControlLabel } from 'react-bootstrap'
+import Toggle from 'react-toggle'
+import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 
 import getUserMedia from 'getusermedia';
-import { drawCommand, barrelDistort, perspectiveDistort } from '../draw-commands/webcam'
+import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
 import '../styles/webcam.css';
 
 
@@ -19,14 +20,34 @@ export class Webcam extends React.Component {
     }
 
     componentDidMount() {
+        this.initVideo();
+    }
 
-        this.video = ReactDOM.findDOMNode(this).querySelector('#stream video');
-        this.canvas = ReactDOM.findDOMNode(this).querySelector('#stream canvas');
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.resolution != this.props.resolution) {
+            this._stopVideo(this.stream);
+            this.initVideo();
+        }
+    }
+
+    initVideo() {
+
+        let resolution = VIDEO_RESOLUTIONS[this.props.resolution];
+        let videoratio = resolution.ratio.split(":"); videoratio = videoratio[0] / videoratio[1];
+        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
+        this.video = document.createElement('video'); streamNode.append(this.video);
+        this.video.width = this.props.width;
+        this.video.height = this.props.width / videoratio;
+        this.video.style = "display:none"
+        this.canvas = document.createElement('canvas'); streamNode.append(this.canvas);
+
+        this.canvas.width = this.video.width;
+        this.canvas.height = this.video.height;
 
         // resolution adjustment
         const ratio = (value, index) => {
             let wh = !(index % 2) ? this.props.width : this.props.height;
-            let rwh = !(index % 2) ? this.props.resolution.width : this.props.resolution.height;
+            let rwh = !(index % 2) ? resolution.width : resolution.height;
             return parseInt((value / wh) * rwh);
         }
 
@@ -42,115 +63,97 @@ export class Webcam extends React.Component {
 
         const capture = (src) => {
             const regl = require('regl')(this.canvas);
-            const pipe = drawCommand(regl)
+            const pipe = pipeImageCommand(regl)
+
+            const barrelDistort = barrelDistortCommand(regl)
+            const perspectiveDistort = perspectiveDistortCommand(regl)
+
             const fbopts = {
-                width: this.props.resolution.width, height: this.props.resolution.height
+                width: resolution.width, height: resolution.height
             }
 
+            const video = regl.texture();
+            const fbo = regl.framebuffer(fbopts);
+            const fbo2 = regl.framebuffer(fbopts);
 
-
-            this.loop = regl.frame(() => {
+            const animate = () => {
                 try {
-                    this.resources = {
-                        video: regl.texture({ data: src, min: 'linear', mag: 'linear' }),
-                        fbo: regl.framebuffer(fbopts),
-                        fbo2: regl.framebuffer(fbopts),
-                    }
+                    video({ data: src, min: 'linear', mag: 'linear' })
+                    fbo(fbopts)
+                    fbo2(fbopts)
 
-                    pipe({ src: this.resources.video, dest: this.resources.fbo })
+                    pipe({ src: video, dest: fbo })
 
                     if (this.props.lens || this.props.fov) {
-                        barrelDistort(regl, this.resources.fbo, this.resources.fbo2, this.props.lens, this.props.fov)
+                        let lens = (this.props.lens) ? [this.props.lens.a, this.props.lens.b, this.props.lens.F, this.props.lens.scale] : [1.0, 1.0, 1.0, 1.5]
+                        let fov = this.props.fov ? this.props.fov : [1.0, 1.0];
+                        barrelDistort({ src: fbo, dest: fbo2, lens, fov })
                     } else {
-                        pipe({ src: this.resources.fbo, dest: this.resources.fbo2 })
+                        pipe({ src: fbo, dest: fbo2 })
                     }
 
                     if (this.props.perspective) {
                         let {before, after} = this.props.perspective;
-                        perspectiveDistort(regl, this.resources.fbo2, null, swap(before).map(ratio), swap(after).map(ratio))
+                        let matrix = computePerspectiveMatrix(video, swap(before).map(ratio), swap(after).map(ratio));
+
+                        perspectiveDistort({ src: fbo2, dest: null, size: [video.width, video.height], matrix })
                     } else {
-                        pipe({ src: this.resources.fbo2 })
+                        pipe({ src: fbo2, dest: null })
                     }
 
-                    this.resources.fbo.destroy(); this.resources.fbo = null
-                    this.resources.fbo2.destroy(); this.resources.fbo2 = null;
-                    this.resources.video.destroy(); this.resources.video = null;
+                    requestAnimationFrame(animate)
                 } catch (e) {
-                    this.loop.cancel(); this.loop = null;
-                    barrelDistort.COMMAND = null;
-                    perspectiveDistort.COMMAND = null;
+                    console.error(e)
                 }
-            })
+            }
+
+            animate();
 
         }
 
         let constraints = Object.assign({ video: true, audio: false }, this.props.constraints || {})
-        if (this.props.device)
-            constraints = Object.assign(constraints, { deviceId: { exact: this.props.device }, mandatory: { minWidth: this.props.resolution.width, minHeight: this.props.resolution.height } })
-
-
-
+        if (this.props.device) {
+            constraints = Object.assign(constraints, {
+                deviceId: { exact: this.props.device },
+                width: { exact: resolution.width },
+                height: { exact: resolution.height }
+            });
+        }
         getUserMedia(constraints, (err, stream) => {
             if (err) {
                 console.error(err);
             } else {
                 this.stream = stream;
                 this._startVideo(this.stream, capture)
-
             }
         })
     }
 
     _startVideo(stream, callback) {
         let that = this;
-        this.video.src = window.URL.createObjectURL(stream);
         this.video.addEventListener('loadeddata', (e) => {
             if (this.video.readyState === 4) {
                 callback.apply(that, [this.video])
             }
         }, false)
-
+        this.video.src = window.URL.createObjectURL(stream);
         this.video.play();
-        this.canvas.width = this.video.width;
-        this.canvas.height = this.video.height;
-
     };
 
     _stopVideo(stream) {
-        try {
-            if (this.loop) {
-                this.loop.cancel();
-                this.loop = null;
-            }
-            if (this.resources.video) {
-                this.resources.video.destroy()
-                this.resources.fbo = null
-            }
-            if (this.resources.fbo) {
-                this.resources.fbo.destroy()
-                this.resources.fbo = null
-            }
-            if (this.resources.fbo2) {
-                this.resources.fbo2.destroy()
-                this.resources.fbo2 = null
-            }
-
-            barrelDistort.COMMAND = null;
-            perspectiveDistort.COMMAND = null;
-
-        } catch (e) { }
-
-        if (this.video)
-            this.video.parentNode.removeChild(this.video);
+        if (stream) stream.getTracks().forEach((track) => { track.stop(); });
         window.URL.revokeObjectURL(stream);
+
+        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
+        streamNode.removeChild(this.video);
+        streamNode.removeChild(this.canvas);
+
+
     }
 
     render() {
-        return <div className="webcamViewport" style={{ width: this.props.width + "px", height: this.props.height + "px", overflow: "hidden" }}>
-            <div id="stream">
-                <video width={this.props.width} height={this.props.height} style={{ display: "none" }} />
-                <canvas />
-            </div>
+        return <div className="webcamViewport" style={{ maxWidth: "100%", height: "auto", overflow: "hidden" }}>
+            <div id="stream"></div>
         </div>
     }
 
@@ -159,7 +162,7 @@ export class Webcam extends React.Component {
 Webcam.defaultProps = {
     width: 320,
     height: 240,
-    resolution: { width: 1280, height: 720 },
+    resolution: "720p(HD)",
     lens: { a: 1, b: 1, F: 4, scale: 1 },
     fov: { x: 1.0, y: 1.0 }
 }
@@ -196,20 +199,20 @@ export class Coordinator extends React.Component {
 
         let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
         let dotSize = this.props.dotSize || 10;
-        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%"><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
+        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%" style={{ position: "absolute", left: 0, top: 0 }}><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
 
         return <div className="coordinator" style={{ width: this.props.width + "px", height: this.props.height + "px", position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
             {dots.map((fill, i) => {
                 return <Draggable onStop={(e, ui) => { this.handleStop(e, ui, i) }} onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
-                    <div className="symbol" style={{ cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
+                    <div className="symbol" style={{ position: "absolute", left: 0, top: 0, cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
                 </Draggable>
             })}
         </div >
     }
 }
 
-const getDefaultPerspective = (p, w=0, h=0) => {
-    return {
+const getDefaultPerspective = (p, w = 0, h = 0) => {
+    return Object.assign(p, {
         before: (p && p.before) ? p.before : [
             w * 0.2, h * 0.8,
             w * 0.8, h * 0.8,
@@ -222,18 +225,26 @@ const getDefaultPerspective = (p, w=0, h=0) => {
             w * 0.8, h * 0.2,
             w * 0.2, h * 0.2
         ],
-    }
+    })
+}
+
+const getSizeByVideoResolution = (height, resolution)=>{
+    if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
+    let ratio=VIDEO_RESOLUTIONS[resolution].ratio;
+    if (isNaN(ratio)){
+        let p=ratio.split(":")
+        ratio = p[0]/p[1];
+    }  
+    return {width: height*ratio, height}
 }
 
 export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let w = this.props.width;
-        let h = this.props.height;
-        let p = this.props.perspective;
-
-        this.state = getDefaultPerspective(p, w, h);
+        let p = this.props.perspective || {};
+        let { width,height } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
+        this.state = getDefaultPerspective(p, width,height);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
     }
@@ -251,28 +262,30 @@ export class PerspectiveWebcam extends React.Component {
         this.setState({ ...nextProps.perspective })
     }
 
-    componentDidMount()
-    {
+    componentDidMount() {
         this.handleStop();
     }
 
     render() {
 
-        let {before, after} = this.state;
+        let { before, after, enabled } = this.state;
+        let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
 
         return <div className="perspectiveWebcam">
             <div className="viewPort">
-                <Webcam width={this.props.width} height={this.props.height} perspective={{ before, after }} lens={this.props.lens} fov={this.props.fov} device={this.props.device} />
-                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                <Webcam width={width} height={height}
+                    perspective={enabled ? { before, after } : undefined}
+                    lens={this.props.lens} fov={this.props.fov} device={this.props.device} resolution={this.props.resolution} />
+                {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "before") }}
                     onStop={(position) => { this.handleStop() }}
                     position={this.state.before}
                     style={{ position: "absolute", top: "0px", left: "0px" }}
                     symbol={
-                        (props) => { return <svg height="100%" width="100%"><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
+                        (props) => { return <svg height="100%" width="100%" style={{ position: "absolute", left: 0, top: 0 }}><rect x="0" y="0" width="10" height="10" fill={props.fill} stroke="white" strokeWidth="1" /></svg> }
                     }
                 />) : undefined}
-                {this.props.showCoordinators ? (<Coordinator width={this.props.width} height={this.props.height}
+                {this.props.showCoordinators ? (<Coordinator width={width} height={height}
                     onChange={(position) => { this.handlePerspectiveChange(position, "after") }}
                     onStop={(position) => { this.handleStop() }}
                     position={this.state.after}
@@ -318,7 +331,95 @@ export class VideoDeviceField extends React.Component {
         </FormGroup>
     }
 
+}
 
+const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
+const VIDEO_RESOLUTIONS = {
+    "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
+    "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
+    "UXGA": { "width": 1600, "height": 1200, "ratio": "4:3" },
+    "720p(HD)": { "width": 1280, "height": 720, "ratio": "16:9" },
+    "SVGA": { "width": 800, "height": 600, "ratio": "4:3" },
+    "VGA": { "width": 640, "height": 480, "ratio": "4:3" },
+    "360p(nHD)": { "width": 640, "height": 360, "ratio": "16:9" },
+    "CIF": { "width": 352, "height": 288, "ratio": "4:3" },
+    "QVGA": { "width": 320, "height": 240, "ratio": "4:3" },
+    "QCIF": { "width": 176, "height": 144, "ratio": "4:3" },
+    "QQVGA": { "width": 160, "height": 120, "ratio": "4:3" }
+};
+
+
+const videoResolutionPromise = (deviceId, candidate) => {
+    const constraints = {
+        audio: false,
+        video: {
+            deviceId: deviceId ? { exact: deviceId } : undefined,
+            width: { exact: candidate.width },    //new syntax
+            height: { exact: candidate.height }   //new syntax
+        }
+    }
+
+    return new Promise(
+        (resolve) => {
+            getUserMedia(constraints, (err, stream) => {
+                if (!err) {
+                    stream.getTracks().forEach((track) => { track.stop(); });
+                    resolve(candidate)
+                }
+            });
+        }
+    )
+}
+
+export class VideoResolutionField extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            resolutions: [],
+            selected: this.props.object[this.props.field]
+        }
+        this.handleChange.bind(this)
+    }
+
+    getResolutions(deviceId) {
+        let videoPromises = Object.entries(VIDEO_RESOLUTIONS).map((entry) => { return videoResolutionPromise(deviceId, { label: entry[0], ...entry[1] }); });
+        videoPromises.forEach(
+            (promise) => promise.then((v) => {
+                let resx = new Set(this.state.resolutions); resx.add(v)
+                this.setState({ resolutions: [...resx] })
+            })
+        );
+    }
+
+    componentDidMount() {
+        if (this.props.deviceId)
+            this.getResolutions(this.props.deviceId)
+
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.deviceId && nextProps.deviceId !== this.props.deviceId)
+            this.getResolutions(nextProps.deviceId)
+
+    }
+
+    handleChange(v) {
+        this.setState({ selected: v })
+        this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+    }
+
+    render() {
+        let resolutions = this.state.resolutions.map((v) => { return { label: `${v.label} (${v.width} x ${v.height}) / ${v.ratio}`, value: v.label } })
+        return <FormGroup>
+            <ControlLabel>{this.props.description}</ControlLabel>
+            <Select options={resolutions} value={this.state.selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
+        </FormGroup>
+    }
+}
+
+
+VideoResolutionField.defaultProps = {
+    description: 'Video Resolution'
 }
 
 
@@ -327,11 +428,17 @@ export class VideoControls extends React.Component {
     constructor(props) {
         super(props)
         this.handleChange.bind(this)
-        this.handlePerspective.bind(this)
+        this.handlePerspectiveCoord.bind(this)
+        this.handlePerspectiveReset.bind(this)
+        this.handlePerspectiveToggle.bind(this)
+
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+
+
         this.state = {
             lens: this.props.lens,
             fov: this.props.fov,
-            perspective: getDefaultPerspective(this.props.perspective, this.props.videoWidth, this.props.videoHeight)
+            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective || {}, width,height ) },
         }
     }
 
@@ -344,43 +451,66 @@ export class VideoControls extends React.Component {
 
     }
 
-    handlePerspective(key, index, value) {
+    handlePerspectiveCoord(key, index, value) {
         let state = Object.assign({}, this.state);
-        let position = this.state.perspective[key].slice();
-        position[index] = parseFloat(value);
-        state.perspective[key] = position;
+        state.perspective[key][index] = parseFloat(value);
+        this.setState(state)
+        if (this.props.onChange)
+            this.props.onChange(state);
+    }
+
+    handlePerspectiveReset() {
+        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+
+        let state = Object.assign({}, this.state);
+            state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
+
+        this.setState(state)
+        if (this.props.onChange)
+            this.props.onChange(state);
+    }
+
+    handlePerspectiveToggle() {
+        let state = Object.assign({}, this.state);
+        state.perspective.enabled = !state.perspective.enabled
         this.setState(state)
         if (this.props.onChange)
             this.props.onChange(state);
     }
 
     componentWillReceiveProps(nextProps) {
+        let {width,height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: getDefaultPerspective(nextProps.perspective, nextProps.videoWidth, nextProps.videoHeight)
+            perspective: { enabled: false, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
         })
     }
 
     render() {
 
-        let {before, after} = this.state.perspective;
+        let {before, after, enabled} = this.state.perspective;
         return <div className="videoControls ">
             <table width="100%" className="table table-compact">
+                <caption>Perspective</caption>
                 <tbody>
+                    <tr>
+                        <th>Enable</th><td colSpan="2"><Toggle checked={enabled} onChange={e => this.handlePerspectiveToggle(e)} /></td><td colSpan="6"><Button bsStyle="warning" onClick={e => this.handlePerspectiveReset()}>Reset</Button></td>
+                    </tr>
                     <tr><th>Before</th>
                         {before.map((value, i) => {
-                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('before', i, e.target.value) }} step="any" /></td>
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('before', i, e.target.value) }} step="any" /></td>
                         })}
                     </tr>
                     <tr><th>After</th>
                         {after.map((value, i) => {
-                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspective('after', i, e.target.value) }} step="any" /></td>
+                            return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('after', i, e.target.value) }} step="any" /></td>
                         })}
                     </tr>
                 </tbody>
             </table>
             <table width="100%" className="table table-compact">
+                <caption>Lens</caption>
                 <tbody>
                     <tr>
                         <th>a</th>
@@ -409,12 +539,14 @@ export class VideoControls extends React.Component {
 
 }
 
-VideoControls.defaultProps={
-    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] }
+VideoControls.defaultProps = {
+    perspective: { before: [0, 0, 0, 0, 0, 0, 0, 0], after: [0, 0, 0, 0, 0, 0, 0, 0] },
+    resolution: '720p(HD)'
 }
 
 Webcam = connect()(Webcam);
 Coordinator = connect()(Coordinator);
 PerspectiveWebcam = connect(null, (dispatch => { return { dispatch } }))(PerspectiveWebcam);
 VideoDeviceField = connect(null, (dispatch => { return { dispatch } }))(VideoDeviceField);
+VideoResolutionField = connect(null, (dispatch => { return { dispatch } }))(VideoResolutionField);
 VideoControls = connect(null, (dispatch => { return { dispatch } }))(VideoControls);
