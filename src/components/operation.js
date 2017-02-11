@@ -202,7 +202,7 @@ class Field extends React.Component {
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
-            error = <Error operationsBounds={operationsBounds} message={field.error} />;
+            error = <Error operationsBounds={operationsBounds} message={(typeof field.error=='function') ? field.error(op[field.name], settings, op):  field.error} />;
         return (
             <GetBounds Type="tr">
                 <th>{field.label}</th>
