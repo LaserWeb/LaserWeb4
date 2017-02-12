@@ -116,6 +116,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 
+    return QE;
+
 } // getGcode
 
 function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE) {
