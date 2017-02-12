@@ -5,6 +5,7 @@
 // even though React doesn't support any pointer events yet.
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 
 // A mapping of pointer event props to event names.
@@ -92,7 +93,7 @@ const initNodeWithPE = (node, props) => {
     const listener = props[eventProp];
     if (listener) {
       hasPE = true;
-      node.addEventListener(pointerEventMap[eventProp], listener);
+      node.addEventListener(pointerEventMap[eventProp], e => {ReactDOM.unstable_batchedUpdates(() => listener(e))});
     }
   });
 
@@ -128,7 +129,7 @@ const updateNodeWithPE = (node, prevProps, nextProps) => {
 
     // Add/update with new event listener.
     if (listenerNew) {
-      node.addEventListener(pointerEventMap[eventProp], listenerNew);
+      node.addEventListener(pointerEventMap[eventProp], e => {ReactDOM.unstable_batchedUpdates(() => listenerNew(e))});
     }
   });
 
