@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button, Glyphicon } from 'react-bootstrap';
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
+import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
@@ -42,20 +43,20 @@ class Com extends React.Component {
         let {settings, dispatch} = this.props;
         let server = settings.commServerIP;
         CommandHistory.log('Connecting to Server ' + server, CommandHistory.WARNING);
-        console.log('Connecting to Server ' + server);
+        //console.log('Connecting to Server ' + server);
         socket = io('ws://' + server);
 
         socket.on('connect', function(data) {
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
-            socket.emit('firstload', 0);
+            socket.emit('firstload');
             CommandHistory.log('Server connected', CommandHistory.WARNING);
         });
         
         socket.on('disconnect', function() {
             CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.WARNING);
-            console.log('Disconnected from Server ' + settings.commServerIP);
+            //console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
             $('#connectS').removeClass('disabled');
             $('#disconnectS').addClass('disabled');
@@ -174,17 +175,31 @@ class Com extends React.Component {
             }
         });
 
-        socket.on('error', function (data) {
-            CommandHistory.log('error: ' + data);
-            console.log('error: ' + data);
-        });
-
         socket.on('runStatus', function (status) {
             //CommandHistory.log('runStatus: ' + status);
             console.log('runStatus: ' + status);
-            if (status === 'Alarm') {
-//                socket.emit('clearAlarm', 2);
+            if (status === 'running') {
+                playing = true;
+                paused = false;
+                //$('#playicon').removeClass('fa-play');
+                //$('#playicon').addClass('fa-pause');
+            } else if (status === 'paused') {
+                paused = true;
+                //$('#playicon').removeClass('fa-pause');
+                //$('#playicon').addClass('fa-play');
+            } else if (status === 'resumed') {
+                paused = false;
+                //$('#playicon').removeClass('fa-play');
+                //$('#playicon').addClass('fa-pause');
+            } else if (status === 'stopped') {
+                playing = false;
+                paused = false;
+                //$('#playicon').removeClass('fa-pause');
+                //$('#playicon').addClass('fa-play');
+            } else if (status === 'alarm') {
+                //socket.emit('clearAlarm', 2);
             }
+            runStatus(status);
         });
 
         socket.on('data', function (data) {
@@ -292,12 +307,6 @@ class Com extends React.Component {
             }
         });
 
-        socket.on('runningJob', function (data) {
-            serverConnected = true;
-            CommandHistory.log('runningJob: ' + data);
-            //console.log('runningJob ' + data);
-        });
-
         socket.on('qCount', function (data) {
             serverConnected = true;
             $('#connect').addClass('disabled');
@@ -339,6 +348,13 @@ class Com extends React.Component {
             // websocket is closed.
             //console.log('Server connection closed'); 
         });
+
+
+        socket.on('error', function (data) {
+            CommandHistory.log('Server error: ' + data);
+            //console.log('error: ' + data);
+        });
+
     }
     
     handleDisconnectServer() {
@@ -486,34 +502,6 @@ function updateStatus(data) {
         }
     }
     $('#machineStatus').html(state);
-
-//    // Extract override values (for Grbl > v1.1 only!)
-//    var startOv = data.search(/ov:/i) + 3;
-//    if (startOv > 3) {
-//        var ov = data.replace('>', '').substr(startOv).split(/,|\|/, 3);
-//        //CommandHistory.log("Overrides: " + ov[0] + ',' + ov[1] + ',' + ov[2],  msgcolor, "USB");
-//        if (Array.isArray(ov)) {
-//            $('#oF').html(ov[0].trim() + '<span class="drounitlabel"> %</span>');
-//            //$('#oR').html(ov[1].trim() + '<span class="drounitlabel"> %</span>');
-//            $('#oS').html(ov[2].trim() + '<span class="drounitlabel"> %</span>');
-//        }
-//    }
-//
-//    // Extract realtime Feedrate (for Grbl > v1.1 only!)
-//    var startFS = data.search(/FS:/i) + 3;
-//    if (startFS > 3) {
-//        var fs = data.replace('>', '').substr(startFS).split(/,|\|/, 2);
-//        if (Array.isArray(fs)) {
-//            //$('#mF').html(fs[0].trim());
-//            //$('#mS').html(fs[1].trim());
-//            if (laserTestOn === true) {
-//                if (fs[1].trim() === 0) {
-//                    laserTestOn = false;
-//                    $('#lT').removeClass('btn-highlight');
-//                }
-//            }
-//        }
-//    }
 }
 
 
@@ -606,8 +594,21 @@ export function abortJob() {
 export function setZero(axis) {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Zero ' + axis + ' axis', CommandHistory.DANGER);
-            socket.emit('zeroAxis', axis);
+            CommandHistory.log('Set ' + axis + ' zero', CommandHistory.DANGER);
+            socket.emit('setZero', axis);
+        } else {
+            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+        }
+    } else {
+        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+    }
+}
+
+export function gotoZero(axis) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.log('Goto ' + axis + ' zero', CommandHistory.DANGER);
+            socket.emit('gotoZero', axis);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }
