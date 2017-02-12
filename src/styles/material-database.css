@@ -14,51 +14,21 @@
 }
 
 
-/* reeact-bootstrap-table*/
-
-.clearfix {display: block; clear:both}
-
-
-.flexTHead {border-bottom: 1px solid #ccc}
-.flexTable .tableRow.collapsible {cursor: s-resize;}
-.flexTable .collapsible:hover {background: rgb(188, 232, 241)}
-.flexTable .tableRow.collapsible.opened {cursor: n-resize }
-.flexTable .tableRow label {width: 100%}
-
-.flexTable .flexTBody .column {align-items:none}
-.flexTable .flexTBody .column > div {width:100%; overflow:visible !important}
-.flexTable .flexTBody .column._actions {flex:none !important; text-align: right}
-.flexTable .flexTBody .column._actions div {line-height: 0}
-.flexTable .flexTBody .column input,
-.flexTable .flexTBody .column select,
-.flexTable .flexTBody .column textarea {width:100%}
-
-
-
-.materialOperations .flexTHead .column > div{font-size: 0.8em; text-transform: uppercase; white-space: normal !important}
-.materialList .column .has-error > * {border: 1px solid red}
-.materialList .column .has-error:empty {border:none}
-.materialList .column .has-error:empty:after {color: #faa; content:"not defined"; font-style:italic; font-size: 0.9em}
-
-.materialOperations .well {margin-top:1em}
-.materialList {max-height: 400px; overflow-y:auto; overflow-x: hidden}
-.materialList .form-group {margin-bottom: 0}
-.materialList .form-group.has-error input {border: 1px solid red}
-
-
 
 .materialPicker small {color: #666; flex-grow: 2; text-align: right}
 
+.details {margin-top: 2px; margin-left: 10px}
+.details .handler {display:flex; flex-direction: row; align-items: center; flex-grow:2}
+.details .handler > * {flex-grow:1}
+.details heading button {margin-left: 5px}
+.details heading {display:flex;margin:0}
+.details heading .summary { display:flex; flex-grow:1}
+.details heading .summary small {margin-left: 1em}
 
-.materialPicker .details {margin-top: 2px; margin-left: 1em}
+.details heading .summary > * {margin-top:0}
+.details:hover  heading {background: rgba(0, 126, 255, 0.08); border-radius: 5px}
+
 .materialPicker  > section > heading  {display:flex; flex-direction: row; align-items: center; border-bottom: 1px solid #eee; }
-
-.materialPicker .details .handler {display:flex; flex-direction: row; align-items: center; flex-grow:2}
-.materialPicker .details .handler > * {flex-grow:1}
-.materialPicker .details heading button {margin-left: 5px}
-.materialPicker .details heading {display:flex;margin:0}
-.materialPicker .details heading .summary { display:flex; flex-grow:1}
-.materialPicker .details heading .summary small {margin-left: 1em}
 .materialPicker table {font-size: 0.8em; margin-left: 1.2em; width: 98%; margin-top:0.5em}
 .materialPicker table td, 
 .materialPicker table th {padding: 2px !important}
@@ -74,3 +44,62 @@
 #materialsPane heading h5 {margin-top: 0}
 #materialsPane heading small { margin: 0 0 5px 5px}
 #materialsPane heading.active {background: rgba(0, 126, 255, 0.08); border: 1px solid rgba(0, 126, 255, 0.24)}
+#materialsPane .full-height {position: relative}
+#materialsPane .listing {overflow-y: auto; flex-grow:10 }
+
+.paneToolbar { width: 100%; background: #eee; padding: 2px; border-radius: 5px; text-align: right; margin-bottom: 5px; }
+.paneToolbar .btn {margin-right: 2px}
+.paneToolbar h5 {float:left; margin:0}
+
+@media only screen and (min-height: 600px) {
+    .paneSizer {height:400px}
+}
+@media only screen and (min-height: 800px) {
+    .paneSizer {height:600px}
+}
+@media only screen and (min-height: 1000px) {
+    .paneSizer {height:800px}
+}
+
+#operationsPane .operationHeading {border-bottom: 1px solid #eee; margin-bottom: 5px; display:block; padding-right: 5px; overflow-y:auto; flex-grow:10 }
+#operationsPane .details.template {
+    background-color: #f6f6f6; margin: 2px; padding: 2px 2px 2px 10px; border-radius: 5px
+}
+
+#operationsPane .details.editable heading {
+    background-color: #fffaf0; 
+}
+
+#operationsPane .details {margin-bottom: 2px}
+
+
+
+.paneContainer { margin-top: 10px; padding: 2px; border: 1px solid #eee; border-radius: 5px}
+
+#operationsPane, #materialsPane {
+    overflow: hidden;
+}
+
+#materialsPane {
+    flex-grow: 1;
+    min-width: 60px;
+    display: flex;
+}
+
+
+#operationsPane {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: top;
+}
+
+#operationsPane .left, #operationsPane .right {flex-grow:1; overflow-y:auto;margin: 2px}
+
+.innerPane { flex-direction: column; display:flex}
+
+#operationsPane caption {padding-left: 5px; text-transform: uppercase; font-size: smaller; font-weight: bold; color: #000;background: rgba(0, 126, 255, 0.08);}
+
+#operationsPane table tr > *  {font-size:smaller}
+
+#operationsPane fieldset legend {color: #007eff}

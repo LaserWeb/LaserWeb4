@@ -2,8 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect, dispatch } from 'react-redux'
 import {
-    addMaterial, setMaterialAttrs, deleteMaterial, toggleMaterialView, toggleMaterialEdit,
-    addMaterialOperation, deleteMaterialOperation, setMaterialOperationAttrs, toggleMaterialOperationEdit,
+    addBranch, setBranchAttrs, deleteBranch, toggleBranchView, toggleBranchEdit,
+    addLeaf, deleteLeaf, setLeafAttrs, toggleLeafEdit,
     uploadMaterialDatabase, downloadMaterialDatabase,
     applyMaterial
 } from '../actions/material-database.js'
@@ -73,153 +73,6 @@ function MaterialModal({modal, className, header, footer, children, ...rest}) {
 
 }
 
-
-class TableRow extends React.Component {
-
-
-    render() {
-        let childIndex = this.props.childIndex;
-        let isOpened = (this.props.collapseContent) ? this.props.collapseContent.props.isOpened : undefined
-
-        let props = Object.assign({}, this.props)
-        props.rowClass += (this.props.collapseContent) ? " collapsible" : "";
-        props.rowClass += (isOpened) ? " opened" : "";
-
-        let events = {}
-        if (this.props.onRowClick) {
-            events = {
-                onDoubleClick: (e) => this.props.onRowClick(e, childIndex),
-                onClick: (e) => this.props.onRowClick(e, childIndex)
-            }
-        }
-
-        return (
-            <div style={this.props.style}>
-                <div {...events}><FlexData.TableRow {...props} >{this.props.children}</FlexData.TableRow></div>
-                <Collapse in={isOpened}><div className="nestedTableWrapper">{this.props.collapseContent}</div></Collapse>
-            </div>
-        )
-    }
-}
-
-
-
-class Table extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = { selectedIndex: false }
-    }
-
-    render() {
-
-        let handleSelect = (e, rowIndex) => {
-            this.setState({ selectedIndex: rowIndex });
-        }
-
-        return (
-            <div>
-                <FlexData.Table {...this.props } altColor="none">
-                    {(this.props.header) ? <caption>{this.props.header}</caption> : undefined}
-
-                    <FlexData.TableHeader rowClass="flexTHead">
-                        {this.props.columns.map((column) => <FlexData.TableHeaderColumn columnClass={"column " + column.id} key={column.id}>{column.label}</FlexData.TableHeaderColumn>)}
-
-                    </FlexData.TableHeader>
-                    <FlexData.TableBody bodyClass="flexTBody">
-                        {this.props.data.map((row, i) => {
-
-                            let style = (!(i % 2)) ? { backgroundColor: this.props.altColor } : undefined
-
-
-
-                            if (this.state.selectedIndex === i) {
-                                style = { backgroundColor: this.props.selectColor }
-                            }
-
-                            return (
-                                <TableRow key={i}
-                                    childIndex={i}
-                                    collapseContent={this.props.data[i].collapseContent}
-                                    style={style}
-
-                                    onRowClick={this.props.onRowClick}
-                                    rowClass="tableRow"
-                                >
-
-                                    {this.props.columns.map((column, j) => <FlexData.TableRowColumn key={column.id} columnClass={"column " + column.id} >
-                                        {(!j && this.props.data[i].collapseContent) ? (<div style={{ float: "left" }}><Icon name={(this.props.data[i].collapseContent.props.isOpened) ? "minus-square-o" : "plus-square-o"} />&nbsp;</div>) : undefined}
-                                        {this.props.data[i][column.id]}</FlexData.TableRowColumn>)}
-
-                                </TableRow>
-                            );
-                        })}
-                    </FlexData.TableBody>
-                </FlexData.Table>
-            </div>
-        );
-    }
-
-}
-
-function MaterialActions({isEditable = false, onDelete = null, onEdit = null, onAppend = null }) {
-    return (<ButtonGroup>
-
-
-        <Button onClick={onEdit} bsSize="xsmall" bsStyle={isEditable ? "default" : "info"}><Icon name="pencil-square-o" /></Button>
-        {(onDelete) ? (<Button onClick={onDelete} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /></Button>) : undefined}
-
-    </ButtonGroup>)
-}
-
-class MaterialOperationsDropdown extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = { selected: "" }
-        this.handleSelect.bind(this)
-        this.handleClick.bind(this)
-    }
-
-    handleClick(e) {
-        if (this.state.selected)
-            this.props.onApply(this.state.selected, this.props.selectedProfile)
-    }
-
-    handleSelect(e) {
-        this.setState({ selected: e.target.value })
-    }
-
-    render() {
-        return (
-
-
-            <FormGroup>
-                <ControlLabel>Select a Material Operation to add</ControlLabel>
-
-                <InputGroup>
-
-                    <FormControl componentClass="select" placeholder="Operation type" ref="select" onChange={(e) => this.handleSelect(e)}>
-                        <option key="__" value="">Select a Operation Type</option>
-                        {Object.keys(operation.types).map((item, i) => { return <option key={i} value={item}>{item}</option> })}
-                    </FormControl>
-                    <InputGroup.Button>
-                        <Button bsClass="btn btn-success" onClick={(e) => { this.handleClick(e) }}><Icon name="share" /></Button>
-                    </InputGroup.Button>
-                </InputGroup>
-            </FormGroup>
-
-        )
-    }
-
-}
-
-MaterialOperationsDropdown = connect((state) => {
-    return {
-        selectedProfile: state.settings.__selectedProfile || "*"
-    }
-})(MaterialOperationsDropdown)
-
 let shouldShow = (operation, filter) => {
     if (!filter)
         return true;
@@ -232,243 +85,6 @@ let shouldShow = (operation, filter) => {
 
 
 
-class MaterialOperations extends React.Component {
-
-
-    constructor(props) {
-        super(props)
-        this.handleCellChange.bind(this)
-        this.handleRowEdit.bind(this)
-        this.handleRowDelete.bind(this)
-        this.handleRowAppend.bind(this)
-    }
-
-    handleCellChange(operationIndex, paramKey, paramValue) {
-        this.props.handleCellChange(this.props.materialId, operationIndex, { [paramKey]: paramValue });
-    }
-
-    handleRowEdit(operationIndex) {
-        this.props.handleRowEdit(this.props.materialId, operationIndex);
-    }
-
-    handleRowDelete(operationIndex) {
-        this.props.handleRowDelete(this.props.materialId, operationIndex);
-    }
-
-    handleRowAppend(operationType, machineProfile = null) {
-
-        this.props.handleRowAppend(this.props.materialId, operationType, machineProfile);
-    }
-
-    render() {
-        const operations = this.props.operations
-        const rest = this.props;
-
-        let data = {};
-        let tables = {};
-        operations.forEach((_operation, _operationindex) => {
-
-            if (!shouldShow(_operation, this.props.profileFilter)) return;
-
-
-            /*Takes the type of operation from operation::types*/
-            let currentOperation = operation.types[_operation.type]
-
-            /*Extracts the column names from operation::fields*/
-            let columns = [{ id: "_name", label: _operation.type }];
-
-            currentOperation.fields.forEach((key) => {
-                let currentParam = operation.fields[key];
-                columns.push({ id: key, label: currentParam.label + ((currentParam.units) ? " (" + currentParam.units + ")" : "") })
-            })
-
-            columns.push({ id: "_actions", label: "" })
-
-            /*Assigns a table for each kind of operation available for that material*/
-            tables[_operation.type] = columns;
-
-            if (typeof data[_operation.type] == 'undefined')
-                data[_operation.type] = [];
-
-
-            let fields = {}
-
-
-            if (_operation.isEditable) {
-                //writes operation[i][key]
-                fields['_name'] = <div><input type="text" key="name" value={_operation.name} onChange={(e) => { this.handleCellChange(this.props.materialId, _operationindex, "name", e.target.value) }} /></div>
-            } else {
-                fields['_name'] = <div><strong>{_operation.name}</strong>{(_operation.machine_profile) ? <small><code>{_operation.machine_profile}</code></small> : undefined}</div>
-            }
-
-
-            currentOperation.fields.forEach((key) => {
-                let currentParam = operation.fields[key];
-                let FieldType = currentParam.input
-                let hasError = currentParam.check ? !currentParam.check(_operation.params[currentParam.name], this.props.settings, _operation) : false
-
-                let className = [FieldType.name];
-
-                if (hasError)
-                    className.push("has-error")
-
-                if (_operation.isEditable) {
-                    //writes operation.params[i][key]
-                    fields[key] = <div className={className.join(" ")} title={hasError ? currentParam.error : undefined}>
-                        <FieldType key={currentParam.name} op={_operation.params} field={currentParam} style={{}}
-                            onChangeValue={(v) => { this.handleCellChange(_operationindex, "params", { [key]: v }) }} />
-                    </div>
-                } else {
-                    fields[key] = <div className={className.join(" ")} title={hasError ? currentParam.error : undefined}>{cast(_operation.params[currentParam.name], "")}</div>
-
-                }
-            });
-
-            if (this.props.canEdit) {
-                fields['_actions'] = <MaterialActions
-                    isEditable={_operation.isEditable}
-                    onEdit={(e) => { this.handleRowEdit(_operationindex) }}
-                    onDelete={(e) => { this.handleRowDelete(_operationindex) }}
-                />
-            }
-
-
-            data[_operation.type].push(fields)
-
-        });
-
-        let result = [];
-        Object.entries(tables).forEach((item, i) => {
-            let [type, columns] = item;
-            let columnRatio = [...Array(columns.length - 1).fill(1).fill(2, 0, 1), 0]
-            result.push(<Table key={i} columns={columns} data={data[type]} rowHeight={36} columnRatio={columnRatio} />)
-        })
-
-        return (<div className="materialOperations">{result}
-            <div className="well well-sm">
-                <MaterialOperationsDropdown onApply={(operationType, machineProfile) => this.handleRowAppend(operationType, machineProfile)} />
-            </div>
-        </div>);
-
-    }
-
-}
-
-MaterialOperations = connect(
-    (state) => {
-        return {
-            settings: state.settings
-        }
-    },
-    (dispatch) => {
-        return {
-            handleCellChange: (materialId, operationIndex, attrs) => {
-                dispatch(setMaterialOperationAttrs(materialId, operationIndex, attrs));
-            },
-            handleRowEdit: (materialId, operationIndex) => {
-                dispatch(toggleMaterialOperationEdit(materialId, operationIndex));
-            },
-            handleRowDelete: (materialId, operationIndex) => {
-                if (confirm("Are you sure?")) dispatch(deleteMaterialOperation(materialId, operationIndex));
-            },
-            handleRowAppend: (materialId, operationType, machineProfile) => {
-                dispatch(addMaterialOperation(materialId, operationType, machineProfile));
-            }
-        }
-
-    })(MaterialOperations)
-
-class Material extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.handleRowClick.bind(this)
-        this.handleRowEdit.bind(this)
-        this.handleRowDelete.bind(this)
-        this.handleCellChange.bind(this)
-    }
-
-    handleRowClick(e, rowIndex) {
-        switch (e.type) {
-            case "dblclick":
-                this.props.handleToggle(this.props.data.id)
-        }
-    }
-
-    handleRowEdit(e) {
-        this.props.handleRowEdit(this.props.data.id);
-    }
-
-    handleRowDelete(e) {
-        this.props.handleRowDelete(this.props.data.id);
-    }
-
-    handleCellChange(e, attr) {
-        this.props.handleCellChange(this.props.data.id, { [attr]: e.target.value })
-    }
-
-    render() {
-
-        let columns = [
-            { id: "name", label: "Name" },
-            { id: "thickness", label: "Thickness (mm)" },
-            { id: "notes", label: "Notes" },
-            { id: "_actions", label: <Icon name="cogs" /> }
-        ];
-
-        let validator = ValidateMaterial(false, MATERIALDATABASE_VALIDATION_RULES, this.props.data.material)
-        validator.passes();
-        let hasError = (name) => { return validator.errors.errors[name]; }
-
-        let row = {};
-        if (this.props.data.material.isEditable) {
-            row = {
-                name: <div title={hasError('name')} className={hasError('name') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.name} onChange={(e) => { this.handleCellChange(e, "name") }} /></div>,
-                thickness: <div title={hasError('thickness')} className={hasError('thickness') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.thickness} onChange={(e) => { this.handleCellChange(e, "thickness") }} /></div>,
-                notes: <div title={hasError('notes')} className={hasError('notes') ? 'has-error' : undefined}><input type="text" value={this.props.data.material.notes} onChange={(e) => { this.handleCellChange(e, "notes") }} /></div>
-            }
-        } else {
-            row = {
-                name: this.props.data.material.name,
-                thickness: this.props.data.material.thickness,
-                notes: this.props.data.material.notes,
-            }
-
-        }
-
-        row["collapseContent"] = <MaterialOperations operations={this.props.data.operations} materialId={this.props.data.id} isOpened={this.props.data.isOpened} canEdit={!this.props.data.material.isEditable} profileFilter={this.props.profileFilter} />;
-
-        row["_actions"] = <MaterialActions
-            isEditable={this.props.data.material.isEditable}
-            onEdit={(e) => { this.handleRowEdit(e) }}
-            onDelete={(e) => { this.handleRowDelete(e) }}
-
-        />
-
-        return (<Table columns={columns} data={[row]} rowHeight={36} tableClass="flexTable" columnRatio={[2, 1, 5]} onRowClick={(e, rowIndex) => { this.handleRowClick(e, rowIndex) }} />);
-    }
-}
-
-
-
-Material = connect(null, (dispatch) => {
-    return {
-
-        handleToggle: (materialId) => {
-            dispatch(toggleMaterialView(materialId))
-        },
-        handleCellChange: (materialId, attrs) => {
-            dispatch(setMaterialAttrs(materialId, attrs));
-        },
-        handleRowEdit: (materialId) => {
-            dispatch(toggleMaterialEdit(materialId));
-        },
-        handleRowDelete: (materialId) => {
-            if (confirm("Are you sure?")) dispatch(deleteMaterial(materialId));
-        }
-    }
-
-})(Material);
 
 class MaterialMachineProfile extends React.Component {
 
@@ -480,50 +96,66 @@ class MaterialMachineProfile extends React.Component {
 
 }
 
+MaterialMachineProfile = connect((state)=>{return {profiles: state.machineProfiles}})(MaterialMachineProfile)
 
 
 class MaterialDatabaseEditor extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { selected: this.props.selectedProfile, materialId:null }
-        this.handleProfileSelect.bind(this)
-        this.handleMaterialChange.bind(this)
-        this.handleAddMaterial.bind(this)
-        this.handleExport.bind(this)
+        this.state = { selected: this.props.selectedProfile, materialId: null }
 
-        this.handleMaterialSelected.bind(this)
+        this.handleDelBranch.bind(this)
+        this.handleBranchEditToggle.bind(this)
+        this.handleSelectBranch.bind(this)
+        this.handleProfileSelect.bind(this)
+        this.handleChangeLeaf.bind(this)
+        this.handleChangeBranch.bind(this)
+        this.handleExport.bind(this)
+        this.handleBranchTemplateClone.bind(this)
     }
 
     handleProfileSelect(value) {
         this.setState({ selected: value })
     }
 
-    handleMaterialChange(data) {
-        console.log(data)
+    handleBranchEditToggle(id) {
+        this.props.handleBranchEditToggle(id)
     }
 
-    handleAddMaterial(e) {
-        this.props.handleAddMaterial();
+    handleDelBranch(id) {
+        this.props.handleDelBranch(id)
+        this.setState({ ...this.state, materialId: null })
+    }
+
+    handleChangeLeaf(id, attrs) {
+        this.props.handleChangeLeaf(id, attrs);
     }
 
     handleExport(e, format) {
         this.props.handleDownload(this.props.materials, format)
     }
 
-    handleMaterialSelected(id){
-        this.setState({materialId: id})
+    handleSelectBranch(id) {
+        this.setState({ materialId: id })
+    }
+
+    handleChangeBranch(id, attrs) {
+        this.props.handleChangeBranch(id, attrs)
+    }
+
+    handleBranchTemplateClone(fromId, toId){
+        let from;
+        if (from=getMaterialDbBranch(this.props.materials,fromId))
+            this.props.handleBranchTemplateClone(from.template, toId)
     }
 
     render() {
-
-
 
         return (
             <MaterialModal modal={{ show: this.props.show, onHide: this.props.onHide }} className='full-width'
                 header="Material Database"
                 footer={<ButtonToolbar>
-                    <Button bsStyle="primary" onClick={(e) => this.handleAddMaterial(e)}>Add new material</Button>
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'json')}><Icon name="download" /> .json</Button>
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
                     <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)} buttonClass="btn btn-danger" />
@@ -531,12 +163,24 @@ class MaterialDatabaseEditor extends React.Component {
             >
                 <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) }} />
 
-                <AllowCapture style={{ height: '400px' }}>
+                <AllowCapture className="paneSizer" >
                     <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                        <MaterialsPane style={{ flexGrow: 0, flexShrink: 0 }} 
-                            onMaterialSelected={(id)=>this.handleMaterialSelected(id)} materialId={this.state.materialId}
+                        <BranchesPane style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
+                            onMaterialSelected={(id) => this.handleSelectBranch(id)}
+                            itemId={this.state.materialId}
+                            onBranchAdd={(e) => this.props.handleAddBranch()}
+                            onBranchDelete={(id) => this.handleDelBranch(id)}
                         />
-                        <OperationsPane style={{ flexGrow: 1 }} materialId={this.state.materialId} selectedProfile={this.state.selected}/>
+                        <LeafsPane style={{ flexGrow: 1 }}
+                            branchId={this.state.materialId} selectedProfile={this.state.selected}
+                            onBranchEdit={(id) => this.handleBranchEditToggle(id)}
+                            onBranchChange={(id, attrs) => this.handleChangeBranch(id, attrs)}
+                            onLeafAdd={(id) => this.props.handleAddLeaf(id)}
+                            onLeafChange={(id, attrs) => this.handleChangeLeaf(id, attrs)}
+                            onLeafDelete={(id) => this.props.handleDelLeaf(id)}
+                            onLeafEdit={(id) => this.props.handleLeafEditToggle(id)}
+                            onBranchTemplateClone={(fromId, toId) => this.handleBranchTemplateClone(fromId, toId)}
+                        />
                     </div>
                 </AllowCapture>
 
@@ -547,79 +191,287 @@ class MaterialDatabaseEditor extends React.Component {
 
 }
 
-class MaterialsPane extends React.Component {
+class BranchesPane extends React.Component {
 
     render() {
         return <div id="materialsPane" className="full-height" style={this.props.style}>
             <Splitter split="vertical" initialSize={300} splitterId="materialsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-                <div className="full-height">
-                    {this.props.materials.map((item, i) => {
-                        return <heading id={item.id} onClick={(e)=>this.props.onMaterialSelected(item.id)} className={(this.props.materialId==item.id)? 'active':undefined}>
-                            <h5>{item.material.name} ({item.material.thickness} mm)</h5>
-                            <small>{item.material.notes}</small>
-                        </heading>
-                    })}
+                <div className="full-height innerPane"  >
+                    <div className="paneToolbar">
+                        <h5>Groupings</h5>
+                        <Button onClick={e => this.props.onBranchAdd()} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
+                        <Button onClick={e => this.props.onBranchDelete(this.props.itemId)} bsSize="xs" bsStyle="danger" disabled={this.props.itemId ? false : true}><Icon name="trash" /> Delete</Button>
+                    </div>
+                    <div className="listing">
+                        {this.props.items.map((item, i) => {
+                            return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
+                                <h5>{item.name}</h5>
+                                <small>{item.notes}</small>
+                            </heading>
+                        })}
+                    </div>
+
                 </div>
+
             </Splitter>
         </div>
     }
 }
 
-MaterialsPane = connect(
+BranchesPane = connect(
     state => {
         return {
-            materials: state.materialDatabase
+            items: state.materialDatabase
         }
     },
     dispatch => {
         return {}
     }
 
-)(MaterialsPane)
+)(BranchesPane)
 
-class OperationsPane extends React.Component {
+
+class LeafActions extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.state = { selected: null }
+    }
     render() {
-        let materialId=this.props.materialId;
-        let item=this.props.materials.find((item, i, obj)=>{ return item.id==materialId})
-        let heading, operations;
-        if (item){
-            heading= (<heading><h5>{item.material.name} ({item.material.thickness} mm)</h5><small>{item.material.notes}</small></heading>)
-            operations = item.operations;
-        } else {
-            heading=undefined
-            operations=[]
+
+        return <FormGroup>
+            <InputGroup>
+                <InputGroup.Button><Button disabled={this.props.disabled} onClick={(e) => { this.props.onCloneTo(this.props.branchId, this.state.selected) }} bsStyle="success" title="Clones current template to other Group" ><Icon name="clone" /> Clone to</Button></InputGroup.Button>
+                <FormControl componentClass="select" placeholder="type" onChange={(e) => this.setState({ selected: e.target.value })} disabled={this.props.disabled}>
+                    <option></option>
+                    {this.props.branches.map((branch, i) => { if (this.props.branchId !== branch.id) return <option key={i} value={branch.id}>{branch.name}</option> })}
+                </FormControl>
+
+            </InputGroup>
+        </FormGroup>
+    }
+}
+
+class LeafsPane extends React.Component {
+    render() {
+        let branchId = this.props.branchId;
+        let item = getMaterialDbBranch(this.props.branches, branchId)
+        let heading, leafs = [], leftToolbar, rightToolbar, template, actions;
+        if (item) {
+
+            if (item.isEditable) {
+                heading = (<div className="operationHeading isEditable">
+                    <fieldset>
+                        <legend>Grouping</legend>
+                        <FormGroup>
+                            <ControlLabel>Name</ControlLabel>
+                            <FormControl
+                                type="text"
+                                value={item.name}
+                                placeholder="Name of the Operation Group"
+                                onChange={(e) => { this.props.onBranchChange(this.props.branchId, { name: e.target.value }) }}
+                            />
+                            <FormControl.Feedback />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <ControlLabel>Notes</ControlLabel>
+                            <FormControl componentClass="textarea" placeholder="notes" value={item.notes} onChange={(e) => { this.props.onBranchChange(this.props.branchId, { notes: e.target.value }) }} />
+                            <FormControl.Feedback />
+                        </FormGroup>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Default Template</legend>
+
+                        <LeafOperationSettings operation={item.template} caption="Settings" isEditable={true}
+                            onCellChange={(id, attrs) => { this.props.onBranchChange(this.props.branchId, { template: attrs }) }} />
+
+                        <LeafOperationParameters operation={item.template} caption="Parameters" isEditable={true}
+                            onCellChange={(id, attrs) => { this.props.onBranchChange(this.props.branchId, { template: attrs }) }} />
+
+
+                    </fieldset>
+
+
+
+                </div>)
+            } else {
+                heading = (<div className="operationHeading">
+                    <h3>{item.name}</h3>{item.notes ? (<p>{item.notes}</p>) : undefined}
+
+                    <LeafOperationSettings operation={item.template} caption="Settings" />
+                    <LeafOperationParameters operation={item.template} caption="Parameters" />
+
+
+                </div>)
+            }
+
+
+            leftToolbar = (<div className="paneToolbar">
+                <h5>Group</h5>
+                <Button bsSize="xsmall" bsStyle="warning" onClick={(e) => { this.props.onBranchEdit(this.props.branchId) }}><Icon name="pencil" /> Edit</Button>
+            </div>)
+
+            rightToolbar = (<div className="paneToolbar">
+                <h5>Presets</h5>
+                <Button bsSize="xsmall" bsStyle="success" onClick={(e) => { this.props.onLeafAdd(this.props.branchId) }}><Icon name="plus" /> Add</Button>
+            </div>)
+
+            leafs = item.leafs;
+
+            actions = <div className="paneToolbar">
+                <LeafActions branches={this.props.branches} branchId={this.props.branchId} disabled={item.isEditable} onCloneTo={(from, to) => this.props.onBranchTemplateClone(this.props.branchId, to)} />
+            </div>
+
         }
 
         return <div className="full-height" id="operationsPane" style={this.props.style}>
-            {heading}
-            <PanelGroup defaultActiveKey="0">
-            {operations.map((operation, i)=>{
-                if (!shouldShow(operation, this.props.selectedProfile)) return;
-                return <Panel collapsible key={i} eventKey={i} header={operation.name+" ("+operation.type+") - "+operation.notes}><OperationsPaneOperation key={i} operation={operation}/></Panel>
-            })}
-            </PanelGroup>
+
+            <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
+                <div className="full-height left innerPane" >{leftToolbar}{heading}{actions}</div>
+            </Splitter>
+
+            <div className="full-height right innerPane">
+                {rightToolbar}
+                <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
+                    {leafs.map((operation, i) => {
+                        if (!shouldShow(operation, this.props.selectedProfile)) return;
+
+                        return <Details className={operation.isEditable ? "editable" : ""} key={i}
+                            handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
+                            header={<div>
+                                <Button onClick={(e) => { this.props.onLeafEdit(operation.id) }} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>
+                                <Button onClick={(e) => { this.props.onLeafDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
+                            </div>} >
+                            <LeafOperationSettings operation={operation} isEditable={operation.isEditable}
+                                onCellChange={(id, attrs) => { this.props.onLeafChange(id, attrs) }}
+                                caption="Settings" />
+
+                            <LeafOperationParameters operation={operation} isEditable={operation.isEditable}
+                                onCellChange={(id, attrs) => { this.props.onLeafChange(id, attrs) }}
+                                caption="Parameters" />
+                        </Details>
+                    })}
+                </PanelGroup>
+            </div>
         </div>
     }
 }
 
-OperationsPane = connect(
+LeafsPane = connect(
     state => {
         return {
-            materials: state.materialDatabase
+            branches: state.materialDatabase
         }
     },
     dispatch => {
         return {}
     }
 
-)(OperationsPane)
+)(LeafsPane)
 
-class OperationsPaneOperation extends React.Component {
-    render()
-    {
-        return <div><pre>{JSON.stringify(this.props.operation)}</pre></div>
+
+class LeafOperationSettings extends React.Component {
+
+    render() {
+        let result = "";
+        let op = this.props.operation;
+        let OPDEF = operation.types;
+        if (this.props.isEditable) {
+            result = (<div>
+
+                <FormGroup>
+                    <ControlLabel>Name</ControlLabel>
+                    <FormControl
+                        type="text"
+                        value={op.name}
+                        placeholder="Name"
+                        onChange={(e) => this.props.onCellChange(op.id, { name: e.target.value })}
+                    />
+                    <FormControl.Feedback />
+                </FormGroup>
+
+                <FormGroup>
+                    <ControlLabel>Notes</ControlLabel>
+                    <FormControl componentClass="textarea" placeholder="Notes" value={op.notes ? op.notes : ""} onChange={(e) => this.props.onCellChange(op.id, { notes: e.target.value })} />
+                    <FormControl.Feedback />
+                </FormGroup>
+
+                <FormGroup>
+                    <ControlLabel>Machine profile</ControlLabel>
+                    <MaterialMachineProfile label="Machine profile" onChange={(v)=>{this.props.onCellChange(op.id, { machine_profile: v })}} selected={op.machine_profile} />
+                </FormGroup>
+                <FormGroup>
+                    <ControlLabel>Type</ControlLabel>
+                    <FormControl componentClass="select" placeholder="type" value={op.type} onChange={(e) => this.props.onCellChange(op.id, { type: e.target.value })}>
+                        {Object.keys(OPDEF).map((option, i) => { return <option key={i} value={option}>{option}</option> })}
+                    </FormControl>
+                    <FormControl.Feedback />
+                </FormGroup>
+
+            </div>)
+
+        } else {
+            result = (<table className="table table-compact">
+                <caption>{this.props.caption}</caption>
+                <tbody>
+                    <tr><th>Type</th><td>{op.type}</td></tr>
+                    <tr><th>Profile</th><td>{op.machine_profile}</td></tr>
+                </tbody>
+            </table>)
+        }
+
+        return result;
+
     }
 }
+
+class LeafOperationParameters extends React.Component {
+
+    render() {
+        const OP = this.props.operation;
+        const OPDEF = operation.types[this.props.operation.type]
+        const fields = {};
+
+        OPDEF.fields.forEach((key) => {
+
+            const PARAMDEF = operation.fields[key];
+            let FieldType = PARAMDEF.input
+
+            let hasError = PARAMDEF.check ? !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) : false
+
+            let className = [FieldType.name];
+
+            if (hasError)
+                className.push("has-error")
+
+            if (OP.isEditable || this.props.isEditable) {
+                //writes operation.params[i][key]
+                fields[key] = <div className={className.join(" ")} title={hasError ? PARAMDEF.error : undefined}>
+                    <FieldType key={PARAMDEF.name} op={OP.params} field={PARAMDEF} style={{}}
+                        onChangeValue={(v) => { this.props.onCellChange(this.props.operation.id, { params: { [key]: v } }) }} />
+                </div>
+            } else {
+                fields[key] = <div className={className.join(" ")} title={hasError ? PARAMDEF.error : undefined}>{cast(OP.params[PARAMDEF.name], "---")}</div>
+
+            }
+        });
+
+        return <div>
+            {this.props.children}
+            <table className="table table-compact">
+                {this.props.caption ? (<caption>{this.props.caption}</caption>) : undefined}
+                <tbody>
+                    {Object.entries(fields).map((entry, i) => {
+                        let [key, field] = entry;
+                        return (<tr key={i}><th>{operation.fields[key].label}</th><td>{React.cloneElement(field)}</td></tr>);
+                    })}
+                </tbody>
+            </table></div>
+    }
+}
+
+LeafOperationParameters = connect((state) => { return { settings: state.settings } })(LeafOperationParameters)
 
 
 
@@ -630,15 +482,20 @@ class Details extends React.Component {
         this.state = { open: this.props.open || false }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.open !== undefined)
+            this.setState({ ...this.state, open: nextProps.open })
+    }
+
     render() {
-        return <div className="details">
+        return <div className={"details " + (this.props.className ? this.props.className : "")}>
             <heading>
 
                 <div className="summary" onClick={() => this.setState({ open: !this.state.open })}><Icon name={this.state.open ? 'chevron-up' : 'chevron-down'} />&nbsp;{this.props.handler}</div>
                 {this.props.header}
             </heading>
             <Collapse in={this.state.open}>
-                <div>{this.props.children}</div>
+                <div className="content">{this.props.children}</div>
             </Collapse>
         </div>
 
@@ -663,9 +520,9 @@ class MaterialDatabasePicker extends React.Component {
         this.setState({ selectedProfile: value })
     }
 
-    handleApplyPreset(materialId, operationIndex) {
+    handleApplyPreset(operationId) {
         if (this.props.onApplyPreset)
-            this.props.onApplyPreset(materialId, operationIndex)
+            this.props.onApplyPreset(operationId)
     }
 
     explainOperation(op) {
@@ -689,20 +546,20 @@ class MaterialDatabasePicker extends React.Component {
         return (
             <MaterialModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Operation Presets">
-                <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selectedProfile} onChange={(value) => { this.handleProfileSelect(value) }} />
+                <MaterialMachineProfile selected={this.state.selectedProfile} onChange={(value) => { this.handleProfileSelect(value) }} />
                 <div className="materialPicker">
                     {this.props.materials.map((item, i) => {
                         return <section key={i}>
                             <heading>
-                                <h4>{item.material.name} ({item.material.thickness} mm)</h4>
-                                <small>{item.material.notes}</small>
+                                <h4>{item.name}</h4>
+                                <small>{item.notes}</small>
                             </heading>
 
-                            {item.operations.map((op, j) => {
+                            {item.leafs.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
-                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(item.id, j) }}><Icon name="share" /></Button>}
+                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
                                     >
                                         <table className="table table-sm">
                                             <tbody>
@@ -736,8 +593,32 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        handleAddMaterial: () => {
-            dispatch(addMaterial())
+        handleAddBranch: () => {
+            dispatch(addBranch())
+        },
+        handleDelBranch: (id) => {
+            if (confirm("Are you sure?")) dispatch(deleteBranch(id))
+        },
+        handleBranchEditToggle: (id) => {
+            dispatch(toggleBranchEdit(id))
+        },
+        handleAddLeaf: (id) => {
+            dispatch(addLeaf(id))
+        },
+        handleDelLeaf: (id) => {
+            if (confirm("Are you sure?")) dispatch(deleteLeaf(id))
+        },
+        handleChangeLeaf: (id, attrs) => {
+            dispatch(setLeafAttrs(id, attrs))
+        },
+        handleChangeBranch: (id, attrs) => {
+            dispatch(setBranchAttrs(id, attrs))
+        },
+        handleLeafEditToggle: (id) => {
+            dispatch(toggleLeafEdit(id))
+        },
+        handleBranchTemplateClone: (template, toId) => {
+            dispatch(setBranchAttrs(toId, { template }))
         },
         handleDownload: (materials, format) => {
             if (format == 'json') {
@@ -776,6 +657,17 @@ export class MaterialDatabaseButton extends React.Component {
     }
 }
 
+const getMaterialDbBranch = (state, id) => {
+    return state.find(branch => branch.id === id);
+}
+const getMaterialDbLeaf = (state, id) => {
+    let found = null;
+    state.forEach((branch) => {
+        let f = branch.leafs.find((leaf) => { return leaf.id === id });
+        if (f) found = f;
+    })
+    return found;
+}
 
 export class MaterialPickerButton extends React.Component {
     constructor(props) {
@@ -784,9 +676,10 @@ export class MaterialPickerButton extends React.Component {
         this.handleApplyPreset.bind(this);
     }
 
-    handleApplyPreset(materialId, operationIndex) {
-        let material = this.props.materials.find((mat) => { return mat.id == materialId })
-        let operation = material.operations[operationIndex];
+    handleApplyPreset(operationId) {
+
+        let operation = getMaterialDbLeaf(this.props.branches, operationId)
+
         this.props.onApplyPreset(operation.type, omit(operation.params, (val, key) => {
             return val !== undefined && val !== null;
         }))
@@ -798,7 +691,7 @@ export class MaterialPickerButton extends React.Component {
 
         return (
             <Button bsStyle="primary" className={this.props.className} onClick={() => this.setState({ showModal: true })}>{this.props.children}
-                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(materialId, operationIndex) => { this.handleApplyPreset(materialId, operationIndex) }} />
+                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
             </Button>
         )
     }
@@ -806,6 +699,6 @@ export class MaterialPickerButton extends React.Component {
 
 MaterialPickerButton = connect((state) => {
     return {
-        materials: state.materialDatabase
+        branches: state.materialDatabase
     }
 })(MaterialPickerButton)
