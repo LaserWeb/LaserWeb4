@@ -13,7 +13,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 
 import CommandHistory from './command-history';
 
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, checkSize, laserTest, jog, feedOverride, spindleOverride } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -35,6 +35,10 @@ class Jog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {stepsize: this.props.settings.stepsize}
+    }
+    
+    componentDidMount() {
+                
     }
 
     homeAll() {
@@ -86,9 +90,14 @@ class Jog extends React.Component {
         abortJob();
     }
 
-    setZero() {
-        console.log('setZero');
-        setZero('all');
+    setZero(axis) {
+        console.log('setZero(' + axis + ')');
+        setZero(axis);
+    }
+
+    gotoZero(axis) {
+        console.log('gotoZero(' + axis + ')');
+        gotoZero(axis);
     }
 
     checkSize() {
@@ -125,14 +134,13 @@ class Jog extends React.Component {
         jog(axis, dir + dist, feed);
     }
 
-    changeStepsize() {
+    changeStepsize(stepsize) {
         let that = this;
-        let newJogSize = jQuery('input[name=stp]:checked', '#stepsize').val();
-        that.setState({stepsize: newJogSize});
-        console.log('Jog will use ' + newJogSize + ' mm per click');
-        CommandHistory.log('Jog will use ' + newJogSize + ' mm per click', CommandHistory.WARNING);
-        $('.stepsizeval').empty();
-        $('.stepsizeval').html(newJogSize + 'mm');
+        that.setState({stepsize: stepsize});
+        console.log('Jog will use ' + stepsize + ' mm per click');
+        CommandHistory.log('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARNING);
+        //$('.stepsizeval').empty();
+        //$('.stepsizeval').html(stepsize + 'mm');
     }
 
     resetF() {
@@ -191,10 +199,10 @@ class Jog extends React.Component {
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
                                     <li id="homeX"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home X Axis</a></li>
-                                    <li id="zeroX"><a href="#"><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set X Axis Zero</a></li>
+                                    <li id="zeroX"><a href="#" onClick={(e)=>{this.setZero('x')}}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set X Axis Zero</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoXZero"><a href="#"><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to X0</a></li>
+                                    <li id="gotoXZero"><a href="#" onClick={(e)=>{this.gotoZero('x')}}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to X0</a></li>
                                 </ul>
                             </div>
                             <div id="mX" className="droPos" style={{marginRight: 0}}>0.00</div><div className="droUnit"> mm</div>
@@ -214,10 +222,10 @@ class Jog extends React.Component {
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
                                     <li id="homeY"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Y Axis</a></li>
-                                    <li id="zeroY"><a href="#"><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Y Axis Zero</a></li>
+                                    <li id="zeroY"><a href="#" onClick={(e)=>{this.setZero('y')}}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Y Axis Zero</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoYZero"><a href="#"><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Y0</a></li>
+                                    <li id="gotoYZero"><a href="#" onClick={(e)=>{this.gotoZero('y')}}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Y0</a></li>
                                 </ul>
                             </div>
                             <div id="mY" className="droPos" style={{marginRight: 0}}>0.00</div><div className="droUnit"> mm</div>
@@ -236,10 +244,10 @@ class Jog extends React.Component {
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
                                     <li id="homeZ"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
-                                    <li id="zeroZ"><a href="#"><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
+                                    <li id="zeroZ"><a href="#" onClick={(e)=>{this.setZero('z')}}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoZZero"><a href="#"><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
+                                    <li id="gotoZZero"><a href="#" onClick={(e)=>{this.gotoZero('z')}}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
                                 </ul>
                             </div>
                             <div id="mZ" className="droPos" style={{marginRight: 0}}>0.00</div><div className="droUnit"> mm</div>
@@ -247,7 +255,7 @@ class Jog extends React.Component {
 
                             <div id="overrides">
                                 <div className="drolabel">F:</div>
-                                <div id="oF" className="droOR" style={{marginRight: 0}}>100<span className="drounitlabel"> %</span></div>
+                                <div id="oF" className="droOR">100<span className="drounitlabel"> %</span></div>
                                 <div className="btn-group btn-override">
                                     <button id="rF" type="button" onClick={(e)=>{this.resetF(e)}} className="btn btn-sm btn-default" style={{padding:2, top:-3}} data-toggle="tooltip" data-placement="bottom" title="Click to Reset F-Override to 100%">
                                         <span className="fa-stack fa-1x">
@@ -266,7 +274,8 @@ class Jog extends React.Component {
                                     </button>
                                 </div>
                                 <br />
-                                <div className="drolabel">S:</div><div id="oS" className="droOR" style={{marginRight: 0}}>100<span className="drounitlabel"> %</span></div>
+                                <div className="drolabel">S:</div>
+                                <div id="oS" className="droOR">100<span className="drounitlabel"> %</span></div>
                                 <div className="btn-group btn-override">
                                     <button id="rS" type="button" onClick={(e)=>{this.resetS(e)}} className="btn btn-sm btn-default" style={{padding:2, top:-3}} data-toggle="tooltip" data-placement="bottom" title="Click to Reset S-Override to 100%">
                                         <span className="fa-stack fa-1x">
@@ -328,7 +337,7 @@ class Jog extends React.Component {
                                     </button>
                                 </div>
                                 <div className="btn-group">
-                                    <button type='button' id="zeroAll" className="btn btn-ctl btn-default" onClick={(e)=>{this.setZero(e)}}>
+                                    <button type='button' id="zeroAll" className="btn btn-ctl btn-default" onClick={(e)=>{this.setZero('all')}}>
                                         <span className="fa-stack fa-1x">
                                             <i className="fa fa-crosshairs fa-stack-1x"></i>
                                             <strong className="fa-stack-1x icon-top-text">set</strong>
@@ -441,34 +450,34 @@ class Jog extends React.Component {
                                 </tr>
                                 <tr>
                                     <td colSpan="5">
-                                        <form id="stepsize" onChange={(e)=>{this.changeStepsize(e)}}>
+                                        <form id="stepsize" >
                                             <div data-toggle="buttons">
-                                                <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="0.1" onClick={(e)=>{this.changeStepsize(e)}} />
+                                                <label className="btn btn-jog btn-default" onClick={(e)=>{this.changeStepsize(0.1)}} >
+                                                    <input type="radio" name="stp" defaultValue="0.1" />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
                                                         <strong className="fa-stack-1x icon-bot-text">0.1mm</strong>
                                                     </span>
                                                 </label>
-                                                <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="1" onChange={(e)=>{this.changeStepsize(e)}} />
+                                                <label className="btn btn-jog btn-default" onClick={(e)=>{this.changeStepsize(1)}} >
+                                                    <input type="radio" name="stp" defaultValue="1" />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
                                                         <strong className="fa-stack-1x icon-bot-text">1mm</strong>
                                                     </span>
                                                 </label>
-                                                <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="10" onChange={(e)=>{this.changeStepsize(e)}} />
+                                                <label className="btn btn-jog btn-default" onClick={(e)=>{this.changeStepsize(10)}} >
+                                                    <input type="radio" name="stp" defaultValue="10" />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
                                                         <strong className="fa-stack-1x icon-bot-text">10mm</strong>
                                                     </span>
                                                 </label>
-                                                <label className="btn btn-jog btn-default">
-                                                    <input type="radio" name="stp" defaultValue="100" onChange={(e)=>{this.changeStepsize(e)}} />
+                                                <label className="btn btn-jog btn-default" onClick={(e)=>{this.changeStepsize(100)}} >
+                                                    <input type="radio" name="stp" defaultValue="100" />
                                                     <span className="fa-stack fa-1x">
                                                         <i className="fa fa-arrows-h fa-stack-1x"></i>
                                                         <strong className="fa-stack-1x icon-top-text">jog by</strong>
@@ -495,6 +504,31 @@ class Jog extends React.Component {
         )
     }
 }
+
+export function runStatus(status) {
+    if (status === 'running') {
+        playing = true;
+        paused = false;
+        $('#playicon').removeClass('fa-play');
+        $('#playicon').addClass('fa-pause');
+    } else if (status === 'paused') {
+        paused = true;
+        $('#playicon').removeClass('fa-pause');
+        $('#playicon').addClass('fa-play');
+    } else if (status === 'resumed') {
+        paused = false;
+        $('#playicon').removeClass('fa-play');
+        $('#playicon').addClass('fa-pause');
+    } else if (status === 'stopped') {
+        playing = false;
+        paused = false;
+        $('#playicon').removeClass('fa-pause');
+        $('#playicon').addClass('fa-play');
+    } else if (status === 'alarm') {
+        //socket.emit('clearAlarm', 2);
+    }
+};
+
 
 Jog = connect(
     state => ({ settings: state.settings, stepsize: state.stepsize, gcode: state.gcode })

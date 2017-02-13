@@ -504,15 +504,16 @@ button:hover,
 .droOR {
     display:inline-block;
     background-color: #ffffff;
-    text-align: center;
-    padding-left: 18px;
-    margin-bottom: 3px;
-    font-size: 20px;
-    width: calc(99% - 167px);
     border: 1px solid #ccc;
+    font-size: 20px;
     font-weight: bold;
-    margin-left: 0px;
+    text-align: right;
+    cursor: default;
+    padding-right: 18px;
     margin-right: 3px;
+    margin-bottom: 3px;
+    margin-left: 0px;
+    width: calc(99% - 118px);
     /*font-family: '8bit';*/
 }
 
