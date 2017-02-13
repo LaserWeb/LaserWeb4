@@ -208,7 +208,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
         let {document} = cachedDocument;
         if (document.rawPaths) {
             if (document.visible) {
-                if (document.fillColor[3])
+                if (document.fillColor[3] && cachedDocument.triangles.length)
                     drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
@@ -219,14 +219,14 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         offset: 0,
                         count: cachedDocument.triangles.length / 2,
                     });
-                if (document.strokeColor[3])
+                if (document.strokeColor[3] || !cachedDocument.triangles.length)
                     for (let o of cachedDocument.outlines)
                         drawCommands.basic2d({
                             perspective, view,
                             position: o,
                             scale: document.scale,
                             translate: document.translate,
-                            color: document.strokeColor,
+                            color: document.strokeColor[3] ? document.strokeColor : [1, 0, 0, 1],
                             primitive: drawCommands.gl.LINE_STRIP,
                             offset: 0,
                             count: o.length / 2,
