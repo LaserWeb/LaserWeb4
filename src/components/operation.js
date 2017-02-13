@@ -35,17 +35,17 @@ import Icon from './font-awesome'
 
 function StringInput(props) {
     let {op, field, fillColors, strokeColors, ...rest} = props;
-    return <Input value={op[field.name]} style={{ width: "100%" }} {...rest } />;
+    return <Input value={op[field.name]}  {...rest } />;
 }
 
 function NumberInput(props) {
     let {op, field, fillColors, strokeColors, ...rest} = props;
-    return <Input type='number' step='any' value={op[field.name]} style={{ width: "100%" }} {...rest } />;
+    return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
 function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
     return (
-        <select value={op[field.name]} style={{ width: "100%" }} {...rest} >
+        <select value={op[field.name]}  {...rest} >
             <option>Conventional</option>
             <option>Climb</option>
         </select>
@@ -54,7 +54,7 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
 
 function GrayscaleInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
     return (
-        <select value={op[field.name]} style={{ width: "100%" }} {...rest} >
+        <select value={op[field.name]}  {...rest} >
             <option>none</option>
             <option>average</option>
             <option>luma</option>
@@ -85,7 +85,7 @@ class InputRange extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange.bind(this)
-        this.state = this.props.value;
+        this.state = Object.assign({min: this.props.minValue, max: this.props.maxValue},this.props.value);
     }
 
     handleChange(key, v) {
@@ -101,9 +101,9 @@ class InputRange extends React.Component {
     render() {
         let { min, max } = this.state;
         return <div>
-            <input type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} />/
-            <input type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} />
-        </div>
+            <label style={{whiteSpace:"nowrap"}} >Min <input size="3" style={{display:"inline-block"}} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
+            <label style={{whiteSpace:"nowrap"}} >Max <input size="3" style={{display:"inline-block"}} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
+            </div>
     }
 }
 
@@ -202,10 +202,10 @@ class Field extends React.Component {
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
-            error = <Error operationsBounds={operationsBounds} message={field.error} />;
+            error = <Error operationsBounds={operationsBounds} message={(typeof field.error=='function') ? field.error(op[field.name], settings, op):  field.error} />;
         return (
             <GetBounds Type="tr">
-                <td>{field.label}</td>
+                <th>{field.label}</th>
                 <td>
                     <Input
                         op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}

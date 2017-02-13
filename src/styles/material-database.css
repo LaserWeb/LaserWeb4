@@ -1,0 +1,105 @@
+
+/*FullSizeModal*/
+
+.full-width {width: 100%}
+
+.full-width .modal-dialog {
+  width: 98%;
+  max-height: 92%;
+  padding: 0;
+}
+
+.full-width .modal-content {
+  max-height: 99%;
+}
+
+
+
+.materialPicker small {color: #666; flex-grow: 2; text-align: right}
+
+.details {margin-top: 2px; margin-left: 10px}
+.details .handler {display:flex; flex-direction: row; align-items: center; flex-grow:2}
+.details .handler > * {flex-grow:1}
+.details heading button {margin-left: 5px}
+.details heading {display:flex;margin:0}
+.details heading .summary { display:flex; flex-grow:1}
+.details heading .summary small {margin-left: 1em}
+
+.details heading .summary > * {margin-top:0}
+.details:hover  heading {background: rgba(0, 126, 255, 0.08); border-radius: 5px}
+
+.materialPicker  > section > heading  {display:flex; flex-direction: row; align-items: center; border-bottom: 1px solid #eee; }
+.materialPicker table {font-size: 0.8em; margin-left: 1.2em; width: 98%; margin-top:0.5em}
+.materialPicker table td, 
+.materialPicker table th {padding: 2px !important}
+.materialPicker table td {text-align: right}
+
+.nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
+
+
+#materialsPane {min-width: 200px}
+#materialsPane heading {display:block; border: 1px solid #eee; padding: 2px; margin-bottom: 1px; border-radius: 5px}
+#materialsPane heading:hover {background: #f6f6f6}
+#materialsPane heading > * {display:block}
+#materialsPane heading h5 {margin-top: 0}
+#materialsPane heading small { margin: 0 0 5px 5px}
+#materialsPane heading.active {background: rgba(0, 126, 255, 0.08); border: 1px solid rgba(0, 126, 255, 0.24)}
+#materialsPane .full-height {position: relative}
+#materialsPane .listing {overflow-y: auto; flex-grow:10 }
+
+.paneToolbar { width: 100%; background: #eee; padding: 2px; border-radius: 5px; text-align: right; margin-bottom: 5px; }
+.paneToolbar .btn {margin-right: 2px}
+.paneToolbar h5 {float:left; margin:0}
+
+@media only screen and (min-height: 600px) {
+    .paneSizer {height:400px}
+}
+@media only screen and (min-height: 800px) {
+    .paneSizer {height:600px}
+}
+@media only screen and (min-height: 1000px) {
+    .paneSizer {height:800px}
+}
+
+#operationsPane .operationHeading {border-bottom: 1px solid #eee; margin-bottom: 5px; display:block; padding-right: 5px; overflow-y:auto; flex-grow:10 }
+#operationsPane .details.template {
+    background-color: #f6f6f6; margin: 2px; padding: 2px 2px 2px 10px; border-radius: 5px
+}
+
+#operationsPane .details.editable heading {
+    background-color: #fffaf0; 
+}
+
+#operationsPane .details {margin-bottom: 2px}
+
+
+
+.paneContainer { margin-top: 10px; padding: 2px; border: 1px solid #eee; border-radius: 5px}
+
+#operationsPane, #materialsPane {
+    overflow: hidden;
+}
+
+#materialsPane {
+    flex-grow: 1;
+    min-width: 60px;
+    display: flex;
+}
+
+
+#operationsPane {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: top;
+}
+
+#operationsPane .left, #operationsPane .right {flex-grow:1; overflow-y:auto;margin: 2px}
+
+.innerPane { flex-direction: column; display:flex}
+
+#operationsPane caption {padding-left: 5px; text-transform: uppercase; font-size: smaller; font-weight: bold; color: #000;background: rgba(0, 126, 255, 0.08);}
+
+#operationsPane table tr > *  {font-size:smaller}
+
+#operationsPane fieldset legend {color: #007eff}

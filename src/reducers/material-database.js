@@ -12,29 +12,69 @@ function generateInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-const MATERIAL_TEMPLATE=()=>{
+const BRANCH_TEMPLATE=()=>{
     return {
         id: uuid.v4(),
-        material:{
-            isEditable:false,
-            name: generateName(),
-            thickness: generateInteger(1,10)+"mm",
-            notes:""
-        },
-        operations:[]
+        name: generateName(),
+        notes:"",
+        template: LEAF_TEMPLATE('Laser Cut'),
+        leafs:[]
     }
 }
 
-const MATERIAL_OPERATION_TEMPLATE=(type, machineProfile=null)=>{
+const LEAF_TEMPLATE=(type, machineProfile=null)=>{
     return {
-        machine_profile:machineProfile,
-        type:type,
+        id: uuid.v4(),
         name: "** "+generateName()+" **",
         notes:"",
+        type:type,
+        machine_profile:machineProfile,
         params:{}
     }
-  
 }
+
+
+const toggleLeafAttribute = (state, id, attribute, processLeaf=null) => {
+    return state.map((branch) => {
+        if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === id})) 
+            return branch;
+        
+        branch.leafs=branch.leafs.map((leaf,i)=> {
+                if (leaf.id!==id)
+                    return leaf;
+                
+                if (typeof leaf[attribute] == "undefined")
+                    leaf[attribute]=false;
+                
+                leaf[attribute]=!leaf[attribute];
+                
+                if (processLeaf)
+                    leaf = processLeaf(leaf)
+
+                return leaf;
+                
+        })
+        
+        return branch;
+    })
+}
+
+const toggleBranchAttribute = (state, id,  attribute, processBranch=null) => {
+    return state.map((branch) => {
+        if (branch.id !== id)
+            return branch;
+        if (typeof branch[attribute] == "undefined")
+            branch[attribute]=false;
+            
+        branch[attribute]=!branch[attribute];
+
+        if (processBranch)
+            branch = processBranch(branch)
+        
+        return branch;
+    })
+}
+
 
 export const materialDatabase = (state = initialState, action) => {
 
@@ -47,119 +87,83 @@ export const materialDatabase = (state = initialState, action) => {
             case "MATERIALDB_DOWNLOAD":
                 return state;
           
-            case "MATERIAL_ADD":
-                state = [...state, MATERIAL_TEMPLATE()];
+            case "MATERIALDB_BRANCH_ADD":
+                state = [...state, BRANCH_TEMPLATE()];
                 return state;
                 
-            case "MATERIAL_DELETE":
-                return state.filter((material)=>{
-                    return (material.id !== action.payload.materialId);
+            case "MATERIALDB_BRANCH_DELETE":
+                return state.filter((branch)=>{
+                    return (branch.id !== action.payload);
                 })
             
-            case "MATERIAL_SET_ATTRS":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
+            case "MATERIALDB_BRANCH_SET_ATTRS":
+                return state.map((branch) => {
+                    if (branch.id !== action.payload.branchId)
+                        return branch;
                     
-                    material.material=deepMerge(material.material, action.payload.attrs)
-                    
-                    return material;
+                    let attrs=omit(action.payload.attrs, ['id','leafs']); // dont overwrite id,leafs
+                    branch=deepMerge(branch, attrs )
+                    return branch;
                 })
+
+            case "MATERIALDB_BRANCH_TOGGLE_VIEW" :
+                return toggleBranchAttribute(state, action.payload, 'isOpened');
+
+            case "MATERIALDB_BRANCH_TOGGLE_EDIT":
+
+                //disable children edit.
+                const processBranch=(branch)=>{
+                    if (branch.isEditable){
+                        branch.leafs=branch.leafs.map((leaf, i) =>{
+                            leaf.isEditable=false;
+                            return leaf;    
+                        })
+                    }
+                    return branch;
+                }
+
+                return toggleBranchAttribute(state, action.payload, 'isEditable', processBranch )
             
-            case "MATERIAL_SET_OPERATION_ATTRS":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
+            case "MATERIALDB_LEAF_ADD":
+                return state.map((branch) => {
+                    if (branch.id !== action.payload.branchId)
+                        return branch;
+                      
+                    branch.leafs=[...branch.leafs, Object.assign(LEAF_TEMPLATE(),branch.template || {}, action.payload.attrs)]
                     
-                    material.operations=material.operations.map((operation,i)=> {
-                            if (i!==action.payload.operationIndex)
-                                return operation;
-                            
-                            operation=deepMerge(operation, action.payload.attrs)
-                            
-                            return operation;
+                    return branch;
+                });
+
+            case "MATERIALDB_LEAF_SET_ATTRS":
+                return state.map((branch) => {
+                    if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === action.payload.leafId})) 
+                        return branch;
+                    
+                    
+                    branch.leafs=branch.leafs.map((leaf)=> {
+                            if (leaf.id!==action.payload.leafId)
+                                return leaf;
+                            return deepMerge(leaf, action.payload.attrs)
                             
                     })
                     
-                    return material;
+                    return branch;
+                })
+
+            
+            case "MATERIALDB_LEAF_DELETE":
+                return state.map((branch) => {
+                    if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === action.payload})) 
+                        return branch;
+                    
+                    branch.leafs=branch.leafs.filter((leaf,i)=> { return (leaf.id!==action.payload) })
+                    
+                    return branch;
                 })
                
                 
-            case "MATERIAL_TOGGLE_VIEW" :
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    if (typeof material.isOpened =="undefined")
-                        material.isOpened=false;
-                        
-                    material.isOpened=!material.isOpened;
-                    
-                    return material;
-                })
-            
-            case "MATERIAL_OPERATION_TOGGLE_EDIT":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    material.operations=material.operations.map((operation,i)=> {
-                            if (i!==action.payload.operationIndex)
-                                return operation;
-                            
-                            if (typeof operation.isEditable =="undefined")
-                                operation.isEditable=false;
-                            
-                            operation.isEditable=!operation.isEditable;
-                            
-                            return operation;
-                            
-                    })
-                    
-                    return material;
-                })
-            
-            case "MATERIAL_TOGGLE_EDIT":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    
-                    if (typeof material.material.isEditable =="undefined")
-                        material.material.isEditable=false;
-                        
-                    
-                    material.operations=material.operations.map((operation, i) =>{
-                        operation.isEditable=false;
-                        return operation;    
-                    })
-                    
-                    material.material.isEditable=!material.material.isEditable;
-                    return material;
-                    
-                })
-            
-            case "MATERIAL_OPERATION_ADD":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                      
-                    material.operations=[...material.operations, MATERIAL_OPERATION_TEMPLATE(action.payload.operationType, action.payload.machineProfile)]
-                    
-                    return material;
-                });
-            
-            case "MATERIAL_OPERATION_DELETE":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    material.operations=material.operations.filter((operation,i)=> {
-                            return (i!==action.payload.operationIndex)
-                    })
-                    
-                    return material;
-                })
-                
+            case "MATERIALDB_LEAF_TOGGLE_EDIT":
+                return toggleLeafAttribute(state, action.payload,'isEditable')
             
             default:
                 return state;
