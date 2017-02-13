@@ -228,23 +228,23 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoResolution = (height, resolution)=>{
+const getSizeByVideoResolution = (height, resolution) => {
     if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
-    let ratio=VIDEO_RESOLUTIONS[resolution].ratio;
-    if (isNaN(ratio)){
-        let p=ratio.split(":")
-        ratio = p[0]/p[1];
-    }  
-    return {width: height*ratio, height}
+    let ratio = VIDEO_RESOLUTIONS[resolution].ratio;
+    if (isNaN(ratio)) {
+        let p = ratio.split(":")
+        ratio = p[0] / p[1];
+    }
+    return { width: height * ratio, height }
 }
 
 export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let p = this.props.perspective || {};
-        let { width,height } =  getSizeByVideoResolution(this.props.height, this.props.resolution);
-        this.state = getDefaultPerspective(p, width,height);
+        let p = this.props.perspective ||  {};
+        let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
+        this.state = getDefaultPerspective(p, width, height);
         this.handlePerspectiveChange.bind(this)
         this.handleStop.bind(this)
     }
@@ -432,13 +432,13 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveReset.bind(this)
         this.handlePerspectiveToggle.bind(this)
 
-        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+        let {width, height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
 
         this.state = {
             lens: this.props.lens,
             fov: this.props.fov,
-            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective || {}, width,height ) },
+            perspective: { enabled: false, ...getDefaultPerspective(this.props.perspective || {}, width, height) },
         }
     }
 
@@ -460,10 +460,10 @@ export class VideoControls extends React.Component {
     }
 
     handlePerspectiveReset() {
-        let {width,height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+        let {width, height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
         let state = Object.assign({}, this.state);
-            state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width,height))
+        state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width, height))
 
         this.setState(state)
         if (this.props.onChange)
@@ -479,11 +479,11 @@ export class VideoControls extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let {width,height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
+        let {width, height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
-            perspective: { enabled: false, ...getDefaultPerspective(nextProps.perspective || {}, width,height) }
+            perspective: { enabled: false, ...getDefaultPerspective(nextProps.perspective || {}, width, height) }
         })
     }
 

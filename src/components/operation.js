@@ -85,7 +85,7 @@ class InputRange extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange.bind(this)
-        this.state = this.props.value;
+        this.state = Object.assign({min: this.props.minValue, max: this.props.maxValue},this.props.value);
     }
 
     handleChange(key, v) {
