@@ -709,7 +709,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, interfaces: state.interfaces, ports: state.ports, documents: state.documents, gcode: state.gcode })
+    state => ({ settings: state.settings, interfaces: state.interfaces, ports: state.ports, documents: state.documents, gcode: state.gcode.content })
 )(Com);
 
 export default Com

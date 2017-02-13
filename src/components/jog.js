@@ -55,6 +55,7 @@ class Jog extends React.Component {
     runJob() {
         if (!playing) {
             let cmd = this.props.gcode;
+            alert(cmd);
             console.log('runJob(' + cmd.length + ')');
             playing = true;
             runJob(cmd);
@@ -531,7 +532,7 @@ export function runStatus(status) {
 
 
 Jog = connect(
-    state => ({ settings: state.settings, stepsize: state.stepsize, gcode: state.gcode })
+    state => ({ settings: state.settings, stepsize: state.stepsize, gcode: state.gcode.content })
 )(Jog);
 
 // Exports
