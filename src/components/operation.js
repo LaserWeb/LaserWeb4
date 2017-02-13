@@ -85,7 +85,7 @@ class InputRange extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange.bind(this)
-        this.state = this.props.value;
+        this.state = Object.assign({min: this.props.minValue, max: this.props.maxValue},this.props.value);
     }
 
     handleChange(key, v) {
@@ -202,7 +202,7 @@ class Field extends React.Component {
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
-            error = <Error operationsBounds={operationsBounds} message={field.error} />;
+            error = <Error operationsBounds={operationsBounds} message={(typeof field.error=='function') ? field.error(op[field.name], settings, op):  field.error} />;
         return (
             <GetBounds Type="tr">
                 <th>{field.label}</th>
