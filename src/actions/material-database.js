@@ -1,21 +1,24 @@
 import { setAttrs } from '../actions/object'
 
-/*MATERIALDB_BRANCH*/
-export const addBranch = ()=> ({type:"MATERIALDB_BRANCH_ADD"});
-export const deleteBranch = (branchId)  => ({type:"MATERIALDB_BRANCH_DELETE", payload: branchId});
-export const setBranchAttrs = (branchId, attrs) => ({type:"MATERIALDB_BRANCH_SET_ATTRS", payload: { branchId, attrs}});
-export const toggleBranchView = (branchId) => ({type:"MATERIALDB_BRANCH_TOGGLE_VIEW", payload: branchId});
-export const toggleBranchEdit = (branchId) => ({type:"MATERIALDB_BRANCH_TOGGLE_EDIT", payload: branchId});
+/*MATERIALDB_GROUP*/
+export const addGroup = ()=> ({type:"MATERIALDB_GROUP_ADD"});
+export const deleteGroup = (groupId)  => ({type:"MATERIALDB_GROUP_DELETE", payload: groupId});
+export const setGroupAttrs = (groupId, attrs) => ({type:"MATERIALDB_GROUP_SET_ATTRS", payload: { groupId, attrs}});
+export const toggleGroupView = (groupId) => ({type:"MATERIALDB_GROUP_TOGGLE_VIEW", payload: groupId});
+export const toggleGroupEdit = (groupId) => ({type:"MATERIALDB_GROUP_TOGGLE_EDIT", payload: groupId});
 
-/*MATERIALDB_LEAF (operations)*/
-export const addLeaf = (branchId, attrs={}) =>({type:"MATERIALDB_LEAF_ADD", payload:{branchId, attrs}})
-export const deleteLeaf = (leafId)  => ({type:"MATERIALDB_LEAF_DELETE", payload: leafId});
-export const setLeafAttrs = (leafId, attrs) => ({type:"MATERIALDB_LEAF_SET_ATTRS", payload: { leafId, attrs}});
-export const toggleLeafEdit = (leafId) => ({type:"MATERIALDB_LEAF_TOGGLE_EDIT", payload: leafId});
+/*MATERIALDB_PRESET (operations)*/
+export const addPreset = (groupId, attrs={}) =>({type:"MATERIALDB_PRESET_ADD", payload:{groupId, attrs}})
+export const deletePreset = (presetId)  => ({type:"MATERIALDB_PRESET_DELETE", payload: presetId});
+export const setPresetAttrs = (presetId, attrs) => ({type:"MATERIALDB_PRESET_SET_ATTRS", payload: { presetId, attrs}});
+export const togglePresetEdit = (presetId) => ({type:"MATERIALDB_PRESET_TOGGLE_EDIT", payload: presetId});
+
+/*MATERIALDB PICKER*/
+export const applyPreset = (presetId) => ({ type: "MATERIALDB_PRESET_APPLY", payload: presetId});
 
 /*MATERIALDB*/
 export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIALDB_UPLOAD", payload: {file, database:JSON.parse(content)}});
 export const downloadMaterialDatabase = (database) => ({ type:"MATERIALDB_DOWNLOAD", payload: {database}});
 
-/*MATERIALDB PICKER*/
-export const applyMaterialDatabase = (leafId) => ({ type: "MATERIALDB_APPLY", payload: leafId});
+
+

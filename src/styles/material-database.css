@@ -37,15 +37,15 @@
 .nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
 
 
-#materialsPane {min-width: 200px}
-#materialsPane heading {display:block; border: 1px solid #eee; padding: 2px; margin-bottom: 1px; border-radius: 5px}
-#materialsPane heading:hover {background: #f6f6f6}
-#materialsPane heading > * {display:block}
-#materialsPane heading h5 {margin-top: 0}
-#materialsPane heading small { margin: 0 0 5px 5px}
-#materialsPane heading.active {background: rgba(0, 126, 255, 0.08); border: 1px solid rgba(0, 126, 255, 0.24)}
-#materialsPane .full-height {position: relative}
-#materialsPane .listing {overflow-y: auto; flex-grow:10 }
+#groupsPane {min-width: 200px}
+#groupsPane heading {display:block; border: 1px solid #eee; padding: 2px; margin-bottom: 1px; border-radius: 5px}
+#groupsPane heading:hover {background: #f6f6f6}
+#groupsPane heading > * {display:block}
+#groupsPane heading h5 {margin-top: 0}
+#groupsPane heading small { margin: 0 0 5px 5px}
+#groupsPane heading.active {background: rgba(0, 126, 255, 0.08); border: 1px solid rgba(0, 126, 255, 0.24)}
+#groupsPane .full-height {position: relative}
+#groupsPane .listing {overflow-y: auto; flex-grow:10 }
 
 .paneToolbar { width: 100%; background: #eee; padding: 2px; border-radius: 5px; text-align: right; margin-bottom: 5px; }
 .paneToolbar .btn {margin-right: 2px}
@@ -76,11 +76,11 @@
 
 .paneContainer { margin-top: 10px; padding: 2px; border: 1px solid #eee; border-radius: 5px}
 
-#operationsPane, #materialsPane {
+#operationsPane, #groupsPane {
     overflow: hidden;
 }
 
-#materialsPane {
+#groupsPane {
     flex-grow: 1;
     min-width: 60px;
     display: flex;

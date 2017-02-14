@@ -2,10 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect, dispatch } from 'react-redux'
 import {
-    addBranch, setBranchAttrs, deleteBranch, toggleBranchView, toggleBranchEdit,
-    addLeaf, deleteLeaf, setLeafAttrs, toggleLeafEdit,
+    addGroup, setGroupAttrs, deleteGroup, toggleGroupView, toggleGroupEdit,
+    addPreset, deletePreset, setPresetAttrs, togglePresetEdit,
     uploadMaterialDatabase, downloadMaterialDatabase,
-    applyMaterial
+    applyPreset
 } from '../actions/material-database.js'
 
 
@@ -105,49 +105,49 @@ class MaterialDatabaseEditor extends React.Component {
         super(props);
         this.state = { selected: this.props.selectedProfile, materialId: null }
 
-        this.handleDelBranch.bind(this)
-        this.handleBranchEditToggle.bind(this)
-        this.handleSelectBranch.bind(this)
+        this.handleDelGroup.bind(this)
+        this.handleGroupEditToggle.bind(this)
+        this.handleSelectGroup.bind(this)
         this.handleProfileSelect.bind(this)
-        this.handleChangeLeaf.bind(this)
-        this.handleChangeBranch.bind(this)
+        this.handleChangePreset.bind(this)
+        this.handleChangeGroup.bind(this)
         this.handleExport.bind(this)
-        this.handleBranchTemplateClone.bind(this)
+        this.handleGroupTemplateClone.bind(this)
     }
 
     handleProfileSelect(value) {
         this.setState({ selected: value })
     }
 
-    handleBranchEditToggle(id) {
-        this.props.handleBranchEditToggle(id)
+    handleGroupEditToggle(id) {
+        this.props.handleGroupEditToggle(id)
     }
 
-    handleDelBranch(id) {
-        this.props.handleDelBranch(id)
+    handleDelGroup(id) {
+        this.props.handleDelGroup(id)
         this.setState({ ...this.state, materialId: null })
     }
 
-    handleChangeLeaf(id, attrs) {
-        this.props.handleChangeLeaf(id, attrs);
+    handleChangePreset(id, attrs) {
+        this.props.handleChangePreset(id, attrs);
     }
 
     handleExport(e, format) {
-        this.props.handleDownload(this.props.materials, format)
+        this.props.handleDownload(this.props.groups, format)
     }
 
-    handleSelectBranch(id) {
+    handleSelectGroup(id) {
         this.setState({ materialId: id })
     }
 
-    handleChangeBranch(id, attrs) {
-        this.props.handleChangeBranch(id, attrs)
+    handleChangeGroup(id, attrs) {
+        this.props.handleChangeGroup(id, attrs)
     }
 
-    handleBranchTemplateClone(fromId, toId){
+    handleGroupTemplateClone(fromId, toId){
         let from;
-        if (from=getMaterialDbBranch(this.props.materials,fromId))
-            this.props.handleBranchTemplateClone(from.template, toId)
+        if (from=getMaterialDbGroup(this.props.groups,fromId))
+            this.props.handleGroupTemplateClone(from.template, toId)
     }
 
     render() {
@@ -165,21 +165,21 @@ class MaterialDatabaseEditor extends React.Component {
 
                 <AllowCapture className="paneSizer" >
                     <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                        <BranchesPane style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
-                            onMaterialSelected={(id) => this.handleSelectBranch(id)}
+                        <GroupsPane style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
+                            onMaterialSelected={(id) => this.handleSelectGroup(id)}
                             itemId={this.state.materialId}
-                            onBranchAdd={(e) => this.props.handleAddBranch()}
-                            onBranchDelete={(id) => this.handleDelBranch(id)}
+                            onGroupAdd={(e) => this.props.handleAddGroup()}
+                            onGroupDelete={(id) => this.handleDelGroup(id)}
                         />
-                        <LeafsPane style={{ flexGrow: 1 }}
-                            branchId={this.state.materialId} selectedProfile={this.state.selected}
-                            onBranchEdit={(id) => this.handleBranchEditToggle(id)}
-                            onBranchChange={(id, attrs) => this.handleChangeBranch(id, attrs)}
-                            onLeafAdd={(id) => this.props.handleAddLeaf(id)}
-                            onLeafChange={(id, attrs) => this.handleChangeLeaf(id, attrs)}
-                            onLeafDelete={(id) => this.props.handleDelLeaf(id)}
-                            onLeafEdit={(id) => this.props.handleLeafEditToggle(id)}
-                            onBranchTemplateClone={(fromId, toId) => this.handleBranchTemplateClone(fromId, toId)}
+                        <PresetsPane style={{ flexGrow: 1 }}
+                            groupId={this.state.materialId} selectedProfile={this.state.selected}
+                            onGroupEdit={(id) => this.handleGroupEditToggle(id)}
+                            onGroupChange={(id, attrs) => this.handleChangeGroup(id, attrs)}
+                            onPresetAdd={(id) => this.props.handleAddPreset(id)}
+                            onPresetChange={(id, attrs) => this.handleChangePreset(id, attrs)}
+                            onPresetDelete={(id) => this.props.handleDelPreset(id)}
+                            onPresetEdit={(id) => this.props.handlePresetEditToggle(id)}
+                            onGroupTemplateClone={(fromId, toId) => this.handleGroupTemplateClone(fromId, toId)}
                         />
                     </div>
                 </AllowCapture>
@@ -191,16 +191,16 @@ class MaterialDatabaseEditor extends React.Component {
 
 }
 
-class BranchesPane extends React.Component {
+class GroupsPane extends React.Component {
 
     render() {
-        return <div id="materialsPane" className="full-height" style={this.props.style}>
-            <Splitter split="vertical" initialSize={300} splitterId="materialsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
+        return <div id="groupsPane" className="full-height" style={this.props.style}>
+            <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
                 <div className="full-height innerPane"  >
                     <div className="paneToolbar">
                         <h5>Groupings</h5>
-                        <Button onClick={e => this.props.onBranchAdd()} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
-                        <Button onClick={e => this.props.onBranchDelete(this.props.itemId)} bsSize="xs" bsStyle="danger" disabled={this.props.itemId ? false : true}><Icon name="trash" /> Delete</Button>
+                        <Button onClick={e => this.props.onGroupAdd()} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
+                        <Button onClick={e => this.props.onGroupDelete(this.props.itemId)} bsSize="xs" bsStyle="danger" disabled={this.props.itemId ? false : true}><Icon name="trash" /> Delete</Button>
                     </div>
                     <div className="listing">
                         {this.props.items.map((item, i) => {
@@ -218,7 +218,7 @@ class BranchesPane extends React.Component {
     }
 }
 
-BranchesPane = connect(
+GroupsPane = connect(
     state => {
         return {
             items: state.materialDatabase
@@ -228,10 +228,10 @@ BranchesPane = connect(
         return {}
     }
 
-)(BranchesPane)
+)(GroupsPane)
 
 
-class LeafActions extends React.Component {
+class PresetActions extends React.Component {
 
     constructor(props) {
         super(props)
@@ -241,10 +241,10 @@ class LeafActions extends React.Component {
 
         return <FormGroup>
             <InputGroup>
-                <InputGroup.Button><Button disabled={this.props.disabled} onClick={(e) => { this.props.onCloneTo(this.props.branchId, this.state.selected) }} bsStyle="success" title="Clones current template to other Group" ><Icon name="clone" /> Clone to</Button></InputGroup.Button>
+                <InputGroup.Button><Button disabled={this.props.disabled} onClick={(e) => { this.props.onCloneTo(this.props.groupId, this.state.selected) }} bsStyle="success" title="Clones current template to other Group" ><Icon name="clone" /> Clone to</Button></InputGroup.Button>
                 <FormControl componentClass="select" placeholder="type" onChange={(e) => this.setState({ selected: e.target.value })} disabled={this.props.disabled}>
                     <option></option>
-                    {this.props.branches.map((branch, i) => { if (this.props.branchId !== branch.id) return <option key={i} value={branch.id}>{branch.name}</option> })}
+                    {this.props.groups.map((group, i) => { if (this.props.groupId !== group.id) return <option key={i} value={group.id}>{group.name}</option> })}
                 </FormControl>
 
             </InputGroup>
@@ -252,11 +252,11 @@ class LeafActions extends React.Component {
     }
 }
 
-class LeafsPane extends React.Component {
+class PresetsPane extends React.Component {
     render() {
-        let branchId = this.props.branchId;
-        let item = getMaterialDbBranch(this.props.branches, branchId)
-        let heading, leafs = [], leftToolbar, rightToolbar, template, actions;
+        let groupId = this.props.groupId;
+        let item = getMaterialDbGroup(this.props.groups, groupId)
+        let heading, presets = [], leftToolbar, rightToolbar, template, actions;
         if (item) {
 
             if (item.isEditable) {
@@ -269,25 +269,25 @@ class LeafsPane extends React.Component {
                                 type="text"
                                 value={item.name}
                                 placeholder="Name of the Operation Group"
-                                onChange={(e) => { this.props.onBranchChange(this.props.branchId, { name: e.target.value }) }}
+                                onChange={(e) => { this.props.onGroupChange(this.props.groupId, { name: e.target.value }) }}
                             />
                             <FormControl.Feedback />
                         </FormGroup>
 
                         <FormGroup>
                             <ControlLabel>Notes</ControlLabel>
-                            <FormControl componentClass="textarea" placeholder="notes" value={item.notes} onChange={(e) => { this.props.onBranchChange(this.props.branchId, { notes: e.target.value }) }} />
+                            <FormControl componentClass="textarea" placeholder="notes" value={item.notes} onChange={(e) => { this.props.onGroupChange(this.props.groupId, { notes: e.target.value }) }} />
                             <FormControl.Feedback />
                         </FormGroup>
                     </fieldset>
                     <fieldset>
                         <legend>Default Template</legend>
 
-                        <LeafOperationSettings operation={item.template} caption="Settings" isEditable={true}
-                            onCellChange={(id, attrs) => { this.props.onBranchChange(this.props.branchId, { template: attrs }) }} />
+                        <PresetOperationSettings operation={item.template} caption="Settings" isEditable={true}
+                            onCellChange={(id, attrs) => { this.props.onGroupChange(this.props.groupId, { template: attrs }) }} />
 
-                        <LeafOperationParameters operation={item.template} caption="Parameters" isEditable={true}
-                            onCellChange={(id, attrs) => { this.props.onBranchChange(this.props.branchId, { template: attrs }) }} />
+                        <PresetOperationParameters operation={item.template} caption="Parameters" isEditable={true}
+                            onCellChange={(id, attrs) => { this.props.onGroupChange(this.props.groupId, { template: attrs }) }} />
 
 
                     </fieldset>
@@ -299,8 +299,8 @@ class LeafsPane extends React.Component {
                 heading = (<div className="operationHeading">
                     <h3>{item.name}</h3>{item.notes ? (<p>{item.notes}</p>) : undefined}
 
-                    <LeafOperationSettings operation={item.template} caption="Settings" />
-                    <LeafOperationParameters operation={item.template} caption="Parameters" />
+                    <PresetOperationSettings operation={item.template} caption="Settings" />
+                    <PresetOperationParameters operation={item.template} caption="Parameters" />
 
 
                 </div>)
@@ -309,18 +309,18 @@ class LeafsPane extends React.Component {
 
             leftToolbar = (<div className="paneToolbar">
                 <h5>Group</h5>
-                <Button bsSize="xsmall" bsStyle="warning" onClick={(e) => { this.props.onBranchEdit(this.props.branchId) }}><Icon name="pencil" /> Edit</Button>
+                <Button bsSize="xsmall" bsStyle="warning" onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}><Icon name="pencil" /> Edit</Button>
             </div>)
 
             rightToolbar = (<div className="paneToolbar">
                 <h5>Presets</h5>
-                <Button bsSize="xsmall" bsStyle="success" onClick={(e) => { this.props.onLeafAdd(this.props.branchId) }}><Icon name="plus" /> Add</Button>
+                <Button bsSize="xsmall" bsStyle="success" onClick={(e) => { this.props.onPresetAdd(this.props.groupId) }}><Icon name="plus" /> Add</Button>
             </div>)
 
-            leafs = item.leafs;
+            presets = item.presets;
 
             actions = <div className="paneToolbar">
-                <LeafActions branches={this.props.branches} branchId={this.props.branchId} disabled={item.isEditable} onCloneTo={(from, to) => this.props.onBranchTemplateClone(this.props.branchId, to)} />
+                <PresetActions groups={this.props.groups} groupId={this.props.groupId} disabled={item.isEditable} onCloneTo={(from, to) => this.props.onGroupTemplateClone(this.props.groupId, to)} />
             </div>
 
         }
@@ -334,21 +334,21 @@ class LeafsPane extends React.Component {
             <div className="full-height right innerPane">
                 {rightToolbar}
                 <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
-                    {leafs.map((operation, i) => {
+                    {presets.map((operation, i) => {
                         if (!shouldShow(operation, this.props.selectedProfile)) return;
 
                         return <Details className={operation.isEditable ? "editable" : ""} key={i}
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
-                                <Button onClick={(e) => { this.props.onLeafEdit(operation.id) }} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>
-                                <Button onClick={(e) => { this.props.onLeafDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
+                                <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>
+                                <Button onClick={(e) => { this.props.onPresetDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
                             </div>} >
-                            <LeafOperationSettings operation={operation} isEditable={operation.isEditable}
-                                onCellChange={(id, attrs) => { this.props.onLeafChange(id, attrs) }}
+                            <PresetOperationSettings operation={operation} isEditable={operation.isEditable}
+                                onCellChange={(id, attrs) => { this.props.onPresetChange(id, attrs) }}
                                 caption="Settings" />
 
-                            <LeafOperationParameters operation={operation} isEditable={operation.isEditable}
-                                onCellChange={(id, attrs) => { this.props.onLeafChange(id, attrs) }}
+                            <PresetOperationParameters operation={operation} isEditable={operation.isEditable}
+                                onCellChange={(id, attrs) => { this.props.onPresetChange(id, attrs) }}
                                 caption="Parameters" />
                         </Details>
                     })}
@@ -358,20 +358,20 @@ class LeafsPane extends React.Component {
     }
 }
 
-LeafsPane = connect(
+PresetsPane = connect(
     state => {
         return {
-            branches: state.materialDatabase
+            groups: state.materialDatabase
         }
     },
     dispatch => {
         return {}
     }
 
-)(LeafsPane)
+)(PresetsPane)
 
 
-class LeafOperationSettings extends React.Component {
+class PresetOperationSettings extends React.Component {
 
     render() {
         let result = "";
@@ -426,7 +426,7 @@ class LeafOperationSettings extends React.Component {
     }
 }
 
-class LeafOperationParameters extends React.Component {
+class PresetOperationParameters extends React.Component {
 
     render() {
         const OP = this.props.operation;
@@ -471,7 +471,7 @@ class LeafOperationParameters extends React.Component {
     }
 }
 
-LeafOperationParameters = connect((state) => { return { settings: state.settings } })(LeafOperationParameters)
+PresetOperationParameters = connect((state) => { return { settings: state.settings } })(PresetOperationParameters)
 
 
 
@@ -548,14 +548,14 @@ class MaterialDatabasePicker extends React.Component {
                 header="Operation Presets">
                 <MaterialMachineProfile selected={this.state.selectedProfile} onChange={(value) => { this.handleProfileSelect(value) }} />
                 <div className="materialPicker">
-                    {this.props.materials.map((item, i) => {
+                    {this.props.groups.map((item, i) => {
                         return <section key={i}>
                             <heading>
                                 <h4>{item.name}</h4>
                                 <small>{item.notes}</small>
                             </heading>
 
-                            {item.leafs.map((op, j) => {
+                            {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
@@ -585,7 +585,7 @@ const mapStateToProps = (state) => {
 
     return {
         profiles: state.machineProfiles,
-        materials: state.materialDatabase,
+        groups: state.materialDatabase,
         selectedProfile: state.settings.__selectedProfile || "*"
     }
 
@@ -593,40 +593,40 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        handleAddBranch: () => {
-            dispatch(addBranch())
+        handleAddGroup: () => {
+            dispatch(addGroup())
         },
-        handleDelBranch: (id) => {
-            if (confirm("Are you sure?")) dispatch(deleteBranch(id))
+        handleDelGroup: (id) => {
+            if (confirm("Are you sure?")) dispatch(deleteGroup(id))
         },
-        handleBranchEditToggle: (id) => {
-            dispatch(toggleBranchEdit(id))
+        handleGroupEditToggle: (id) => {
+            dispatch(toggleGroupEdit(id))
         },
-        handleAddLeaf: (id) => {
-            dispatch(addLeaf(id))
+        handleAddPreset: (id) => {
+            dispatch(addPreset(id))
         },
-        handleDelLeaf: (id) => {
-            if (confirm("Are you sure?")) dispatch(deleteLeaf(id))
+        handleDelPreset: (id) => {
+            if (confirm("Are you sure?")) dispatch(deletePreset(id))
         },
-        handleChangeLeaf: (id, attrs) => {
-            dispatch(setLeafAttrs(id, attrs))
+        handleChangePreset: (id, attrs) => {
+            dispatch(setPresetAttrs(id, attrs))
         },
-        handleChangeBranch: (id, attrs) => {
-            dispatch(setBranchAttrs(id, attrs))
+        handleChangeGroup: (id, attrs) => {
+            dispatch(setGroupAttrs(id, attrs))
         },
-        handleLeafEditToggle: (id) => {
-            dispatch(toggleLeafEdit(id))
+        handlePresetEditToggle: (id) => {
+            dispatch(togglePresetEdit(id))
         },
-        handleBranchTemplateClone: (template, toId) => {
-            dispatch(setBranchAttrs(toId, { template }))
+        handleGroupTemplateClone: (template, toId) => {
+            dispatch(setGroupAttrs(toId, { template }))
         },
-        handleDownload: (materials, format) => {
+        handleDownload: (groups, format) => {
             if (format == 'json') {
-                FileStorage.save('laserweb-materials', stringify(materials), "application/json");
+                FileStorage.save('laserweb-groups', stringify(groups), "application/json");
             } else if (format == 'csv') {
-                FileStorage.save('laserweb-materials', arr2csv(materialTreeToTabular(materials)), "text/csv");
+                FileStorage.save('laserweb-groups', arr2csv(materialTreeToTabular(groups)), "text/csv");
             }
-            dispatch(downloadMaterialDatabase(materials))
+            dispatch(downloadMaterialDatabase(groups))
         },
         handleUpload: (name, action) => {
             FileStorage.load(name, (file, result) => dispatch(action(file, result)));
@@ -657,13 +657,13 @@ export class MaterialDatabaseButton extends React.Component {
     }
 }
 
-const getMaterialDbBranch = (state, id) => {
-    return state.find(branch => branch.id === id);
+const getMaterialDbGroup = (state, id) => {
+    return state.find(group => group.id === id);
 }
-const getMaterialDbLeaf = (state, id) => {
+const getMaterialDbPreset = (state, id) => {
     let found = null;
-    state.forEach((branch) => {
-        let f = branch.leafs.find((leaf) => { return leaf.id === id });
+    state.forEach((group) => {
+        let f = group.presets.find((preset) => { return preset.id === id });
         if (f) found = f;
     })
     return found;
@@ -678,7 +678,7 @@ export class MaterialPickerButton extends React.Component {
 
     handleApplyPreset(operationId) {
 
-        let operation = getMaterialDbLeaf(this.props.branches, operationId)
+        let operation = getMaterialDbPreset(this.props.groups, operationId)
 
         this.props.onApplyPreset(operation.type, omit(operation.params, (val, key) => {
             return val !== undefined && val !== null;
@@ -699,6 +699,6 @@ export class MaterialPickerButton extends React.Component {
 
 MaterialPickerButton = connect((state) => {
     return {
-        branches: state.materialDatabase
+        groups: state.materialDatabase
     }
 })(MaterialPickerButton)

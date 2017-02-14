@@ -11,7 +11,7 @@
                 "cutRate":"1500"
             }
         },
-        "leafs":[
+        "presets":[
             {
                 "id":"baltic_plywood",
                 "machine_profile":null,
