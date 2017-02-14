@@ -10,9 +10,9 @@ import keydown, { Keys } from 'react-keydown';
 
 const keystrokes = ["shift+up", "shift+down", "shift+enter"]
 
-// level STD, INFO, WARN, DANGER
-const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle'];
-const CommandHistory_CLASS = ['default', 'info', 'warning', 'danger'];
+// level STD, INFO, WARN, DANGER, SUCCESS
+const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle', 'check-circle'];
+const CommandHistory_CLASS = ['default', 'info', 'warning', 'danger', 'success'];
 
 const createCommandLogLine = (message, level = 0, icon = undefined) => {
     if (typeof icon == 'undefined') icon = level;
@@ -162,3 +162,4 @@ CommandHistory.STD = 0;
 CommandHistory.INFO = 1;
 CommandHistory.WARN = 2;
 CommandHistory.DANGER = 3;
+CommandHistory.SUCCESS = 4;

@@ -308,6 +308,8 @@ body, html, .full-height {
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
+.commandHistory code.success {background: #efe}
+.commandHistory code.success i {color: #0a0}
 
 /*FullSizeModal*/
 

@@ -6,6 +6,7 @@
 // React
 import React from 'react'
 import { connect } from 'react-redux';
+import keydown, { Keys } from 'react-keydown';
 
 import { PanelGroup, Panel, ProgressBar } from 'react-bootstrap';
 import { setSettingsAttrs } from '../actions/settings';
@@ -13,7 +14,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 
 import CommandHistory from './command-history';
 
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -36,7 +37,12 @@ class Jog extends React.Component {
         super(props);
         this.state = {stepsize: this.props.settings.stepsize}
     }
-    
+
+    @keydown('ctrl+x')
+    keylogger( event ) {
+        resetMachine();
+    }
+
     componentDidMount() {
                 
     }
@@ -55,7 +61,7 @@ class Jog extends React.Component {
     runJob() {
         if (!playing) {
             let cmd = this.props.gcode;
-            alert(cmd);
+            //alert(cmd);
             console.log('runJob(' + cmd.length + ')');
             playing = true;
             runJob(cmd);
@@ -139,7 +145,7 @@ class Jog extends React.Component {
         let that = this;
         that.setState({stepsize: stepsize});
         console.log('Jog will use ' + stepsize + ' mm per click');
-        CommandHistory.log('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARNING);
+        CommandHistory.log('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARN);
         //$('.stepsizeval').empty();
         //$('.stepsizeval').html(stepsize + 'mm');
     }

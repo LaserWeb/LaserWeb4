@@ -20,7 +20,7 @@ var playing = false;
 var paused = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
-var firmware;
+var firmware, fVersion, fDate;
 var xpos, ypos, zpos;
 
 class Com extends React.Component {
@@ -42,7 +42,7 @@ class Com extends React.Component {
         let that = this;
         let {settings, dispatch} = this.props;
         let server = settings.commServerIP;
-        CommandHistory.log('Connecting to Server ' + server, CommandHistory.WARNING);
+        CommandHistory.log('Connecting to Server @ ' + server, CommandHistory.INFO);
         //console.log('Connecting to Server ' + server);
         socket = io('ws://' + server);
 
@@ -51,11 +51,11 @@ class Com extends React.Component {
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
             socket.emit('firstload');
-            CommandHistory.log('Server connected', CommandHistory.WARNING);
+            CommandHistory.log('Server connected', CommandHistory.SUCCESS);
         });
         
         socket.on('disconnect', function() {
-            CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.WARNING);
+            CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.DANGER);
             //console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
             $('#connectS').removeClass('disabled');
@@ -73,7 +73,7 @@ class Com extends React.Component {
 //            //console.log('open ' + data);
 //            socket.emit('getInterfaces');
 //            socket.emit('getPorts');
-//            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.WARNING); //INFO
+//            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.INFO);
 //        });
 
         socket.on('serverConfig', function (data) {
@@ -165,14 +165,27 @@ class Com extends React.Component {
                 machineConnected = true;
                 $('#connect').addClass('disabled');
                 $('#disconnect').removeClass('disabled');
-                CommandHistory.log('Machine connectd');
+                CommandHistory.log('Machine connected', CommandHistory.SUCCESS);
             }
             if (data.indexOf('Connect') >= 0) {
                 machineConnected = false;
                 $('#connect').removeClass('disabled');
                 $('#disconnect').addClass('disabled');
-                CommandHistory.log('Machine disconnected');
+                CommandHistory.log('Machine disconnected', CommandHistory.DANGER);
             }
+        });
+
+        socket.on('firmware', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            machineConnected = true;
+            $('#connect').addClass('disabled');
+            $('#disconnect').removeClass('disabled');
+            firmware = data.firmware;
+            fVersion = data.version;
+            fDate = data.date;
+            CommandHistory.log('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
         });
 
         socket.on('runStatus', function (status) {
@@ -181,21 +194,13 @@ class Com extends React.Component {
             if (status === 'running') {
                 playing = true;
                 paused = false;
-                //$('#playicon').removeClass('fa-play');
-                //$('#playicon').addClass('fa-pause');
             } else if (status === 'paused') {
                 paused = true;
-                //$('#playicon').removeClass('fa-pause');
-                //$('#playicon').addClass('fa-play');
             } else if (status === 'resumed') {
                 paused = false;
-                //$('#playicon').removeClass('fa-play');
-                //$('#playicon').addClass('fa-pause');
             } else if (status === 'stopped') {
                 playing = false;
                 paused = false;
-                //$('#playicon').removeClass('fa-pause');
-                //$('#playicon').addClass('fa-play');
             } else if (status === 'alarm') {
                 //socket.emit('clearAlarm', 2);
             }
@@ -226,7 +231,7 @@ class Com extends React.Component {
                 if (parseFloat(data.substr(5)) >= 1.1) { //is Grbl >= v1.1
                     //console.log('GRBL >= 1.1 detected');
                 } else {
-                    CommandHistory.log('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e');
+                    CommandHistory.log('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e', CommandHistory.DANGER);
                     socket.emit('closePort', 1);
                     machineConnected = false;
                     //console.log('GRBL < 1.1 not supported!');
@@ -253,7 +258,7 @@ class Com extends React.Component {
             }
             if (posChanged) {
                 //CommandHistory.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
-                console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 $('#mX').html(xpos);
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
@@ -264,40 +269,40 @@ class Com extends React.Component {
         // feed override report (from server)
         socket.on('feedOverride', function (data) {
             serverConnected = true;
-            //CommandHistory.log('feedOverride: ' + data);
-            console.log('feedOverride ' + data);
+            //CommandHistory.log('feedOverride: ' + data, CommandHistory.STD);
+            //console.log('feedOverride ' + data);
             $('#oF').html(data.toString() + '<span class="drounitlabel"> %</span>');
         });
 
         // spindle override report (from server)
         socket.on('spindleOverride', function (data) {
             serverConnected = true;
-            //CommandHistory.log('spindleOverride: ' + data);
-            console.log('spindleOverride ' + data);
+            //CommandHistory.log('spindleOverride: ' + data, CommandHistory.STD);
+            //console.log('spindleOverride ' + data);
             $('#oS').html(data.toString() + '<span class="drounitlabel"> %</span>');
         });
 
         // real feed report (from server)
         socket.on('realFeed', function (data) {
             serverConnected = true;
-            //CommandHistory.log('realFeed: ' + data);
-            console.log('realFeed ' + data);
+            //CommandHistory.log('realFeed: ' + data, CommandHistory.STD);
+            //console.log('realFeed ' + data);
             //$('#mF').html(data);
         });
 
         // real spindle report (from server)
         socket.on('realSpindle', function (data) {
             serverConnected = true;
-            //CommandHistory.log('realSpindle: ' + data);
-            console.log('realSpindle ' + data);
+            //CommandHistory.log('realSpindle: ' + data, CommandHistory.STD);
+            //console.log('realSpindle ' + data);
             //$('#mS').html(data);
         });
 
         // laserTest state
         socket.on('laserTest', function (data) {
             serverConnected = true;
-            CommandHistory.log('laserTest: ' + data);
-            console.log('laserTest ' + data);
+            //CommandHistory.log('laserTest: ' + data, CommandHistory.STD);
+            //console.log('laserTest ' + data);
             if (data > 0){
                 laserTestOn = true;
                 $("#lT").addClass('btn-highlight');
@@ -311,28 +316,26 @@ class Com extends React.Component {
             serverConnected = true;
             $('#connect').addClass('disabled');
             $('#disconnect').removeClass('disabled');
-            console.log('qCount ' + data);
+            //console.log('qCount ' + data);
             data = parseInt(data);
             $('#queueCnt').html('Queued: ' + data);
-            if (data === 0) {
-                queueEmptyCount++;
-                if (queueEmptyCount == 4) {
-                    playing = false;
-                    paused = false;
-                    $('#playicon').removeClass('fa-pause');
-                    $('#playicon').addClass('fa-play');
+            if (playing && data === 0) {
+                playing = false;
+                paused = false;
+                runStatus('stopped');
+                $('#playicon').removeClass('fa-pause');
+                $('#playicon').addClass('fa-play');
 
-                    if (jobStartTime >= 0) {
-                        var jobFinishTime = new Date(Date.now());
-                        var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
-                        var elapsedTime = Math.round(elapsedTimeMS / 1000);
-                        CommandHistory.log("Job started at " + jobStartTime.toString());
-                        CommandHistory.log("Job finished at " + jobFinishTime.toString());
-                        CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.");
-                        jobStartTime = -1;
-                        var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
-                        CommandHistory.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
-                    }
+                if (jobStartTime >= 0) {
+                    var jobFinishTime = new Date(Date.now());
+                    var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
+                    var elapsedTime = Math.round(elapsedTimeMS / 1000);
+                    CommandHistory.log("Job started at " + jobStartTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.log("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.", CommandHistory.SUCCESS);
+                    jobStartTime = -1;
+                    var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
+                    CommandHistory.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
                 }
             }
         });
@@ -349,9 +352,8 @@ class Com extends React.Component {
             //console.log('Server connection closed'); 
         });
 
-
         socket.on('error', function (data) {
-            CommandHistory.log('Server error: ' + data);
+            CommandHistory.log('Server error: ' + data, CommandHistory.DANGER);
             //console.log('error: ' + data);
         });
 
@@ -359,7 +361,7 @@ class Com extends React.Component {
     
     handleDisconnectServer() {
         if (socket) {
-            CommandHistory.log('Disconnecting from server');
+            CommandHistory.log('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();
         }
     }
@@ -371,22 +373,22 @@ class Com extends React.Component {
         var connectIP = this.props.settings.connectIP;
         switch (connectVia) {
             case 'USB':
-                CommandHistory.log('connectTo: ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud');
+                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
                 break;
             case 'Telnet':
-                CommandHistory.log('connectTo: ' + connectVia + ',' + connectIP);
+                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
             case 'ESP8266':
-                CommandHistory.log('connectTo: ' + connectVia + ',' + connectIP);
+                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
         }
     }
 
     handleDisconnectMachine() {
-        CommandHistory.log('disconnecting Machine');
+        CommandHistory.log('Disconnecting Machine', CommandHistory.INFO);
         socket.emit('closePort');
     }
 
@@ -509,8 +511,9 @@ export function runCommand(gcode) {
     if (serverConnected) {
         if (machineConnected){
             if (gcode) {
+                CommandHistory.log('Running Command', CommandHistory.INFO);
                 //console.log('runCommand', gcode);
-                socket.emit('runCommand', gcode);
+                socket.emit('runCommand', gcode + '\n');
             }
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
@@ -521,12 +524,12 @@ export function runCommand(gcode) {
 }
 
 export function runJob(job) {
-    console.log('runJob(' + job.lenght + ')');
     if (serverConnected) {
         if (machineConnected){
             if (job.length > 0) {
-                CommandHistory.log('runJob(' + job.lenght + ')', CommandHistory.DANGER);
+                CommandHistory.log('Running Job', CommandHistory.INFO);
                 playing = true;
+                runStatus('running');
                 $('#playicon').removeClass('fa-play');
                 $('#playicon').addClass('fa-pause');
                 socket.emit('runJob', job);
@@ -546,6 +549,7 @@ export function pauseJob() {
     if (serverConnected) {
         if (machineConnected){
             paused = true;
+            runStatus('paused');
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');
             socket.emit('pause');
@@ -562,6 +566,7 @@ export function resumeJob() {
     if (serverConnected) {
         if (machineConnected){
             paused = false;
+            runStatus('running');
             $('#playicon').removeClass('fa-play');
             $('#playicon').addClass('fa-pause');
             socket.emit('resume');
@@ -577,9 +582,10 @@ export function abortJob() {
     console.log('abortJob');
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Abort job', CommandHistory.DANGER);
+            CommandHistory.log('Aborting job', CommandHistory.INFO);
             playing = false;
             paused = false;
+            runStatus('stopped');
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');
             socket.emit('stop');
@@ -594,7 +600,7 @@ export function abortJob() {
 export function setZero(axis) {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Set ' + axis + ' zero', CommandHistory.DANGER);
+            CommandHistory.log('Set ' + axis + ' Axis zero', CommandHistory.INFO);
             socket.emit('setZero', axis);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
@@ -607,7 +613,7 @@ export function setZero(axis) {
 export function gotoZero(axis) {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Goto ' + axis + ' zero', CommandHistory.DANGER);
+            CommandHistory.log('Goto ' + axis + ' zero', CommandHistory.INFO);
             socket.emit('gotoZero', axis);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
@@ -669,6 +675,19 @@ export function spindleOverride(step) {
     }
 }
 
+export function resetMachine() {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.log('Resetting Machine', CommandHistory.DANGER);
+            socket.emit('resetMachine');
+        } else {
+            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+        }
+    } else {
+        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+    }
+}
+
 export function playpauseMachine() {
     if (serverConnected) {
         if (machineConnected){
@@ -681,6 +700,7 @@ export function playpauseMachine() {
                     }
                     socket.emit('resume', laseroncmd);
                     paused = false;
+                    runStatus('running');
                     $('#playicon').removeClass('fa-play');
                     $('#playicon').addClass('fa-pause');
                     // end ifPaused
@@ -692,6 +712,7 @@ export function playpauseMachine() {
                     }
                     socket.emit('pause', laseroffcmd);
                     paused = true;
+                    runStatus('paused');
                     $('#playicon').removeClass('fa-pause');
                     $('#playicon').addClass('fa-play');
                 }
