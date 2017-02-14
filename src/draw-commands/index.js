@@ -105,6 +105,7 @@ export class DrawCommands {
         this.frameBuffers.push(frameBuffer);
         let texture = this.createTexture({ width, height });
         let result = {
+            width, height,
             frameBuffer,
             texture,
             resize(width, height) {

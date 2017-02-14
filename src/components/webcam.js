@@ -35,7 +35,7 @@ export class Webcam extends React.Component {
         let resolution = VIDEO_RESOLUTIONS[this.props.resolution];
         let videoratio = resolution.ratio.split(":"); videoratio = videoratio[0] / videoratio[1];
         let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-        this.video = document.createElement('video'); streamNode.append(this.video);
+        this.video = document.createElement('video'); streamNode.append(this.video); this.video.id='videoStream'
         this.video.width = this.props.width;
         this.video.height = this.props.width / videoratio;
         this.video.style = "display:none"

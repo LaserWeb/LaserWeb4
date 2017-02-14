@@ -250,6 +250,24 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
+function drawVideo(perspective, view, drawCommands, documentCacheHolder, videoTexture, size){
+        
+        let videoElement=document.getElementById("videoStream");
+        if (videoElement && videoElement.readyState === 4){
+            videoTexture.set({image: videoElement, ...size}) 
+            drawCommands.image({
+                perspective, view,
+                location: [0,0,0],
+                size: [size.width, size.height],
+                texture: videoTexture,
+                selected: false,
+            });
+        }
+
+        
+        
+}
+
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
@@ -285,6 +303,8 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
         }
     }
 } // drawSelectedDocuments
+
+
 
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -395,6 +415,8 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
+        this.videoTexture=this.drawCommands.createTexture(this.props.width, this.props.height);
+
         let draw = () => {
             if (!this.canvas)
                 return;
@@ -404,6 +426,10 @@ class WorkspaceContent extends React.Component {
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
+
+            //if (this.props.showVideo)
+                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder, this.videoTexture, {width: this.props.settings.machineWidth, height: this.props.settings.machineHeight})
+
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
@@ -422,6 +448,7 @@ class WorkspaceContent extends React.Component {
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
             if (this.props.workspace.showWorkPos)
                 drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
+                
             requestAnimationFrame(draw);
         };
         draw();
