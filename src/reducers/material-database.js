@@ -12,17 +12,17 @@ function generateInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-const BRANCH_TEMPLATE=()=>{
+const GROUP_TEMPLATE=()=>{
     return {
         id: uuid.v4(),
         name: generateName(),
         notes:"",
-        template: LEAF_TEMPLATE('Laser Cut'),
-        leafs:[]
+        template: PRESET_TEMPLATE('Laser Cut'),
+        presets:[]
     }
 }
 
-const LEAF_TEMPLATE=(type, machineProfile=null)=>{
+const PRESET_TEMPLATE=(type, machineProfile=null)=>{
     return {
         id: uuid.v4(),
         name: "** "+generateName()+" **",
@@ -34,44 +34,44 @@ const LEAF_TEMPLATE=(type, machineProfile=null)=>{
 }
 
 
-const toggleLeafAttribute = (state, id, attribute, processLeaf=null) => {
-    return state.map((branch) => {
-        if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === id})) 
-            return branch;
+const togglePresetAttribute = (state, id, attribute, processPreset=null) => {
+    return state.map((group) => {
+        if (!group.presets || !group.presets.find((preset)=>{ return preset.id === id})) 
+            return group;
         
-        branch.leafs=branch.leafs.map((leaf,i)=> {
-                if (leaf.id!==id)
-                    return leaf;
+        group.presets=group.presets.map((preset,i)=> {
+                if (preset.id!==id)
+                    return preset;
                 
-                if (typeof leaf[attribute] == "undefined")
-                    leaf[attribute]=false;
+                if (typeof preset[attribute] == "undefined")
+                    preset[attribute]=false;
                 
-                leaf[attribute]=!leaf[attribute];
+                preset[attribute]=!preset[attribute];
                 
-                if (processLeaf)
-                    leaf = processLeaf(leaf)
+                if (processPreset)
+                    preset = processPreset(preset)
 
-                return leaf;
+                return preset;
                 
         })
         
-        return branch;
+        return group;
     })
 }
 
-const toggleBranchAttribute = (state, id,  attribute, processBranch=null) => {
-    return state.map((branch) => {
-        if (branch.id !== id)
-            return branch;
-        if (typeof branch[attribute] == "undefined")
-            branch[attribute]=false;
+const toggleGroupAttribute = (state, id,  attribute, processGroup=null) => {
+    return state.map((group) => {
+        if (group.id !== id)
+            return group;
+        if (typeof group[attribute] == "undefined")
+            group[attribute]=false;
             
-        branch[attribute]=!branch[attribute];
+        group[attribute]=!group[attribute];
 
-        if (processBranch)
-            branch = processBranch(branch)
+        if (processGroup)
+            group = processGroup(group)
         
-        return branch;
+        return group;
     })
 }
 
@@ -87,83 +87,85 @@ export const materialDatabase = (state = initialState, action) => {
             case "MATERIALDB_DOWNLOAD":
                 return state;
           
-            case "MATERIALDB_BRANCH_ADD":
-                state = [...state, BRANCH_TEMPLATE()];
+            case "MATERIALDB_GROUP_ADD":
+                state = [...state, GROUP_TEMPLATE()];
                 return state;
                 
-            case "MATERIALDB_BRANCH_DELETE":
-                return state.filter((branch)=>{
-                    return (branch.id !== action.payload);
+            case "MATERIALDB_GROUP_DELETE":
+                return state.filter((group)=>{
+                    return (group.id !== action.payload);
                 })
             
-            case "MATERIALDB_BRANCH_SET_ATTRS":
-                return state.map((branch) => {
-                    if (branch.id !== action.payload.branchId)
-                        return branch;
+            case "MATERIALDB_GROUP_SET_ATTRS":
+                return state.map((group) => {
+                    if (group.id !== action.payload.groupId)
+                        return group;
                     
-                    let attrs=omit(action.payload.attrs, ['id','leafs']); // dont overwrite id,leafs
-                    branch=deepMerge(branch, attrs )
-                    return branch;
+                    let attrs=omit(action.payload.attrs, ['id','presets']); // dont overwrite id,presets
+                    group=deepMerge(group, attrs )
+                    return group;
                 })
 
-            case "MATERIALDB_BRANCH_TOGGLE_VIEW" :
-                return toggleBranchAttribute(state, action.payload, 'isOpened');
+            case "MATERIALDB_GROUP_TOGGLE_VIEW" :
+                return toggleGroupAttribute(state, action.payload, 'isOpened');
 
-            case "MATERIALDB_BRANCH_TOGGLE_EDIT":
+            case "MATERIALDB_GROUP_TOGGLE_EDIT":
 
                 //disable children edit.
-                const processBranch=(branch)=>{
-                    if (branch.isEditable){
-                        branch.leafs=branch.leafs.map((leaf, i) =>{
-                            leaf.isEditable=false;
-                            return leaf;    
+                const processGroup=(group)=>{
+                    if (group.isEditable){
+                        group.presets=group.presets.map((preset, i) =>{
+                            preset.isEditable=false;
+                            return preset;    
                         })
                     }
-                    return branch;
+                    return group;
                 }
 
-                return toggleBranchAttribute(state, action.payload, 'isEditable', processBranch )
+                return toggleGroupAttribute(state, action.payload, 'isEditable', processGroup )
             
-            case "MATERIALDB_LEAF_ADD":
-                return state.map((branch) => {
-                    if (branch.id !== action.payload.branchId)
-                        return branch;
+            case "MATERIALDB_PRESET_ADD":
+                return state.map((group) => {
+                    if (group.id !== action.payload.groupId)
+                        return group;
                       
-                    branch.leafs=[...branch.leafs, Object.assign(LEAF_TEMPLATE(),branch.template || {}, action.payload.attrs)]
+                    let template=group.template || {};
+                    let attrs=action.payload.attrs || {};
+                    group.presets=[...group.presets, Object.assign(PRESET_TEMPLATE(),omit(template,['id','name']), omit(attrs,['id']))]
                     
-                    return branch;
+                    return group;
                 });
 
-            case "MATERIALDB_LEAF_SET_ATTRS":
-                return state.map((branch) => {
-                    if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === action.payload.leafId})) 
-                        return branch;
+            case "MATERIALDB_PRESET_SET_ATTRS":
+                return state.map((group) => {
+                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload.presetId})) 
+                        return group;
                     
                     
-                    branch.leafs=branch.leafs.map((leaf)=> {
-                            if (leaf.id!==action.payload.leafId)
-                                return leaf;
-                            return deepMerge(leaf, action.payload.attrs)
+                    group.presets=group.presets.map((preset)=> {
+                            if (preset.id!==action.payload.presetId)
+                                return preset;
+                            return deepMerge(preset, action.payload.attrs)
                             
                     })
                     
-                    return branch;
+                    return group;
                 })
 
             
-            case "MATERIALDB_LEAF_DELETE":
-                return state.map((branch) => {
-                    if (!branch.leafs || !branch.leafs.find((leaf)=>{ return leaf.id === action.payload})) 
-                        return branch;
+            case "MATERIALDB_PRESET_DELETE":
+                return state.map((group) => {
+                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload})) 
+                        return group;
                     
-                    branch.leafs=branch.leafs.filter((leaf,i)=> { return (leaf.id!==action.payload) })
+                    group.presets=group.presets.filter((preset,i)=> { return (preset.id!==action.payload) })
                     
-                    return branch;
+                    return group;
                 })
                
                 
-            case "MATERIALDB_LEAF_TOGGLE_EDIT":
-                return toggleLeafAttribute(state, action.payload,'isEditable')
+            case "MATERIALDB_PRESET_TOGGLE_EDIT":
+                return togglePresetAttribute(state, action.payload,'isEditable')
             
             default:
                 return state;
