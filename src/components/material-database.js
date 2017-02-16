@@ -433,6 +433,8 @@ class PresetOperationSettings extends React.Component {
     }
 }
 
+const OMIT_FIELDS_EDITION=['name','filterFillColor', 'filterStrokeColor']
+
 class PresetOperationParameters extends React.Component {
 
     render() {
@@ -440,7 +442,7 @@ class PresetOperationParameters extends React.Component {
         const OPDEF = operation.types[this.props.operation.type]
         const fields = {};
 
-        OPDEF.fields.forEach((key) => {
+        OPDEF.fields.filter((field)=> { return !OMIT_FIELDS_EDITION.includes(field)}).forEach((key) => {
 
             const PARAMDEF = operation.fields[key];
             let FieldType = PARAMDEF.input
