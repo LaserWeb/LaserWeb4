@@ -309,7 +309,10 @@ class PresetsPane extends React.Component {
 
             leftToolbar = (<div className="paneToolbar">
                 <h5>Group</h5>
-                <Button bsSize="xsmall" bsStyle="warning" onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}><Icon name="pencil" /> Edit</Button>
+                <Button onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}
+                                        bsSize="xsmall" bsStyle={item.isEditable? "primary": "warning"} >
+                                        {item.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                                </Button>
             </div>)
 
             rightToolbar = (<div className="paneToolbar">
@@ -337,10 +340,14 @@ class PresetsPane extends React.Component {
                     {presets.map((operation, i) => {
                         if (!shouldShow(operation, this.props.selectedProfile)) return;
 
-                        return <Details className={operation.isEditable ? "editable" : ""} key={i}
+                        return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
-                                <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>
+                                <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }}
+                                        bsSize="xsmall" bsStyle={operation.isEditable? "primary": "warning"} >
+                                        {operation.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                                </Button>
+
                                 <Button onClick={(e) => { this.props.onPresetDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
                             </div>} >
                             <PresetOperationSettings operation={operation} isEditable={operation.isEditable}
@@ -484,7 +491,7 @@ class Details extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.open !== undefined)
-            this.setState({ ...this.state, open: nextProps.open })
+            this.setState({ ...this.state, open: nextProps.open || this.state.open })
     }
 
     render() {
