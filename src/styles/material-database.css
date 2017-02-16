@@ -72,7 +72,8 @@
 
 #operationsPane .details {margin-bottom: 2px}
 
-
+#operationsPane .has-error > input {border: 1px red solid}
+#operationsPane .has-error:after{content:attr(title); color: red; margin-left: 1em}
 
 .paneContainer { margin-top: 10px; padding: 2px; border: 1px solid #eee; border-radius: 5px}
 

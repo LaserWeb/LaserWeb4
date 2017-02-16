@@ -447,7 +447,7 @@ class PresetOperationParameters extends React.Component {
             const PARAMDEF = operation.fields[key];
             let FieldType = PARAMDEF.input
 
-            let hasError = PARAMDEF.check ? !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) : false
+            let hasError = (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings))) 
 
             let className = [FieldType.name];
 
