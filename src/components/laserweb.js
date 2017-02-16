@@ -44,6 +44,8 @@ import {fireMacroByKeyboard} from '../actions/macros'
 
 import {GlobalStore} from '../index'
 
+import { Webcam } from './webcam'
+
 /**
  * LaserWeb main component (layout).
  * - Create the main layout.
@@ -67,6 +69,11 @@ class LaserWeb extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         return nextProps.documents !== this.props.documents;
+    }
+
+    componentWillMount()
+    {
+        Webcam.init(this.props.settings)
     }
 
     render() {
@@ -97,6 +104,7 @@ const mapStateToProps = (state) => {
         macros: state.macros,
         visible: state.panes.visible,
         documents: state.documents,
+        settings: state.settings,
     }
 }
 

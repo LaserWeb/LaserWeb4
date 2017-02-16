@@ -8,50 +8,64 @@ import Select from 'react-select'
 import Toggle from 'react-toggle'
 import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 
-import getUserMedia from 'getusermedia';
 import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
 import '../styles/webcam.css';
 
+import {VideoCapture, DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution} from '../lib/video-capture'
 
 export class Webcam extends React.Component {
 
-    componentWillUnmount() {
-        this._stopVideo(this.stream);
+    static init(settings) {
+        window.videoCapture = new VideoCapture()
+        /*window.videoCapture.setVideo({
+            resolution: settings.toolVideoResolution || DEFAULT_VIDEO_RESOLUTION,   //target resolution
+            ...getVideoResolution(settings.toolVideoResolution)                     //size same than resolution
+        }, ()=> {console.log("statically initializing webcam")})
+        */
+        window.videoCapture.createStream({
+            device: settings.toolVideoDevice,
+            resolution: settings.toolVideoResolution || DEFAULT_VIDEO_RESOLUTION,   //target resolution
+            ...getVideoResolution(settings.toolVideoResolution)                     //size same than resolution
+        }, ()=> {console.log("statically initializing webcam stream")})
     }
 
     componentDidMount() {
-        this.initVideo();
+        this.initVideo(false);
+    }
+
+    componentWillUnmount() {
+        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
+            streamNode.removeChild(this.canvas);
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.resolution != this.props.resolution) {
-            this._stopVideo(this.stream);
-            this.initVideo();
+            this.initVideo(true);
         }
     }
 
-    initVideo() {
+    initVideo(force=false) {
 
-        let resolution = VIDEO_RESOLUTIONS[this.props.resolution];
+        let resolution = getVideoResolution(this.props.resolution);
         let videoratio = resolution.ratio.split(":"); videoratio = videoratio[0] / videoratio[1];
         let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-        this.video = document.createElement('video'); streamNode.append(this.video); this.video.id='videoStream'
-        this.video.width = this.props.width;
-        this.video.height = this.props.width / videoratio;
-        this.video.style = "display:none"
-        this.canvas = document.createElement('canvas'); streamNode.append(this.canvas);
 
-        this.canvas.width = this.video.width;
-        this.canvas.height = this.video.height;
 
-        // resolution adjustment
+        if (this.canvas)
+            streamNode.removeChild(this.canvas);
+        this.canvas= document.createElement('canvas'); 
+
+        streamNode.append(this.canvas);
+        
+
+        // coords resolution adjustment
         const ratio = (value, index) => {
             let wh = !(index % 2) ? this.props.width : this.props.height;
             let rwh = !(index % 2) ? resolution.width : resolution.height;
             return parseInt((value / wh) * rwh);
         }
 
-        // coordinates adjustment
+        // coords order adjustment
         const swap = (set) => {
             return [
                 set[0], this.props.height - set[1],
@@ -62,6 +76,13 @@ export class Webcam extends React.Component {
         }
 
         const capture = (src) => {
+            
+            this.video=src;
+            
+
+            this.canvas.width = src.width;
+            this.canvas.height = src.height;
+
             const regl = require('regl')(this.canvas);
             const pipe = pipeImageCommand(regl)
 
@@ -77,8 +98,10 @@ export class Webcam extends React.Component {
             const fbo2 = regl.framebuffer(fbopts);
 
             const animate = () => {
+                if (!window.videoCapture.isReady)
+                    return;
                 try {
-                    video({ data: src, min: 'linear', mag: 'linear' })
+                    video({ data: this.video, min: 'linear', mag: 'linear' })
                     fbo(fbopts)
                     fbo2(fbopts)
 
@@ -111,44 +134,8 @@ export class Webcam extends React.Component {
 
         }
 
-        let constraints = Object.assign({ video: true, audio: false }, this.props.constraints || {})
-        if (this.props.device) {
-            constraints = Object.assign(constraints, {
-                deviceId: { exact: this.props.device },
-                width: { exact: resolution.width },
-                height: { exact: resolution.height }
-            });
-        }
-        getUserMedia(constraints, (err, stream) => {
-            if (err) {
-                console.error(err);
-            } else {
-                this.stream = stream;
-                this._startVideo(this.stream, capture)
-            }
-        })
-    }
-
-    _startVideo(stream, callback) {
-        let that = this;
-        this.video.addEventListener('loadeddata', (e) => {
-            if (this.video.readyState === 4) {
-                callback.apply(that, [this.video])
-            }
-        }, false)
-        this.video.src = window.URL.createObjectURL(stream);
-        this.video.play();
-    };
-
-    _stopVideo(stream) {
-        if (stream) stream.getTracks().forEach((track) => { track.stop(); });
-        window.URL.revokeObjectURL(stream);
-
-        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-        streamNode.removeChild(this.video);
-        streamNode.removeChild(this.canvas);
-
-
+        
+        window.videoCapture.getVideo( this.props, capture)
     }
 
     render() {
@@ -162,7 +149,7 @@ export class Webcam extends React.Component {
 Webcam.defaultProps = {
     width: 320,
     height: 240,
-    resolution: "720p(HD)",
+    resolution: DEFAULT_VIDEO_RESOLUTION,
     lens: { a: 1, b: 1, F: 4, scale: 1 },
     fov: { x: 1.0, y: 1.0 }
 }
@@ -228,21 +215,13 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoResolution = (height, resolution) => {
-    if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
-    let ratio = VIDEO_RESOLUTIONS[resolution].ratio;
-    if (isNaN(ratio)) {
-        let p = ratio.split(":")
-        ratio = p[0] / p[1];
-    }
-    return { width: height * ratio, height }
-}
+
 
 export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let p = this.props.perspective ||  {};
+        let p = this.props.perspective || {};
         let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
         this.state = getDefaultPerspective(p, width, height);
         this.handlePerspectiveChange.bind(this)
@@ -305,6 +284,7 @@ export class VideoDeviceField extends React.Component {
     constructor(props) {
         super(props);
         this.state = { devices: [] }
+        this.handleSelection.bind(this)
     }
 
     componentDidMount() {
@@ -324,52 +304,23 @@ export class VideoDeviceField extends React.Component {
             });
     }
 
+    handleSelection(v) {
+        
+        window.videoCapture.isReady=(v.value !== null);
+        
+        this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))
+    }
+
     render() {
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))} clearable={false} />
+            <Select options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.handleSelection(v)} clearable={false} />
         </FormGroup>
     }
 
 }
 
-const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
-const VIDEO_RESOLUTIONS = {
-    "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
-    "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
-    "UXGA": { "width": 1600, "height": 1200, "ratio": "4:3" },
-    "720p(HD)": { "width": 1280, "height": 720, "ratio": "16:9" },
-    "SVGA": { "width": 800, "height": 600, "ratio": "4:3" },
-    "VGA": { "width": 640, "height": 480, "ratio": "4:3" },
-    "360p(nHD)": { "width": 640, "height": 360, "ratio": "16:9" },
-    "CIF": { "width": 352, "height": 288, "ratio": "4:3" },
-    "QVGA": { "width": 320, "height": 240, "ratio": "4:3" },
-    "QCIF": { "width": 176, "height": 144, "ratio": "4:3" },
-    "QQVGA": { "width": 160, "height": 120, "ratio": "4:3" }
-};
 
-
-const videoResolutionPromise = (deviceId, candidate) => {
-    const constraints = {
-        audio: false,
-        video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { exact: candidate.width },    //new syntax
-            height: { exact: candidate.height }   //new syntax
-        }
-    }
-
-    return new Promise(
-        (resolve) => {
-            getUserMedia(constraints, (err, stream) => {
-                if (!err) {
-                    stream.getTracks().forEach((track) => { track.stop(); });
-                    resolve(candidate)
-                }
-            });
-        }
-    )
-}
 
 export class VideoResolutionField extends React.Component {
     constructor(props) {

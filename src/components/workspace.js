@@ -250,10 +250,14 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-function drawVideo(perspective, view, drawCommands, documentCacheHolder, videoTexture, size){
-        
-        let videoElement=document.getElementById("videoStream");
-        if (videoElement && videoElement.readyState === 4){
+function drawVideo(perspective, view, drawCommands, documentCacheHolder, videoTexture, videoElement, size){
+        try{
+            if (!videoElement.src )
+                videoElement.src=window.URL.createObjectURL(window.videoCapture.getStream())
+        } catch(e) {
+                // weird createObjectURL issue.
+        }
+        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady){
             videoTexture.set({image: videoElement, ...size}) 
             drawCommands.image({
                 perspective, view,
@@ -263,8 +267,6 @@ function drawVideo(perspective, view, drawCommands, documentCacheHolder, videoTe
                 selected: false,
             });
         }
-
-        
         
 }
 
@@ -415,6 +417,10 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
+        this.videoElement=document.createElement('video')
+        this.videoElement.width=this.props.width
+        this.videoElement.height=this.props.height
+        
         this.videoTexture=this.drawCommands.createTexture(this.props.width, this.props.height);
 
         let draw = () => {
@@ -428,7 +434,7 @@ class WorkspaceContent extends React.Component {
             gl.enable(gl.BLEND);
 
             //if (this.props.showVideo)
-                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder, this.videoTexture, {width: this.props.settings.machineWidth, height: this.props.settings.machineHeight})
+                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder, this.videoTexture, this.videoElement, {width: this.props.settings.machineWidth, height: this.props.settings.machineHeight})
 
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
