@@ -157,7 +157,7 @@ class MaterialDatabaseEditor extends React.Component {
                 header="Material Database"
                 footer={<ButtonToolbar>
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'json')}><Icon name="download" /> .json</Button>
-                    <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
+                    <Button bsStyle="info" disabled={true} title="Soon :P" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
                     <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)} buttonClass="btn btn-danger" />
                 </ButtonToolbar>}
             >
@@ -309,7 +309,10 @@ class PresetsPane extends React.Component {
 
             leftToolbar = (<div className="paneToolbar">
                 <h5>Group</h5>
-                <Button bsSize="xsmall" bsStyle="warning" onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}><Icon name="pencil" /> Edit</Button>
+                <Button onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}
+                                        bsSize="xsmall" bsStyle={item.isEditable? "primary": "warning"} >
+                                        {item.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                                </Button>
             </div>)
 
             rightToolbar = (<div className="paneToolbar">
@@ -337,10 +340,14 @@ class PresetsPane extends React.Component {
                     {presets.map((operation, i) => {
                         if (!shouldShow(operation, this.props.selectedProfile)) return;
 
-                        return <Details className={operation.isEditable ? "editable" : ""} key={i}
+                        return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
-                                <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>
+                                <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }}
+                                        bsSize="xsmall" bsStyle={operation.isEditable? "primary": "warning"} >
+                                        {operation.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                                </Button>
+
                                 <Button onClick={(e) => { this.props.onPresetDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
                             </div>} >
                             <PresetOperationSettings operation={operation} isEditable={operation.isEditable}
@@ -426,6 +433,8 @@ class PresetOperationSettings extends React.Component {
     }
 }
 
+const OMIT_FIELDS_EDITION=['name','filterFillColor', 'filterStrokeColor']
+
 class PresetOperationParameters extends React.Component {
 
     render() {
@@ -433,12 +442,12 @@ class PresetOperationParameters extends React.Component {
         const OPDEF = operation.types[this.props.operation.type]
         const fields = {};
 
-        OPDEF.fields.forEach((key) => {
+        OPDEF.fields.filter((field)=> { return !OMIT_FIELDS_EDITION.includes(field)}).forEach((key) => {
 
             const PARAMDEF = operation.fields[key];
             let FieldType = PARAMDEF.input
 
-            let hasError = PARAMDEF.check ? !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) : false
+            let hasError = (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings))) 
 
             let className = [FieldType.name];
 
@@ -484,7 +493,7 @@ class Details extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.open !== undefined)
-            this.setState({ ...this.state, open: nextProps.open })
+            this.setState({ ...this.state, open: nextProps.open || this.state.open })
     }
 
     render() {
