@@ -96,10 +96,10 @@ export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, set
 export const settings = objectNoId('settings', {
     
     __version: version,
-    __selectedProfile:null,
+    __selectedProfile: null,
     
     machineWidth: 300,
-    machineHeight: 300,
+    machineHeight: 200,
     machineBeamDiameter: 0.2,
     
     machineZEnabled: false,
@@ -111,10 +111,10 @@ export const settings = objectNoId('settings', {
     machineBlowerGcodeOff: '',
     
     pxPerInch: 96,
-    dpiRasterBmp:300,
+    dpiRasterBmp: 300,
     
-    toolSafetyLockDisabled:false,
-    toolCncMode:false,
+    toolSafetyLockDisabled: true,
+    toolCncMode: false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
 
@@ -124,7 +124,7 @@ export const settings = objectNoId('settings', {
     toolVideoFov: {x:1,y:1},
     toolVideoResolution: "720p(HD)",
 
-    toolWebcamUrl:"",
+    toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
@@ -138,8 +138,7 @@ export const settings = objectNoId('settings', {
     
     commServerIP: 'localhost:8000',
     commServerConnect: false,
-
-    connectVia: 'USB',
+    connectVia: '',
     connectPort: '',
     connectBaud: '',
     connectIP: '',

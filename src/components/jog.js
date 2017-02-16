@@ -25,6 +25,21 @@ var ovLoop;
 var playing = false;
 var paused = false;
 
+$('body').on('keydown', function(ev) {
+    if (ev.keyCode === 17) {
+        //CTRL key down > set override stepping to 10
+        ovStep = 10;
+    }
+});
+
+$('body').on('keyup', function(ev) {
+    if (ev.keyCode === 17) {
+        //CTRL key released-> reset override stepping to 1
+        ovStep = 1;
+    }
+});
+
+
 /**
  * Jog component.
  *
@@ -54,8 +69,8 @@ class Jog extends React.Component {
     }
 
     runCommand(e) {
-        console.log('runCommand');
-        runCommand(e + '\n');
+        console.log('runCommand ' + e);
+        runCommand(e);
     }
 
     runJob() {
@@ -527,6 +542,11 @@ export function runStatus(status) {
         $('#playicon').removeClass('fa-play');
         $('#playicon').addClass('fa-pause');
     } else if (status === 'stopped') {
+        playing = false;
+        paused = false;
+        $('#playicon').removeClass('fa-pause');
+        $('#playicon').addClass('fa-play');
+    } else if (status === 'finished') {
         playing = false;
         paused = false;
         $('#playicon').removeClass('fa-pause');

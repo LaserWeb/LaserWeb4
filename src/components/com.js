@@ -186,6 +186,12 @@ class Com extends React.Component {
             fVersion = data.version;
             fDate = data.date;
             CommandHistory.log('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
+            if (fVersion < '1.1e') {
+                CommandHistory.log('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e', CommandHistory.DANGER);
+                socket.emit('closePort', 1);
+                machineConnected = false;
+                //console.log('GRBL < 1.1 not supported!');
+            }
         });
 
         socket.on('runStatus', function (status) {
@@ -201,7 +207,11 @@ class Com extends React.Component {
             } else if (status === 'stopped') {
                 playing = false;
                 paused = false;
+            } else if (status === 'finished') {
+                playing = false;
+                paused = false;
             } else if (status === 'alarm') {
+                CommandHistory.log('ALARM!', CommandHistory.DANGER);
                 //socket.emit('clearAlarm', 2);
             }
             runStatus(status);
@@ -209,33 +219,12 @@ class Com extends React.Component {
 
         socket.on('data', function (data) {
             serverConnected = true;
+            machineConnected = true;
             if (data.indexOf('<') === 0) {
                 //CommandHistory.log('statusReport: ' + data);
-                machineConnected = true;
                 updateStatus(data);
-            } else if (data.indexOf('{\"sr\"') === 0) {
-                machineConnected = true;
-                //updateStatusTinyG(data);
-            } else if (data === 'ok') {
-                machineConnected = true;
-                //CommandHistory.log(data, '#cccccc', "usb");
             } else {
-                //CommandHistory.log(data, msgcolor, "usb");
-            }
-            if (data.indexOf('LPC176')) { //LPC1768 or LPC1769 should be Smoothie
-                machineConnected = true;
-                //console.log('Smoothieware detected');
-            }
-            if (data.indexOf('Grbl') === 0) {
-                machineConnected = true;
-                if (parseFloat(data.substr(5)) >= 1.1) { //is Grbl >= v1.1
-                    //console.log('GRBL >= 1.1 detected');
-                } else {
-                    CommandHistory.log('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e', CommandHistory.DANGER);
-                    socket.emit('closePort', 1);
-                    machineConnected = false;
-                    //console.log('GRBL < 1.1 not supported!');
-                }
+                CommandHistory.log(data, CommandHistory.STD);
             }
         });
 
@@ -511,9 +500,9 @@ export function runCommand(gcode) {
     if (serverConnected) {
         if (machineConnected){
             if (gcode) {
-                CommandHistory.log('Running Command', CommandHistory.INFO);
+                //CommandHistory.log('Running Command', CommandHistory.INFO);
                 //console.log('runCommand', gcode);
-                socket.emit('runCommand', gcode + '\n');
+                socket.emit('runCommand', gcode);
             }
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
