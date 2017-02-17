@@ -446,22 +446,24 @@ class PresetOperationParameters extends React.Component {
 
             const PARAMDEF = operation.fields[key];
             let FieldType = PARAMDEF.input
-
-            let hasError = (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings))) 
-
+            
+            let error=undefined;
             let className = [FieldType.name];
 
-            if (hasError)
+            if (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings))) 
+                error = (typeof PARAMDEF.error=='function') ? PARAMDEF.error(OP.params[PARAMDEF.name], this.props.settings, OP):  PARAMDEF.error
+
+            if (error!==undefined)
                 className.push("has-error")
 
             if (OP.isEditable || this.props.isEditable) {
                 //writes operation.params[i][key]
-                fields[key] = <div className={className.join(" ")} title={hasError ? PARAMDEF.error : undefined}>
+                fields[key] = <div className={className.join(" ")} title={error}>
                     <FieldType key={PARAMDEF.name} op={OP.params} field={PARAMDEF} style={{}}
                         onChangeValue={(v) => { this.props.onCellChange(this.props.operation.id, { params: { [key]: v } }) }} />
                 </div>
             } else {
-                fields[key] = <div className={className.join(" ")} title={hasError ? PARAMDEF.error : undefined}>{cast(OP.params[PARAMDEF.name], "---")}</div>
+                fields[key] = <div className={className.join(" ")} title={error}>{cast(OP.params[PARAMDEF.name], "---")}</div>
 
             }
         });
