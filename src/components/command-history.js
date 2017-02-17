@@ -93,7 +93,7 @@ export default class CommandHistory extends React.Component {
 
         }
         if (typeof this.props.onCommandExec !== "undefined")
-            this.props.onCommandExec();
+            this.props.onCommandExec(value);
     }
 
     componentDidUpdate() {

@@ -6,6 +6,7 @@ import { Input, TextField, NumberField, ToggleField, SelectField } from './forms
 import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
+import { setGcode } from '../actions/gcode';
 
 import CommandHistory from './command-history';
 
@@ -27,21 +28,34 @@ class Com extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {interfaces: new Array(), ports: new Array()}
+        let {comInterfaces, comPorts} = this.props.settings;
+        this.state = {comInterfaces: comInterfaces, comPorts: comPorts};
     }
 
     componentDidMount() {
-        $('#disconnectS').addClass('disabled');
-        $('#disconnect').addClass('disabled');
-        if (!socket && !serverConnected) {
-            this.handleConnectServer();
+        if (!serverConnected) {
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
+            if (!socket && !serverConnected) {
+                this.handleConnectServer();
+            }
+        } else {
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (!machineConnected) {
+                $('#connect').removeClass('disabled');
+                $('#disconnect').addClass('disabled');
+            } else {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+            }
         }
     }
 
     handleConnectServer() {
         let that = this;
         let {settings, dispatch} = this.props;
-        let server = settings.commServerIP;
+        let server = settings.comServerIP;
         CommandHistory.log('Connecting to Server @ ' + server, CommandHistory.INFO);
         //console.log('Connecting to Server ' + server);
         socket = io('ws://' + server);
@@ -55,7 +69,7 @@ class Com extends React.Component {
         });
         
         socket.on('disconnect', function() {
-            CommandHistory.log('Disconnected from Server ' + settings.commServerIP, CommandHistory.DANGER);
+            CommandHistory.log('Disconnected from Server ' + settings.comServerIP, CommandHistory.DANGER);
             //console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
             $('#connectS').removeClass('disabled');
@@ -91,7 +105,8 @@ class Com extends React.Component {
                 for (var i = 0; i < data.length; i++) {
                     interfaces.push(data[i]);
                 }
-                that.setState({interfaces: interfaces});
+                that.setState({comInterfaces: interfaces});
+                dispatch(setSettingsAttrs({comInterfaces: interfaces}));
                 console.log('interfaces: ' + interfaces);
                 //CommandHistory.log('interfaces: ' + interfaces);
             } else {
@@ -108,7 +123,8 @@ class Com extends React.Component {
                 for (var i = 0; i < data.length; i++) {
                     ports.push(data[i].comName);
                 }
-                that.setState({ports: ports});
+                that.setState({comPorts: ports});
+                dispatch(setSettingsAttrs({comPorts: ports}));
                 console.log('ports: ' + ports);
                 //CommandHistory.log('ports: ' + ports);
             } else {
@@ -176,6 +192,7 @@ class Com extends React.Component {
         });
 
         socket.on('firmware', function (data) {
+            console.log('firmware: ' + data);
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
@@ -194,6 +211,12 @@ class Com extends React.Component {
             }
         });
 
+        socket.on('runningJob', function (data) {
+            CommandHistory.log('runningJob(' + data.length + ')', CommandHistory.WARN);
+            alert(data);
+            //setGcode(data);
+        });
+        
         socket.on('runStatus', function (status) {
             //CommandHistory.log('runStatus: ' + status);
             console.log('runStatus: ' + status);
@@ -220,29 +243,39 @@ class Com extends React.Component {
         socket.on('data', function (data) {
             serverConnected = true;
             machineConnected = true;
-            if (data.indexOf('<') === 0) {
-                //CommandHistory.log('statusReport: ' + data);
-                updateStatus(data);
-            } else {
-                CommandHistory.log(data, CommandHistory.STD);
+            if (data) {
+                if (data.indexOf('<') === 0) {
+                    //CommandHistory.log('statusReport: ' + data);
+                    updateStatus(data);
+                } else {
+                    var style = CommandHistory.STD;
+                    if (data.indexOf('[MSG:') === 0) {
+                        style = CommandHistory.WARN;
+                    } else if (data.indexOf('ALARM:') === 0) {
+                        style = CommandHistory.DANGER;
+                    } else if (data.indexOf('error:') === 0) {
+                        style = CommandHistory.DANGER;
+                    }                    
+                    CommandHistory.log(data, style);
+                }
             }
         });
 
         socket.on('wPos', function (wpos) {
             serverConnected = true;
             machineConnected = true;
-            var pos = wpos.split(',');
-            var posChanged = false;
-            if (xpos !== parseFloat(pos[0]).toFixed(4)) {
-                xpos = parseFloat(pos[0]).toFixed(4);
+            let {x, y, z} = wpos; //var pos = wpos.split(',');
+            let posChanged = false;
+            if (xpos !== x) {
+                xpos = x;
                 posChanged = true;
             }
-            if (ypos !== parseFloat(pos[1]).toFixed(4)) {
-                ypos = parseFloat(pos[1]).toFixed(4);
+            if (ypos !== y) {
+                ypos = y;
                 posChanged = true;
             }
-            if (zpos !== parseFloat(pos[2]).toFixed(4)) {
-                zpos = parseFloat(pos[2]).toFixed(4);
+            if (zpos !== z) {
+                zpos = z;
                 posChanged = true;
             }
             if (posChanged) {
@@ -389,7 +422,7 @@ class Com extends React.Component {
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
-                        <TextField {...{ object: settings, field: 'commServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
+                        <TextField {...{ object: settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
                             <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
@@ -397,10 +430,10 @@ class Com extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="2" defaultExpanded={true}>
-                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.interfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
+                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
-                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.ports, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
+                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.comPorts, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
                                 <SelectField {...{ object: settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
                             </div>
                         </Collapse>
@@ -719,7 +752,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, interfaces: state.interfaces, ports: state.ports, documents: state.documents, gcode: state.gcode.content })
+    state => ({ settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
 )(Com);
 
 export default Com

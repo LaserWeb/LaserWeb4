@@ -77,6 +77,9 @@ export const SETTINGS_VALIDATION_RULES = {
     
     toolImagePosition: 'in:TL,TR,C,BL,BR',
     
+    jogFeedXY: 'numeric|min:0',
+    jogFeedZ: 'numeric|min:0',
+    
 }
 
 
@@ -138,12 +141,16 @@ export const settings = objectNoId('settings', {
     gcodeToolTestPower: 0, 
     gcodeToolTestDuration: 0,
     
-    commServerIP: 'localhost:8000',
-    commServerConnect: false,
+    comServerIP: 'localhost:8000',
+    comServerConnect: false,
+    comInterfaces: [],
+    comPorts: [],
     connectVia: '',
     connectPort: '',
-    connectBaud: '',
+    connectBaud: '115200',
     connectIP: '',
 
     jogStepsize: 1,
+    jogFeedXY: 30,
+    jogFeedZ:5,
 });

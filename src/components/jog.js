@@ -14,6 +14,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 
 import CommandHistory from './command-history';
 
+import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
 import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
 
@@ -50,16 +51,20 @@ class Jog extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {stepsize: this.props.settings.stepsize}
+        let {jogStepsize, jogFeedXY, jogFeedZ} = this.props.settings;
+        this.state = {
+            jogStepsize: jogStepsize, 
+            jogFeedXY: jogFeedXY,
+            jogFeedZ: jogFeedZ,
+        };
+    }
+
+    componentDidMount() {
     }
 
     @keydown('ctrl+x')
     keylogger( event ) {
         resetMachine();
-    }
-
-    componentDidMount() {
-                
     }
 
     homeAll() {
@@ -124,6 +129,16 @@ class Jog extends React.Component {
 
     checkSize() {
         console.log('checkSize');
+        var feedrate = $('#jogfeedxy').val() * 60;
+        var moves = `
+            G90\n
+            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G90\n`;
+        runCommand(moves);
     }
 
     laserTest() {
@@ -136,7 +151,7 @@ class Jog extends React.Component {
     }
 
     jog(axis, dir) {
-        let dist = jQuery('input[name=stp]:checked', '#stepsize').val(); //this.stepsize;
+        let dist = this.props.settings.jogStepsize; //jQuery('input[name=stp]:checked', '#stepsize').val(); //this.jogStepsize;
         let feed;
         switch (axis) {
             case 'X':
@@ -156,9 +171,27 @@ class Jog extends React.Component {
         jog(axis, dir + dist, feed);
     }
 
+    changeJogFeedXY(e) {
+        console.log('changeJogFeedXY');
+        let that = this;
+        that.setState({jogFeedXY: e});
+        let {dispatch} = this.props;
+        dispatch(setSettingsAttrs({jogFeedXY: e}));
+    }
+
+    changeJogFeedZ(e) {
+        console.log('changeJogFeedZ');
+        let that = this;
+        that.setState({jogFeedZ: e});
+        let {dispatch} = this.props;
+        dispatch(setSettingsAttrs({jogFeedZ: e}));
+    }
+    
     changeStepsize(stepsize) {
         let that = this;
-        that.setState({stepsize: stepsize});
+        that.setState({jogStepsize: stepsize});
+        let {dispatch} = this.props;
+        dispatch(setSettingsAttrs({jogStepsize: stepsize}));
         console.log('Jog will use ' + stepsize + ' mm per click');
         CommandHistory.log('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARN);
         //$('.stepsizeval').empty();
@@ -200,6 +233,7 @@ class Jog extends React.Component {
      * @return {String}
      */
     render() {
+        let {settings, dispatch} = this.props;
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
@@ -395,7 +429,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-up fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Y+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -413,7 +447,7 @@ class Jog extends React.Component {
                                         <button id="zP" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e)=>{this.jog('Z', '+')}}>
                                             <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Z+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -424,7 +458,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-left fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">X-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -433,7 +467,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-down fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Y-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -442,7 +476,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-right fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">X+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -454,7 +488,7 @@ class Jog extends React.Component {
                                             <span className="fa-stack fa-1x">
                                                 <i className="fa fa-arrow-down fa-stack-1x"></i>
                                                 <strong className="fa-stack-1x icon-top-text">Z-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.stepsize}mm</strong>
+                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
                                             </span>
                                         </button>
                                     </td>
@@ -463,9 +497,9 @@ class Jog extends React.Component {
                                     <td colSpan="5">
                                         <div className="input-group">
                                             <span className="input-group-addon">X/Y</span>
-                                            <input id="jogfeedxy" type="text" className="form-control numpad input-sm" defaultValue="30" />
+                                            <Input id="jogfeedxy" type="number" className="form-control numpad input-sm" value={this.state.jogFeedXY} onChangeValue={(e)=>{this.changeJogFeedXY(e)}} />
                                             <span className="input-group-addon">Z</span>
-                                            <input id="jogfeedz" type="text" className="form-control numpad  input-sm" defaultValue="5" />
+                                            <Input id="jogfeedz" type="number" className="form-control numpad input-sm" value={this.state.jogFeedZ} onChangeValue={(e)=>{this.changeJogFeedZ(e)}} />
                                             <span className="input-group-addon">mm/s</span>
                                         </div>
                                     </td>
@@ -527,6 +561,14 @@ class Jog extends React.Component {
     }
 }
 
+Jog = connect(
+    state => ({ settings: state.settings, jogStepsize: state.jogStepsize, gcode: state.gcode.content })
+)(Jog);
+
+// Exports
+export default Jog
+
+
 export function runStatus(status) {
     if (status === 'running') {
         playing = true;
@@ -556,29 +598,16 @@ export function runStatus(status) {
     }
 };
 
-
-Jog = connect(
-    state => ({ settings: state.settings, stepsize: state.stepsize, gcode: state.gcode.content })
-)(Jog);
-
-// Exports
-export default Jog
    
+//                                            <NumberField {...{ object: settings, field: 'jogFeedXY', setAttrs: setSettingsAttrs, description: 'X/Y' }} />
+//                                            <NumberField {...{ object: settings, field: 'jogFeedZ', setAttrs: setSettingsAttrs, description: 'Z', units: 'mm/s' }} />
+//
+//                                            <span className="input-group-addon">X/Y</span>
+//                                            <input id="jogfeedxy" type="text" className="form-control numpad input-sm" defaultValue="30" />
+//                                            <span className="input-group-addon">Z</span>
+//                                            <input id="jogfeedz" type="text" className="form-control numpad  input-sm" defaultValue="5" />
+//                                            <span className="input-group-addon">mm/s</span>
 
-//$('body').on('keydown', function (ev) {
-//    if (ev.keyCode === 17) {
-//        //CTRL key down > set override stepping to 10
-//        ovStep = 10;
-//    }
-//});
-//
-//$('body').on('keyup', function (ev) {
-//    if (ev.keyCode === 17) {
-//        //CTRL key released-> reset override stepping to 1
-//        ovStep = 1;
-//    }
-//});
-//
 //$('#bounding').on('click', function () {
 //    var bbox2 = new THREE.Box3().setFromObject(object);
 //    console.log('bbox for Draw Bounding Box: ' + object + ' Min X: ', (bbox2.min.x + (laserxmax / 2)), '  Max X:', (bbox2.max.x + (laserxmax / 2)), 'Min Y: ', (bbox2.min.y + (laserymax / 2)), '  Max Y:', (bbox2.max.y + (laserymax / 2)));
@@ -595,11 +624,6 @@ export default Jog
 //    sendCommand(moves);
 //});
 //
-//$('#homeAll').on('click', function (ev) {
-//    var homecommand = document.getElementById('homingseq').value;
-//    sendCommand(homecommand);
-//});
-//
 //$('#homeX').on('click', function (ev) {
 //    var homecommand = document.getElementById('homingseq').value;
 //    sendCommand(homecommand + "X");
@@ -613,21 +637,6 @@ export default Jog
 //$('#homeZ').on('click', function (ev) {
 //    var homecommand = document.getElementById('homingseq').value;
 //    sendCommand(homecommand + "Z");
-//});
-//
-//$('#gotoXZero').on('click', function (ev) {
-//    var feedrate = $('#jogfeedxy').val() * 60;
-//    sendCommand('G0 X0 F' + feedrate);
-//});
-//
-//$('#gotoYZero').on('click', function (ev) {
-//    var feedrate = $('#jogfeedxy').val() * 60;
-//    sendCommand('G0 Y0 F' + feedrate);
-//});
-//
-//$('#gotoZZero').on('click', function (ev) {
-//    var feedrate = $('#jogfeedz').val() * 60;
-//    sendCommand('G0 Z0 F' + feedrate);
 //});
 //
 //$('#XProbeMin').on('click', function (ev) {
@@ -648,102 +657,6 @@ export default Jog
 //
 //$('#ZProbeMin').on('click', function (ev) {
 //    sendCommand('G38.2 Z-20');
-//});
-//
-//// zero x axes
-//$('#zeroX').on('click', function (ev) {
-//    console.log("X zero");
-//    sendCommand('G10 L20 P0﻿ X0\n');
-//});
-//
-//// zero y axes
-//$('#zeroY').on('click', function (ev) {
-//    console.log("Y zero");
-//    sendCommand('G10 L20 P0﻿ Y0\n');
-//});
-//
-//// zero z axes
-//$('#zeroZ').on('click', function (ev) {
-//    console.log("Z zero");
-//    sendCommand('G10 L20 P0﻿ Z0\n');
-//});
-//
-//// zero all axes
-//$('#zeroAll').on('click', function (ev) {
-//    console.log("Z zero");
-//    sendCommand('G10 L20 P0﻿ X0 Y0 Z0');
-//});
-//
-//// increase feed override
-//$('#iF').on('mousedown', function (ev) {
-//    console.log("F+ mousedown");
-//    override('F', ovStep);
-//    ovLoop = setInterval(function () {
-//        override('F', ovStep);
-//    }, 300);
-//});
-//
-//$('#iF').on('mouseup', function (ev) {
-//    console.log("F+ mouseup");
-//    clearInterval(ovLoop);
-//});
-//
-//$('#iF').on('mouseout', function (ev) {
-//    console.log("F+ mouseout");
-//    clearInterval(ovLoop);
-//});
-//
-//// decrease feed override
-//$('#dF').on('mousedown', function (ev) {
-//    console.log("F- mousedown");
-//    override('F', -ovStep);
-//    ovLoop = setInterval(function () {
-//        override('F', -ovStep);
-//    }, 300);
-//});
-//
-//$('#dF').on('mouseup', function (ev) {
-//    console.log("F- mouseup");
-//    clearInterval(ovLoop);
-//});
-//
-//$('#dF').on('mouseout', function (ev) {
-//    console.log("F- mouseout");
-//    clearInterval(ovLoop);
-//});
-//
-//// reset feed override
-//$('#rF').on('click', function (ev) {
-//    console.log("F reset");
-//    override('F', 0);
-//});
-//
-//// increase spindle override
-//$('#iS').on('mousedown', function (ev) {
-//    console.log("S+ mousedown");
-//    override('S', ovStep);
-//    ovLoop = setInterval(function () {
-//        override('S', ovStep);
-//    }, 300);
-//});
-//
-//$('#iS').on('mouseup', function (ev) {
-//    console.log("S+ mouseup");
-//    clearInterval(ovLoop);
-//});
-//
-//$('#iS').on('mouseout', function (ev) {
-//    console.log("S+ mouseout");
-//    clearInterval(ovLoop);
-//});
-//
-//// decrease spindle override
-//$('#dS').on('mousedown', function (ev) {
-//    console.log("S- mousedown");
-//    override('S', -ovStep);
-//    ovLoop = setInterval(function () {
-//        override('S', -ovStep);
-//    }, 300);
 //});
 //
 //$('#dS').on('mouseup', function (ev) {
