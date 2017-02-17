@@ -248,14 +248,13 @@ function drawText(state, entity, docLayer, index) {
     // Create defualt font settings
     entity = {
         ...entity,
-        fontStyle: '', // normal italic oblique
-        fontWeight: '', // normal bold
-        fontFamily: 'Ariel',
+        fontStyle: 'normal', // normal italic oblique
+        fontWeight: 'normal', // normal bold
+        fontFamily: 'Arial',
     }
 
-    // pixels = px * window.devicePixelRatio﻿
-    let magicDPIScale = 0.4; // 0.37
-    //let magicFontHeight = 6;
+    let smoothingScale = 2.25
+    let magicDPIScale = 0.37 / smoothingScale;
     let pixleSize = 1;
 
     if (entity.type == "MTEXT") {
@@ -291,18 +290,26 @@ function drawText(state, entity, docLayer, index) {
 
     var cvs = document.createElement('canvas');
     cvs.setAttribute('zoom', 'reset');
-    cvs.width = '1000';
-    cvs.height = '1000';
     var ctx = cvs.getContext('2d');
-    ctx.font = entity.fontStyle + ' ' + entity.fontWeight + ' ' + entity.textHeight + 'mm ' + entity.fontFamily;
-    ctx.scale(1, -1);
-    ctx.fillText(entity.text, 0, - 100); // add 100 for font tails. eg, pjg
+    var ctxStyle = `${entity.fontStyle} ${entity.fontWeight} ${entity.textHeight * smoothingScale}mm ${entity.fontFamily}`;
+    ctx.font = ctxStyle;
+    console.log(`ctxStyle: ${ctxStyle}`);
+    console.log(`ctx.font: ${ctx.font}`);
+    // Dynamically set the convas based on font size
+    cvs.height = ctx.measureText("M").width * 3;
+    ctx.font = ctxStyle; // reset the canvas settings that set height wiped out
+    cvs.width = ctx.measureText(entity.text).width + 10;
+    ctx.font = ctxStyle; // reset the canvas settings that set width wiped out
 
+    // Draw the text upside down as the LW4 canvas will flip it
+    ctx.scale(1, -1);
+    ctx.fillText(entity.text, 0, -50); // center upside down text for font tails. eg, pjg
+
+    // Pull the image data out of the canvas and create a point cloud
     let data = ctx.getImageData(0, 0, cvs.width, cvs.height);
     let coords = [];
     let x = 0;
     let y = 0;
-
     for (let i = 0; i < data.data.length; i += 4) {
         if (x == cvs.width) {
             x = 0;
@@ -315,9 +322,10 @@ function drawText(state, entity, docLayer, index) {
         x++;
     }
 
+    // Scale and translate point cloud to proper origin
     if (coords.length) {
         docEntity.rawPaths = coords;
-        docEntity.translate = [entity.startPoint.x, entity.startPoint.y, 0];
+        docEntity.translate = [entity.startPoint.x, entity.startPoint.y+8.76, 0];
         docEntity.scale = [magicDPIScale, magicDPIScale, 1];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
@@ -341,7 +349,7 @@ function drawSolid(state, entity, docLayer, index) {
     //TODO
     return state;
 }
-
+let y = 0;
 function drawPoint(state, entity, docLayer, index) {
     // TODO: Currently points are mutated into circles with a
     entity.radius = 0.1;

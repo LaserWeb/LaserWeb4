@@ -104,6 +104,7 @@
     "dxf-parser": "^0.4.6",
     "immutability-helper": "^2.0.0",
     "react-addons-shallow-compare": "^15.4.1",
-    "unicode": "^0.6.1"
+    "unicode": "^0.6.1",
+    "vectorize-text": "^3.0.2"
   }
 }
