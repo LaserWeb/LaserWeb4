@@ -22,7 +22,6 @@ import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
-import Capture from './capture';
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import { DrawCommands } from '../draw-commands'
@@ -31,8 +30,9 @@ import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
 import { Input } from './forms.js';
 import SetSize from './setsize';
+import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
-
+import Pointable from '../lib/Pointable';
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -390,12 +390,14 @@ function drawWorkPos(perspective, view, drawCommands, workPos) {
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
+        this.pointers = [];
         this.grid = new Grid();
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
-        this.mouseDown = this.mouseDown.bind(this);
-        this.mouseMove = this.mouseMove.bind(this);
-        this.mouseUp = this.mouseUp.bind(this);
+        this.onPointerDown = this.onPointerDown.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onPointerUp = this.onPointerUp.bind(this);
+        this.onPointerCancel = this.onPointerCancel.bind(this);
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
@@ -530,15 +532,18 @@ class WorkspaceContent extends React.Component {
         return result;
     }
 
-    mouseDown(e) {
-        this.mouseX = e.pageX;
-        this.mouseY = e.pageY;
+    onPointerDown(e) {
+        e.preventDefault();
+        e.target.setPointerCapture(e.pointerId);
+        if (this.pointers.length && e.pointerType !== this.pointers[0].pointerType)
+            this.pointers = [];
+        this.pointers.push({ pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, pageX: e.pageX, pageY: e.pageY });
         this.movingObjects = false;
         this.adjustingCamera = false;
         this.needToSelect = null;
         this.toggle = e.ctrlKey || e.shiftKey;
         this.moveStarted = false;
-
+        this.fingers = null;
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
         if (cachedDocument && e.button === 0) {
             this.movingObjects = true;
@@ -555,19 +560,36 @@ class WorkspaceContent extends React.Component {
         }
     }
 
-    mouseUp(e) {
-        if (this.needToSelect) {
-            if (this.toggle)
-                this.props.dispatch(toggleSelectDocument(this.needToSelect));
-            else
-                this.props.dispatch(selectDocument(this.needToSelect));
-        } else if (this.adjustingCamera && !this.moveStarted)
-            this.props.dispatch(selectDocument(''));
+    onPointerUp(e) {
+        e.preventDefault();
+        if (!this.pointers.length || e.pointerType !== this.pointers[0].pointerType)
+            return;
+        this.pointers = this.pointers.filter(x => x.pointerId !== e.pointerId);
+        this.fingers = null;
+        if (!this.pointers.length) {
+            if (this.needToSelect) {
+                if (this.toggle)
+                    this.props.dispatch(toggleSelectDocument(this.needToSelect));
+                else
+                    this.props.dispatch(selectDocument(this.needToSelect));
+            } else if (this.adjustingCamera && !this.moveStarted)
+                this.props.dispatch(selectDocument(''));
+        }
     }
 
-    mouseMove(e) {
-        let dx = e.pageX - this.mouseX;
-        let dy = this.mouseY - e.pageY;
+    onPointerCancel(e) {
+        e.preventDefault();
+        this.pointers = this.pointers.filter(x => x.pointerId !== e.pointerId);
+        this.fingers = null;
+    }
+
+    onPointerMove(e) {
+        e.preventDefault();
+        let pointer = this.pointers.find(x => x.pointerId === e.pointerId);
+        if (!pointer)
+            return;
+        let dx = e.pageX - pointer.pageX;
+        let dy = pointer.pageY - e.pageY;
         if (Math.abs(dx) >= 10 || Math.abs(dy) >= 10)
             this.moveStarted = true;
         if (!this.moveStarted)
@@ -575,40 +597,69 @@ class WorkspaceContent extends React.Component {
         if (this.movingObjects) {
             this.needToSelect = null;
             let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
-            let p2 = this.xyInterceptFromPoint(this.mouseX, this.mouseY);
+            let p2 = this.xyInterceptFromPoint(pointer.pageX, pointer.pageY);
             if (p1 && p2)
                 this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
-            this.mouseX = e.pageX;
-            this.mouseY = e.pageY;
+            pointer.pageX = e.pageX;
+            pointer.pageY = e.pageY;
         } else if (this.adjustingCamera) {
             let camera = this.props.camera;
-            if (e.button === 0) {
-                let rot = mat4.mul([],
-                    mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
-                    mat4.fromRotation([], -dx / 200, camera.up));
-                this.props.dispatch(setCameraAttrs({
-                    eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
-                    up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
-                }));
-            } else if (e.button === 1) {
-                this.props.dispatch(setCameraAttrs({
-                    fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
-                }));
-            } else if (e.button === 2) {
-                let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
-                this.props.dispatch(setCameraAttrs({
-                    eye: vec3.add([], camera.eye,
-                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-                    center: vec3.add([], camera.center,
-                        vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
-                }));
+            pointer.pageX = e.pageX;
+            pointer.pageY = e.pageY;
+            if (e.pointerType === 'touch' && this.pointers.length >= 2) {
+                let centerX = this.pointers.reduce((acc, o) => acc + o.pageX, 0) / this.pointers.length;
+                let centerY = this.pointers.reduce((acc, o) => acc + o.pageY, 0) / this.pointers.length;
+                let distance = dist(
+                    this.pointers[0].pageX, this.pointers[0].pageY,
+                    this.pointers[1].pageX, this.pointers[1].pageY);
+                if (this.fingers && this.fingers.num == this.pointers.length) {
+                    if (this.pointers.length === 2) {
+                        let d = distance - this.fingers.distance;
+                        this.props.dispatch(setCameraAttrs({
+                            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-d / 200))),
+                        }));
+                    } else if (this.pointers.length === 3) {
+                        let dx = centerX - this.fingers.centerX;
+                        let dy = centerY - this.fingers.centerY;
+                        let rot = mat4.mul([],
+                            mat4.fromRotation([], -dy / 100, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
+                            mat4.fromRotation([], -dx / 100, camera.up));
+                        this.props.dispatch(setCameraAttrs({
+                            eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
+                            up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
+                        }));
+                    }
+                }
+                this.fingers = { num: this.pointers.length, centerX, centerY, distance };
+            } else {
+                this.fingers = null;
+                if (pointer.button === 2) {
+                    let rot = mat4.mul([],
+                        mat4.fromRotation([], dy / 200, vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center))),
+                        mat4.fromRotation([], -dx / 200, camera.up));
+                    this.props.dispatch(setCameraAttrs({
+                        eye: vec3.add([], vec3.transformMat4([], vec3.sub([], camera.eye, camera.center), rot), camera.center),
+                        up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
+                    }));
+                } else if (pointer.button === 1) {
+                    this.props.dispatch(setCameraAttrs({
+                        fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
+                    }));
+                } else if (pointer.button === 0) {
+                    let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
+                    this.props.dispatch(setCameraAttrs({
+                        eye: vec3.add([], camera.eye,
+                            vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                        center: vec3.add([], camera.center,
+                            vec3.add([], vec3.scale([], n, -dx), vec3.scale([], camera.up, -dy))),
+                    }));
+                }
             }
-            this.mouseX = e.pageX;
-            this.mouseY = e.pageY;
         }
     }
 
     wheel(e) {
+        e.preventDefault();
         let camera = this.props.camera;
         this.props.dispatch(setCameraAttrs({
             fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(e.deltaY / 2000))),
@@ -631,10 +682,11 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <div>
-                <Capture
-                    onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}
-                    onMouseMove={this.mouseMove} onContextMenu={this.contextMenu} onWheel={this.wheel}>
+            <div style={{ touchAction: 'none', userSelect: 'none' }}>
+                <Pointable tagName='div' touchAction="none"
+                    onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove}
+                    onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}
+                    onWheel={this.wheel} onContextMenu={this.contextMenu}>
                     <div className="workspace-content">
                         <canvas
                             style={{ width: this.props.width, height: this.props.height }}
@@ -645,9 +697,9 @@ class WorkspaceContent extends React.Component {
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height}>
                         <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }} />
                     </Dom3d>
-                </Capture>
+                </Pointable>
                 <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
-                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
+                    <SetSize style={{ display: 'inline-block', pointers: 'all' }}>
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
