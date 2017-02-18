@@ -23,10 +23,9 @@
 
 "use strict";
 
-import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
+import vectorizeText from 'vectorize-text';
 
-import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
@@ -46,6 +45,15 @@ export function processDXF(state, docFile, dxfTree) {
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
+
+                let layers = dxfTree.tables.layer.layers;
+                for (var prop in layers) {
+                    if (layers[prop].name == entity.layer)
+                        if(layers[prop].color)
+                            docLayer.color = layers[prop].color;
+                }
+
+
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
             } else {
@@ -66,7 +74,7 @@ function drawEntity(state, entity, docLayer, index) {
         state = drawCircle(state, entity, docLayer, index);
     } else if (entity.type === 'LWPOLYLINE' || entity.type === 'LINE' || entity.type === 'POLYLINE') {
         state = drawLine(state, entity, docLayer, index);
-    } else if (entity.type === 'TEXT') {
+    } else if (entity.type === 'TEXT' || entity.type === 'MTEXT') {
         state = drawText(state, entity, docLayer, index);
     } else if (entity.type === 'SOLID') {
         state = drawSolid(state, entity, docLayer, index);
@@ -152,7 +160,10 @@ function drawLine(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
         if (entity.shape)
             docEntity.fillColor = debugShape; // Shade in to show its a closed shape
         else
@@ -212,7 +223,10 @@ function drawCircle(state, entity, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.translate = [0, 0, 0];
         docEntity.scale = [1, 1, 1];
-        docEntity.strokeColor = idxToRGBColor(entity.color);
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
         if (!arcTotalDeg)
             docEntity.fillColor = debugShape;  // Shade in to show its a closed shape
         else
@@ -224,8 +238,94 @@ function drawCircle(state, entity, docLayer, index) {
 }
 
 function drawText(state, entity, docLayer, index) {
-    console.log("TEXT: " + entity);
-    //TODO
+    let docEntity = {
+        type: entity.type,
+        name: entity.type + ': ' + entity.handle,
+    }
+
+    // Create default font settings
+    entity = {
+        ...entity,
+        fontStyle: entity.fontStyle || 'normal', // normal italic oblique
+        fontWeight: entity.fontWeight || 'normal', // normal bold
+        fontFamily: entity.fontFamily || 'Arial',
+    }
+
+    if (entity.type == "MTEXT") {
+        let regex = /\{\\f(.*?)\|(\w+)\|(\w+)\|(\w+)\|(\w+)\;(.*?)\}$/g;
+        let regexString = regex.exec(entity.text); // 0: origStrng, 1: font, 2: bold, 3: italics, 6: text
+        if (regexString) {
+            let style, weight;
+            if (regexString[2] == 'b1')
+                entity.fontWeight = 'bold';
+            if (regexString[3] == 'i1')
+                entity.fontWeight = 'italic';
+            if (regexString[1])
+                entity.fontFamily = regexString[1];
+            if (regexString[6])
+                entity.text = regexString[6];
+        } else {
+            regex = /\{(.*?)\}$/g;
+            regexString = regex.exec(entity.text);
+            if (regexString) {
+                entity.text = regexString[1];
+            }
+        }
+
+        entity = {
+            ...entity,
+            startPoint: {
+                x: entity.position.x,
+                y: entity.position.y
+            },
+            textHeight: entity.height,
+        }
+    }
+
+    // Translate text to proper baseline
+    var cvs = document.createElement('canvas');
+    cvs.setAttribute('zoom', 'reset');
+    var ctx = cvs.getContext('2d');
+    ctx.font = `${entity.textHeight}mm sans-serif` // ctx rounds to whole px's so div10
+    var ppmm = /[0-9.]*/.exec(ctx.font)
+    var ppmmTrans = ppmm/2 - entity.textHeight/2
+
+    var polygons = vectorizeText(entity.text, {
+      height: entity.textHeight,
+      fontStyle: entity.fontStyle,
+      fontWeight: entity.fontWeight,
+      font: entity.fontFamily,
+      polygons: true,
+    });
+    console.log(`polygons: ${polygons}`);
+
+    let coords = [];
+    polygons.forEach(function(loops) {
+      loops.forEach(function(loop) {
+        let points = [];
+        var start = loop[0]
+        points.push(start[0],-start[1]) // origin x,y
+        for(var i=1; i<loop.length; ++i) {
+          var p = loop[i]
+          points.push(p[0],-p[1]) // character lines
+        }
+        points.push(start[0],-start[1]) // line back to origin
+        coords.push(points);
+      })
+  });
+
+    if (coords.length) {
+        docEntity.rawPaths = coords;
+        docEntity.translate = [entity.startPoint.x, entity.startPoint.y - ppmmTrans, 0];
+        docEntity.scale = [1, 1, 1]; //14
+        if (entity.color)
+            docEntity.strokeColor = idxToRGBColor(entity.color);
+        else
+            docEntity.strokeColor = idxToRGBColor(docLayer.color);
+        docEntity.fillColor = docEntity.strokeColor;
+    }
+
+    state = documents(state, addDocumentChild(docLayer.id, docEntity));
     return state;
 }
 
@@ -240,7 +340,7 @@ function drawSolid(state, entity, docLayer, index) {
     //TODO
     return state;
 }
-
+let y = 0;
 function drawPoint(state, entity, docLayer, index) {
     // TODO: Currently points are mutated into circles with a
     entity.radius = 0.1;
@@ -262,11 +362,11 @@ function idxToRGBColor(index) {
     if (index == 16777215) // Force white lines to become black
         return [0, 0, 0, 1];
     else if (index) {
-	    let r = (index >> 16) & 0xFF;
-	    let g = (index >> 8) & 0xFF;
-	    let b = index & 0xFF;
+        let r = (index >> 16) & 0xFF;
+        let g = (index >> 8) & 0xFF;
+        let b = index & 0xFF;
         let a = 1;
         return [r, g, b, a];
     } else
-	   return [0, 0, 0, 1];
+        return [0, 0, 0, 1];
 }
