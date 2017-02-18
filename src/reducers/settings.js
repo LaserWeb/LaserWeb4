@@ -68,7 +68,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeMoveUnits: 'in:mm/s,mm/min',
     
     machineZEnabled: 'boolean',
-    machineZBlowerEnabled: 'boolean',
+    machineBlowerEnabled: 'boolean',
     machineZToolOffset: 'numeric',
     
     toolImagePosition: 'in:TL,TR,C,BL,BR',
@@ -99,9 +99,12 @@ export const settings = objectNoId('settings', {
     machineBeamDiameter: 0.2,
     
     machineZEnabled: false,
-    machineZBlowerEnabled: false,
     machineZMatThickness: 0,
-    machineZFocusOffset: 0,
+    machineZToolOffset: 0,
+
+    machineBlowerEnabled: false,
+    machineBlowerGcodeOn: '',
+    machineBlowerGcodeOff: '',
     
     pxPerInch: 96,
     dpiRasterBmp:300,
@@ -110,10 +113,13 @@ export const settings = objectNoId('settings', {
     toolCncMode:false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
+
     toolVideoDevice: null,
-    toolVideoPerspective: null,
+    toolVideoPerspective: {enabled:false},
     toolVideoLens: {a:1,b:1,F:1,scale:1},
     toolVideoFov: {x:1,y:1},
+    toolVideoResolution: "720p(HD)",
+
     toolWebcamUrl:"",
     toolFeedUnits: 'mm/min',
     

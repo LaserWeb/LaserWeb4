@@ -1,22 +1,24 @@
 import { setAttrs } from '../actions/object'
 
-/*MATERIAL*/
-export const addMaterial = (materialId)=> ({type:"MATERIAL_ADD", payload: {materialId}});
-export const deleteMaterial = (materialId)  => ({type:"MATERIAL_DELETE", payload: {materialId}});
-export const setMaterialAttrs = (materialId, attrs) => ({type:"MATERIAL_SET_ATTRS", payload: { materialId, attrs}});
-export const toggleMaterialView = (materialId) => ({type:"MATERIAL_TOGGLE_VIEW", payload: {materialId}});
-export const toggleMaterialEdit = (materialId) => ({type:"MATERIAL_TOGGLE_EDIT", payload: {materialId}});
+/*MATERIALDB_GROUP*/
+export const addGroup = ()=> ({type:"MATERIALDB_GROUP_ADD"});
+export const deleteGroup = (groupId)  => ({type:"MATERIALDB_GROUP_DELETE", payload: groupId});
+export const setGroupAttrs = (groupId, attrs) => ({type:"MATERIALDB_GROUP_SET_ATTRS", payload: { groupId, attrs}});
+export const toggleGroupView = (groupId) => ({type:"MATERIALDB_GROUP_TOGGLE_VIEW", payload: groupId});
+export const toggleGroupEdit = (groupId) => ({type:"MATERIALDB_GROUP_TOGGLE_EDIT", payload: groupId});
 
-/*MATERIAL_OPERATIONS*/
-export const addMaterialOperation = (materialId, operationType, machineProfile=null) =>({type:"MATERIAL_OPERATION_ADD", payload:{materialId, operationType, machineProfile}})
-export const deleteMaterialOperation = (materialId, operationIndex)  => ({type:"MATERIAL_OPERATION_DELETE", payload: {materialId, operationIndex}});
-export const setMaterialOperationAttrs = (materialId, operationIndex, attrs) => ({type:"MATERIAL_SET_OPERATION_ATTRS", payload: { materialId, operationIndex, attrs}});
-export const toggleMaterialOperationEdit = (materialId, operationIndex) => ({type:"MATERIAL_OPERATION_TOGGLE_EDIT", payload: {materialId, operationIndex}});
+/*MATERIALDB_PRESET (operations)*/
+export const addPreset = (groupId, attrs={}) =>({type:"MATERIALDB_PRESET_ADD", payload:{groupId, attrs}})
+export const deletePreset = (presetId)  => ({type:"MATERIALDB_PRESET_DELETE", payload: presetId});
+export const setPresetAttrs = (presetId, attrs) => ({type:"MATERIALDB_PRESET_SET_ATTRS", payload: { presetId, attrs}});
+export const togglePresetEdit = (presetId) => ({type:"MATERIALDB_PRESET_TOGGLE_EDIT", payload: presetId});
 
-/*MATERIAL DB*/
-export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIAL_DB_UPLOAD", payload: {file, database:JSON.parse(content)}});
-export const downloadMaterialDatabase = (database) => ({ type:"MATERIAL_DB_DOWNLOAD", payload: {database}});
+/*MATERIALDB PICKER*/
+export const applyPreset = (presetId) => ({ type: "MATERIALDB_PRESET_APPLY", payload: presetId});
 
-/*MATERIAL PICKER*/
+/*MATERIALDB*/
+export const uploadMaterialDatabase = (file, content) => ({ type:"MATERIALDB_UPLOAD", payload: {file, database:JSON.parse(content)}});
+export const downloadMaterialDatabase = (database) => ({ type:"MATERIALDB_DOWNLOAD", payload: {database}});
 
-export const applyMaterial = (materialId, operationIndex) => ({ type: "MATERIAL_APPLY", payload: { materialId, operationIndex }});
+
+

@@ -12,29 +12,69 @@ function generateInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-const MATERIAL_TEMPLATE=()=>{
+const GROUP_TEMPLATE=()=>{
     return {
         id: uuid.v4(),
-        material:{
-            isEditable:false,
-            name: generateName(),
-            thickness: generateInteger(1,10)+"mm",
-            notes:""
-        },
-        operations:[]
+        name: generateName(),
+        notes:"",
+        template: PRESET_TEMPLATE('Laser Cut'),
+        presets:[]
     }
 }
 
-const MATERIAL_OPERATION_TEMPLATE=(type, machineProfile=null)=>{
+const PRESET_TEMPLATE=(type, machineProfile=null)=>{
     return {
-        machine_profile:machineProfile,
-        type:type,
+        id: uuid.v4(),
         name: "** "+generateName()+" **",
         notes:"",
+        type:type,
+        machine_profile:machineProfile,
         params:{}
     }
-  
 }
+
+
+const togglePresetAttribute = (state, id, attribute, processPreset=null) => {
+    return state.map((group) => {
+        if (!group.presets || !group.presets.find((preset)=>{ return preset.id === id})) 
+            return group;
+        
+        group.presets=group.presets.map((preset,i)=> {
+                if (preset.id!==id)
+                    return preset;
+                
+                if (typeof preset[attribute] == "undefined")
+                    preset[attribute]=false;
+                
+                preset[attribute]=!preset[attribute];
+                
+                if (processPreset)
+                    preset = processPreset(preset)
+
+                return preset;
+                
+        })
+        
+        return group;
+    })
+}
+
+const toggleGroupAttribute = (state, id,  attribute, processGroup=null) => {
+    return state.map((group) => {
+        if (group.id !== id)
+            return group;
+        if (typeof group[attribute] == "undefined")
+            group[attribute]=false;
+            
+        group[attribute]=!group[attribute];
+
+        if (processGroup)
+            group = processGroup(group)
+        
+        return group;
+    })
+}
+
 
 export const materialDatabase = (state = initialState, action) => {
 
@@ -47,119 +87,85 @@ export const materialDatabase = (state = initialState, action) => {
             case "MATERIALDB_DOWNLOAD":
                 return state;
           
-            case "MATERIAL_ADD":
-                state = [...state, MATERIAL_TEMPLATE()];
+            case "MATERIALDB_GROUP_ADD":
+                state = [...state, GROUP_TEMPLATE()];
                 return state;
                 
-            case "MATERIAL_DELETE":
-                return state.filter((material)=>{
-                    return (material.id !== action.payload.materialId);
+            case "MATERIALDB_GROUP_DELETE":
+                return state.filter((group)=>{
+                    return (group.id !== action.payload);
                 })
             
-            case "MATERIAL_SET_ATTRS":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
+            case "MATERIALDB_GROUP_SET_ATTRS":
+                return state.map((group) => {
+                    if (group.id !== action.payload.groupId)
+                        return group;
                     
-                    material.material=deepMerge(material.material, action.payload.attrs)
-                    
-                    return material;
+                    let attrs=omit(action.payload.attrs, ['id','presets']); // dont overwrite id,presets
+                    group=deepMerge(group, attrs )
+                    return group;
                 })
+
+            case "MATERIALDB_GROUP_TOGGLE_VIEW" :
+                return toggleGroupAttribute(state, action.payload, 'isOpened');
+
+            case "MATERIALDB_GROUP_TOGGLE_EDIT":
+
+                //disable children edit.
+                const processGroup=(group)=>{
+                    if (group.isEditable){
+                        group.presets=group.presets.map((preset, i) =>{
+                            preset.isEditable=false;
+                            return preset;    
+                        })
+                    }
+                    return group;
+                }
+
+                return toggleGroupAttribute(state, action.payload, 'isEditable', processGroup )
             
-            case "MATERIAL_SET_OPERATION_ATTRS":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
+            case "MATERIALDB_PRESET_ADD":
+                return state.map((group) => {
+                    if (group.id !== action.payload.groupId)
+                        return group;
+                      
+                    let template=group.template || {};
+                    let attrs=action.payload.attrs || {};
+                    group.presets=[...group.presets, Object.assign(PRESET_TEMPLATE(),omit(template,['id','name']), omit(attrs,['id']))]
                     
-                    material.operations=material.operations.map((operation,i)=> {
-                            if (i!==action.payload.operationIndex)
-                                return operation;
-                            
-                            operation=deepMerge(operation, action.payload.attrs)
-                            
-                            return operation;
+                    return group;
+                });
+
+            case "MATERIALDB_PRESET_SET_ATTRS":
+                return state.map((group) => {
+                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload.presetId})) 
+                        return group;
+                    
+                    
+                    group.presets=group.presets.map((preset)=> {
+                            if (preset.id!==action.payload.presetId)
+                                return preset;
+                            return deepMerge(preset, action.payload.attrs)
                             
                     })
                     
-                    return material;
+                    return group;
+                })
+
+            
+            case "MATERIALDB_PRESET_DELETE":
+                return state.map((group) => {
+                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload})) 
+                        return group;
+                    
+                    group.presets=group.presets.filter((preset,i)=> { return (preset.id!==action.payload) })
+                    
+                    return group;
                 })
                
                 
-            case "MATERIAL_TOGGLE_VIEW" :
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    if (typeof material.isOpened =="undefined")
-                        material.isOpened=false;
-                        
-                    material.isOpened=!material.isOpened;
-                    
-                    return material;
-                })
-            
-            case "MATERIAL_OPERATION_TOGGLE_EDIT":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    material.operations=material.operations.map((operation,i)=> {
-                            if (i!==action.payload.operationIndex)
-                                return operation;
-                            
-                            if (typeof operation.isEditable =="undefined")
-                                operation.isEditable=false;
-                            
-                            operation.isEditable=!operation.isEditable;
-                            
-                            return operation;
-                            
-                    })
-                    
-                    return material;
-                })
-            
-            case "MATERIAL_TOGGLE_EDIT":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    
-                    if (typeof material.material.isEditable =="undefined")
-                        material.material.isEditable=false;
-                        
-                    
-                    material.operations=material.operations.map((operation, i) =>{
-                        operation.isEditable=false;
-                        return operation;    
-                    })
-                    
-                    material.material.isEditable=!material.material.isEditable;
-                    return material;
-                    
-                })
-            
-            case "MATERIAL_OPERATION_ADD":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                      
-                    material.operations=[...material.operations, MATERIAL_OPERATION_TEMPLATE(action.payload.operationType, action.payload.machineProfile)]
-                    
-                    return material;
-                });
-            
-            case "MATERIAL_OPERATION_DELETE":
-                return state.map((material) => {
-                    if (material.id !== action.payload.materialId)
-                        return material;
-                    
-                    material.operations=material.operations.filter((operation,i)=> {
-                            return (i!==action.payload.operationIndex)
-                    })
-                    
-                    return material;
-                })
-                
+            case "MATERIALDB_PRESET_TOGGLE_EDIT":
+                return togglePresetAttribute(state, action.payload,'isEditable')
             
             default:
                 return state;

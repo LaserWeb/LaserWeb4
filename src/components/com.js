@@ -3,6 +3,9 @@ import { connect } from 'react-redux';
 
 import { Input, NumberField, ToggleField } from './forms';
 import { setSettingsAttrs } from '../actions/settings';
+import { setWorkspaceAttrs } from '../actions/workspace';
+
+import CommandHistory from './command-history';
 
 class Com extends React.Component {
     useGcode() {
@@ -35,13 +38,26 @@ class Com extends React.Component {
                     />
                 <br />
                 <button onClick={e => this.useGcode()}>Use gcode</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 0, 0] }))}>Set Work Pos A</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
+                <br />
+                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, -50] }))}>Set Work Pos C</button>
+
+
+                <hr />
+
+                <button onClick={e => { CommandHistory.log("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
+
+                <CommandHistory />
             </div>
         )
     }
 }
 
 Com = connect(
-    state => ({ settings: state.settings, gcode: state.gcode })
+    state => ({ settings: state.settings, gcode: state.gcode.content })
 )(Com);
 
 export default Com

@@ -77,6 +77,7 @@ export class DocumentCacheHolder extends React.Component {
                 try {
                     cachedDocument.triangles = new Float32Array(triangulateRawPaths(filterClosedRawPaths(document.rawPaths)));
                 } catch (e) {
+                    console.log(e);
                     cachedDocument.triangles = new Float32Array(0);
                 }
                 cachedDocument.outlines = [];

@@ -22,8 +22,8 @@ class Gcode extends React.Component {
 
 Gcode = connect(
     state => ({
-        gcode: state.gcode,
-        saveGcode: () => sendAsFile('gcode.gcode', state.gcode),
+        gcode: state.gcode.content,
+        saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
     }),
     dispatch => ({
         setGcode: e => dispatch(setGcode(e.target.value)),

@@ -1,13 +1,15 @@
 
-export const drawCommand = (regl) =>{ 
+export const pipeImageCommand = (regl) =>{ 
     return regl({
         vert: `
             precision mediump float;
             attribute vec2 position;
             varying vec2 uv;
+            uniform float flipX;
+            uniform float flipY;
             void main () {
                 uv = position;
-                gl_Position = vec4(1.0 - 2.0 * position, 0, 1);
+                gl_Position = vec4(flipX + 2.0 * position.x, flipY + 2.0 * position.y, 0, 1);
             }
         `,
         frag: `
@@ -26,19 +28,20 @@ export const drawCommand = (regl) =>{
             ]
         },
         framebuffer: regl.prop('dest'),
-        uniforms: {texture: regl.prop('src')},
+        uniforms: {
+            texture: regl.prop('src'),
+            flipX: regl.prop('flipX')? -1 : 1,
+            flipY: regl.prop('flipY')? -1 : 1
+        },
         depth: {enable: false},
         count: 3
     });
 }
 
-export const barrelDistort = (regl, src, dest, lens, fov) => {
+export const barrelDistortCommand = (regl) => {
 
-    let uLens = (lens) ? [lens.a, lens.b, lens.F, lens.scale] : [1.0, 1.0, 1.0, 1.5]
-    let uFov = (fov)? [fov.x, fov.y] : [1.0,1.0]
 
-    if (!barrelDistort.COMMAND){
-            barrelDistort.COMMAND = regl({
+    return regl({
             frag: `
             #ifdef GL_ES
             precision highp float;
@@ -108,8 +111,8 @@ export const barrelDistort = (regl, src, dest, lens, fov) => {
                 ])
             },
             uniforms: {
-                uLens: regl.prop('uLens'),
-                uFov: regl.prop('uFov'),
+                uLens: regl.prop('lens'),
+                uFov: regl.prop('fov'),
                 uSampler: regl.prop('src')
             },
             elements : regl.elements([
@@ -121,17 +124,10 @@ export const barrelDistort = (regl, src, dest, lens, fov) => {
             framebuffer: regl.prop('dest')
 
     })
-    }
-
-    return barrelDistort.COMMAND({ src, dest, uLens, uFov })
+ 
 }
 
-export const perspectiveDistort = (regl, src, dest, before, after ) => {
-
-    before= before || [0, 0, 0, src.height, src.width, src.height, src.width, 0]
-    after = after || before;
-
-   
+export const computePerspectiveMatrix = (src, before, after) => {
 
     let getSquareToQuad = (x0, y0, x1, y1, x2, y2, x3, y3) => {
         var dx1 = x1 - x2;
@@ -193,10 +189,12 @@ export const perspectiveDistort = (regl, src, dest, before, after ) => {
         return matrix;
     }
 
-    let matrix = perspective(before, after)
+    return perspective(before, after)
+}
 
-    if (!perspectiveDistort.COMMAND){
-        perspectiveDistort.COMMAND = regl({
+export const perspectiveDistortCommand = (regl) => {
+
+   return regl({
             frag: `
                 precision highp float;
                 uniform mat3 matrix;
@@ -225,7 +223,8 @@ export const perspectiveDistort = (regl, src, dest, before, after ) => {
                 varying vec2 texCoord;
                 void main () {
                     texCoord = position;
-                    gl_Position = vec4(1.0 - 2.0 * texCoord, 0, 1);
+                    gl_Position = vec4( -1.0 + 2.0 * position.x, -1.0 + 2.0 * position.y, 0, 1);
+                    
                 }
             `,
             attributes:{
@@ -241,15 +240,10 @@ export const perspectiveDistort = (regl, src, dest, before, after ) => {
             uniforms:{
                 matrix: regl.prop('matrix'),
                 texture: regl.prop('src'),
-                texSize: [src.width, src.height],
+                texSize: regl.prop('size'),
                 useTextureSpace: false
             },
             count:6,
             framebuffer: regl.prop('dest')
-            
-
         })
-    }
-    return perspectiveDistort.COMMAND({src, dest, matrix });
-
 }

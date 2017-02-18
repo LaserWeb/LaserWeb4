@@ -70,6 +70,9 @@ class LaserWeb extends React.Component {
     }
 
     render() {
+        // 2017-01-21 Pvdw - removed the following from Dock
+        // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
+        // <Quote id="quote" title="Quote" icon="money" />
         return (
             <AllowCapture style={{ height: '100%' }}>
                 <DocumentCacheHolder style={{ width: '100%' }} documents={this.props.documents}>
@@ -78,8 +81,6 @@ class LaserWeb extends React.Component {
                             <Com id="com" title="Comms" icon="plug" />
                             <Jog id="jog" title="Jog" icon="arrows-alt" />
                             <Cam id="cam" title="CAM" icon="pencil-square-o" />
-                            <Gcode id="gcode" title="G-Code" icon="file-code-o" />
-                            <Quote id="quote" title="Quote" icon="money" />
                             <Settings id="settings" title="Settings" icon="cogs" />
                             <About id="about" title="About" icon="question" />
                         </Sidebar>

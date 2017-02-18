@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Inconsolata');
+
 /* Global */
 
 body, html, .full-height {
@@ -219,8 +221,8 @@ body, html, .full-height {
 
 .folded #sidebar .dock li.active {border-left-color: #185E00}
 
-.operations {
-    width:100%;
+.operations, .operations table {
+    width:100%; font-size: small
 }
 
 .operation-row {
@@ -234,8 +236,12 @@ body, html, .full-height {
 .operations td {
     padding-left: 4px;
     padding-right: 4px;
-    white-space: nowrap;
+    
 }
+
+.operations td > input {width: 100%}
+.operations td label {font-weight: normal}
+.operations tr >* {border-bottom: 1px solid #e9e9e9}
 
 .operationDoc {
     user-select: 'none';
@@ -291,13 +297,17 @@ body, html, .full-height {
 }
 
 /*Command History*/
-.commandHistory {padding-top: 4px; position:relative; margin-bottom: 4px; padding-bottom:2em; background: #fffafa; border: 1px solid #faa; border-radius:4px}
-.commandHistory code:empty:before { font-size: 0.8em; content:"empty command history"; color: #c99;}
-.commandHistory code { height: 10em; display:block;  overflow:auto;  white-space: pre; background: none}
-.commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #fcc}
+.commandHistory {padding-top: 4px; position:relative; margin-bottom: 4px; padding-bottom:2em; background: #ffffff; border: 1px solid #ccc; border-radius:4px}
+.commandHistory .code:empty:before { font-size: 0.8em; content:"empty command history"; color: #ccc;}
+.commandHistory .code { height: 10em; display:block;  overflow:auto;  white-space: pre; background: none}
+.commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #f6f6f6}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
-
+.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre}
+.commandHistory code.danger {background: #fee}
+.commandHistory code.danger i {color: red}
+.commandHistory code.warning {background: #ffa}
+.commandHistory code.warning i {color: #f90}
 
 /*FullSizeModal*/
 
@@ -313,58 +323,7 @@ body, html, .full-height {
   max-height: 99%;
 }
 
-
-/* reeact-bootstrap-table*/
-
 .clearfix {display: block; clear:both}
-
-
-.flexTHead {border-bottom: 1px solid #ccc}
-.flexTable .tableRow.collapsible {cursor: s-resize;}
-.flexTable .collapsible:hover {background: rgb(188, 232, 241)}
-.flexTable .tableRow.collapsible.opened {cursor: n-resize }
-.flexTable .tableRow label {width: 100%}
-
-.flexTable .flexTBody .column {align-items:none}
-.flexTable .flexTBody .column > div {width:100%; overflow:visible !important}
-.flexTable .flexTBody .column._actions {flex:none !important; text-align: right}
-.flexTable .flexTBody .column._actions div {line-height: 0}
-.flexTable .flexTBody .column input,
-.flexTable .flexTBody .column select,
-.flexTable .flexTBody .column textarea {width:100%}
-
-
-
-.materialOperations .flexTHead .column > div{font-size: 0.8em; text-transform: uppercase; white-space: normal !important}
-.materialList .column .has-error > * {border: 1px solid red}
-.materialList .column .has-error:empty {border:none}
-.materialList .column .has-error:empty:after {color: #faa; content:"not defined"; font-style:italic; font-size: 0.9em}
-
-.materialOperations .well {margin-top:1em}
-.materialList {max-height: 400px; overflow-y:auto; overflow-x: hidden}
-.materialList .form-group {margin-bottom: 0}
-.materialList .form-group.has-error input {border: 1px solid red}
-
-
-
-.materialPicker small {color: #666; flex-grow: 2; text-align: right}
-
-
-.materialPicker .details {margin-top: 2px; margin-left: 1em}
-.materialPicker  > section > heading  {display:flex; flex-direction: row; align-items: center; border-bottom: 1px solid #eee; }
-
-.materialPicker .details .handler {display:flex; flex-direction: row; align-items: center; flex-grow:2}
-.materialPicker .details .handler > * {flex-grow:1}
-.materialPicker .details heading button {margin-left: 5px}
-.materialPicker .details heading {display:flex;margin:0}
-.materialPicker .details heading .summary { display:flex; flex-grow:1}
-.materialPicker .details heading .summary small {margin-left: 1em}
-.materialPicker table {font-size: 0.8em; margin-left: 1.2em; width: 98%; margin-top:0.5em}
-.materialPicker table td, 
-.materialPicker table th {padding: 2px !important}
-.materialPicker table td {text-align: right}
-
-.nestedTableWrapper {margin-Left: 10px; padding-left:3px; border-Left: 3px solid #ccc; border-top: 1px solid #f6f6f6}
 
 /* macros*/
 .macros select {width: 100%; font-size: 0.8em}
@@ -632,3 +591,5 @@ button:hover,
 }
 
 #ApplicationSnapshot > section {margin-bottom: 0.5em}
+
+
