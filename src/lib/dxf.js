@@ -23,13 +23,11 @@
 
 "use strict";
 
-import { vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
+import vectorizeText from 'vectorize-text';
 
-import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
-import {FileStorage, LocalStorage} from '../lib/storages';
 
 const debugShape = [0, 0, 0, 0];
 
@@ -245,17 +243,13 @@ function drawText(state, entity, docLayer, index) {
         name: entity.type + ': ' + entity.handle,
     }
 
-    // Create defualt font settings
+    // Create default font settings
     entity = {
         ...entity,
-        fontStyle: 'normal', // normal italic oblique
-        fontWeight: 'normal', // normal bold
-        fontFamily: 'Arial',
+        fontStyle: entity.fontStyle || 'normal', // normal italic oblique
+        fontWeight: entity.fontWeight || 'normal', // normal bold
+        fontFamily: entity.fontFamily || 'Arial',
     }
-
-    let smoothingScale = 2.25
-    let magicDPIScale = 0.37 / smoothingScale;
-    let pixleSize = 1;
 
     if (entity.type == "MTEXT") {
         let regex = /\{\\f(.*?)\|(\w+)\|(\w+)\|(\w+)\|(\w+)\;(.*?)\}$/g;
@@ -288,50 +282,57 @@ function drawText(state, entity, docLayer, index) {
         }
     }
 
+    // // discover DPI
+    // var cvs = document.createElement('canvas');
+    // cvs.setAttribute('zoom', 'reset');
+    // var ctx = cvs.getContext('2d');
+    // ctx.font = "10mm sans-serif" // ctx rounds to whole px's so div10
+    // var ppmm = /[0-9.]*/.exec(ctx.font)
+    // ppmm = ppmm / 10
+    // // permenenatly convert textHeight from mm to px
+    // //entity.textHeight = entity.textHeight * ppmm
+
+    // Translate text to proper baseline
     var cvs = document.createElement('canvas');
     cvs.setAttribute('zoom', 'reset');
     var ctx = cvs.getContext('2d');
-    var ctxStyle = `${entity.fontStyle} ${entity.fontWeight} ${entity.textHeight * smoothingScale}mm ${entity.fontFamily}`;
-    ctx.font = ctxStyle;
-    console.log(`ctxStyle: ${ctxStyle}`);
-    console.log(`ctx.font: ${ctx.font}`);
-    // Dynamically set the convas based on font size
-    cvs.height = ctx.measureText("M").width * 3;
-    ctx.font = ctxStyle; // reset the canvas settings that set height wiped out
-    cvs.width = ctx.measureText(entity.text).width + 10;
-    ctx.font = ctxStyle; // reset the canvas settings that set width wiped out
+    ctx.font = `${entity.textHeight}mm sans-serif` // ctx rounds to whole px's so div10
+    var ppmm = /[0-9.]*/.exec(ctx.font)
+    var ppmmTrans = ppmm/2 - entity.textHeight/2
 
-    // Draw the text upside down as the LW4 canvas will flip it
-    ctx.scale(1, -1);
-    ctx.fillText(entity.text, 0, -50); // center upside down text for font tails. eg, pjg
+    var polygons = vectorizeText(entity.text, {
+      height: entity.textHeight,
+      fontStyle: entity.fontStyle,
+      fontWeight: entity.fontWeight,
+      font: entity.fontFamily,
+      polygons: true,
+    });
+    console.log(`polygons: ${polygons}`);
 
-    // Pull the image data out of the canvas and create a point cloud
-    let data = ctx.getImageData(0, 0, cvs.width, cvs.height);
     let coords = [];
-    let x = 0;
-    let y = 0;
-    for (let i = 0; i < data.data.length; i += 4) {
-        if (x == cvs.width) {
-            x = 0;
-            y++;
+    polygons.forEach(function(loops) {
+      loops.forEach(function(loop) {
+        let points = [];
+        var start = loop[0]
+        points.push(start[0],-start[1]) // origin x,y
+        for(var i=1; i<loop.length; ++i) {
+          var p = loop[i]
+          points.push(p[0],-p[1]) // character lines
         }
-        if (data.data[i+3]) {
-            let dy = y - 100;
-            coords.push([x,dy,x+pixleSize,dy,x+pixleSize,dy+pixleSize,x,dy+pixleSize,x,dy])
-        }
-        x++;
-    }
+        points.push(start[0],-start[1]) // line back to origin
+        coords.push(points);
+      })
+  });
 
-    // Scale and translate point cloud to proper origin
     if (coords.length) {
         docEntity.rawPaths = coords;
-        docEntity.translate = [entity.startPoint.x, entity.startPoint.y+8.76, 0];
-        docEntity.scale = [magicDPIScale, magicDPIScale, 1];
+        docEntity.translate = [entity.startPoint.x, entity.startPoint.y - ppmmTrans, 0];
+        docEntity.scale = [1, 1, 1]; //14
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
             docEntity.strokeColor = idxToRGBColor(docLayer.color);
-        docEntity.fillColor = [0, 0, 0, 1];
+        docEntity.fillColor = docEntity.strokeColor;
     }
 
     state = documents(state, addDocumentChild(docLayer.id, docEntity));
