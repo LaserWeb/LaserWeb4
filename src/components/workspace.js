@@ -666,7 +666,7 @@ class WorkspaceContent extends React.Component {
                     </Dom3d>
                 </Pointable>
                 <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
-                    <SetSize style={{ display: 'inline-block', pointers: 'all' }}>
+                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
