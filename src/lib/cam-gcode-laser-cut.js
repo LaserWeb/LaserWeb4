@@ -133,7 +133,7 @@ export function getLaserCutGcode(props) {
     return gcode;
 }; // getLaserCutGcode
 
-export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert) {
+export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert,  done, progress, QE) {
     let ok = true;
 
     if (settings.gcodeSMaxValue <= 0) {
@@ -175,66 +175,70 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         }
     }
     if (!ok)
-        return '';
+        done(false);
 
-    let camPaths = [];
-    if (op.type === 'Laser Cut') {
-        camPaths = cut(geometry, openGeometry, false);
-    } else if (op.type === 'Laser Cut Inside') {
-        if (op.margin)
-            geometry = offset(geometry, -op.margin * mmToClipperScale);
-        camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
-    } else if (op.type === 'Laser Cut Outside') {
-        if (op.margin)
-            geometry = offset(geometry, op.margin * mmToClipperScale);
-        camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
-    } else if (op.type === 'Laser Fill Path') {
-        if (op.margin)
-            geometry = offset(geometry, -op.margin * mmToClipperScale);
-        camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale, op.lineAngle);
-    }
+    QE.push((cb)=>{
+        let camPaths = [];
+        if (op.type === 'Laser Cut') {
+            camPaths = cut(geometry, openGeometry, false);
+        } else if (op.type === 'Laser Cut Inside') {
+            if (op.margin)
+                geometry = offset(geometry, -op.margin * mmToClipperScale);
+            camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, true, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
+        } else if (op.type === 'Laser Cut Outside') {
+            if (op.margin)
+                geometry = offset(geometry, op.margin * mmToClipperScale);
+            camPaths = insideOutside(geometry, op.laserDiameter * mmToClipperScale, false, op.cutWidth * mmToClipperScale, op.stepOver, op.direction === 'Climb', false);
+        } else if (op.type === 'Laser Fill Path') {
+            if (op.margin)
+                geometry = offset(geometry, -op.margin * mmToClipperScale);
+            camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale, op.lineAngle);
+        }
 
-    reduceCamPaths(camPaths, .5 * mmToClipperScale);
+        reduceCamPaths(camPaths, .5 * mmToClipperScale);
 
-    let feedScale = 1;
-    if (settings.toolFeedUnits === 'mm/s')
-        feedScale = 60;
+        let feedScale = 1;
+        if (settings.toolFeedUnits === 'mm/s')
+            feedScale = 60;
 
-    let gcode =
-        "\r\n;" +
-        "\r\n; Operation:    " + opIndex +
-        "\r\n; Type:         " + op.type +
-        "\r\n; Paths:        " + camPaths.length +
-        "\r\n; Passes:       " + op.passes +
-        "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
-        "\r\n;\r\n";
+        let gcode =
+            "\r\n;" +
+            "\r\n; Operation:    " + opIndex +
+            "\r\n; Type:         " + op.type +
+            "\r\n; Paths:        " + camPaths.length +
+            "\r\n; Passes:       " + op.passes +
+            "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
+            "\r\n;\r\n";
 
-    gcode += getLaserCutGcode({
-        paths: camPaths,
-        scale: 1 / mmToClipperScale,
-        offsetX: 0,
-        offsetY: 0,
-        decimal: 2,
-        cutFeed: op.cutRate * feedScale,
-        laserPower: op.laserPower,
-        passes: op.passes,
-        useA: op.useA,
-        useZ: settings.machineZEnabled ? {
-            startZ: op.startHeight,
-            offsetZ: settings.machineZToolOffset,
-            passDepth: op.passDepth,
-        }:false,
-        useBlower: op.useBlower ? {
-            blowerOn: settings.machineBlowerGcodeOn,
-            blowerOff: settings.machineBlowerGcodeOff,
-        }:false, 
-        aAxisStepsPerTurn: op.aAxisStepsPerTurn,
-        aAxisDiameter: op.aAxisDiameter,
-        tabGeometry: tabGeometry,
-        gcodeToolOn: settings.gcodeToolOn,
-        gcodeToolOff: settings.gcodeToolOff,
-        gcodeSMaxValue: settings.gcodeSMaxValue,
-    });
+        gcode += getLaserCutGcode({
+            paths: camPaths,
+            scale: 1 / mmToClipperScale,
+            offsetX: 0,
+            offsetY: 0,
+            decimal: 2,
+            cutFeed: op.cutRate * feedScale,
+            laserPower: op.laserPower,
+            passes: op.passes,
+            useA: op.useA,
+            useZ: settings.machineZEnabled ? {
+                startZ: op.startHeight,
+                offsetZ: settings.machineZToolOffset,
+                passDepth: op.passDepth,
+            }:false,
+            useBlower: op.useBlower ? {
+                blowerOn: settings.machineBlowerGcodeOn,
+                blowerOff: settings.machineBlowerGcodeOff,
+            }:false, 
+            aAxisStepsPerTurn: op.aAxisStepsPerTurn,
+            aAxisDiameter: op.aAxisDiameter,
+            tabGeometry: tabGeometry,
+            gcodeToolOn: settings.gcodeToolOn,
+            gcodeToolOff: settings.gcodeToolOff,
+            gcodeSMaxValue: settings.gcodeSMaxValue,
+        });
 
-    return gcode;
+        done(gcode, cb)
+    })
+
+    
 } // getLaserCutGcodeFromOp
