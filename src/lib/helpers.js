@@ -9,6 +9,16 @@ export function sendAsFile(filename, data, mimetype) {
             tempLink.click();
 }
 
+export function openDataWindow(data, mimetype='text/plain;charset=utf-8', target="data")
+{
+        let blob = new Blob([data], {type: mimetype});
+        let reader = new FileReader();
+            reader.onloadend = function(e) {
+                window.open(reader.result,target);
+            }
+            reader.readAsDataURL(blob);
+}
+
 export function isObject(item) {
   return (item && typeof item === 'object' && !Array.isArray(item) && item !== null);
 }
