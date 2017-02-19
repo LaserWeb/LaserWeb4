@@ -127,8 +127,8 @@ class Cam extends React.Component {
                             <td style={{width:"80%", textAlign:"right"}}>{!this.props.gcoding.enable ? ( <ButtonGroup>
                         <button title="Generate G-Code from Operations below" className="btn btn-primary btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={window.generateGcode}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
                         <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
-                        <button title="Export G-code to File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                        <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
+                        <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                        <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
                     </ButtonGroup>):<GcodeProgress/>}</td>
                         </tr></tbody>
                     </table>
