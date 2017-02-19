@@ -76,7 +76,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         for (let id of op.tabDocuments)
             examineDocTree(true, id);
 
-        const jobDone = (g, cb) => { if (g !== false) gcode.push(g); cb(); }
+        const jobDone = (g, cb) => { if (g !== false) { gcode.push(g); cb(); } }
 
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
             
