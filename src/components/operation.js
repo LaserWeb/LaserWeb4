@@ -296,8 +296,12 @@ const ifUseA = {
 };
 
 const checkZHeight = {
-    check: (v, settings) => settings.machineZEnabled,
-    error: 'Laser Z Stage must be enabled'
+    check: (v, settings) => settings.machineZEnabled && v,
+    error: (v, settings) => {
+        if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
+        if (v===0) return 'Make sure this is your desired value';
+        return 'Value not allowed'
+    }
 }
 
 const ifUseZ = {
