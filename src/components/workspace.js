@@ -255,7 +255,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 
 
 // WEBCAM
-function bindVideoTexture(drawCommands, videoTexture, videoElement, workspaceSize) {
+function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
     try {
         if (!videoElement.src)
             videoElement.src = window.URL.createObjectURL(window.videoCapture.getStream())
@@ -263,7 +263,7 @@ function bindVideoTexture(drawCommands, videoTexture, videoElement, workspaceSiz
         // weird createObjectURL issue.
     }
     if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
-        videoTexture.set({ image: videoElement, ...workspaceSize })
+        videoTexture.set({ image: videoElement, width: size.width, height: size.height })
         return true;
     }
     return false;
@@ -449,7 +449,8 @@ class WorkspaceContent extends React.Component {
 
         let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
         let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
-        console.log(videoSize)
+        console.dir({videoSize, workspaceSize, props:this.props})
+        
 
         this.videoElement = document.createElement('video')
 
