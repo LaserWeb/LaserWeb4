@@ -271,7 +271,7 @@ function fxChain(drawCommands, fx) {
     Object.entries(fx).forEach((entry) => {
         let [fx, params] = entry;
         drawCommands.useFrameBuffer(params.buffer, () => {
-            let uniforms = Object.assign({texture: fxTexture}, params.uniforms);
+            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
             drawCommands[fx](uniforms)
             fxTexture = params.buffer.texture;
         })
@@ -439,11 +439,12 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
+        let videoSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
         this.videoElement = document.createElement('video')
         this.videoElement.width = this.props.width
         this.videoElement.height = this.props.height
         this.videoTexture = this.drawCommands.createTexture(this.props.width, this.props.height);
-        this.barrelBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
+        this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -456,11 +457,11 @@ class WorkspaceContent extends React.Component {
             gl.enable(gl.BLEND);
 
             //if (this.props.showVideo)
-            let videoSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
-           
+            
+
             // BINDS VIDEO FEED with TEXTURE
-            if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)){
-                let videoTexture = this.videoTexture;
+            if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
+                
                 // APPLIES FX CHAIN
                 /*
                 let fxTexture = fxChain(this.drawCommands,
@@ -479,12 +480,16 @@ class WorkspaceContent extends React.Component {
                 videoTexture = fxTexture//this.videoTexture;
                 */
                 
-                this.drawCommands.useFrameBuffer(this.barrelBuffer, ()=>{
-                    this.drawCommands.barrelDistort({ texture: videoTexture, lens: [1.0, 1.0, 1.0, 1.5], fov: [1.0, 1.0] })
+                let videoTexture = this.videoTexture;
+                this.drawCommands.useFrameBuffer(this.barrelBuffer, () => {
+                    let l = this.props.settings.toolVideoLens
+                    let f = this.props.settings.toolVideoFov
+                    this.drawCommands.barrelDistort({ texture: videoTexture, lens: [1.0, 1.0, 1.0, 1.5], fov: [1.0, 1.0] }) //lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y]
                     videoTexture = this.barrelBuffer.texture;
                 })
 
                 
+
                 // DRAWS THE RESULT BUFFER ONTO IMAGE
                 drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, videoTexture, videoSize)
             }

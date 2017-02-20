@@ -85,11 +85,10 @@ export class VideoCapture {
             if (err) {
                 console.error(err);
             } else {
-                console.log(stream)
+                //console.log(stream)
                 this.stream = stream;
                 this.isReady=true;
                 callback(this.stream)
-                //this._startVideo(this.stream, props, callback)
             }
         })
         

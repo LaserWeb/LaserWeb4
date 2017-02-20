@@ -69,12 +69,17 @@ export function barrelDistort(drawCommands) {
             ]
         },
     });
-    let data = drawCommands.createBuffer(new Float32Array([0, 1, 2],[0, 2, 3],[2, 1, 0],[3, 2, 0]));
+    let data = drawCommands.createBuffer(new Float32Array([
+        [-1.0, -1.0, 0.0, 0.0, 0.0], [1.0, -1.0, 0.0, 1.0, 0.0], [1.0, 1.0, 0.0, 1.0, 1.0],
+        [-1.0, -1.0, 0.0, 0.0, 0.0], [1.0, 1.0, 0.0, 1.0, 1.0], [-1.0, 1.0, 0.0, 0.0, 1.0],
+        [1.0, 1.0, 0.0, 1.0, 1.0], [1.0, -1.0, 0.0, 1.0, 0.0], [-1.0, -1.0, 0.0, 0.0, 0.0],
+        [-1.0, 1.0, 0.0, 0.0, 1.0], [1.0, 1.0, 0.0, 1.0, 1.0], [-1.0, -1.0, 0.0, 0.0, 0.0]
+    ]));
     return ({lens, fov, texture }) => {
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.TRIANGLES,
-            uniforms: { uLens:lens, uFov: fov, uSampler: texture },
+            uniforms: { uLens: lens.map(parseFloat), uFov: fov.map(parseFloat), uSampler: texture },
             buffer: {
                 data,
                 stride: 0,
