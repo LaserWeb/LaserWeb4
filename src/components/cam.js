@@ -29,7 +29,7 @@ import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
-import { sendAsFile } from '../lib/helpers';
+import { sendAsFile, openDataWindow } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
@@ -125,9 +125,10 @@ class Cam extends React.Component {
                         <tbody><tr>
                             <th>GCODE</th>
                             <td style={{width:"80%", textAlign:"right"}}>{!this.props.gcoding.enable ? ( <ButtonGroup>
-                        <button title="Generate G-Code from Operations below" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={window.generateGcode}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                        <button title="Generate G-Code from Operations below" className="btn btn-primary btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={window.generateGcode}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                        <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
                         <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                        <button title="Load G-Code from File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
+                        <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
                     </ButtonGroup>):<GcodeProgress/>}</td>
                         </tr></tbody>
                     </table>
@@ -142,6 +143,7 @@ Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding,
         saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
+        viewGcode: () => openDataWindow(state.gcode.content)
     }),
     dispatch => ({
         dispatch,
