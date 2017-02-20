@@ -50,8 +50,7 @@ class Com extends React.Component {
 
                 <button onClick={e => { CommandHistory.log("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
 
-                <CommandHistory />
-            </div>
+              </div>
         )
     }
 }

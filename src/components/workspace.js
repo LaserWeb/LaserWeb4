@@ -34,6 +34,8 @@ import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
+import CommandHistory from './command-history'
+
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
@@ -750,6 +752,7 @@ class Workspace extends React.Component {
                             </tbody>
                         </table>
                     </div>
+                    <CommandHistory />
                 </div>
             </div>
         )
