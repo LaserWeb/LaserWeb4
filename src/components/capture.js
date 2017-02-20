@@ -66,7 +66,7 @@ export class AllowCapture extends React.Component {
 
     render() {
         return (
-            <div {...this.events} style={this.props.style}>
+            <div {...this.events} style={this.props.style} className={this.props.className}>
                 {this.props.children}
             </div>
         );

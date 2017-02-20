@@ -1,65 +1,43 @@
 [
     {
-        "id":"plywood_3mm",
-        "material": {
-            "name":"Plywood",
-            "thickness":"3",
-            "notes":"Standard Regular Plain Plywood, not thick nor thin."
+        "id":"light_v_engrave", 
+        "name":"Light Vector Engraving",
+        "notes":"Just scribing",
+        "template":{    
+            "type": "Laser Fill Path",
+            "params":{
+                "laserPower":"30",
+                "passes":"1",
+                "cutRate":"1500"
+            }
         },
-        "operations":[
+        "presets":[
             {
-                
+                "id":"baltic_plywood",
                 "machine_profile":null,
-                "type":"Laser Cut",
-                "name":"Engraving just a little",
-                "notes":"",
+                "name": "Baltic Birch Plywood",
+                "notes": null,
+			    "type": "Laser Fill Path",
                 "params":{
-                    
+                    "filterFillColor":"green",
+                    "laserPower":"40",
+                    "passes":"1",
+                    "cutRate":"2000"
                 }
             },
             {
-                
+                "id":"cast_acrylic",
                 "machine_profile":null,
-                "type":"Laser Cut Inside",
-                "name":"Cut through",
-                "notes":"",
+                "name": "Cast Acrylic",
+                "notes": null,
+                "type": "Laser Fill Path",
                 "params":{
-                    
+                    "filterFillColor":"green",
+                    "laserPower":"20",
+                    "passes":"1",
+                    "cutRate":"1500"
                 }
             }
-
-        ]
-    } ,
-    
-    {
-        "id":"ProfileTest",
-        "material": {
-            "name":"ProfileTest",
-            "thickness":"3",
-            "notes":"Blurb"
-        },
-        "operations":[
-            {
-                
-                "machine_profile":"*gen_smoothie",
-                "type":"Laser Cut",
-                "name":"SMOOTHI",
-                "notes":"",
-                "params":{
-                    
-                }
-            },
-            {
-                
-                "machine_profile":"*gen_grbl",
-                "type":"Laser Cut Inside",
-                "name":"GRBL",
-                "notes":"",
-                "params":{
-                    
-                }
-            }
-
         ]
     } 
 ]
