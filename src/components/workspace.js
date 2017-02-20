@@ -463,32 +463,15 @@ class WorkspaceContent extends React.Component {
             if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
                 
                 // APPLIES FX CHAIN
-                /*
-                let fxTexture = fxChain(this.drawCommands,
+                
+                let l = this.props.settings.toolVideoLens
+                let f = this.props.settings.toolVideoFov
+
+                let videoTexture = fxChain(this.drawCommands,
                     {
-                        image: { buffer: this.barrelBuffer, uniforms: {
-                            perspective: this.camera.perspective, view: this.camera.view,
-                            location: [0, 0, 0],
-                            size: videoSize,
-                            texture: this.videoTexture,
-                            selected: false,
-                        }}
-                        //barrelDistort: { buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: this.props.settings.toolVideoLens, fov: this.props.settings.toolVideoFov } }
+                        barrelDistort: { buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } }
                     }
                 )
-
-                videoTexture = fxTexture//this.videoTexture;
-                */
-                
-                let videoTexture = this.videoTexture;
-                this.drawCommands.useFrameBuffer(this.barrelBuffer, () => {
-                    let l = this.props.settings.toolVideoLens
-                    let f = this.props.settings.toolVideoFov
-                    this.drawCommands.barrelDistort({ texture: videoTexture, lens: [1.0, 1.0, 1.0, 1.5], fov: [1.0, 1.0] }) //lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y]
-                    videoTexture = this.barrelBuffer.texture;
-                })
-
-                
 
                 // DRAWS THE RESULT BUFFER ONTO IMAGE
                 drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, videoTexture, videoSize)
