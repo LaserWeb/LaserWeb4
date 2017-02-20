@@ -751,8 +751,9 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
+                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10}}/>
                     </div>
-                    <CommandHistory />
+                    
                 </div>
             </div>
         )
