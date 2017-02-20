@@ -35,6 +35,7 @@ import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
 import CommandHistory from './command-history'
+import { getVideoResolution } from '../lib/video-capture'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -254,7 +255,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 
 
 // WEBCAM
-function bindVideoTexture(drawCommands, videoTexture, videoElement, videoSize) {
+function bindVideoTexture(drawCommands, videoTexture, videoElement, workspaceSize) {
     try {
         if (!videoElement.src)
             videoElement.src = window.URL.createObjectURL(window.videoCapture.getStream())
@@ -262,7 +263,7 @@ function bindVideoTexture(drawCommands, videoTexture, videoElement, videoSize) {
         // weird createObjectURL issue.
     }
     if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
-        videoTexture.set({ image: videoElement, ...videoSize })
+        videoTexture.set({ image: videoElement, ...workspaceSize })
         return true;
     }
     return false;
@@ -270,13 +271,18 @@ function bindVideoTexture(drawCommands, videoTexture, videoElement, videoSize) {
 
 function fxChain(drawCommands, fx) {
     let fxTexture;
-    Object.entries(fx).forEach((entry) => {
-        let [fx, params] = entry;
-        drawCommands.useFrameBuffer(params.buffer, () => {
+    fx.forEach((params) => {
+        let cb=() => {
             let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
-            drawCommands[fx](uniforms)
-            fxTexture = params.buffer.texture;
-        })
+            drawCommands[params.name](uniforms)
+            fxTexture = (params.buffer) ? params.buffer.texture : null;
+        }
+
+        if (params.buffer){
+            drawCommands.useFrameBuffer(params.buffer, cb)
+        } else {
+            cb()
+        }
     })
     return fxTexture;
 }
@@ -441,11 +447,13 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
-        let videoSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
+        let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
+        let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
+        console.log(videoSize)
+
         this.videoElement = document.createElement('video')
-        this.videoElement.width = this.props.width
-        this.videoElement.height = this.props.height
-        this.videoTexture = this.drawCommands.createTexture(this.props.width, this.props.height);
+
+        this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
         this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
@@ -458,25 +466,25 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
-            //if (this.props.showVideo)
-            
-
             // BINDS VIDEO FEED with TEXTURE
             if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
-                
-                // APPLIES FX CHAIN
-                
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
+                // APPLIES FX CHAIN
 
+                /*let videoTexture = fxChain(this.drawCommands,
+                    [
+                        {name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [videoSize.width, videoSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                    ]
+                )*/
+                
                 let videoTexture = fxChain(this.drawCommands,
-                    {
-                        barrelDistort: { buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } }
-                    }
+                    [
+                        {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
+                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [videoSize.width, videoSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                    ]
                 )
-
-                // DRAWS THE RESULT BUFFER ONTO IMAGE
-                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, videoTexture, videoSize)
+                
             }
 
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });

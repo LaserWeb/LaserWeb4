@@ -14,7 +14,7 @@ export function barrelDistort(drawCommands) {
             varying vec2 vTextureCoord;
 
             vec2 GLCoord2TextureCoord(vec2 glCoord) {
-                return glCoord  * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);
+                return glCoord  * vec2(1.0, 1.0)/ 2.0 + vec2(0.5, 0.5);
             }
 
             void main(void){
