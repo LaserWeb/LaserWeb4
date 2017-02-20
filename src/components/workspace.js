@@ -250,25 +250,45 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-function drawVideo(perspective, view, drawCommands, documentCacheHolder, videoTexture, videoElement, size){
-        try{
-            if (!videoElement.src )
-                videoElement.src=window.URL.createObjectURL(window.videoCapture.getStream())
-        } catch(e) {
-                // weird createObjectURL issue.
-        }
-        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady){
-            videoTexture.set({image: videoElement, ...size}) 
-            drawCommands.image({
-                perspective, view,
-                location: [0,0,0],
-                size: [size.width, size.height],
-                texture: videoTexture,
-                selected: false,
-            });
-        }
-        
+
+// WEBCAM
+function bindVideoTexture(drawCommands, videoTexture, videoElement, videoSize) {
+    try {
+        if (!videoElement.src)
+            videoElement.src = window.URL.createObjectURL(window.videoCapture.getStream())
+    } catch (e) {
+        // weird createObjectURL issue.
+    }
+    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+        videoTexture.set({ image: videoElement, ...videoSize })
+        return true;
+    }
+    return false;
 }
+
+function fxChain(drawCommands, fx) {
+    let fxTexture;
+    Object.entries(fx).forEach((entry) => {
+        let [fx, params] = entry;
+        drawCommands.useFrameBuffer(params.buffer, () => {
+            let uniforms = Object.assign({texture: fxTexture}, params.uniforms);
+            drawCommands[fx](uniforms)
+            fxTexture = params.buffer.texture;
+        })
+    })
+    return fxTexture;
+}
+
+function drawVideo(perspective, view, drawCommands, videoTexture, size) {
+    drawCommands.image({
+        perspective, view,
+        location: [0, 0, 0],
+        size: [size.width, size.height],
+        texture: videoTexture,
+        selected: false,
+    });
+}
+// /WEBCAM 
 
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -419,11 +439,11 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
-        this.videoElement=document.createElement('video')
-        this.videoElement.width=this.props.width
-        this.videoElement.height=this.props.height
-        
-        this.videoTexture=this.drawCommands.createTexture(this.props.width, this.props.height);
+        this.videoElement = document.createElement('video')
+        this.videoElement.width = this.props.width
+        this.videoElement.height = this.props.height
+        this.videoTexture = this.drawCommands.createTexture(this.props.width, this.props.height);
+        this.barrelBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -436,7 +456,38 @@ class WorkspaceContent extends React.Component {
             gl.enable(gl.BLEND);
 
             //if (this.props.showVideo)
-                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder, this.videoTexture, this.videoElement, {width: this.props.settings.machineWidth, height: this.props.settings.machineHeight})
+            let videoSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
+           
+            // BINDS VIDEO FEED with TEXTURE
+            if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)){
+                let videoTexture = this.videoTexture;
+                // APPLIES FX CHAIN
+                /*
+                let fxTexture = fxChain(this.drawCommands,
+                    {
+                        image: { buffer: this.barrelBuffer, uniforms: {
+                            perspective: this.camera.perspective, view: this.camera.view,
+                            location: [0, 0, 0],
+                            size: videoSize,
+                            texture: this.videoTexture,
+                            selected: false,
+                        }}
+                        //barrelDistort: { buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: this.props.settings.toolVideoLens, fov: this.props.settings.toolVideoFov } }
+                    }
+                )
+
+                videoTexture = fxTexture//this.videoTexture;
+                */
+                
+                this.drawCommands.useFrameBuffer(this.barrelBuffer, ()=>{
+                    this.drawCommands.barrelDistort({ texture: videoTexture, lens: [1.0, 1.0, 1.0, 1.5], fov: [1.0, 1.0] })
+                    videoTexture = this.barrelBuffer.texture;
+                })
+
+                
+                // DRAWS THE RESULT BUFFER ONTO IMAGE
+                drawVideo(this.camera.perspective, this.camera.view, this.drawCommands, videoTexture, videoSize)
+            }
 
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
@@ -456,7 +507,7 @@ class WorkspaceContent extends React.Component {
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
             if (this.props.workspace.showWorkPos)
                 drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
-                
+
             requestAnimationFrame(draw);
         };
         draw();
