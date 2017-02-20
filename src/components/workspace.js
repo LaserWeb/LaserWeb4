@@ -471,12 +471,6 @@ class WorkspaceContent extends React.Component {
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
                 // APPLIES FX CHAIN
-
-                /*let videoTexture = fxChain(this.drawCommands,
-                    [
-                        {name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [videoSize.width, videoSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )*/
                 
                 let videoTexture = fxChain(this.drawCommands,
                     [

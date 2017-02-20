@@ -19,7 +19,7 @@ import { image } from './image';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
-import { barrelDistort} from './webcamfx';
+import { barrelDistort } from './webcamfx';
 
 export class DrawCommands {
     constructor(gl) {
