@@ -34,6 +34,8 @@ import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
+import CommandHistory from './command-history'
+
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
@@ -738,7 +740,7 @@ class WorkspaceContent extends React.Component {
                     </Dom3d>
                 </Pointable>
                 <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
-                    <SetSize style={{ display: 'inline-block', pointers: 'all' }}>
+                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
@@ -822,6 +824,7 @@ class Workspace extends React.Component {
                             </tbody>
                         </table>
                     </div>
+                    <CommandHistory />
                 </div>
             </div>
         )

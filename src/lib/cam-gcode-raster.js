@@ -1,6 +1,6 @@
 import RasterToGcode from 'lw.raster-to-gcode';
 
-function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE) {
+export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE) {
 
     let ok = true;
 

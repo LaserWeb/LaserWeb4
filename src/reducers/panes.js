@@ -9,6 +9,9 @@ import React from 'react'
 // Actions
 import * as panesActions from '../actions/panes'
 
+const INITIAL_PANE='cam'
+
+
 /**
  * Handle visible state.
  * @function
@@ -28,7 +31,7 @@ function handleVisible(state = {}, action) {
     }
 }
 
-function handleSelected(state = 'com', action) {
+function handleSelected(state = INITIAL_PANE, action) {
     switch (action.type) {
         case panesActions.selectPane.TYPE:
             return action.payload.id;
