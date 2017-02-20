@@ -7,7 +7,6 @@ import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { setGcode } from '../actions/gcode';
-
 import CommandHistory from './command-history';
 
 import Icon from './font-awesome';
@@ -446,10 +445,6 @@ class Com extends React.Component {
                             <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
-                    </Panel>
-
-                    <Panel collapsible header="Console" bsStyle="primary" eventKey="3" defaultExpanded={true}>
-                        <CommandHistory onCommandExec={(e) => {runCommand(e)}}/>
                     </Panel>
                 </PanelGroup>
             </div>    

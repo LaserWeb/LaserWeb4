@@ -549,10 +549,6 @@ class Jog extends React.Component {
                     </Panel>
 
                     <MacrosBar/>
-
-                    <Panel collapsible header="Console" bsStyle="primary" eventKey="4" defaultExpanded={true}>
-                        <CommandHistory onCommandExec={(e) => {this.runCommand(e)}}/>
-                    </Panel>
                             
                 </PanelGroup>
                         
