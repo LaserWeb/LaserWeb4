@@ -124,7 +124,7 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch(fireMacroByKeyboard(e,macros))
          },
          handleVideoStream: (props) =>{
-             console.log(props)
+             //console.log(props)
          }
 
     }

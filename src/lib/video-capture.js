@@ -17,6 +17,7 @@ export const VIDEO_RESOLUTIONS = {
     "QQVGA": { "width": 160, "height": 120, "ratio": "4:3" }
 };
 
+export const VIDEO_CAPTURE_CACHE_KEY = 'LaserWeb-VideoCapture'
 
 export const videoResolutionPromise = (deviceId, candidate) => {
     const constraints = {
@@ -131,6 +132,13 @@ export class VideoCapture {
     };
 
     getResolutions(deviceId, callback) {
+
+        let cache=this.getCache();
+        if (deviceId && typeof(cache[deviceId])!=='undefined'){
+            callback(cache[deviceId])
+            return;
+        }
+
         const resolutions=[];
         const QE=new queue();
               QE.concurrency = 1;
@@ -159,7 +167,9 @@ export class VideoCapture {
         })
 
         QE.start((err) => {
-           callback(resolutions)
+            cache[deviceId] = resolutions;
+            this.setCache(cache)
+            callback(resolutions)
         })
     }
 
@@ -210,6 +220,17 @@ export class VideoCapture {
                 callback(false)
             }
         })
+    }
+
+    getCache()
+    {
+        return JSON.parse(window.localStorage.getItem(VIDEO_CAPTURE_CACHE_KEY)) || {}
+    }
+
+    setCache(data, replace=false)
+    {
+        if (!replace) data=Object.assign(this.getCache(), data)
+        window.localStorage.setItem(VIDEO_CAPTURE_CACHE_KEY, JSON.stringify(data))
     }
 
 }
