@@ -19,6 +19,8 @@ import { image } from './image';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
+import { barrelDistort } from './webcamfx';
+
 export class DrawCommands {
     constructor(gl) {
         this.gl = gl;
@@ -37,6 +39,9 @@ export class DrawCommands {
         this.thickLines = thickLines(this);
         this.gcode = gcode(this);
         this.laser = laser(this);
+
+        this.barrelDistort = barrelDistort(this)
+
     }
 
     destroy() {
@@ -105,6 +110,7 @@ export class DrawCommands {
         this.frameBuffers.push(frameBuffer);
         let texture = this.createTexture({ width, height });
         let result = {
+            width, height,
             frameBuffer,
             texture,
             resize(width, height) {

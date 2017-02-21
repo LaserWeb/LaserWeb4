@@ -35,6 +35,7 @@ import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
 import CommandHistory from './command-history'
+import { getVideoResolution } from '../lib/video-capture'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -252,6 +253,49 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
+
+// WEBCAM
+function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
+    let stream=window.videoCapture.getStream();
+    if (!videoElement.srcObject || (videoElement.srcObject!=stream)) 
+        videoElement.srcObject = stream;
+    
+    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+        videoTexture.set({ image: videoElement, width: size.width, height: size.height })
+        return true;
+    }
+    return false;
+}
+
+function fxChain(drawCommands, fx) {
+    let fxTexture;
+    fx.forEach((params) => {
+        let cb=() => {
+            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
+            drawCommands[params.name](uniforms)
+            fxTexture = (params.buffer) ? params.buffer.texture : null;
+        }
+
+        if (params.buffer){
+            drawCommands.useFrameBuffer(params.buffer, cb)
+        } else {
+            cb()
+        }
+    })
+    return fxTexture;
+}
+
+function drawVideo(perspective, view, drawCommands, videoTexture, size) {
+    drawCommands.image({
+        perspective, view,
+        location: [0, 0, 0],
+        size: [size.width, size.height],
+        texture: videoTexture,
+        selected: false,
+    });
+}
+// /WEBCAM 
+
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let {document} = cachedDocument;
@@ -287,6 +331,8 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
         }
     }
 } // drawSelectedDocuments
+
+
 
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -399,6 +445,13 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
+        // WEBCAM INIT
+        let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
+        let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
+        this.videoElement = document.createElement('video')
+        this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
+        this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
+
         let draw = () => {
             if (!this.canvas)
                 return;
@@ -408,6 +461,31 @@ class WorkspaceContent extends React.Component {
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
+
+            // WEBCAM
+            // BINDS VIDEO FEED with TEXTURE
+
+            if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
+                let l = this.props.settings.toolVideoLens
+                let f = this.props.settings.toolVideoFov
+                // APPLIES FX CHAIN
+                
+
+                let videoTexture = fxChain(this.drawCommands,
+                    [
+                        {name: 'image', buffer: null, uniforms: {texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                    ]
+                )
+                /*
+                let videoTexture = fxChain(this.drawCommands,
+                    [
+                        {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
+                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                    ]
+                )
+                */
+            }
+
             this.grid.draw(this.drawCommands, { perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
@@ -426,6 +504,7 @@ class WorkspaceContent extends React.Component {
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
             if (this.props.workspace.showWorkPos)
                 drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
+
             requestAnimationFrame(draw);
         };
         draw();
@@ -697,7 +776,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments} = this.props;
+        let {camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, enableVideo} = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -732,6 +811,10 @@ class Workspace extends React.Component {
                                     <td>Show Documents</td>
                                     <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
                                 </tr>
+                                <tr>
+                                    <td>Show Webcam</td>
+                                    <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
+                                </tr>
                             </tbody>
                         </table>
                         <table style={{ marginLeft: 10 }}>
@@ -760,7 +843,7 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, enableVideo: (state.settings.toolVideoDevice!==null) }),
     dispatch => ({
         dispatch,
         reset: () => dispatch(resetCamera()),
@@ -769,6 +852,7 @@ Workspace = connect(
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
+        setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
     })
 )(Workspace);
 export default Workspace;
