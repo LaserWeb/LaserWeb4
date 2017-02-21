@@ -95,11 +95,11 @@ export class VideoCapture {
 
     stopStream() {
         if (this.stream) {
-            console.log(this.stream);
+            this.isReady = false;
             this.stream.getTracks().forEach((track) => { track.stop(); });
             window.URL.revokeObjectURL(this.stream);
+            this.stream=undefined;
         }
-        this.isReady = false;
     }
 
     refreshStream()
@@ -117,15 +117,17 @@ export class VideoCapture {
         let { width, height } = getSizeByVideoResolution(props.height, props.resolution);
 
         let video = document.createElement('video');
-        video.width = width;
-        video.height = height;
-        video.addEventListener('canplaythrough', (e) => {
-            if (video && video.readyState === 4) {
-                callback.apply(null, [video])
-            }
-        }, false)
-        video.srcObject = this.stream;
-        video.play();
+            video.width = width;
+            video.height = height;
+            video.addEventListener('canplaythrough', (e) => {
+                if (video && video.readyState === 4) {
+                    callback.apply(null, [video])
+                }
+            }, false)
+        if (this.stream){
+            video.srcObject = this.stream;
+            video.play();
+        }
     };
 
     getResolutions(deviceId, callback) {

@@ -11,18 +11,18 @@ import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
 import '../styles/webcam.css';
 
-import {DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution} from '../lib/video-capture'
+import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution } from '../lib/video-capture'
 
 export class Webcam extends React.Component {
 
-    
+
     componentDidMount() {
         this.initVideo(false)
     }
 
     componentWillUnmount() {
         let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-            streamNode.removeChild(this.canvas);
+        streamNode.removeChild(this.canvas);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -31,7 +31,7 @@ export class Webcam extends React.Component {
         }
     }
 
-    initVideo(force=false) {
+    initVideo(force = false) {
 
         let resolution = getVideoResolution(this.props.resolution);
         let videoratio = resolution.ratio.split(":"); videoratio = videoratio[0] / videoratio[1];
@@ -40,10 +40,10 @@ export class Webcam extends React.Component {
 
         if (this.canvas)
             streamNode.removeChild(this.canvas);
-        this.canvas= document.createElement('canvas'); 
+        this.canvas = document.createElement('canvas');
 
         streamNode.append(this.canvas);
-        
+
 
         // coords resolution adjustment
         const ratio = (value, index) => {
@@ -63,9 +63,9 @@ export class Webcam extends React.Component {
         }
 
         const capture = (src) => {
-            
-            this.video=src;
-            
+
+            this.video = src;
+
 
             this.canvas.width = src.width;
             this.canvas.height = src.height;
@@ -121,8 +121,8 @@ export class Webcam extends React.Component {
 
         }
 
-        
-        window.videoCapture.getVideo( this.props, capture)
+
+        window.videoCapture.getVideo(this.props, capture)
     }
 
     render() {
@@ -275,11 +275,11 @@ export class VideoDeviceField extends React.Component {
     }
 
     componentDidMount() {
-        window.videoCapture.getDevices((devices)=> {this.setState({devices})})
+        window.videoCapture.getDevices((devices) => { this.setState({ devices }) })
     }
 
     handleSelection(v) {
-        window.videoCapture.isReady=(v.value !== null);
+        if (!v.value) window.videoCapture.stopStream();
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))
     }
 
@@ -299,35 +299,42 @@ export class VideoResolutionField extends React.Component {
         super(props);
         this.state = {
             resolutions: window.videoCapture.data.resolutions || [],
-            selected: this.props.object[this.props.field]
+            isLoading: false
         }
         this.handleChange.bind(this)
     }
 
     getResolutions(deviceId) {
-        window.videoCapture.scan(deviceId, null, (props)=> {
-            let {resolutions} = props;
-            console.log("refresh resolutions")
-            this.setState({ resolutions })
-        })
+        if (deviceId) {
+            this.setState({ isLoading: true })
+            window.videoCapture.scan(deviceId, null, (props) => {
+                let {resolutions, resolutionId} = props;
+                console.log("refreshing resolutions...")
+                this.setState({ resolutions, isLoading:false, selected: resolutionId })
+                this.handleChange({value:resolutionId})
+            })
+        } else {
+            this.setState({ resolutions: [] })
+            this.handleChange({value:null})
+        }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.deviceId && nextProps.deviceId !== this.props.deviceId){
+        if (nextProps.deviceId !== this.props.deviceId) {
             this.getResolutions(nextProps.deviceId)
         }
     }
 
     handleChange(v) {
-        this.setState({ selected: v })
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
     }
 
     render() {
         let resolutions = this.state.resolutions.map((v) => { return { label: `${v.label} (${v.width} x ${v.height}) / ${v.ratio}`, value: v.label } })
+        let selected = this.props.object[this.props.field];
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select options={resolutions} value={this.state.selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
+            <Select isLoading={this.state.isLoading} options={resolutions} value={selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
         </FormGroup>
     }
 }
