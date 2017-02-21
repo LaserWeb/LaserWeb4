@@ -44,7 +44,7 @@ import {fireMacroByKeyboard} from '../actions/macros'
 
 import {GlobalStore} from '../index'
 
-import { Webcam } from './webcam'
+import { VideoCapture } from '../lib/video-capture'
 
 /**
  * LaserWeb main component (layout).
@@ -71,9 +71,15 @@ class LaserWeb extends React.Component {
         return nextProps.documents !== this.props.documents;
     }
 
-    componentWillMount()
+    componentDidMount()
     {
-        Webcam.init(this.props.settings)
+        if (!window.videoCapture){
+            const onNextFrame = (callback) => {setTimeout(()=>{window.requestAnimationFrame(callback)}, 0)}
+            onNextFrame(()=>{
+                window.videoCapture = new VideoCapture()
+                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj)=>{this.props.handleVideoStream(obj)})
+            })
+        }
     }
 
     render() {
@@ -116,6 +122,9 @@ const mapDispatchToProps = (dispatch) => {
          },
          handleMacro: (e, macros) =>{
                 dispatch(fireMacroByKeyboard(e,macros))
+         },
+         handleVideoStream: (props) =>{
+             console.log(props)
          }
 
     }

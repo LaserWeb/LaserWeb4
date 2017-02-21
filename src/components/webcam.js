@@ -11,26 +11,13 @@ import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
 import '../styles/webcam.css';
 
-import {VideoCapture, DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution} from '../lib/video-capture'
+import {DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution} from '../lib/video-capture'
 
 export class Webcam extends React.Component {
 
-    static init(settings) {
-        window.videoCapture = new VideoCapture()
-        /*window.videoCapture.setVideo({
-            resolution: settings.toolVideoResolution || DEFAULT_VIDEO_RESOLUTION,   //target resolution
-            ...getVideoResolution(settings.toolVideoResolution)                     //size same than resolution
-        }, ()=> {console.log("statically initializing webcam")})
-        */
-        window.videoCapture.createStream({
-            device: settings.toolVideoDevice,
-            resolution: settings.toolVideoResolution || DEFAULT_VIDEO_RESOLUTION,   //target resolution
-            ...getVideoResolution(settings.toolVideoResolution)                     //size same than resolution
-        }, ()=> {console.log("statically initializing webcam stream")})
-    }
-
+    
     componentDidMount() {
-        this.initVideo(false);
+        this.initVideo(false)
     }
 
     componentWillUnmount() {
@@ -288,26 +275,11 @@ export class VideoDeviceField extends React.Component {
     }
 
     componentDidMount() {
-        let promise = navigator.mediaDevices.enumerateDevices();
-        let that = this;
-        promise.then((devices) => {
-            let cameras = [];
-            devices.forEach((device) => {
-                if (device.kind == 'videoinput')
-                    cameras.push({ label: device.label, value: device.deviceId })
-            })
-            cameras.unshift({ label: "None", value: null })
-            that.setState({ devices: cameras })
-        })
-            .catch(function (err) {
-                console.error(err.name + ": " + err.message);
-            });
+        window.videoCapture.getDevices((devices)=> {this.setState({devices})})
     }
 
     handleSelection(v) {
-        
         window.videoCapture.isReady=(v.value !== null);
-        
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))
     }
 
@@ -326,32 +298,24 @@ export class VideoResolutionField extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            resolutions: [],
+            resolutions: window.videoCapture.data.resolutions || [],
             selected: this.props.object[this.props.field]
         }
         this.handleChange.bind(this)
     }
 
     getResolutions(deviceId) {
-        let videoPromises = Object.entries(VIDEO_RESOLUTIONS).map((entry) => { return videoResolutionPromise(deviceId, { label: entry[0], ...entry[1] }); });
-        videoPromises.forEach(
-            (promise) => promise.then((v) => {
-                let resx = new Set(this.state.resolutions); resx.add(v)
-                this.setState({ resolutions: [...resx] })
-            })
-        );
-    }
-
-    componentDidMount() {
-        if (this.props.deviceId)
-            this.getResolutions(this.props.deviceId)
-
+        window.videoCapture.scan(deviceId, null, (props)=> {
+            let {resolutions} = props;
+            console.log("refresh resolutions")
+            this.setState({ resolutions })
+        })
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.deviceId && nextProps.deviceId !== this.props.deviceId)
+        if (nextProps.deviceId && nextProps.deviceId !== this.props.deviceId){
             this.getResolutions(nextProps.deviceId)
-
+        }
     }
 
     handleChange(v) {

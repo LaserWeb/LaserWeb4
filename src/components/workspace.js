@@ -258,7 +258,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
     try {
         if (!videoElement.src)
-            videoElement.src = window.URL.createObjectURL(window.videoCapture.getStream())
+            videoElement.srcObject = window.videoCapture.getStream()
     } catch (e) {
         // weird createObjectURL issue.
     }
@@ -449,8 +449,7 @@ class WorkspaceContent extends React.Component {
 
         let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
         let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
-        console.dir({videoSize, workspaceSize, props:this.props})
-        
+
 
         this.videoElement = document.createElement('video')
 
@@ -468,7 +467,7 @@ class WorkspaceContent extends React.Component {
             gl.enable(gl.BLEND);
 
             // BINDS VIDEO FEED with TEXTURE
-            if (bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
+            if (this.props.showVideo && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
                 // APPLIES FX CHAIN
@@ -476,7 +475,7 @@ class WorkspaceContent extends React.Component {
                 let videoTexture = fxChain(this.drawCommands,
                     [
                         {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
-                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [videoSize.width, videoSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
                     ]
                 )
                 
