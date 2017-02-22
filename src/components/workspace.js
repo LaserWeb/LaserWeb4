@@ -21,6 +21,7 @@ import ReactDOM from 'react-dom';
 import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
+import { runCommand } from './com.js';
 
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -33,6 +34,8 @@ import SetSize from './setsize';
 import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
+
+import CommandHistory from './command-history'
 
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
@@ -749,6 +752,7 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
+                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10}} onCommandExec={runCommand}/>
                     </div>
                 </div>
             </div>
@@ -765,6 +769,7 @@ Workspace = connect(
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
+        runCommand: () => dispatch(runCommand()),
     })
 )(Workspace);
 export default Workspace;
