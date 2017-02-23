@@ -97,9 +97,31 @@ class FloatingControls extends React.Component {
         this.linkScaleChanged = e => {
             this.setState({ linkScale: e.target.checked });
         }
-        this.scale = (sx, sy) => {
-            let cx = (this.bounds.x1 + this.bounds.x2) / 2;
-            let cy = (this.bounds.y1 + this.bounds.y2) / 2;
+        this.scale = (sx, sy, anchor='C') => {
+            let cx, cy
+            switch (anchor) {
+                case 'TL':
+                    cx = this.bounds.x1;
+                    cy = this.bounds.y2;
+                break;
+                case 'TR':
+                    cx = this.bounds.x2;
+                    cy = this.bounds.y2;
+                break;
+                case 'BL':
+                    cx = this.bounds.x1;
+                    cy = this.bounds.y1;
+                break;
+                case 'BR':
+                    cx = this.bounds.x2;
+                    cy = this.bounds.y1;
+                break;
+                case 'C':
+                    cx = (this.bounds.x1 + this.bounds.x2) / 2;
+                    cy = (this.bounds.y1 + this.bounds.y2) / 2;
+                break;
+            }
+            
             this.props.dispatch(scaleTranslateSelectedDocuments(
                 [sx, sy, 1],
                 [cx - sx * cx, cy - sy * cy, 0]
@@ -142,14 +164,14 @@ class FloatingControls extends React.Component {
             }
         }
 
-        this.toolOptimize = (doc, scale) => {
+        this.toolOptimize = (doc, scale, anchor= 'C') => {
             if (!scale) scale = 1 / doc.dpi * 25.4
             if (doc.originalPixels) {
                 let targetwidth = doc.originalPixels[0] * scale;
                 let targetheight = doc.originalPixels[1] * scale;
                 let height = this.bounds.y2 - this.bounds.y1;
                 let width = this.bounds.x2 - this.bounds.x1;
-                this.scale(targetwidth / width, targetheight / height)
+                this.scale(targetwidth / width, targetheight / height, anchor)
             }
         }
     }
@@ -172,8 +194,8 @@ class FloatingControls extends React.Component {
                         <tr>
                             <td><Icon name="gear" /></td><td colSpan="6" >
                                 <ButtonToolbar>
-                                    <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter)}><Icon name="picture-o" /> Raster Opt.</Button>
-                                    <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc)}><Icon name="undo" /></Button>
+                                    <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
+                                    <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
                                 </ButtonToolbar>
                             </td>
                         </tr>
