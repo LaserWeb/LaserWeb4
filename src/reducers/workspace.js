@@ -10,4 +10,5 @@ export const workspace = objectNoId('workspace', {
     showLaser: true,
     showDocuments: true,
     showWorkPos: true,
+    showWebcam: false
 });

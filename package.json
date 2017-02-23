@@ -57,7 +57,6 @@
     "flat": "^2.0.1",
     "flatnest": "^1.0.0",
     "font-awesome": "^4.6.3",
-    "getusermedia": "^2.0.0",
     "gl-matrix": "^2.3.2",
     "glfx": "0.0.4",
     "grunt": "^1.0.1",
@@ -103,13 +102,15 @@
     "validatorjs": "^3.8.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.15.1"
+    "webpack-dev-server": "^1.15.1",
+    "webrtc-adapter": "^3.1.5"
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
     "dxf-parser": "^0.4.6",
     "immutability-helper": "^2.0.0",
     "react-addons-shallow-compare": "^15.4.1",
-    "unicode": "^0.6.1"
+    "unicode": "^0.6.1",
+    "vectorize-text": "^3.0.2"
   }
 }
