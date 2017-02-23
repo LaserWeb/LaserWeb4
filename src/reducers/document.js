@@ -146,8 +146,8 @@ function loadSvg(state, settings, {file, content}) {
 
 function processImage(doc, settings, context) {
     // Adjusting by Quadrant setting.
-    let imageWidth= context.naturalWidth/doc.dpi * 25.4;
-    let imageHeight= context.naturalHeight/doc.dpi * 25.4;
+    let imageWidth= context.naturalWidth/settings.dpiBitmap * 25.4;
+    let imageHeight= context.naturalHeight/settings.dpiBitmap * 25.4;
 
     switch (settings.toolImagePosition) {
         case 'TL':
@@ -185,7 +185,7 @@ function loadImage(state, settings, {file, content, context}) {
         scale: [1, 1, 1],
         mimeType: file.type,
         dataURL: content,
-        dpi: (settings.pxPerInch)? +settings.pxPerInch:96, // TODO,
+        dpi: (settings.dpiBitmap)? +settings.dpiBitmap : 96, // TODO,
     };
 
     doc = processImage(doc, settings, context);

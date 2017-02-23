@@ -107,7 +107,7 @@ export const settings = objectNoId('settings', {
     machineBlowerGcodeOff: '',
     
     pxPerInch: 96,
-    dpiRasterBmp:300,
+    dpiBitmap: 300,
     
     toolSafetyLockDisabled:false,
     toolCncMode:false,
