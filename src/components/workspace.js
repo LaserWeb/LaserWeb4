@@ -37,6 +37,9 @@ import Pointable from '../lib/Pointable';
 import CommandHistory from './command-history'
 import { getVideoResolution } from '../lib/video-capture'
 
+import { Button, ButtonToolbar } from 'react-bootstrap'
+import Icon from './font-awesome'
+
 function camera({viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective}) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
@@ -138,9 +141,21 @@ class FloatingControls extends React.Component {
                     this.scale(1, s);
             }
         }
+
+        this.toolOptimize = (doc, scale) => {
+            if (!scale) scale = 1 / doc.dpi * 25.4
+            if (doc.originalPixels) {
+                let targetwidth = doc.originalPixels[0] * scale;
+                let targetheight = doc.originalPixels[1] * scale;
+                let height = this.bounds.y2 - this.bounds.y1;
+                let width = this.bounds.x2 - this.bounds.x1;
+                this.scale(targetwidth / width, targetheight / height)
+            }
+        }
     }
 
     render() {
+        let tools;
         let found = false;
         let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
@@ -151,6 +166,19 @@ class FloatingControls extends React.Component {
                 bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
                 bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
                 bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+
+                if (doc.type == 'image' && doc.originalPixels) {
+                    tools = <tfoot>
+                        <tr>
+                            <td><Icon name="gear" /></td><td colSpan="6" >
+                                <ButtonToolbar>
+                                    <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter)}><Icon name="picture-o" /> Raster Opt.</Button>
+                                    <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc)}><Icon name="undo" /></Button>
+                                </ButtonToolbar>
+                            </td>
+                        </tr>
+                    </tfoot>
+                }
             }
         }
         if (!found || !this.props.camera)
@@ -199,6 +227,7 @@ class FloatingControls extends React.Component {
                         <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" tabIndex="8" /></td>
                     </tr>
                 </tbody>
+                {tools}
             </table>
         );
     }
@@ -256,10 +285,10 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 
 // WEBCAM
 function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
-    let stream=window.videoCapture.getStream();
-    if (!videoElement.srcObject || (videoElement.srcObject!=stream)) 
+    let stream = window.videoCapture.getStream();
+    if (!videoElement.srcObject || (videoElement.srcObject != stream))
         videoElement.srcObject = stream;
-    
+
     if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
         videoTexture.set({ image: videoElement, width: size.width, height: size.height })
         return true;
@@ -270,13 +299,13 @@ function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
 function fxChain(drawCommands, fx) {
     let fxTexture;
     fx.forEach((params) => {
-        let cb=() => {
+        let cb = () => {
             let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
             drawCommands[params.name](uniforms)
             fxTexture = (params.buffer) ? params.buffer.texture : null;
         }
 
-        if (params.buffer){
+        if (params.buffer) {
             drawCommands.useFrameBuffer(params.buffer, cb)
         } else {
             cb()
@@ -469,11 +498,11 @@ class WorkspaceContent extends React.Component {
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
                 // APPLIES FX CHAIN
-                
+
 
                 let videoTexture = fxChain(this.drawCommands,
                     [
-                        {name: 'image', buffer: null, uniforms: {texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                        { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
                     ]
                 )
                 /*
@@ -750,7 +779,9 @@ class WorkspaceContent extends React.Component {
                     <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
-                            workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch} />
+                            workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
+                            settings={this.props.settings}
+                        />
                     </SetSize>
                 </div>
             </div>
@@ -834,16 +865,16 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10}}/>
+                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} />
                     </div>
-                    
+
                 </div>
             </div>
         )
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, enableVideo: (state.settings.toolVideoDevice!==null) }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, enableVideo: (state.settings.toolVideoDevice !== null) }),
     dispatch => ({
         dispatch,
         reset: () => dispatch(resetCamera()),

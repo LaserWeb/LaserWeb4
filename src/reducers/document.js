@@ -149,6 +149,9 @@ function processImage(doc, settings, context) {
     let imageWidth= context.naturalWidth/settings.dpiBitmap * 25.4;
     let imageHeight= context.naturalHeight/settings.dpiBitmap * 25.4;
 
+    doc.originalPixels=[context.naturalWidth, context.naturalHeight];
+    doc.originalSize=[imageWidth, imageHeight];
+
     switch (settings.toolImagePosition) {
         case 'TL':
             doc.translate = [0, settings.machineHeight - imageHeight,0]
