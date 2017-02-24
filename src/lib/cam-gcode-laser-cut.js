@@ -133,7 +133,7 @@ export function getLaserCutGcode(props) {
     return gcode;
 }; // getLaserCutGcode
 
-export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert,  done, progress, QE) {
+export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert,  done, progress) {
     let ok = true;
 
     if (settings.gcodeSMaxValue <= 0) {
@@ -177,7 +177,6 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
     if (!ok)
         done(false);
 
-    QE.push((cb)=>{
         let camPaths = [];
         if (op.type === 'Laser Cut') {
             camPaths = cut(geometry, openGeometry, false);
@@ -237,8 +236,6 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
             gcodeSMaxValue: settings.gcodeSMaxValue,
         });
 
-        done(gcode, cb)
-    })
-
+        done(gcode)
     
 } // getLaserCutGcodeFromOp

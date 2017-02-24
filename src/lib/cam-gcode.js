@@ -78,12 +78,36 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         const jobDone = (g, cb) => { if (g !== false) { gcode.push(g); cb(); } }
 
+        const invokeWebWorker = (ww, props) => {
+            let peasant=new ww();
+                peasant.onmessage = (e) => {
+                    let data = JSON.parse(e.data)
+                    if (data.event == 'onDone') {
+                        gcode.push(data.gcode)
+                        cb(true)
+                    } else if (data.event == 'onProgress') {
+                        progress(data.progress)
+                    } else {
+                        data.errors.forEach((item) => {
+                            showAlert(item.message, item.level)
+                        })
+                    }
+                }
+                peasant.postMessage(props)
+        }
+
+
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
-            
-            getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, jobDone, progress, QE);
-            
+
+            QE.push((cb) => {
+                invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry })
+            })
+
+
+            //getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, jobDone, progress, QE);
+
         } else if (op.type === 'Laser Raster') {
-           
+
             getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, jobDone, progress, QE);
 
         } else if (op.type.substring(0, 5) === 'Mill ') {
@@ -93,13 +117,13 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         }
     } // opIndex
 
-    QE.total= QE.length
-    QE.chunk= 100 / QE.total
-    
+    QE.total = QE.length
+    QE.chunk = 100 / QE.total
+
     progress(0)
     QE.on('success', (result, job) => {
         let jobIndex = gcode.length;
-        let p=parseInt(jobIndex * QE.chunk)
+        let p = parseInt(jobIndex * QE.chunk)
         progress(p);
     })
 
