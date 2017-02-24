@@ -17,7 +17,6 @@ import Parser from 'lw.svg-parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
@@ -33,6 +32,9 @@ import { sendAsFile, openDataWindow } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
+import { Button, ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
+import Icon from './font-awesome'
+
 function NoDocumentsError(props) {
     let {documents, camBounds} = props;
     if (documents.length === 0)
@@ -41,8 +43,8 @@ function NoDocumentsError(props) {
         return <span />;
 }
 
-function GcodeProgress({gcoding}){
-    return <ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{marginBottom: "0px"}}/>
+function GcodeProgress({gcoding, onStop}){
+    return <div style={{display:"flex", flexDirection:"row"}}><ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{flexGrow:1,marginBottom: "0px"}}/><Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o"/></Button></div>
 }
 
 GcodeProgress = connect((state)=>{return {gcoding: state.gcode.gcoding}})(GcodeProgress)
@@ -51,12 +53,12 @@ class Cam extends React.Component {
 
  
     componentWillMount() {
-        
+            let that=this
             window.generateGcode = e => {
-                let that=this
+            
                 let {settings, documents, operations} = that.props;
                 
-                getGcode(settings, documents, operations, that.props.documentCacheHolder, 
+                let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder, 
                     msg => console.log(msg), 
                     (gcode) => {
                         that.props.dispatch(generatingGcode(false))
@@ -66,8 +68,21 @@ class Cam extends React.Component {
                         that.props.dispatch(generatingGcode(true,percent))
                     }
                 );
-
+                return QE;
             }
+
+            this.generateGcode.bind(this)
+            this.stopGcode.bind(this)
+    }
+
+    generateGcode(e) {
+        this.QE = window.generateGcode(e);
+    }
+
+    stopGcode(e){
+        if (this.QE){
+            this.QE.end();
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -126,13 +141,13 @@ class Cam extends React.Component {
                             <th>GCODE</th>
                             <td style={{width:"80%", textAlign:"right"}}>{!this.props.gcoding.enable ? ( 
                                 <ButtonToolbar style={{float:"right"}}>
-                                <button title="Generate G-Code from Operations below" className={"btn btn-xs btn-attention "+(this.props.dirty?'btn-warning':'btn-primary')} disabled={!valid || this.props.gcoding.enable} onClick={window.generateGcode}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                                <button title="Generate G-Code from Operations below" className={"btn btn-xs btn-attention "+(this.props.dirty?'btn-warning':'btn-primary')} disabled={!valid || this.props.gcoding.enable} onClick={(e)=>this.generateGcode(e)}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
                                 <ButtonGroup>
                         
                         <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
                         <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
                         <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
-                    </ButtonGroup></ButtonToolbar>):<GcodeProgress/>}</td>
+                    </ButtonGroup></ButtonToolbar>):<GcodeProgress onStop={(e)=>this.stopGcode(e)}/>}</td>
                         </tr></tbody>
                     </table>
                 </Alert>
