@@ -355,8 +355,19 @@ class Com extends React.Component {
                     CommandHistory.log("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
                     CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.", CommandHistory.SUCCESS);
                     jobStartTime = -1;
-                    var accumulatedJobTimeMS = accumulateTime(elapsedTimeMS);
-                    CommandHistory.log("Total accumulated job time: " + (accumulatedJobTimeMS / 1000).toHHMMSS());
+                    let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
+                    dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
+                    let hours = Math.floor(accumulatedJobTime / 3600);
+                    let minutes = Math.floor(accumulatedJobTime / 60) % 60;
+                    if (minutes < 10) {
+                        minutes = '0' + minutes;
+                    }
+                    let seconds = accumulatedJobTime % 60;
+                    if (seconds < 10) {
+                        seconds = '0' + seconds;
+                    }
+                    let hms = hours + ':' + minutes + ':' + seconds;
+                    CommandHistory.log("Total accumulated job time: " + hms, CommandHistory.SUCCESS);
                 }
             }
         });
@@ -549,6 +560,7 @@ export function runJob(job) {
                 runStatus('running');
                 $('#playicon').removeClass('fa-play');
                 $('#playicon').addClass('fa-pause');
+                jobStartTime = new Date(Date.now());
                 socket.emit('runJob', job);
             } else {
                 CommandHistory.log('Job empty!', CommandHistory.DANGER);

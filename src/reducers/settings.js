@@ -153,4 +153,5 @@ export const settings = objectNoId('settings', {
     jogStepsize: 1,
     jogFeedXY: 30,
     jogFeedZ:5,
+    jogAccumulatedJobTime: 0,
 });
