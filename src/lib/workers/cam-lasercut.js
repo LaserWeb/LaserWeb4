@@ -17,6 +17,7 @@ onmessage = (event) => {
         } else {
             postMessage(JSON.stringify({ event: "onDone", gcode }))
         }
+        self.close();
     };
 
     getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])

@@ -15,29 +15,20 @@
 
 'use strict';
 
-import { getLaserCutGcodeFromOp } from './cam-gcode-laser-cut'
-import { getMillGcodeFromOp } from './cam-gcode-mill'
 import { getLaserRasterGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
 
 import queue from 'queue';
 
-function matchColor(filterColor, color) {
-    if (!filterColor)
-        return true;
-    if (!color)
-        return false;
-    return filterColor[0] == color[0] && filterColor[1] == color[1] && filterColor[2] == color[2] && filterColor[3] == color[3];
-}
-
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert, done, progress) {
     "use strict";
 
     const QE = new queue();
-    QE.timeout = 3600 * 1000;
-    QE.concurrency = 1;
+          QE.timeout = 3600 * 1000;
+          QE.concurrency = 1;
 
     const gcode = [];
+    const workers = [];
 
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = operations[opIndex];
@@ -46,40 +37,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         let openGeometry = [];
         let tabGeometry = [];
         let docsWithImages = [];
-        function examineDocTree(isTab, id) {
-            let doc = documents.find(d => d.id === id);
-            if (doc.rawPaths) {
-                if (isTab) {
-                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-                } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
-                    let isClosed = false;
-                    for (let rawPath of doc.rawPaths)
-                        if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
-                            isClosed = true;
-                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
-                    if (isClosed)
-                        geometry = xor(geometry, clipperPaths);
-                    else if (!op.filterFillColor)
-                        openGeometry = openGeometry.concat(clipperPaths);
-                }
-            }
-            if (doc.type === 'image' && !isTab) {
-                let cache = documentCacheHolder.cache.get(doc.id);
-                if (cache && cache.imageLoaded)
-                    docsWithImages.push(Object.assign([], doc, { image: cache.image }));
-            }
-            for (let child of doc.children)
-                examineDocTree(isTab, child);
-        }
-        for (let id of op.documents)
-            examineDocTree(false, id);
-        for (let id of op.tabDocuments)
-            examineDocTree(true, id);
 
         const jobDone = (g, cb) => { if (g !== false) { gcode.push(g); cb(); } }
 
         const invokeWebWorker = (ww, props, cb) => {
-            let peasant=new ww();
+            let peasant = new ww();
                 peasant.onmessage = (e) => {
                     let data = JSON.parse(e.data)
                     if (data.event == 'onDone') {
@@ -93,8 +55,29 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         jobDone(false, cb)
                     }
                 }
+                workers.push(peasant)
                 peasant.postMessage(props)
+           
         }
+
+
+        QE.push((cb) => {
+            let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
+            let preflight = new preflightWorker()
+                preflight.onmessage = (e) => {
+                    let data=JSON.parse(e.data);
+                    if (data.event == 'onDone') {
+                        geometry=data.geometry
+                        openGeometry = data.openGeometry
+                        tabGeometry = data.tabGeometry
+                        docsWithImages = data.docsWithImages
+                    }
+                    cb();
+                }
+                workers.push(preflight)
+                preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages })
+                
+        })
 
 
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
@@ -125,11 +108,19 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         let p = parseInt(jobIndex * QE.chunk)
         progress(p);
     })
+    QE.on('end', () => {
+        workers.forEach((ww) => {
+            ww.terminate();
+        })
+        progress(0)
+    })
 
     QE.start((err) => {
         progress(100)
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
+
+
 
     return QE;
 
