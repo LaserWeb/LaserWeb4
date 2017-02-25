@@ -24,8 +24,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     "use strict";
 
     const QE = new queue();
-          QE.timeout = 3600 * 1000;
-          QE.concurrency = 1;
+    QE.timeout = 3600 * 1000;
+    QE.concurrency = 1;
 
     const gcode = [];
     const workers = [];
@@ -42,85 +42,45 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         const invokeWebWorker = (ww, props, cb) => {
             let peasant = new ww();
-                peasant.onmessage = (e) => {
-                    let data = JSON.parse(e.data)
-                    if (data.event == 'onDone') {
-                        jobDone(data.gcode, cb)
-                    } else if (data.event == 'onProgress') {
-                        progress(data.progress)
-                    } else {
-                        data.errors.forEach((item) => {
-                            showAlert(item.message, item.level)
-                        })
-                        jobDone(false, cb)
-                    }
+            peasant.onmessage = (e) => {
+                let data = JSON.parse(e.data)
+                if (data.event == 'onDone') {
+                    jobDone(data.gcode, cb)
+                } else if (data.event == 'onProgress') {
+                    progress(data.progress)
+                } else {
+                    data.errors.forEach((item) => {
+                        showAlert(item.message, item.level)
+                    })
+                    jobDone(false, cb)
                 }
-                workers.push(peasant)
-                peasant.postMessage(props)
-            
+            }
+            workers.push(peasant)
+            peasant.postMessage(props)
+
         }
 
-        /*
         QE.push((cb) => {
             let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
             let preflight = new preflightWorker()
-                preflight.onmessage = (e) => {
-                    let data=JSON.parse(e.data);
-                    if (data.event == 'onDone') {
-                        geometry=data.geometry
-                        openGeometry = data.openGeometry
-                        tabGeometry = data.tabGeometry
-                        docsWithImages = data.docsWithImages
-                    }
-                    cb();
+            preflight.onmessage = (e) => {
+                let data = e.data;
+                if (data.event == 'onDone') {
+                    geometry = data.geometry
+                    openGeometry = data.openGeometry
+                    tabGeometry = data.tabGeometry
+                    data.docsWithImages.forEach(_doc => {
+                        let cache = documentCacheHolder.cache.get(_doc.id);
+                        if (cache && cache.imageLoaded)
+                            docsWithImages.push(Object.assign([], _doc, { image: cache.image }));
+                    })
                 }
-                workers.push(preflight)
-                console.log(documentCacheHolder)
-                preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages, documentCacheHolder })
-                
-        })
-        */
-
-
-        //THIS NEED TO BE SOLVED. examineDocTree WITHOUT documentCacheHolder
-    function matchColor(filterColor, color) {
-        if (!filterColor)
-            return true;
-        if (!color)
-            return false;
-        return filterColor[0] == color[0] && filterColor[1] == color[1] && filterColor[2] == color[2] && filterColor[3] == color[3];
-    }
-
-    function examineDocTree(isTab, id) {
-        let doc = documents.find(d => d.id === id);
-        if (doc.rawPaths) {
-            if (isTab) {
-                tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
-            } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
-                let isClosed = false;
-                for (let rawPath of doc.rawPaths)
-                    if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
-                        isClosed = true;
-                let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
-                if (isClosed)
-                    geometry = xor(geometry, clipperPaths);
-                else if (!op.filterFillColor)
-                    openGeometry = openGeometry.concat(clipperPaths);
+                cb();
             }
-        }
-        if (doc.type === 'image' && !isTab) {
-            let cache = documentCacheHolder.cache.get(doc.id);
-            if (cache && cache.imageLoaded)
-                docsWithImages.push(Object.assign([], doc, { image: cache.image }));
-        }
-        for (let child of doc.children)
-            examineDocTree(isTab, child);
-    }
-    for (let id of op.documents)
-        examineDocTree(false, id);
-    for (let id of op.tabDocuments)
-        examineDocTree(true, id);
+            workers.push(preflight)
+            preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry })
 
+        })
 
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
 
@@ -130,7 +90,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         } else if (op.type === 'Laser Raster') {
 
-            getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, jobDone, progress, QE, workers);
+            QE.push((cb) => {
+                getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, jobDone, progress, QE, workers);
+                cb();
+            })
 
         } else if (op.type.substring(0, 5) === 'Mill ') {
 

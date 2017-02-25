@@ -3,7 +3,9 @@ import { rawPathsToClipperPaths, union, xor } from '../mesh';
 
 self.onmessage=(event)=>{
 
-    let { settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages, documents, documentCacheHolder } = event.data;
+    let { settings, opIndex, op, geometry, openGeometry, tabGeometry,  documents } = event.data;
+
+    const docsWithImages=[]
 
     function matchColor(filterColor, color) {
         if (!filterColor)
@@ -31,9 +33,7 @@ self.onmessage=(event)=>{
             }
         }
         if (doc.type === 'image' && !isTab) {
-            let cache = documentCacheHolder.cache.get(doc.id);
-            if (cache && cache.imageLoaded)
-                docsWithImages.push(Object.assign([], doc, { image: cache.image }));
+            docsWithImages.push(doc)
         }
         for (let child of doc.children)
             examineDocTree(isTab, child);
@@ -43,6 +43,6 @@ self.onmessage=(event)=>{
     for (let id of op.tabDocuments)
         examineDocTree(true, id);
 
-    postMessage(JSON.stringify({ event: "onDone", settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages }))
+    postMessage({ event: "onDone", settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages })
     self.close();
 }
