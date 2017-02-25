@@ -8,50 +8,51 @@ import Select from 'react-select'
 import Toggle from 'react-toggle'
 import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
 
-import getUserMedia from 'getusermedia';
 import { pipeImageCommand, barrelDistortCommand, perspectiveDistortCommand, computePerspectiveMatrix } from '../draw-commands/webcam'
 import '../styles/webcam.css';
 
+import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution } from '../lib/video-capture'
 
 export class Webcam extends React.Component {
 
-    componentWillUnmount() {
-        this._stopVideo(this.stream);
-    }
 
     componentDidMount() {
-        this.initVideo();
+        this.initVideo(false)
+    }
+
+    componentWillUnmount() {
+        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
+        streamNode.removeChild(this.canvas);
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.resolution != this.props.resolution) {
-            this._stopVideo(this.stream);
-            this.initVideo();
+            this.initVideo(true);
         }
     }
 
-    initVideo() {
+    initVideo(force = false) {
 
-        let resolution = VIDEO_RESOLUTIONS[this.props.resolution];
+        let resolution = getVideoResolution(this.props.resolution);
         let videoratio = resolution.ratio.split(":"); videoratio = videoratio[0] / videoratio[1];
         let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-        this.video = document.createElement('video'); streamNode.append(this.video);
-        this.video.width = this.props.width;
-        this.video.height = this.props.width / videoratio;
-        this.video.style = "display:none"
-        this.canvas = document.createElement('canvas'); streamNode.append(this.canvas);
 
-        this.canvas.width = this.video.width;
-        this.canvas.height = this.video.height;
 
-        // resolution adjustment
+        if (this.canvas)
+            streamNode.removeChild(this.canvas);
+        this.canvas = document.createElement('canvas');
+
+        streamNode.append(this.canvas);
+
+
+        // coords resolution adjustment
         const ratio = (value, index) => {
             let wh = !(index % 2) ? this.props.width : this.props.height;
             let rwh = !(index % 2) ? resolution.width : resolution.height;
             return parseInt((value / wh) * rwh);
         }
 
-        // coordinates adjustment
+        // coords order adjustment
         const swap = (set) => {
             return [
                 set[0], this.props.height - set[1],
@@ -62,6 +63,13 @@ export class Webcam extends React.Component {
         }
 
         const capture = (src) => {
+
+            this.video = src;
+
+
+            this.canvas.width = src.width;
+            this.canvas.height = src.height;
+
             const regl = require('regl')(this.canvas);
             const pipe = pipeImageCommand(regl)
 
@@ -77,8 +85,10 @@ export class Webcam extends React.Component {
             const fbo2 = regl.framebuffer(fbopts);
 
             const animate = () => {
+                if (!window.videoCapture.isReady)
+                    return;
                 try {
-                    video({ data: src, min: 'linear', mag: 'linear' })
+                    video({ data: this.video, min: 'linear', mag: 'linear' })
                     fbo(fbopts)
                     fbo2(fbopts)
 
@@ -111,44 +121,8 @@ export class Webcam extends React.Component {
 
         }
 
-        let constraints = Object.assign({ video: true, audio: false }, this.props.constraints || {})
-        if (this.props.device) {
-            constraints = Object.assign(constraints, {
-                deviceId: { exact: this.props.device },
-                width: { exact: resolution.width },
-                height: { exact: resolution.height }
-            });
-        }
-        getUserMedia(constraints, (err, stream) => {
-            if (err) {
-                console.error(err);
-            } else {
-                this.stream = stream;
-                this._startVideo(this.stream, capture)
-            }
-        })
-    }
 
-    _startVideo(stream, callback) {
-        let that = this;
-        this.video.addEventListener('loadeddata', (e) => {
-            if (this.video.readyState === 4) {
-                callback.apply(that, [this.video])
-            }
-        }, false)
-        this.video.src = window.URL.createObjectURL(stream);
-        this.video.play();
-    };
-
-    _stopVideo(stream) {
-        if (stream) stream.getTracks().forEach((track) => { track.stop(); });
-        window.URL.revokeObjectURL(stream);
-
-        let streamNode = ReactDOM.findDOMNode(this).querySelector('#stream');
-        streamNode.removeChild(this.video);
-        streamNode.removeChild(this.canvas);
-
-
+        window.videoCapture.getVideo(this.props, capture)
     }
 
     render() {
@@ -162,7 +136,7 @@ export class Webcam extends React.Component {
 Webcam.defaultProps = {
     width: 320,
     height: 240,
-    resolution: "720p(HD)",
+    resolution: DEFAULT_VIDEO_RESOLUTION,
     lens: { a: 1, b: 1, F: 4, scale: 1 },
     fov: { x: 1.0, y: 1.0 }
 }
@@ -228,21 +202,13 @@ const getDefaultPerspective = (p, w = 0, h = 0) => {
     })
 }
 
-const getSizeByVideoResolution = (height, resolution) => {
-    if (!resolution) resolution = DEFAULT_VIDEO_RESOLUTION
-    let ratio = VIDEO_RESOLUTIONS[resolution].ratio;
-    if (isNaN(ratio)) {
-        let p = ratio.split(":")
-        ratio = p[0] / p[1];
-    }
-    return { width: height * ratio, height }
-}
+
 
 export class PerspectiveWebcam extends React.Component {
 
     constructor(props) {
         super(props);
-        let p = this.props.perspective ||  {};
+        let p = this.props.perspective || {};
         let { width, height } = getSizeByVideoResolution(this.props.height, this.props.resolution);
         this.state = getDefaultPerspective(p, width, height);
         this.handlePerspectiveChange.bind(this)
@@ -305,114 +271,70 @@ export class VideoDeviceField extends React.Component {
     constructor(props) {
         super(props);
         this.state = { devices: [] }
+        this.handleSelection.bind(this)
     }
 
     componentDidMount() {
-        let promise = navigator.mediaDevices.enumerateDevices();
-        let that = this;
-        promise.then((devices) => {
-            let cameras = [];
-            devices.forEach((device) => {
-                if (device.kind == 'videoinput')
-                    cameras.push({ label: device.label, value: device.deviceId })
-            })
-            cameras.unshift({ label: "None", value: null })
-            that.setState({ devices: cameras })
-        })
-            .catch(function (err) {
-                console.error(err.name + ": " + err.message);
-            });
+        window.videoCapture.getDevices((devices) => { this.setState({ devices }) })
+    }
+
+    handleSelection(v) {
+        if (!v.value) window.videoCapture.stopStream();
+        this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))
     }
 
     render() {
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }, this.props.object.id))} clearable={false} />
+            <Select options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.handleSelection(v)} clearable={false} />
         </FormGroup>
     }
 
 }
 
-const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
-const VIDEO_RESOLUTIONS = {
-    "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
-    "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
-    "UXGA": { "width": 1600, "height": 1200, "ratio": "4:3" },
-    "720p(HD)": { "width": 1280, "height": 720, "ratio": "16:9" },
-    "SVGA": { "width": 800, "height": 600, "ratio": "4:3" },
-    "VGA": { "width": 640, "height": 480, "ratio": "4:3" },
-    "360p(nHD)": { "width": 640, "height": 360, "ratio": "16:9" },
-    "CIF": { "width": 352, "height": 288, "ratio": "4:3" },
-    "QVGA": { "width": 320, "height": 240, "ratio": "4:3" },
-    "QCIF": { "width": 176, "height": 144, "ratio": "4:3" },
-    "QQVGA": { "width": 160, "height": 120, "ratio": "4:3" }
-};
 
-
-const videoResolutionPromise = (deviceId, candidate) => {
-    const constraints = {
-        audio: false,
-        video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { exact: candidate.width },    //new syntax
-            height: { exact: candidate.height }   //new syntax
-        }
-    }
-
-    return new Promise(
-        (resolve) => {
-            getUserMedia(constraints, (err, stream) => {
-                if (!err) {
-                    stream.getTracks().forEach((track) => { track.stop(); });
-                    resolve(candidate)
-                }
-            });
-        }
-    )
-}
 
 export class VideoResolutionField extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            resolutions: [],
-            selected: this.props.object[this.props.field]
+            resolutions: window.videoCapture.data.resolutions || [],
+            isLoading: false
         }
         this.handleChange.bind(this)
     }
 
     getResolutions(deviceId) {
-        let videoPromises = Object.entries(VIDEO_RESOLUTIONS).map((entry) => { return videoResolutionPromise(deviceId, { label: entry[0], ...entry[1] }); });
-        videoPromises.forEach(
-            (promise) => promise.then((v) => {
-                let resx = new Set(this.state.resolutions); resx.add(v)
-                this.setState({ resolutions: [...resx] })
+        if (deviceId) {
+            this.setState({ isLoading: true })
+            window.videoCapture.scan(deviceId, null, (props) => {
+                let {resolutions, resolutionId} = props;
+                console.log("refreshing resolutions...")
+                this.setState({ resolutions, isLoading:false, selected: resolutionId })
+                this.handleChange({value:resolutionId})
             })
-        );
-    }
-
-    componentDidMount() {
-        if (this.props.deviceId)
-            this.getResolutions(this.props.deviceId)
-
+        } else {
+            this.setState({ resolutions: [] })
+            this.handleChange({value:null})
+        }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.deviceId && nextProps.deviceId !== this.props.deviceId)
+        if (nextProps.deviceId !== this.props.deviceId) {
             this.getResolutions(nextProps.deviceId)
-
+        }
     }
 
     handleChange(v) {
-        this.setState({ selected: v })
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
     }
 
     render() {
         let resolutions = this.state.resolutions.map((v) => { return { label: `${v.label} (${v.width} x ${v.height}) / ${v.ratio}`, value: v.label } })
+        let selected = this.props.object[this.props.field];
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select options={resolutions} value={this.state.selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
+            <Select isLoading={this.state.isLoading} options={resolutions} value={selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
         </FormGroup>
     }
 }
