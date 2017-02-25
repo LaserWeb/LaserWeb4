@@ -1,4 +1,4 @@
-import { getLaserCutGcodeFromOp } from '../cam-gcode-laser-cut'
+import { getMillGcodeFromOp } from '../cam-gcode-mill'
 
 onmessage = (event) => {
 
@@ -19,6 +19,6 @@ onmessage = (event) => {
         }
     };
 
-    getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
+    getMillGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
 
 }

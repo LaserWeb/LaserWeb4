@@ -78,19 +78,19 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         const jobDone = (g, cb) => { if (g !== false) { gcode.push(g); cb(); } }
 
-        const invokeWebWorker = (ww, props) => {
+        const invokeWebWorker = (ww, props, cb) => {
             let peasant=new ww();
                 peasant.onmessage = (e) => {
                     let data = JSON.parse(e.data)
                     if (data.event == 'onDone') {
-                        gcode.push(data.gcode)
-                        cb(true)
+                        jobDone(data.gcode, cb)
                     } else if (data.event == 'onProgress') {
                         progress(data.progress)
                     } else {
                         data.errors.forEach((item) => {
                             showAlert(item.message, item.level)
                         })
+                        jobDone(false, cb)
                     }
                 }
                 peasant.postMessage(props)
@@ -100,11 +100,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
 
             QE.push((cb) => {
-                invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry })
+                invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb)
             })
-
-
-            //getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, jobDone, progress, QE);
 
         } else if (op.type === 'Laser Raster') {
 
@@ -112,7 +109,9 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         } else if (op.type.substring(0, 5) === 'Mill ') {
 
-            getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, jobDone, progress, QE);
+            QE.push((cb) => {
+                invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb)
+            })
 
         }
     } // opIndex
