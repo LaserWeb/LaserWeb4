@@ -3,7 +3,7 @@ import { rawPathsToClipperPaths, union, xor } from '../mesh';
 
 self.onmessage=(event)=>{
 
-    let { settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages, documents } = event.data;
+    let { settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages, documents, documentCacheHolder } = event.data;
 
     function matchColor(filterColor, color) {
         if (!filterColor)

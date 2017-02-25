@@ -57,10 +57,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
                 workers.push(peasant)
                 peasant.postMessage(props)
-           
+            
         }
 
-
+        /*
         QE.push((cb) => {
             let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
             let preflight = new preflightWorker()
@@ -75,9 +75,51 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     cb();
                 }
                 workers.push(preflight)
-                preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages })
+                console.log(documentCacheHolder)
+                preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages, documentCacheHolder })
                 
         })
+        */
+
+
+        //THIS NEED TO BE SOLVED. examineDocTree WITHOUT documentCacheHolder
+    function matchColor(filterColor, color) {
+        if (!filterColor)
+            return true;
+        if (!color)
+            return false;
+        return filterColor[0] == color[0] && filterColor[1] == color[1] && filterColor[2] == color[2] && filterColor[3] == color[3];
+    }
+
+    function examineDocTree(isTab, id) {
+        let doc = documents.find(d => d.id === id);
+        if (doc.rawPaths) {
+            if (isTab) {
+                tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
+            } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
+                let isClosed = false;
+                for (let rawPath of doc.rawPaths)
+                    if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
+                        isClosed = true;
+                let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
+                if (isClosed)
+                    geometry = xor(geometry, clipperPaths);
+                else if (!op.filterFillColor)
+                    openGeometry = openGeometry.concat(clipperPaths);
+            }
+        }
+        if (doc.type === 'image' && !isTab) {
+            let cache = documentCacheHolder.cache.get(doc.id);
+            if (cache && cache.imageLoaded)
+                docsWithImages.push(Object.assign([], doc, { image: cache.image }));
+        }
+        for (let child of doc.children)
+            examineDocTree(isTab, child);
+    }
+    for (let id of op.documents)
+        examineDocTree(false, id);
+    for (let id of op.tabDocuments)
+        examineDocTree(true, id);
 
 
         if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
@@ -88,7 +130,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
         } else if (op.type === 'Laser Raster') {
 
-            getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, jobDone, progress, QE);
+            getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, jobDone, progress, QE, workers);
 
         } else if (op.type.substring(0, 5) === 'Mill ') {
 
