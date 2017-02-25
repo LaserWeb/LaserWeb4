@@ -18,7 +18,6 @@
 "use strict";
 
 import ClipperLib from 'clipper-lib';
-import Snap from 'snapsvg-cjs';
 import SweepContext from 'poly2tri/src/sweepcontext';
 
 export const inchToClipperScale = 1270000000;
@@ -93,6 +92,7 @@ function linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn) {
 // error message and returns null if there's a problem.
 function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn) {
     let path = null;
+    let Snap = require('snapsvg-cjs');
     let snapElement = Snap(element);
 
     if (snapElement.type == 'path')
