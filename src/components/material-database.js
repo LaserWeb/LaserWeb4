@@ -14,7 +14,6 @@ import * as operation from './operation'
 import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
 import { FileField } from './forms'
 
-import * as FlexData from 'react-flex-data';
 import Icon from './font-awesome';
 import stringify from 'json-stringify-pretty-compact';
 

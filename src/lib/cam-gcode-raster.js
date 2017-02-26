@@ -1,6 +1,6 @@
 import RasterToGcode from 'lw.raster-to-gcode';
 
-export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE) {
+export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE, workers) {
 
     let ok = true;
 
@@ -90,6 +90,8 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
             });
             r2g.loadFromImage(doc.image);
             r2g._processImage();
+
+            workers.push(r2g)
 
             r2g.run()   //doneProcessing at the end, my friend
 
