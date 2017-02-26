@@ -115,7 +115,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
-            ww.terminate();
+            if (ww.abort) {
+                ww.abort()
+            } else {
+                ww.terminate();
+            } 
         })
         progress(0)
     })
