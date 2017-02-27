@@ -62,7 +62,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 done(g, cb)
             }
 
-
+            /*
             let r2g = new RasterToGcode({
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
                 beamSize: op.laserDiameter,
@@ -91,9 +91,59 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
             r2g.loadFromImage(doc.image);
             r2g._processImage();
 
-            workers.push(r2g)
-
             r2g.run()   //doneProcessing at the end, my friend
+            */
+            
+
+            let params={
+                ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
+                beamSize: op.laserDiameter,
+                beamRange: { min: 0, max: settings.gcodeSMaxValue },
+                beamPower: op.laserPowerRange, //Go go power rangeR!
+                feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
+                offsets: { X: doc.translate[0], Y: doc.translate[1] },
+                trimLine: op.trimLine,
+                joinPixel: op.joinPixel,
+                burnWhite: op.burnWhite,
+                verboseG: op.verboseGcode,
+                diagonal: op.diagonal,
+                nonBlocking: false,
+                filters: {
+                    smoothing: op.smoothing,
+                    brightness: op.brightness,
+                    contrast: op.contrast,
+                    gamma: op.gamma,
+                    grayscale: op.grayscale,
+                    shadesOfGray: op.shadesOfGray,
+                    invertColor: op.invertColor,
+                }
+            }
+            let r2g=new RasterToGcode({nonBlocking:false})
+                r2g.load(doc.image).then((rtg)=>{
+                    let properties = {
+                        cellSize  : rtg.cellSize,
+                        scaleRatio: rtg.scaleRatio,
+                        filters   : rtg.filters,
+                        size      : rtg.size,
+                        pixels    : rtg.pixels
+                    }
+
+                    let rasterWorker=require('worker-loader!./workers/cam-raster.js')
+                    let r2g=new rasterWorker();
+                        r2g.onmessage = function(event) {
+                            if (event.data.event === 'onDone') {
+                                doneProcessing({gcode: event.data.gcode})
+                            }
+                            else if (event.data.event === 'onProgress') {
+                                percentProcessing({percent:event.data.percent}) //doc, index, 
+                            }
+                        };
+
+                        workers.push(r2g)
+
+                        r2g.postMessage({ cmd: 'start', settings: params, properties });
+                    
+                })
 
         })
 
