@@ -279,6 +279,10 @@ class Settings extends React.Component {
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
+                        <ButtonToolbar>
+                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleDevTools(e)}}><Icon name="gear"/> Open Dev tools</Button>
+                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleRefresh(e)}}><Icon name="refresh"/> Refresh window</Button>
+                        </ButtonToolbar>
                     </Panel>
                 </PanelGroup>
             </div>
@@ -290,7 +294,10 @@ class Settings extends React.Component {
 
 const mapStateToProps = (state) => {
 
-    return { settings: state.settings, profiles: state.machineProfiles }
+    return { 
+        settings: state.settings, 
+        profiles: state.machineProfiles
+    }
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -323,6 +330,22 @@ const mapDispatchToProps = (dispatch) => {
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
         },
+        handleDevTools:() => {
+            if (window.getFocusedWindow){
+                var focusedWindow = window.getFocusedWindow();
+                if (focusedWindow.isDevToolsOpened()) {
+                    focusedWindow.closeDevTools();
+                } else {
+                    focusedWindow.openDevTools();
+                }
+            } else {
+                console.warn("Can't do that, pal")
+            }
+        },
+        handleRefresh:() => {
+            if (confirm("Are you sure? This will destroy unsaved work"))
+                location.reload();
+        }
     };
 };
 
