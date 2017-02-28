@@ -147,7 +147,9 @@ class Cam extends React.Component {
                         <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
                         <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
                         <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
-                    </ButtonGroup></ButtonToolbar>):<GcodeProgress onStop={(e)=>this.stopGcode(e)}/>}</td>
+                    </ButtonGroup>
+                        <button title="Clear" className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
+                    </ButtonToolbar>):<GcodeProgress onStop={(e)=>this.stopGcode(e)}/>}</td>
                         </tr></tbody>
                     </table>
                 </Alert>
@@ -161,11 +163,14 @@ Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
         saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
-        viewGcode: () => openDataWindow(state.gcode.content)
+        viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
         dispatch,
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
+        clearGcode: () => {
+            dispatch(setGcode(""))
+        },
         loadDocument: e => {
             // TODO: report errors
             for (let file of e.target.files) {
