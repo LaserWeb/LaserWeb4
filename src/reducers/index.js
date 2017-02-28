@@ -15,13 +15,32 @@ import { macros } from './macros'
 
 import omit from 'object.omit';
 
-const shouldSaveUndo=(action)=>{
-    let blackList=['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'];
-    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER|^MATERIALDB_|^SELECT_PANE/));
+var LAST_ACTION={};
 
-    return should;
+const BLACKLIST=[/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','LOADED',/^SPLITTER|^MATERIALDB_|^SELECT_PANE/gi];
+
+const shouldSaveUndo=(action)=>{
+    
+    for (let item of BLACKLIST) {
+        if (action.type.search(item)>=0) {
+            LAST_ACTION=action;
+            return false;
+        } 
+    }
+    
+    if (action.type.match(/_SET_ATTRS/gi) && action.type===LAST_ACTION.type) {
+        let cSig=Object.keys(action.payload.attrs).sort().join(',');
+        let lSig=Object.keys(LAST_ACTION.payload.attrs).sort().join(',');
+        if (cSig === lSig){
+            return false;
+        }
+    } 
+    
+    LAST_ACTION=action;
+       
+    return true
 };
-const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros }, shouldSaveUndo);
+const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros }, {}, shouldSaveUndo);
 
 export default function reducer(state, action) {
     switch (action.type) {
