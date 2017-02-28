@@ -57,7 +57,7 @@ import { VideoCapture } from '../lib/video-capture'
 
 class LaserWeb extends React.Component {
 
-    @keydown('ctrl+z')
+    @keydown(['ctrl+z', 'F5','F12'])
     keylogger( event ) {
         this.props.handleKeypress(event);
     }
@@ -116,9 +116,27 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-         handleKeypress: e => {
-            if (e.key=='z' && e.ctrlKey)
-                dispatch(keyboardUndoAction(e))
+         handleKeypress: evt => {
+            if (evt.key=='z' && evt.ctrlKey) {
+                dispatch(keyboardUndoAction(evt))
+            } else if (window && window.process && window.process.type){
+                if (evt.which === 123) {
+                    try {
+                        var focusedWindow = require('electron').remote.getCurrentWindow();
+                        if (focusedWindow.isDevToolsOpened()) {
+                            focusedWindow.closeDevTools();
+                        } else {
+                            focusedWindow.openDevTools();
+                        }
+                    } catch (error) {
+                        console.warn(error);
+                    }
+                } else if (evt.which === 116) {
+                    location.reload();
+                }
+            } else {
+                return true;
+            }
          },
          handleMacro: (e, macros) =>{
                 dispatch(fireMacroByKeyboard(e,macros))
