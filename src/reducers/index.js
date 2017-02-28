@@ -17,7 +17,7 @@ import omit from 'object.omit';
 
 const shouldSaveUndo=(action)=>{
     let blackList=['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'];
-    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER|^MATERIAL_/));
+    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER|^MATERIALDB_|^SELECT_PANE/));
 
     return should;
 };
