@@ -66,8 +66,8 @@
     "jsdoc": "^3.4.1",
     "json-loader": "^0.5.4",
     "json-stringify-pretty-compact": "^1.0.2",
+    "lw.raster-to-gcode": "^0.6.0",
     "lw.comm-server": "git+https://github.com/LaserWeb/lw.comm-server.git",
-    "lw.raster-to-gcode": "^0.4.0",
     "lw.svg-parser": "^0.3.2",
     "node-uuid": "^1.4.7",
     "npm-run-all": "^4.0.1",
@@ -81,7 +81,6 @@
     "react-bootstrap-table": "^2.5.8",
     "react-dom": "^15.3.1",
     "react-draggable": "^2.2.3",
-    "react-flex-data": "git+https://github.com/jorgerobles/react-flex-data.git",
     "react-hot-loader": "^3.0.0-beta.4",
     "react-keydown": "^1.6.3",
     "react-redux": "^4.4.5",
@@ -103,7 +102,8 @@
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.15.1",
-    "webrtc-adapter": "^3.1.5"
+    "webrtc-adapter": "^3.1.5",
+    "worker-loader": "^0.7.1"
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
