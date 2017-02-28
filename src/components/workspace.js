@@ -21,6 +21,7 @@ import ReactDOM from 'react-dom';
 import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
+import { runCommand } from './com.js';
 
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -887,9 +888,8 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} />
+                        <CommandHistory style={{ flexGrow: 1, marginLeft: 10}} onCommandExec={runCommand}/>
                     </div>
-
                 </div>
             </div>
         )
@@ -906,6 +906,7 @@ Workspace = connect(
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
+        runCommand: () => dispatch(runCommand()),
     })
 )(Workspace);
 export default Workspace;

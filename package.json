@@ -4,7 +4,9 @@
   "description": "LaserWeb UI...",
   "main": "./src/index.js",
   "scripts": {
-    "start": "webpack-dev-server --progress --colors --open",
+    "start-server": "node node_modules/lw.comm-server/server.js",
+    "start-app": "webpack-dev-server --progress --colors --open",
+    "start": "npm-run-all -p -r start-app start-server",
     "bundle-dev": "webpack --progress --colors",
     "bundle-prod": "webpack -p --progress --colors",
     "build-docs": "jsdoc -c ./jsdoc.json",
@@ -27,7 +29,8 @@
     "Sébastien Mischler <sebastien@onlfait.ch>",
     "João Matos <joao@tritao.eu>",
     "Todd Fleming <jscut.org>",
-    "Jorge Robles <jorge.diego.robles@gmail.com>"
+    "Jorge Robles <jorge.diego.robles@gmail.com>",
+    "Claudio Prezzi <cprezzi@comsulting.ch>"
   ],
   "license": "AGPL-3.0",
   "bugs": {
@@ -64,8 +67,10 @@
     "json-loader": "^0.5.4",
     "json-stringify-pretty-compact": "^1.0.2",
     "lw.raster-to-gcode": "^0.6.0",
+    "lw.comm-server": "git+https://github.com/LaserWeb/lw.comm-server.git",
     "lw.svg-parser": "^0.3.2",
     "node-uuid": "^1.4.7",
+    "npm-run-all": "^4.0.1",
     "object.omit": "^2.0.1",
     "poly2tri": "^1.3.5",
     "prefix-keys": "^1.0.0",

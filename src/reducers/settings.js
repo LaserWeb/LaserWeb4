@@ -22,6 +22,8 @@ const version = require("../../package.json").version;
             "gcodeHoming":";$H",
             "gcodeToolOn":"M3",
             "gcodeToolOff":"M5",
+            "gcodeToolTestPower":"0",
+            "gcodeToolTestDuration":"0",
             
             "machineWidth": 420,
             "machineHeight": 297,
@@ -56,7 +58,7 @@ const version = require("../../package.json").version;
             "wifisubnet3": ""
         }
     
-    */
+*/
  
 
 
@@ -66,12 +68,17 @@ export const SETTINGS_VALIDATION_RULES = {
     
     gcodeSMaxValue: 'required|numeric|min:1',
     gcodeMoveUnits: 'in:mm/s,mm/min',
+    gcodeToolTestPower: 'required|numeric|min:0|max:100',
+    gcodeToolTestDuration: 'required|numeric|min:0',
     
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
     machineZToolOffset: 'numeric',
     
     toolImagePosition: 'in:TL,TR,C,BL,BR',
+    
+    jogFeedXY: 'numeric|min:0',
+    jogFeedZ: 'numeric|min:0',
     
 }
 
@@ -92,10 +99,10 @@ export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, set
 export const settings = objectNoId('settings', {
     
     __version: version,
-    __selectedProfile:null,
+    __selectedProfile: null,
     
     machineWidth: 300,
-    machineHeight: 300,
+    machineHeight: 200,
     machineBeamDiameter: 0.2,
     
     machineZEnabled: false,
@@ -107,10 +114,10 @@ export const settings = objectNoId('settings', {
     machineBlowerGcodeOff: '',
     
     pxPerInch: 96,
-    dpiBitmap: 300,
+    dpiRasterBmp: 300,
     
-    toolSafetyLockDisabled:false,
-    toolCncMode:false,
+    toolSafetyLockDisabled: true,
+    toolCncMode: false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
 
@@ -120,8 +127,10 @@ export const settings = objectNoId('settings', {
     toolVideoFov: {x:1,y:1},
     toolVideoResolution: "720p(HD)",
 
-    toolWebcamUrl:"",
+    toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',
+    toolTestSValue: 1, 
+    toolTestDuration: 0,
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M2          ; End\r\n",
@@ -129,7 +138,20 @@ export const settings = objectNoId('settings', {
     gcodeToolOn:"",
     gcodeToolOff:"",
     gcodeSMaxValue: 1,
+    gcodeToolTestPower: 0, 
+    gcodeToolTestDuration: 0,
     
-    
-    
+    comServerIP: 'localhost:8000',
+    comServerConnect: false,
+    comInterfaces: [],
+    comPorts: [],
+    connectVia: '',
+    connectPort: '',
+    connectBaud: '115200',
+    connectIP: '',
+
+    jogStepsize: 1,
+    jogFeedXY: 30,
+    jogFeedZ:5,
+    jogAccumulatedJobTime: 0,
 });
