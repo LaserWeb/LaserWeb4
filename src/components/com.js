@@ -493,43 +493,56 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-notify');
         $("#machineStatus").removeClass('badge-warn');
         $("#machineStatus").removeClass('badge-busy');
-        if ($('#alarmmodal').is(':visible')) {
-            // Nothing, its already open
-        } else {
-            $('#alarmmodal').modal('show');
-        }
+        $('#stopBtn .icon-top-text').html('clear');
+        $('#stopBtn .icon-bot-text').html('alarm');
+//        if ($('#alarmmodal').is(':visible')) {
+//            // Nothing, its already open
+//        } else {
+//            //$('#alarmmodal').modal('show');
+//        }
     } else if (state === 'Home') {
         $("#machineStatus").removeClass('badge-ok');
         $("#machineStatus").removeClass('badge-notify');
         $("#machineStatus").removeClass('badge-warn');
         $("#machineStatus").addClass('badge-busy');
-        if ($('#alarmmodal').is(':visible')) {
-            $('#alarmmodal').modal('hide');
-        }
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
     } else if (state === 'Hold') {
         $("#machineStatus").removeClass('badge-ok');
         $("#machineStatus").removeClass('badge-notify');
         $("#machineStatus").addClass('badge-warn');
         $("#machineStatus").removeClass('badge-busy');
-        if ($('#alarmmodal').is(':visible')) {
-            $('#alarmmodal').modal('hide');
-        }
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        //$('#playBtn .icon-top-text').html('resume');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
     } else if (state === 'Idle') {
         $("#machineStatus").addClass('badge-ok');
         $("#machineStatus").removeClass('badge-notify');
         $("#machineStatus").removeClass('badge-warn');
         $("#machineStatus").removeClass('badge-busy');
-        if ($('#alarmmodal').is(':visible')) {
-            $('#alarmmodal').modal('hide');
-        }
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        //$('#playBtn .icon-top-text').html('run');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
     } else if (state === 'Run') {
         $("#machineStatus").removeClass('badge-ok');
         $("#machineStatus").removeClass('badge-notify');
         $("#machineStatus").removeClass('badge-warn');
         $("#machineStatus").addClass('badge-busy');
-        if ($('#alarmmodal').is(':visible')) {
-            $('#alarmmodal').modal('hide');
-        }
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        //$('#playBtn .icon-top-text').html('pause');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
     }
     $('#machineStatus').html(state);
 }
@@ -618,6 +631,20 @@ export function abortJob() {
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');
             socket.emit('stop');
+        } else {
+            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+        }
+    } else {
+        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+    }
+}
+
+export function clearAlarm(method) {
+    console.log('clearAlarm');
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.log('Resetting alarm', CommandHistory.INFO);
+            socket.emit('clearAlarm', method);
         } else {
             CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
         }

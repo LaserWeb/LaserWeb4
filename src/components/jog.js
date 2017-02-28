@@ -15,7 +15,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import CommandHistory from './command-history';
 
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -111,10 +111,17 @@ class Jog extends React.Component {
     }
 
     abortJob() {
-        console.log('abortJob');
-        paused = false;
-        playing = false;
-        abortJob();
+        if ($('#machineStatus').html() == 'Alarm') {
+            console.log('clearAlarm');
+            clearAlarm(2);
+        } else if ($('#machineStatus').html() == 'Idle' && !paused) {
+            console.log('abort ignored, because state is idle');
+        } else {
+            console.log('abortJob');
+            paused = false;
+            playing = false;
+            abortJob();
+        }
     }
 
     setZero(axis) {
