@@ -9,8 +9,6 @@ import {addMacro, removeMacro, setMacro, fireMacroById} from '../actions/macros'
 
 import {Button, FormControl, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
-import parseKeys from 'react-keydown/dist/lib/parse_keys'
-
 import Validator from 'validatorjs';
 import {MACRO_VALIDATION_RULES} from '../reducers/macros'
 
@@ -27,14 +25,14 @@ export class Macros extends React.Component {
         this.handleFormChange.bind(this)
         this.handleMeta.bind(this)
 
-        this.metakeys=['ctrl','shift','meta','alt']
+        this.metakeys=['ctrl','shift','command','alt']
     }
 
     handleSelection(e){
         let opts=[].slice.call(e.target.selectedOptions).map(o => {return o.value;});
             this.setState({selected: opts})
         if (e.target.value){
-            this.setState({keybinding: e.target.value,
+            this.setState({keybinding: e.target.value.toLowerCase(),
                           label: this.props.macros[e.target.value].label,
                           gcode: this.props.macros[e.target.value].gcode,
             })

@@ -8,11 +8,8 @@ export const removeMacro = remove('macros');
 
 
 export function fireMacroByKeyboard(ev, macros){
-    
-    let keybinding = [ev.shiftKey ? 'shift':undefined, ev.ctrlKey? 'ctrl':undefined, ev.metaKey?'meta':undefined , ev.altKey?'alt':undefined, ev.key].filter((item)=>{return item}).sort().join('+')
-    
+    let keybinding = [ev.shiftKey ? 'shift':undefined, ev.ctrlKey? 'ctrl':undefined, ev.metaKey?'command':undefined , ev.altKey?'alt':undefined, ev.key].filter((item)=>{return item}).sort().join('+').toLowerCase()
     if (macros.hasOwnProperty(keybinding)){
-        ev.preventDefault();
         let {label, gcode} = macros[keybinding];
         return {type:'MACRO_FIRE', payload:{keybinding, label, gcode}}
     }
