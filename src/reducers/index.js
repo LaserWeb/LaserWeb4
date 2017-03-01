@@ -23,6 +23,10 @@ const BLACKLIST=[/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'U
 
 const shouldSaveUndo=(action)=>{
     
+    //Last action TTL
+    if (LAST_ACTION_TIMEOUT) 
+        clearTimeout(LAST_ACTION_TIMEOUT)
+
     for (let item of BLACKLIST) {
         if (action.type.search(item)>=0) {
             LAST_ACTION=action;
@@ -31,14 +35,11 @@ const shouldSaveUndo=(action)=>{
     }
     
     if (action.type===LAST_ACTION.type){
-        //Last action TTL
-        if (LAST_ACTION_TIMEOUT) clearTimeout(LAST_ACTION)
-        setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
-
         if (action.type.match(/_SET_ATTRS/gi) ) {
             let cSig=Object.keys(action.payload.attrs).sort().join(',');
             let lSig=Object.keys(LAST_ACTION.payload.attrs).sort().join(',');
             if (cSig === lSig){
+                LAST_ACTION_TIMEOUT = setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
                 return false;
             }
         }
@@ -47,6 +48,7 @@ const shouldSaveUndo=(action)=>{
             let cSig=Object.keys(action.payload).sort().join(',');
             let lSig=Object.keys(LAST_ACTION.payload).sort().join(',');
             if (cSig === lSig){
+                LAST_ACTION_TIMEOUT = setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
                 return false;
             }
         } 
