@@ -16,6 +16,8 @@ import { macros } from './macros'
 import omit from 'object.omit';
 
 var LAST_ACTION={};
+var LAST_ACTION_TIMEOUT=null;
+const LAST_ACTION_TTL = 2000;
 
 const BLACKLIST=[/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','LOADED',/^SPLITTER|^MATERIALDB_|^SELECT_PANE/gi];
 
@@ -28,13 +30,28 @@ const shouldSaveUndo=(action)=>{
         } 
     }
     
-    if (action.type.match(/_SET_ATTRS/gi) && action.type===LAST_ACTION.type) {
-        let cSig=Object.keys(action.payload.attrs).sort().join(',');
-        let lSig=Object.keys(LAST_ACTION.payload.attrs).sort().join(',');
-        if (cSig === lSig){
-            return false;
+    if (action.type===LAST_ACTION.type){
+        //Last action TTL
+        if (LAST_ACTION_TIMEOUT) clearTimeout(LAST_ACTION)
+        setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
+
+        if (action.type.match(/_SET_ATTRS/gi) ) {
+            let cSig=Object.keys(action.payload.attrs).sort().join(',');
+            let lSig=Object.keys(LAST_ACTION.payload.attrs).sort().join(',');
+            if (cSig === lSig){
+                return false;
+            }
         }
-    } 
+
+        if (action.type.match(/DOCUMENT_TRANSLATE_SELECTED/gi) ) {
+            let cSig=Object.keys(action.payload).sort().join(',');
+            let lSig=Object.keys(LAST_ACTION.payload).sort().join(',');
+            if (cSig === lSig){
+                return false;
+            }
+        } 
+        
+    }
     
     LAST_ACTION=action;
        
