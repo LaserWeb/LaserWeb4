@@ -5,6 +5,7 @@ import queue from 'queue';
 export const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
 export const VIDEO_RESOLUTIONS = {
     "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
+    "*Emblaser2" : {"width": 2592, "height": 1944, "ratio": "4:3"},
     "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
     "UXGA": { "width": 1600, "height": 1200, "ratio": "4:3" },
     "720p(HD)": { "width": 1280, "height": 720, "ratio": "16:9" },
@@ -132,7 +133,10 @@ export class VideoCapture {
     };
 
     getResolutions(deviceId, callback) {
-
+        console.error('Only for testing, @DarklyLabs')
+        callback(VIDEO_RESOLUTIONS)
+        return;
+        
         let cache=this.getCache();
         if (deviceId && typeof(cache[deviceId])!=='undefined'){
             callback(cache[deviceId])
