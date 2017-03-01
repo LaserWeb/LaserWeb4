@@ -119,23 +119,6 @@ const mapDispatchToProps = (dispatch) => {
          handleKeypress: evt => {
             if (evt.key=='z' && evt.ctrlKey) {
                 dispatch(keyboardUndoAction(evt))
-            } else if (window && window.process && window.process.type){
-                if (evt.which === 123) {
-                    try {
-                        var focusedWindow = require('electron').remote.getCurrentWindow();
-                        if (focusedWindow.isDevToolsOpened()) {
-                            focusedWindow.closeDevTools();
-                        } else {
-                            focusedWindow.openDevTools();
-                        }
-                    } catch (error) {
-                        console.warn(error);
-                    }
-                } else if (evt.which === 116) {
-                    location.reload();
-                }
-            } else {
-                return true;
             }
          },
          handleMacro: (e, macros) =>{

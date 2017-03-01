@@ -231,6 +231,8 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', rows: 5, style: { resize: "vertical" } }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
@@ -279,6 +281,10 @@ class Settings extends React.Component {
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
+                        <ButtonToolbar>
+                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleDevTools(e)}}><Icon name="gear"/> Open Dev tools</Button>
+                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleRefresh(e)}}><Icon name="refresh"/> Refresh window</Button>
+                        </ButtonToolbar>
                     </Panel>
                 </PanelGroup>
             </div>
@@ -290,7 +296,10 @@ class Settings extends React.Component {
 
 const mapStateToProps = (state) => {
 
-    return { settings: state.settings, profiles: state.machineProfiles }
+    return { 
+        settings: state.settings, 
+        profiles: state.machineProfiles
+    }
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -323,6 +332,22 @@ const mapDispatchToProps = (dispatch) => {
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
         },
+        handleDevTools:() => {
+            if (window.getFocusedWindow){
+                var focusedWindow = window.getFocusedWindow();
+                if (focusedWindow.isDevToolsOpened()) {
+                    focusedWindow.closeDevTools();
+                } else {
+                    focusedWindow.openDevTools();
+                }
+            } else {
+                console.warn("Can't do that, pal")
+            }
+        },
+        handleRefresh:() => {
+            if (confirm("Are you sure? This will destroy unsaved work"))
+                location.reload();
+        }
     };
 };
 
