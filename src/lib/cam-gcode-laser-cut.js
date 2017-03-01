@@ -90,7 +90,7 @@ export function getLaserCutGcode(props) {
         if (useZ){
             let zHeight = useZ.startZ+useZ.offsetZ - (useZ.passDepth*pass);
             gcode+=`\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
-            gcode+='G1 Z'+zHeight.toFixed(decimal)+'\r\n';
+            gcode+='G0 Z'+zHeight.toFixed(decimal)+'\r\n';
         }
 
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {

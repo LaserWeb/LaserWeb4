@@ -57,7 +57,7 @@ import { VideoCapture } from '../lib/video-capture'
 
 class LaserWeb extends React.Component {
 
-    @keydown(['ctrl+z', 'F5','F12'])
+    @keydown(['ctrl+z'])
     keylogger( event ) {
         this.props.handleKeypress(event);
     }

@@ -45,7 +45,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                         if (settings.machineZEnabled) {
                             let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
                             g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
-                            g += 'G1 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
+                            g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
                         }
                         g += raster;
                     }
