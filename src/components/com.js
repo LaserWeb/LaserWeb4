@@ -63,8 +63,8 @@ class Com extends React.Component {
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
-            //socket.emit('firstLoad');
-            socket.emt('getServerConfig');
+            socket.emit('firstload');
+            socket.emit('getServerConfig');
             CommandHistory.log('Server connected', CommandHistory.SUCCESS);
         });
         
@@ -356,21 +356,11 @@ class Com extends React.Component {
                     var elapsedTime = Math.round(elapsedTimeMS / 1000);
                     CommandHistory.log("Job started at " + jobStartTime.toString(), CommandHistory.SUCCESS);
                     CommandHistory.log("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
-                    CommandHistory.log("Elapsed time: " + elapsedTime + " seconds.", CommandHistory.SUCCESS);
+                    CommandHistory.log("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
                     jobStartTime = -1;
                     let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
                     dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
-                    let hours = Math.floor(accumulatedJobTime / 3600);
-                    let minutes = Math.floor(accumulatedJobTime / 60) % 60;
-                    if (minutes < 10) {
-                        minutes = '0' + minutes;
-                    }
-                    let seconds = accumulatedJobTime % 60;
-                    if (seconds < 10) {
-                        seconds = '0' + seconds;
-                    }
-                    let hms = hours + ':' + minutes + ':' + seconds;
-                    CommandHistory.log("Total accumulated job time: " + hms, CommandHistory.SUCCESS);
+                    CommandHistory.log("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
                 }
             }
         });
@@ -487,6 +477,18 @@ class Com extends React.Component {
     }
 }
 
+function secToHMS(sec) {
+    let hours = Math.floor(sec / 3600);
+    let minutes = Math.floor(sec / 60) % 60;
+    if (minutes < 10) {
+        minutes = '0' + minutes;
+    }
+    let seconds = sec % 60;
+    if (seconds < 10) {
+        seconds = '0' + seconds;
+    }
+    return hours + ':' + minutes + ':' + seconds;
+}
 
 function updateStatus(data) {
     // Smoothieware: <Idle,MPos:49.5756,279.7644,-15.0000,WPos:0.0000,0.0000,0.0000>
