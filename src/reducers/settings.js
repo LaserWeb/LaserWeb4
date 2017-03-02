@@ -141,6 +141,7 @@ export const settings = objectNoId('settings', {
     gcodeToolTestPower: 0, 
     gcodeToolTestDuration: 0,
     
+    comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',
     comServerConnect: false,
     comInterfaces: [],

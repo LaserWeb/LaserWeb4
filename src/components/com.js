@@ -63,7 +63,7 @@ class Com extends React.Component {
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
-            socket.emit('firstload');
+            //socket.emit('firstLoad');
             CommandHistory.log('Server connected', CommandHistory.SUCCESS);
         });
         
@@ -91,8 +91,10 @@ class Com extends React.Component {
 
         socket.on('serverConfig', function (data) {
             serverConnected = true;
-            //CommandHistory.log('config: ' + data, CommandHistory.INFO);
-            console.log('serverConfig: ' + data);
+            let serverVersion = data.serverVersion;
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+            //CommandHistory.log('Server version: ' + serverVersion, CommandHistory.INFO);
+            console.log('serverVersion: ' + serverVersion);
         });
         
         socket.on('interfaces', function(data) {
@@ -382,6 +384,8 @@ class Com extends React.Component {
             CommandHistory.log('Server connection closed', CommandHistory.DANGER);
             // websocket is closed.
             //console.log('Server connection closed'); 
+            let serverVersion = 'not connected';
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         });
 
         socket.on('error', function (data) {
@@ -395,6 +399,8 @@ class Com extends React.Component {
         if (socket) {
             CommandHistory.log('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();
+            let serverVersion = 'not connected';
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         }
     }
     
