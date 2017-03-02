@@ -64,6 +64,7 @@ class Com extends React.Component {
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
             //socket.emit('firstLoad');
+            socket.emt('getServerConfig');
             CommandHistory.log('Server connected', CommandHistory.SUCCESS);
         });
         
