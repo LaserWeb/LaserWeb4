@@ -32,10 +32,11 @@ export const videoResolutionPromise = (deviceId, candidate) => {
 
     return new Promise(
         (resolve) => {
-            navigator.mediaDevices.getUserMedia(constraints).then((stream)=>{
+            navigator.getUserMedia(constraints,
+            (stream)=>{
                 stream.getTracks().forEach((track) => { track.stop(); });
                 resolve(candidate)
-            }).catch(console.warning);
+            },console.warning);
         }
     )
 }
@@ -78,18 +79,24 @@ export class VideoCapture {
         this.stopStream(this.stream)
 
         constraints = Object.assign({ video: true, audio: false }, constraints)
+        
         if (device) {
             constraints = Object.assign(constraints, {
                 deviceId: { exact: device },
                 width: { exact: resolution.width },
                 height: { exact: resolution.height }
             });
+            console.log("requesting video: "+JSON.stringify(constraints))
 
-            navigator.mediaDevices.getUserMedia(constraints).then((stream)=>{
-                this.stream = stream;
-                this.isReady = true;
-                callback(this.stream)
-            }).catch((err)=> console.error(err))
+            let that=this;
+
+            navigator.getUserMedia(constraints, (stream)=>{
+                that.stream = stream;
+                that.isReady = true;
+                callback(that.stream)
+            },(err)=> {
+                console.error(err)
+            })
         }
         
 
@@ -98,15 +105,17 @@ export class VideoCapture {
     stopStream() {
         if (this.stream) {
             this.isReady = false;
-            this.stream.getTracks().forEach((track) => { track.stop(); });
+            this.stream.getTracks().forEach((track) => { track.stop(); this.stream.removeTrack(track) });
             window.URL.revokeObjectURL(this.stream);
             this.stream=undefined;
         }
     }
 
-    refreshStream()
+    refreshStream(props, callback)
     {
-        this.createStream(this.props)
+        if (!props) props=this.props;
+
+        this.createStream(props ,callback)
     }
 
     getStream() {
@@ -132,7 +141,7 @@ export class VideoCapture {
         }
     };
 
-    getResolutions(deviceId, callback) {
+    getResolutions(deviceId, callback, useCache=true) {
         console.error('Only for testing, @DarklyLabs')
         callback(Object.entries(VIDEO_RESOLUTIONS).map((i)=>{return {label:i[0], ...i[1]}}))
         return;
@@ -146,6 +155,7 @@ export class VideoCapture {
         const resolutions=[];
         const QE=new queue();
               QE.concurrency = 1;
+              QE.timeout = 2000
 
         Object.entries(VIDEO_RESOLUTIONS).forEach((entry)=>{
             QE.push((cb)=>{
@@ -160,15 +170,15 @@ export class VideoCapture {
                     }
                 }
 
-                navigator.mediaDevices.getUserMedia(constraints).then((stream)=>{
-                    stream.getTracks().forEach((track) => { track.stop(); });
+                navigator.getUserMedia(constraints, (stream)=>{
+                    stream.getTracks().forEach((track) => { track.stop(); stream.removeTrack(track) });
                     resolutions.push({ label: entry[0], ...entry[1] })
                     cb()
-                }).catch((err)=>{ 
+                }, (err)=>{ 
                     cb()
-                });
+                })
             })
-        })
+        }) 
 
         QE.start((err) => {
             cache[deviceId] = resolutions;
