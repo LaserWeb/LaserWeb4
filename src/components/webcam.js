@@ -103,7 +103,7 @@ export class Webcam extends React.Component {
                     }
 
                     if (this.props.perspective) {
-                        let {before, after} = this.props.perspective;
+                        let { before, after } = this.props.perspective;
                         let matrix = computePerspectiveMatrix(video, swap(before).map(ratio), swap(after).map(ratio));
 
                         perspectiveDistort({ src: fbo2, dest: null, size: [video.width, video.height], matrix })
@@ -121,10 +121,21 @@ export class Webcam extends React.Component {
 
         }
 
+        if (force) {
+            let that = this;
+            console.log("refresh stream")
+            window.videoCapture.refreshStream({
+                device: that.props.device, //device id
+                resolution: that.props.resolution,   //named target resolution
+            }, (stream) => {
+                console.log("stream: " + stream.id)
+                window.videoCapture.getVideo(that.props, capture)
+            })
+        } else {
+            window.videoCapture.getVideo(this.props, capture)
+        }
 
-        window.videoCapture.getVideo(this.props, capture)
     }
-
     render() {
         return <div className="webcamViewport" style={{ maxWidth: "100%", height: "auto", overflow: "hidden" }}>
             <div id="stream"></div>
@@ -308,14 +319,14 @@ export class VideoResolutionField extends React.Component {
         if (deviceId) {
             this.setState({ isLoading: true })
             window.videoCapture.scan(deviceId, null, (props) => {
-                let {resolutions, resolutionId} = props;
+                let { resolutions, resolutionId } = props;
                 console.log("refreshing resolutions...")
-                this.setState({ resolutions, isLoading:false, selected: resolutionId })
-                this.handleChange({value:resolutionId})
+                this.setState({ resolutions, isLoading: false, selected: resolutionId })
+                this.handleChange({ value: resolutionId })
             })
         } else {
             this.setState({ resolutions: [] })
-            this.handleChange({value:null})
+            this.handleChange({ value: null })
         }
     }
 
@@ -354,7 +365,7 @@ export class VideoControls extends React.Component {
         this.handlePerspectiveReset.bind(this)
         this.handlePerspectiveToggle.bind(this)
 
-        let {width, height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+        let { width, height } = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
 
         this.state = {
@@ -382,7 +393,7 @@ export class VideoControls extends React.Component {
     }
 
     handlePerspectiveReset() {
-        let {width, height} = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
+        let { width, height } = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
         let state = Object.assign({}, this.state);
         state.perspective = Object.assign(state.perspective, getDefaultPerspective({}, width, height))
@@ -401,7 +412,7 @@ export class VideoControls extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let {width, height} = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
+        let { width, height } = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,
             fov: nextProps.fov,
@@ -411,7 +422,7 @@ export class VideoControls extends React.Component {
 
     render() {
 
-        let {before, after, enabled} = this.state.perspective;
+        let { before, after, enabled } = this.state.perspective;
         return <div className="videoControls ">
             <table width="100%" className="table table-compact">
                 <caption>Perspective</caption>
