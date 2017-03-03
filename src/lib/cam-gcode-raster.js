@@ -1,6 +1,6 @@
 import RasterToGcode from 'lw.raster-to-gcode';
 
-export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE) {
+export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE, workers) {
 
     let ok = true;
 
@@ -17,11 +17,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     if (!ok)
         done(false);
 
-    
+
     const percentProcessing = (ev) => {
-            let jobIndex=QE.total - QE.length
-            let p=parseInt((jobIndex * QE.chunk) + (ev.percent*QE.chunk/100))
-            progress(p);
+        let jobIndex = QE.total - QE.length
+        let p = parseInt((jobIndex * QE.chunk) + (ev.percent * QE.chunk / 100))
+        progress(p);
     }
 
     for (let index = 0; index < docsWithImages.length; index++) {
@@ -31,7 +31,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
             const doc = docsWithImages[index]
             const doneProcessing = (ev) => {
                 let g = '';
-                let raster = ev.gcode.join('\r\n');
+                let raster = ev.gcode.join('\r\n') + "\r\n\r\n";
 
                 if (op.useBlower) {
                     if (settings.machineBlowerGcodeOn) {
@@ -39,19 +39,17 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     }
                 }
 
-                if (op.passes > 1) {
-                    for (let pass = 0; pass < op.passes; ++pass) {
-                        g += '\n\n; Pass ' + pass + '\r\n';
-                        if (settings.machineZEnabled) {
-                            let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
-                            g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
-                            g += 'G1 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
-                        }
-                        g += raster;
+                
+                for (let pass = 0; pass < op.passes; ++pass) {
+                    g += '\n\n; Pass ' + pass + '\r\n';
+                    if (settings.machineZEnabled) {
+                        let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
+                        g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                        g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
                     }
-                } else {
                     g += raster;
                 }
+                
 
                 if (op.useBlower) {
                     if (settings.machineBlowerGcodeOff) {
@@ -62,10 +60,9 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 done(g, cb)
             }
 
-
-            let r2g = new RasterToGcode({
+            let params = {
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
-                beamSize: op.laserDiameter,
+                toolDiameter: op.laserDiameter,
                 beamRange: { min: 0, max: settings.gcodeSMaxValue },
                 beamPower: op.laserPowerRange, //Go go power rangeR!
                 feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
@@ -75,7 +72,8 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 burnWhite: op.burnWhite,
                 verboseG: op.verboseGcode,
                 diagonal: op.diagonal,
-                nonBlocking: true,
+                nonBlocking: false,
+                milling:false,
                 filters: {
                     smoothing: op.smoothing,
                     brightness: op.brightness,
@@ -84,14 +82,33 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     grayscale: op.grayscale,
                     shadesOfGray: op.shadesOfGray,
                     invertColor: op.invertColor,
-                },
-                progress: (ev) => { percentProcessing({ ...ev, doc, index }) },
-                done: doneProcessing
-            });
-            r2g.loadFromImage(doc.image);
-            r2g._processImage();
+                }
+            }
+            let r2g = new RasterToGcode(params)
+            r2g.load(doc.image).then((rtg) => {
+                let properties = {
+                    cellSize: rtg.cellSize,
+                    scaleRatio: rtg.scaleRatio,
+                    filters: rtg.filters,
+                    size: rtg.size,
+                    pixels: rtg.pixels
+                }
 
-            r2g.run()   //doneProcessing at the end, my friend
+                let rasterWorker = require('worker-loader!./workers/cam-raster.js')
+                let r2g = new rasterWorker();
+                r2g.onmessage = function (event) {
+                    if (event.data.event === 'onDone') {
+                        doneProcessing({ gcode: event.data.gcode })
+                    }
+                    else if (event.data.event === 'onProgress') {
+                        percentProcessing({ percent: event.data.percent }) //doc, index, 
+                    }
+                };
+
+                workers.push(r2g)
+                r2g.postMessage({ cmd: 'start', settings: params, properties });
+
+            })
 
         })
 

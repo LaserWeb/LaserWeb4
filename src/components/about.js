@@ -5,6 +5,7 @@
 
 // React
 import React from 'react'
+import { connect } from 'react-redux';
 import { ButtonToolbar, Button } from 'react-bootstrap'
 import Icon from './font-awesome'
 /**
@@ -21,6 +22,11 @@ class About extends React.Component {
     render() {
         return (
             <div>
+                <h3>Versions</h3>
+                  <dl>
+                    <dt><Icon name="cubes"/> Frontend: {this.props.settings.__version}</dt><dd></dd><p/>
+                    <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion}</dt><dd></dd><p/>
+                  </dl>
                 <h3>Support Communities</h3>
                   <dl>
                     <dt><Icon name="users"/> <a href="https://github.com/LaserWeb">LaserWeb Github Organisation</a></dt>
@@ -31,7 +37,6 @@ class About extends React.Component {
                     <dd><small>- support community for popular K40 CO2 Lasers</small></dd><p/>
                     <dt><Icon name="users"/> <a href="https://plus.google.com/communities/109476961016291692936">Eleksmaker G+ Community</a></dt>
                     <dd><small>- support community for chinese diode engravers</small></dd><p/>
-
                   </dl>
                 <h3>Developers</h3>
                   <dl>
@@ -52,6 +57,10 @@ class About extends React.Component {
         )
     }
 }
+
+About = connect(
+    state => ({ settings: state.settings })
+)(About);
 
 // Exports
 export default About

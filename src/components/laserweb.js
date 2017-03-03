@@ -36,13 +36,14 @@ import About from './about'
 import { AllowCapture } from './capture'
 import { DocumentCacheHolder } from './document-cache'
 
-import {keyboardUndoAction} from '../actions/laserweb';
+import { keyboardUndoAction } from '../actions/laserweb';
 
 import keydown, { Keys } from 'react-keydown';
+import keyboardJS from 'keyboardjs'
 
-import {fireMacroByKeyboard} from '../actions/macros'
+import { fireMacroByKeyboard } from '../actions/macros'
 
-import {GlobalStore} from '../index'
+import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
 
@@ -57,27 +58,28 @@ import { VideoCapture } from '../lib/video-capture'
 
 class LaserWeb extends React.Component {
 
-    @keydown('ctrl+z')
-    keylogger( event ) {
-        this.props.handleKeypress(event);
-    }
-
-    @keydown(Object.keys(GlobalStore().getState().macros))
-    macro(event) {
-        this.props.handleMacro(event, this.props.macros)
-    }
-
     shouldComponentUpdate(nextProps, nextState) {
         return nextProps.documents !== this.props.documents;
     }
 
-    componentDidMount()
-    {
-        if (!window.videoCapture){
-            const onNextFrame = (callback) => {setTimeout(()=>{window.requestAnimationFrame(callback)}, 0)}
-            onNextFrame(()=>{
+    componentDidMount() {
+        if (!window.keyboardLogger) {
+            window.keyboardLogger = keyboardJS;
+            let that = this
+            window.keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
+                that.props.handleUndo(e);
+            });
+
+            window.keyboardLogger.bind(Object.keys(that.props.macros), function (e) {
+                that.props.handleMacro(e, that.props.macros)
+            })
+        }
+
+        if (!window.videoCapture) {
+            const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
+            onNextFrame(() => {
                 window.videoCapture = new VideoCapture()
-                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj)=>{this.props.handleVideoStream(obj)})
+                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(obj) })
             })
         }
     }
@@ -116,16 +118,20 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-         handleKeypress: e => {
-            if (e.key=='z' && e.ctrlKey)
-                dispatch(keyboardUndoAction(e))
-         },
-         handleMacro: (e, macros) =>{
-                dispatch(fireMacroByKeyboard(e,macros))
-         },
-         handleVideoStream: (props) =>{
-             //console.log(props)
-         }
+        handleUndo: evt => {
+            evt.preventDefault();
+            dispatch(keyboardUndoAction(evt))
+        },
+        handleMacro: (evt, macros) => {
+            let macroAction = fireMacroByKeyboard(evt, macros)
+            if (macroAction) {
+                evt.preventDefault();
+                dispatch(macroAction)
+            }
+        },
+        handleVideoStream: (props) => {
+            //console.log(props)
+        }
 
     }
 }

@@ -15,13 +15,51 @@ import { macros } from './macros'
 
 import omit from 'object.omit';
 
-const shouldSaveUndo=(action)=>{
-    let blackList=['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'];
-    let should= !(blackList.includes(action.type) || action.type.match(/^SPLITTER|^MATERIAL_/));
+var LAST_ACTION={};
+var LAST_ACTION_TIMEOUT=null;
+const LAST_ACTION_TTL = 2000;
 
-    return should;
+const BLACKLIST=[/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','LOADED',/^SPLITTER|^MATERIALDB_|^SELECT_PANE/gi];
+
+const shouldSaveUndo=(action)=>{
+    
+    //Last action TTL
+    if (LAST_ACTION_TIMEOUT) 
+        clearTimeout(LAST_ACTION_TIMEOUT)
+
+    for (let item of BLACKLIST) {
+        if (action.type.search(item)>=0) {
+            LAST_ACTION=action;
+            return false;
+        } 
+    }
+    
+    if (action.type===LAST_ACTION.type){
+        if (action.type.match(/_SET_ATTRS/gi) ) {
+            let cSig=Object.keys(action.payload.attrs).sort().join(',');
+            let lSig=Object.keys(LAST_ACTION.payload.attrs).sort().join(',');
+            if (cSig === lSig){
+                LAST_ACTION_TIMEOUT = setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
+                return false;
+            }
+        }
+
+        if (action.type.match(/DOCUMENT_TRANSLATE_SELECTED/gi) ) {
+            let cSig=Object.keys(action.payload).sort().join(',');
+            let lSig=Object.keys(LAST_ACTION.payload).sort().join(',');
+            if (cSig === lSig){
+                LAST_ACTION_TIMEOUT = setTimeout(()=>{ LAST_ACTION = {} },LAST_ACTION_TTL)
+                return false;
+            }
+        } 
+        
+    }
+    
+    LAST_ACTION=action;
+       
+    return true
 };
-const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros }, shouldSaveUndo);
+const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros }, {}, shouldSaveUndo);
 
 export default function reducer(state, action) {
     switch (action.type) {

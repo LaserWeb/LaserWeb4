@@ -9,8 +9,6 @@ import {addMacro, removeMacro, setMacro, fireMacroById} from '../actions/macros'
 
 import {Button, FormControl, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
-import parseKeys from 'react-keydown/dist/lib/parse_keys'
-
 import Validator from 'validatorjs';
 import {MACRO_VALIDATION_RULES} from '../reducers/macros'
 
@@ -27,14 +25,14 @@ export class Macros extends React.Component {
         this.handleFormChange.bind(this)
         this.handleMeta.bind(this)
 
-        this.metakeys=['ctrl','shift','meta','alt']
+        this.metakeys=['ctrl','shift','command','alt']
     }
 
     handleSelection(e){
         let opts=[].slice.call(e.target.selectedOptions).map(o => {return o.value;});
             this.setState({selected: opts})
         if (e.target.value){
-            this.setState({keybinding: e.target.value,
+            this.setState({keybinding: e.target.value.toLowerCase(),
                           label: this.props.macros[e.target.value].label,
                           gcode: this.props.macros[e.target.value].gcode,
             })
@@ -122,17 +120,16 @@ export class Macros extends React.Component {
 export class MacrosBar extends React.Component{
 
     render(){
-        return <fieldset>
-        <Panel collapsible defaultExpanded={true} header="Macros" bsStyle="primary" eventKey="3" >
-          <ButtonToolbar>
-          {Object.entries(this.props.macros).map((macro,i)=>{
-              let [keybinding, data] = macro;
-              return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
-          }
-          </ButtonToolbar>
-        </Panel>
-
-        </fieldset>
+        return (
+            <Panel collapsible header="Macros" bsStyle="primary" eventKey="3" defaultExpanded={true}>
+                <ButtonToolbar>
+                    {Object.entries(this.props.macros).map((macro,i)=>{
+                        let [keybinding, data] = macro;
+                        return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+                    }
+                </ButtonToolbar>
+            </Panel>
+        )
     }
 }
 

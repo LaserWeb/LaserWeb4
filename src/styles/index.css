@@ -308,6 +308,8 @@ body, html, .full-height {
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
+.commandHistory code.success {background: #efe}
+.commandHistory code.success i {color: #0a0}
 
 /*FullSizeModal*/
 
@@ -376,6 +378,10 @@ button:hover,
 .btn-jog {
     padding: 12px 18px;
     border-radius: 4px;
+}
+
+.btn-highlight {
+    border-color: red !important;
 }
 
 .fa-stack{
@@ -453,15 +459,16 @@ button:hover,
 .droOR {
     display:inline-block;
     background-color: #ffffff;
-    text-align: center;
-    padding-left: 18px;
-    margin-bottom: 3px;
-    font-size: 20px;
-    width: calc(99% - 167px);
     border: 1px solid #ccc;
+    font-size: 20px;
     font-weight: bold;
-    margin-left: 0px;
+    text-align: right;
+    cursor: default;
+    padding-right: 18px;
     margin-right: 3px;
+    margin-bottom: 3px;
+    margin-left: 0px;
+    width: calc(99% - 118px);
     /*font-family: '8bit';*/
 }
 
@@ -592,4 +599,5 @@ button:hover,
 
 #ApplicationSnapshot > section {margin-bottom: 0.5em}
 
-
+.btn-attention.btn-warning {position:relative}
+.btn-attention.btn-warning:after { content: '\2219'; color: red; font-size: 80px; position:absolute; line-height: 6px; top:-7px; right:-10px; text-shadow: 0px 0px 2px white }
