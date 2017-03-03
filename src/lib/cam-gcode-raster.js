@@ -39,19 +39,17 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     }
                 }
 
-                if (op.passes > 1) {
-                    for (let pass = 0; pass < op.passes; ++pass) {
-                        g += '\n\n; Pass ' + pass + '\r\n';
-                        if (settings.machineZEnabled) {
-                            let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
-                            g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
-                            g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
-                        }
-                        g += raster;
+                
+                for (let pass = 0; pass < op.passes; ++pass) {
+                    g += '\n\n; Pass ' + pass + '\r\n';
+                    if (settings.machineZEnabled) {
+                        let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
+                        g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                        g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
                     }
-                } else {
                     g += raster;
                 }
+                
 
                 if (op.useBlower) {
                     if (settings.machineBlowerGcodeOff) {
