@@ -142,10 +142,6 @@ export class VideoCapture {
     };
 
     getResolutions(deviceId, callback, useCache=true) {
-        console.error('Only for testing, @DarklyLabs')
-        callback(Object.entries(VIDEO_RESOLUTIONS).map((i)=>{return {label:i[0], ...i[1]}}))
-        return;
-        
         let cache=this.getCache();
         if (deviceId && typeof(cache[deviceId])!=='undefined'){
             callback(cache[deviceId])
