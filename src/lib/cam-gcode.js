@@ -74,8 +74,13 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (cache && cache.imageLoaded)
                             docsWithImages.push(Object.assign([], _doc, { image: cache.image }));
                     })
+                    cb();
+                } else if (data.event == 'onProgress') {
+                    progress((data.percent / 100) * QE.chunk )
+                } else {
+                    cb();
                 }
-                cb();
+                
             }
             workers.push(preflight)
             preflight.postMessage({ settings, documents, opIndex, op, geometry, openGeometry, tabGeometry })
