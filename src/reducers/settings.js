@@ -108,6 +108,7 @@ export const settings = objectNoId('settings', {
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
+    machineZStartHeight : '',
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',

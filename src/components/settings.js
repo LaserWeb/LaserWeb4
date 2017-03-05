@@ -213,6 +213,7 @@ class Settings extends React.Component {
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon: false, units: 'mm' }} />
+                                <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Start Height', labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
                         <hr />
