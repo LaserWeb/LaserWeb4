@@ -53,7 +53,7 @@ self.onmessage=(event)=>{
 
     function it () {
         let job=jobs.shift()
-            job(()=>{
+            if (job) job(()=>{
                 percent = percent + chunk
                 postMessage({ event: "onProgress", percent: parseInt(percent) })
                 if (jobs.length) it();
