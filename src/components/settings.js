@@ -188,6 +188,13 @@ class Settings extends React.Component {
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
+        let button = null;
+        if (window.require) {
+          button = <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleDevTools(e)}}><Icon name="gear"/> Toggle Dev tools</Button>
+        } else {
+          button = null
+        }
+
         return (
             <div className="form">
 
@@ -282,7 +289,7 @@ class Settings extends React.Component {
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
                         <ButtonToolbar>
-                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleDevTools(e)}}><Icon name="gear"/> Open Dev tools</Button>
+                        {button}
                         <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleRefresh(e)}}><Icon name="refresh"/> Refresh window</Button>
                         </ButtonToolbar>
                     </Panel>
@@ -296,8 +303,8 @@ class Settings extends React.Component {
 
 const mapStateToProps = (state) => {
 
-    return { 
-        settings: state.settings, 
+    return {
+        settings: state.settings,
         profiles: state.machineProfiles
     }
 };
@@ -333,13 +340,19 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(setSettingsAttrs(settings));
         },
         handleDevTools:() => {
-            if (window.getFocusedWindow){
-                var focusedWindow = window.getFocusedWindow();
-                if (focusedWindow.isDevToolsOpened()) {
-                    focusedWindow.closeDevTools();
-                } else {
-                    focusedWindow.openDevTools();
-                }
+            if (window.require) { // Are we in Electron?
+              const electron = window.require('electron');
+              const app = electron.remote;
+              var focusedWindow = app.BrowserWindow.getFocusedWindow()
+              // focusedWindow.openDevTools();
+              if (app.BrowserWindow.getFocusedWindow){
+                  // var focusedWindow = app.BrowserWindow.getFocusedWindow()
+                  if (focusedWindow.isDevToolsOpened()) {
+                      focusedWindow.closeDevTools();
+                  } else {
+                      focusedWindow.openDevTools();
+                  }
+              }
             } else {
                 console.warn("Can't do that, pal")
             }
