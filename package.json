@@ -97,6 +97,7 @@
     "sillyname": "^0.1.0",
     "slug": "^0.9.1",
     "snapsvg-cjs": "0.0.4",
+    "socket.io-client": "^1.7.3",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "validatorjs": "^3.8.0",
