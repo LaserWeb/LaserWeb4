@@ -76,10 +76,11 @@ export class ApplicationSnapshotToolbar extends React.Component {
 
     handleDownload(statekeys) {
         statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        let file = prompt("Save as", this.props.saveAs || "laserweb-snapshot.json")
-        let settings = this.getExportData(statekeys);
-        let action = downloadSnapshot;
-        this.props.handleDownload(file, settings, action)
+        window.dialog.prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file)=>{
+            let settings = this.getExportData(statekeys);
+            let action = downloadSnapshot;
+            this.props.handleDownload(file, settings, action)
+        })
     }
 
     handleUpload(file, statekeys) {
@@ -359,8 +360,11 @@ const mapDispatchToProps = (dispatch) => {
             }
         },
         handleRefresh:() => {
-            if (confirm("Are you sure? This will destroy unsaved work"))
-                location.reload();
+
+            window.dialog.confirm("Are you sure? This will destroy unsaved work",(b)=>{
+                if (b) location.reload();
+            })
+
         }
     };
 };

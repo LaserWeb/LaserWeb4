@@ -53,6 +53,7 @@
     "bootstrap": "^3.3.7",
     "clipper-lib": "^6.2.1",
     "css-loader": "^0.25.0",
+    "dialogs": "^1.1.17",
     "file-loader": "^0.9.0",
     "flat": "^2.0.1",
     "flatnest": "^1.0.0",

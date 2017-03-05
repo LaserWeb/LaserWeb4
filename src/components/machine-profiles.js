@@ -27,9 +27,11 @@ class MachineProfile extends React.Component {
     handleApply(e) {
        let selected=this._getSelectedProfile()
        let profileId = this.state.selected
-       if (selected && confirm("Are you sure? Current settings will be overwritten."))
-           return this.props.onApply({...selected.settings , __selectedProfile: profileId });
-       
+       if (selected) {
+            window.dialog.confirm("Are you sure? Current settings will be overwritten.",(b)=>{
+                if (b) this.props.onApply({...selected.settings , __selectedProfile: profileId });
+            })
+       }
        return ;
     }
     

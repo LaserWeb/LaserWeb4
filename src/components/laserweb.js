@@ -63,6 +63,18 @@ class LaserWeb extends React.Component {
     }
 
     componentDidMount() {
+
+        if (window.require) {
+            var Dialogs = window.require('dialogs');
+            window.dialog = new Dialogs();
+        } else {
+            window.dialog = {
+                confirm: (text, cb) => { cb(confirm(text)) },
+                prompt: (text, def, cb) => { cb(prompt(text, def)) },
+                alert: (text, cb) => { alert(text); cb() }
+            }
+        }
+
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
             let that = this

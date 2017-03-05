@@ -607,7 +607,9 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addGroup())
         },
         handleDelGroup: (id) => {
-            if (confirm("Are you sure?")) dispatch(deleteGroup(id))
+            window.dialog.confirm("Are you sure?",(b)=>{
+                if (b) dispatch(deleteGroup(id))
+            })
         },
         handleGroupEditToggle: (id) => {
             dispatch(toggleGroupEdit(id))
@@ -616,7 +618,9 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addPreset(id))
         },
         handleDelPreset: (id) => {
-            if (confirm("Are you sure?")) dispatch(deletePreset(id))
+            window.dialog.confirm("Are you sure?",(b)=>{
+                if (b) dispatch(deletePreset(id))
+            })
         },
         handleChangePreset: (id, attrs) => {
             dispatch(setPresetAttrs(id, attrs))

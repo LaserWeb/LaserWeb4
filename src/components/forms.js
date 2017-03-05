@@ -128,12 +128,11 @@ export function TextField({object, field, description, units = "", setAttrs, dis
                 {...rest}
                 />
         ) : (
-
-                <FormControl componentClass="textarea" id={field}
+            <FormControl componentClass="textarea" id={field}
                     onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                     value={object[field]}
                     {...rest}
-                    />
+                />
             )}
         {(units !== "") ? <InputGroup.Addon>{units}</InputGroup.Addon> : (undefined)}
 

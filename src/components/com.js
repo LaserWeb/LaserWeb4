@@ -215,7 +215,7 @@ class Com extends React.Component {
 
         socket.on('runningJob', function (data) {
             CommandHistory.log('runningJob(' + data.length + ')', CommandHistory.WARN);
-            alert(data);
+            window.dialog.alert(data);
             //setGcode(data);
         });
         
