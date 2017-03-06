@@ -331,7 +331,7 @@ const mapDispatchToProps = (dispatch) => {
                 LocalStorage.save(name, stringify(settings), "application/json")
             } catch (e) {
                 console.error(e);
-                alert(e);
+                window.dialog.alert(e)
             }
             dispatch(action(settings));
         },
