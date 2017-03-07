@@ -140,7 +140,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
     return <TooltipFormGroup validationState={errors ? "error" : undefined}
         validationContent={errors}
-        validationPlacement="right">{!labelAddon ? <ControlLabel>{description}</ControlLabel> : undefined}{input}</TooltipFormGroup>
+        validationPlacement="right">{!labelAddon || isTextArea ? <ControlLabel>{description}</ControlLabel> : undefined}{input}</TooltipFormGroup>
 
 }
 
