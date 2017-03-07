@@ -32,6 +32,7 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
+import { alert, prompt, confirm} from './laserweb';
 
 import '../styles/material-database.css'
 
@@ -607,7 +608,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addGroup())
         },
         handleDelGroup: (id) => {
-            window.dialog.confirm("Are you sure?",(b)=>{
+            confirm("Are you sure?",(b)=>{
                 if (b) dispatch(deleteGroup(id))
             })
         },
@@ -618,7 +619,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addPreset(id))
         },
         handleDelPreset: (id) => {
-            window.dialog.confirm("Are you sure?",(b)=>{
+            confirm("Are you sure?",(b)=>{
                 if (b) dispatch(deletePreset(id))
             })
         },

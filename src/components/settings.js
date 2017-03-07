@@ -21,6 +21,8 @@ import Icon from './font-awesome';
 
 import { PerspectiveWebcam, VideoDeviceField, VideoControls, VideoResolutionField } from './webcam';
 
+import { alert, prompt, confirm} from './laserweb';
+
 export class ApplicationSnapshot extends React.Component {
 
     constructor(props) {
@@ -76,7 +78,8 @@ export class ApplicationSnapshotToolbar extends React.Component {
 
     handleDownload(statekeys) {
         statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        window.dialog.prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file)=>{
+        prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file)=>{
+            if (!file) return;
             let settings = this.getExportData(statekeys);
             let action = downloadSnapshot;
             this.props.handleDownload(file, settings, action)
@@ -331,7 +334,7 @@ const mapDispatchToProps = (dispatch) => {
                 LocalStorage.save(name, stringify(settings), "application/json")
             } catch (e) {
                 console.error(e);
-                window.dialog.alert(e)
+                alert(e)
             }
             dispatch(action(settings));
         },
@@ -361,9 +364,7 @@ const mapDispatchToProps = (dispatch) => {
         },
         handleRefresh:() => {
 
-            window.dialog.confirm("Are you sure? This will destroy unsaved work",(b)=>{
-                if (b) location.reload();
-            })
+            confirm("Are you sure? This will destroy unsaved work", (b)=>{ if (b) location.reload();})
 
         }
     };

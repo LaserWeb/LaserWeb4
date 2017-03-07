@@ -9,6 +9,8 @@ import slug from 'slug'
 
 import Icon from './font-awesome';
 
+import { alert, prompt, confirm} from './laserweb';
+
 class MachineProfile extends React.Component {
     
     constructor(props)
@@ -28,7 +30,7 @@ class MachineProfile extends React.Component {
        let selected=this._getSelectedProfile()
        let profileId = this.state.selected
        if (selected) {
-            window.dialog.confirm("Are you sure? Current settings will be overwritten.",(b)=>{
+            confirm("Are you sure? Current settings will be overwritten.",(b)=>{
                 if (b) this.props.onApply({...selected.settings , __selectedProfile: profileId });
             })
        }
