@@ -182,34 +182,34 @@ export function getMillGcode(props) {
 export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert,  done, progress) {
     let ok = true;
     if (op.passDepth <= 0) {
-        showAlert("Pass Depth must be greater than 0", "alert-danger");
+        showAlert("Pass Depth must be greater than 0", "danger");
         ok = false;
     }
     if (op.type === 'Mill V Carve') {
         if (op.toolAngle <= 0 || op.toolAngle >= 180) {
-            showAlert("Tool Angle must be in range (0, 180)", "alert-danger");
+            showAlert("Tool Angle must be in range (0, 180)", "danger");
             ok = false;
         }
     } else {
         if (op.cutDepth <= 0) {
-            showAlert("Final Cut Depth must be greater than 0", "alert-danger");
+            showAlert("Final Cut Depth must be greater than 0", "danger");
             ok = false;
         }
         if (op.type !== 'Mill Cut' && op.toolDiameter <= 0) {
-            showAlert("Tool Diameter must be greater than 0", "alert-danger");
+            showAlert("Tool Diameter must be greater than 0", "danger");
             ok = false;
         }
         if (op.stepOver <= 0 || op.stepOver > 1) {
-            showAlert("Step Over must be in range (0,1]", "alert-danger");
+            showAlert("Step Over must be in range (0,1]", "danger");
             ok = false;
         }
     }
     if (op.plungeRate <= 0) {
-        showAlert("Plunge Rate must be greater than 0", "alert-danger");
+        showAlert("Plunge Rate must be greater than 0", "danger");
         ok = false;
     }
     if (op.cutRate <= 0) {
-        showAlert("Cut Rate must be greater than 0", "alert-danger");
+        showAlert("Cut Rate must be greater than 0", "danger");
         ok = false;
     }
     if (!ok)

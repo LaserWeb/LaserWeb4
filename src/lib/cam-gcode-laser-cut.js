@@ -137,45 +137,54 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
     let ok = true;
 
     if (settings.gcodeSMaxValue <= 0) {
-        showAlert("PWM Max S Value (in Settings) must be greater than 0", "alert-danger");
+        showAlert("PWM Max S Value (in Settings) must be greater than 0", "danger");
         ok = false;
     }
     if (op.type !== 'Laser Cut' && op.type !== 'Laser Fill Path') {
         if (op.laserDiameter <= 0) {
-            showAlert("Laser Diameter must be greater than 0", "alert-danger");
+            showAlert("Laser Diameter must be greater than 0", "danger");
             ok = false;
         }
     }
     if (op.type === 'Laser Fill Path') {
         if (op.lineDistance <= 0) {
-            showAlert("Line Distance must be greater than 0", "alert-danger");
+            showAlert("Line Distance must be greater than 0", "danger");
             ok = false;
         }
     }
     if (op.laserPower < 0 || op.laserPower > 100) {
-        showAlert("Laser Power must be in range [0, 100]", "alert-danger");
+        showAlert("Laser Power must be in range [0, 100]", "danger");
         ok = false;
     }
     if (op.passes <= 0 || (op.passes | 0) !== +op.passes) {
-        showAlert("Passes must be integer > 0", "alert-danger");
+        showAlert("Passes must be integer > 0", "danger");
         ok = false;
     }
     if (op.cutRate <= 0) {
-        showAlert("Cut Rate must be greater than 0", "alert-danger");
+        showAlert("Cut Rate must be greater than 0", "danger");
         ok = false;
     }
     if (op.useA) {
         if (op.aAxisStepsPerTurn <= 0) {
-            showAlert("A axis resolution must be greater than 0", "alert-danger");
+            showAlert("A axis resolution must be greater than 0", "danger");
             ok = false;
         }
         if (op.aAxisDiameter <= 0) {
-            showAlert("A axis diameter must be greater than 0", "alert-danger");
+            showAlert("A axis diameter must be greater than 0", "danger");
             ok = false;
         }
     }
-    if (!ok)
+
+    if (settings.machineZEnabled) {
+        if (op.startHeight==="" || isNaN(op.startHeight)) {
+            showAlert("Start Height must be a valid number", "danger");
+            ok = false;
+        }
+    }
+
+    if (!ok){
         done(false);
+    }
 
         let camPaths = [];
         if (op.type === 'Laser Cut') {

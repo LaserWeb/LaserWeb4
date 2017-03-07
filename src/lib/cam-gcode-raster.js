@@ -5,12 +5,12 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     let ok = true;
 
     if (!(op.laserDiameter > 0)) {
-        showAlert("LaserDiameter should be greater than 0");
+        showAlert("LaserDiameter should be greater than 0","danger");
         ok = false;
     }
 
     if (!(op.cutRate > 0)) {
-        showAlert("CutRate should be greater than 0");
+        showAlert("CutRate should be greater than 0", "danger");
         ok = false;
     }
 

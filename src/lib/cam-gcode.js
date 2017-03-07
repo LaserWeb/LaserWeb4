@@ -56,7 +56,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     data.errors.forEach((item) => {
                         showAlert(item.message, item.level)
                     })
-                    jobDone(false, cb)
+                    QE.end()
                 }
             }
             workers.push(peasant)
@@ -81,8 +81,9 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     cb();
                 } else if (data.event == 'onProgress') {
                     progress((data.percent / 100) * QE.chunk )
-                } else {
-                    cb();
+                } else if (data.event == 'onError'){
+                    showAlert(data.message,data.level)
+                    QE.end()
                 }
                 
             }

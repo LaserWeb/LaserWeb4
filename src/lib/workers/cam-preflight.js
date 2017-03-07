@@ -52,12 +52,16 @@ self.onmessage=(event)=>{
     var percent=0;
 
     function it () {
-        let job=jobs.shift()
-            if (job) job(()=>{
-                percent = percent + chunk
-                postMessage({ event: "onProgress", percent: parseInt(percent) })
-                if (jobs.length) it();
-            });
+        try {
+            let job=jobs.shift()
+                if (job) job(()=>{
+                    percent = percent + chunk
+                    postMessage({ event: "onProgress", percent: parseInt(percent) })
+                    if (jobs.length) it();
+                });
+        } catch(error) {
+             postMessage({ event: "onError", message: "Something wrong has happened, sorry.", level: "error",error: error.toString() })
+        }
     }
 
     it();
