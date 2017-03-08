@@ -1,13 +1,13 @@
 import { rawPathsToClipperPaths, union, xor } from '../mesh';
 
 
-self.onmessage=(event)=>{
+self.onmessage = (event) => {
 
-    const jobs=[];
+    const jobs = [];
 
-    let { settings, opIndex, op, geometry, openGeometry, tabGeometry,  documents } = event.data;
+    let { settings, opIndex, op, geometry, openGeometry, tabGeometry, documents } = event.data;
 
-    const docsWithImages=[]
+    const docsWithImages = []
 
     function matchColor(filterColor, color) {
         if (!filterColor)
@@ -20,7 +20,7 @@ self.onmessage=(event)=>{
     function examineDocTree(isTab, id) {
         let doc = documents.find(d => d.id === id);
         if (doc.rawPaths) {
-            jobs.push((cb)=>{
+            jobs.push((cb) => {
                 if (isTab) {
                     tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
                 } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
@@ -48,23 +48,21 @@ self.onmessage=(event)=>{
     for (let id of op.tabDocuments)
         examineDocTree(true, id);
 
-    let chunk=100/jobs.length;
-    var percent=0;
+    let chunk = 100 / jobs.length;
+    var percent = 0;
 
-    function it () {
+    while (jobs.length) {
         try {
-            let job=jobs.shift()
-                if (job) job(()=>{
-                    percent = percent + chunk
-                    postMessage({ event: "onProgress", percent: parseInt(percent) })
-                    if (jobs.length) it();
-                });
-        } catch(error) {
-             postMessage({ event: "onError", message: "Something wrong has happened, sorry.", level: "error",error: error.toString() })
+            let job = jobs.shift()
+            if (job) job(() => {
+                percent = percent + chunk
+                postMessage({ event: "onProgress", percent: parseInt(percent) })
+            });
+        } catch (error) {
+            console.error(error)
+            postMessage({ event: "onError", message: "Something wrong has happened, sorry.", level: "error", error: error.toString() })
         }
     }
-
-    it();
 
     postMessage({ event: "onDone", settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages })
     self.close();

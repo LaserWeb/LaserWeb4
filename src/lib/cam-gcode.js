@@ -86,7 +86,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         })
                         resolve({ geometry, openGeometry, tabGeometry, docsWithImages })
                     } else if (data.event == 'onProgress') {
-                        progress((data.percent / 100) * QE.chunk)
+                        let p = parseInt((data.percent / 100) * QE.chunk);
+                        progress(p)
                     } else if (data.event == 'onError') {
                         reject(data)
                     }
