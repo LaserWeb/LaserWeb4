@@ -1,11 +1,12 @@
 import RasterToGcode from 'lw.raster-to-gcode';
+import queue from 'queue'
 
-export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, QE, workers) {
+export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers) {
 
     let ok = true;
 
     if (!(op.laserDiameter > 0)) {
-        showAlert("LaserDiameter should be greater than 0","danger");
+        showAlert("LaserDiameter should be greater than 0", "danger");
         ok = false;
     }
 
@@ -14,51 +15,62 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         ok = false;
     }
 
-    if (!ok)
+    if (!ok) {
         done(false);
+        return [];
+    }
+
+    let gcode=[];
+
+    let QE = new queue();
+        QE.concurrency = 1;
+        QE.timeout = 3600 * 1000
+        QE.chunk = 100 / docsWithImages.length
+
+    // POSTPROCESS GCODE;
+    const postProcessing = (gc) => {
+        let g = '';
+        let raster = gc.join('\r\n') + "\r\n\r\n";
+
+        if (op.useBlower) {
+            if (settings.machineBlowerGcodeOn) {
+                g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+            }
+        }
 
 
-    const percentProcessing = (ev) => {
-        let jobIndex = QE.total - QE.length
-        let p = parseInt((jobIndex * QE.chunk) + (ev.percent * QE.chunk / 100))
+        for (let pass = 0; pass < op.passes; ++pass) {
+            g += '\n\n; Pass ' + pass + '\r\n';
+            if (settings.machineZEnabled) {
+                let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
+                g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
+                g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
+            }
+            g += raster;
+        }
+
+
+        if (op.useBlower) {
+            if (settings.machineBlowerGcodeOff) {
+                g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+            }
+        }
+
+        return g;
+    }
+
+    // FRAGMENT PROGRESS
+    const percentProcessing = (percent) => {
+        let p = parseInt((jobIndex * QE_chunk) + (percent * (QE_chunk / 100)))
         progress(p);
     }
+
 
     for (let index = 0; index < docsWithImages.length; index++) {
 
         QE.push((cb) => {
 
             const doc = docsWithImages[index]
-            const doneProcessing = (ev) => {
-                let g = '';
-                let raster = ev.gcode.join('\r\n') + "\r\n\r\n";
-
-                if (op.useBlower) {
-                    if (settings.machineBlowerGcodeOn) {
-                        g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
-                    }
-                }
-
-                
-                for (let pass = 0; pass < op.passes; ++pass) {
-                    g += '\n\n; Pass ' + pass + '\r\n';
-                    if (settings.machineZEnabled) {
-                        let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
-                        g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
-                        g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
-                    }
-                    g += raster;
-                }
-                
-
-                if (op.useBlower) {
-                    if (settings.machineBlowerGcodeOff) {
-                        g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
-                    }
-                }
-
-                done(g, cb)
-            }
 
             let params = {
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
@@ -73,7 +85,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 verboseG: op.verboseGcode,
                 diagonal: op.diagonal,
                 nonBlocking: false,
-                milling:false,
+                milling: false,
                 filters: {
                     smoothing: op.smoothing,
                     brightness: op.brightness,
@@ -98,10 +110,9 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 let r2g = new rasterWorker();
                 r2g.onmessage = function (event) {
                     if (event.data.event === 'onDone') {
-                        doneProcessing({ gcode: event.data.gcode })
-                    }
-                    else if (event.data.event === 'onProgress') {
-                        percentProcessing({ percent: event.data.percent }) //doc, index, 
+                        gcode.push(postProcessing(event.data.gcode)); cb();
+                    } else if (event.data.event === 'onProgress') {
+                        percentProcessing((index * QE.chunk) + (event.data.percent * QE.chunk / 100))
                     }
                 };
 
@@ -113,6 +124,10 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         })
 
     }
+
+    QE.start((err)=>{
+        done(gcode.join("\r\n"));
+    })
 
 
 }
