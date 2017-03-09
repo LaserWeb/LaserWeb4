@@ -23,7 +23,7 @@ const operationBase = object('operation', {
     lineDistance: 0,
     lineAngle: 0,
     margin: 0,
-    passes: 0,
+    passes: 1,
     cutWidth: 0,
     stepOver: 0.4,
     passDepth: 0,
