@@ -10,6 +10,8 @@ import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
 
+import { alert } from '../components/laserweb'
+
 const initialDocument = {
     id: '',
     type: '?',
@@ -53,8 +55,8 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, settings, {file, content}) {
-    let {parser, tags} = content;
+function loadSvg(state, settings, { file, content }) {
+    let { parser, tags } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
@@ -146,35 +148,35 @@ function loadSvg(state, settings, {file, content}) {
 
 function processImage(doc, settings, context) {
     // Adjusting by Quadrant setting.
-    let imageWidth= context.naturalWidth/settings.dpiBitmap * 25.4;
-    let imageHeight= context.naturalHeight/settings.dpiBitmap * 25.4;
+    let imageWidth = context.naturalWidth / settings.dpiBitmap * 25.4;
+    let imageHeight = context.naturalHeight / settings.dpiBitmap * 25.4;
 
-    doc.originalPixels=[context.naturalWidth, context.naturalHeight];
-    doc.originalSize=[imageWidth, imageHeight];
+    doc.originalPixels = [context.naturalWidth, context.naturalHeight];
+    doc.originalSize = [imageWidth, imageHeight];
 
     switch (settings.toolImagePosition) {
         case 'TL':
-            doc.translate = [0, settings.machineHeight - imageHeight,0]
-        break;
+            doc.translate = [0, settings.machineHeight - imageHeight, 0]
+            break;
         case 'TR':
-            doc.translate = [settings.machineWidth - imageWidth, settings.machineHeight - imageHeight,0]
-        break;
+            doc.translate = [settings.machineWidth - imageWidth, settings.machineHeight - imageHeight, 0]
+            break;
         case 'BL':
             doc.translate = [0, 0, 0]
-        break;
+            break;
         case 'BR':
-            doc.translate = [settings.machineWidth - imageWidth, 0,0]
-        break;
+            doc.translate = [settings.machineWidth - imageWidth, 0, 0]
+            break;
         case 'C':
-            doc.translate = [(settings.machineWidth - imageWidth) /2, (settings.machineHeight - imageHeight)/2,0]
-        break;
+            doc.translate = [(settings.machineWidth - imageWidth) / 2, (settings.machineHeight - imageHeight) / 2, 0]
+            break;
     }
 
     return doc;
-    
+
 }
 
-function loadImage(state, settings, {file, content, context}) {
+function loadImage(state, settings, { file, content, context }) {
     state = state.slice();
     let doc = {
         ...initialDocument,
@@ -188,7 +190,7 @@ function loadImage(state, settings, {file, content, context}) {
         scale: [1, 1, 1],
         mimeType: file.type,
         dataURL: content,
-        dpi: (settings.dpiBitmap)? +settings.dpiBitmap : 96, // TODO,
+        dpi: (settings.dpiBitmap) ? +settings.dpiBitmap : 96, // TODO,
     };
 
     doc = processImage(doc, settings, context);
@@ -196,7 +198,7 @@ function loadImage(state, settings, {file, content, context}) {
     return state;
 }
 
-function loadDxf(state, settings, {file, content}) {
+function loadDxf(state, settings, { file, content }) {
     state = state.slice();
     let docFile = {
         ...initialDocument,
@@ -217,11 +219,11 @@ export function documentsLoad(state, settings, action) {
         return loadSvg(state, settings, action.payload);
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload);
-    else if (action.payload.file.type.substring(0, 6) === 'image/'){
+    else if (action.payload.file.type.substring(0, 6) === 'image/') {
         return loadImage(state, settings, action.payload);
     } else {
-        // TODO: show error in gui
-        console.log('Unsupported file type:', action.payload.file.type)
+        alert('Unsupported file type:'+action.payload.file.type)
+        console.error('Unsupported file type:', action.payload.file.type)
         return state;
     }
 }

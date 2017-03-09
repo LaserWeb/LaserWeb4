@@ -342,7 +342,7 @@ export function separateTabs(cutterPath, tabGeometry) {
         return [cutterPath];
     if (typeof Module === 'undefined') {
         if (!displayedCppTabError1) {
-            showAlert("Failed to load cam-cpp.js; tabs will be missing. This message will not repeat.", "alert-danger", false);
+            showAlert("Failed to load cam-cpp.js; tabs will be missing. This message will not repeat.", "danger", false);
             displayedCppTabError1 = true;
         }
         return cutterPath;
@@ -373,7 +373,7 @@ export function separateTabs(cutterPath, tabGeometry) {
         [cCutterPath[0], cCutterPath[1], cCutterPath[2], cTabGeometry[0], cTabGeometry[1], cTabGeometry[2], errorRef, resultPathsRef, resultNumPathsRef, resultPathSizesRef]);
 
     if (Module.HEAPU32[errorRef >> 2] && !displayedCppTabError2) {
-        showAlert("Internal error processing tabs; tabs will be missing. This message will not repeat.", "alert-danger", false);
+        showAlert("Internal error processing tabs; tabs will be missing. This message will not repeat.", "danger", false);
         displayedCppTabError2 = true;
     }
 

@@ -2,7 +2,7 @@ import { getMillGcodeFromOp } from '../cam-gcode-mill'
 
 onmessage = (event) => {
 
-    const {settings, opIndex, op, geometry, openGeometry, tabGeometry} = event.data
+    const {settings, opIndex, op, geometry=[], openGeometry=[], tabGeometry=[]} = event.data
     const errors = [];
 
     const showAlert = (message, level) => {

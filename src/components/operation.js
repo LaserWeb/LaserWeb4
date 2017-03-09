@@ -228,7 +228,7 @@ class Doc extends React.Component {
         let {op, documents, id} = this.props;
         return (
             <tr>
-                <td style={{ width: '100%' }}>
+                <td style={{ width: '100%', whiteSpace:'nowrap' }}>
                     └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) }}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
@@ -296,11 +296,10 @@ const ifUseA = {
 };
 
 const checkZHeight = {
-    check: (v, settings) => settings.machineZEnabled && v,
+    check: (v, settings) => settings.machineZEnabled && v && !isNaN(v),
     error: (v, settings) => {
         if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
-        if (v===0) return 'Make sure this is your desired value';
-        return 'Value not allowed'
+        return 'Has to be a number'
     }
 }
 
@@ -344,7 +343,7 @@ export const fields = {
     stepOver: { name: 'stepOver', label: 'Step Over', units: '(0,1]', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
-    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: NumberInput, ...checkZHeight, ...ifUseZ },
+    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, ...checkZHeight, ...ifUseZ },
     clearance: { name: 'clearance', label: 'Clearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
 

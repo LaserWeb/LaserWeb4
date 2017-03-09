@@ -6,6 +6,7 @@ import {PanelGroup, Panel, Tooltip} from 'react-bootstrap';
 import Icon from './font-awesome'
 
 import {addMacro, removeMacro, setMacro, fireMacroById} from '../actions/macros'
+import {runCommand} from './com.js';
 
 import {Button, FormControl, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
@@ -118,14 +119,21 @@ export class Macros extends React.Component {
 }
 
 export class MacrosBar extends React.Component{
-
+    
+    handleRunMacro(keybinding, macros) {
+        let {label, gcode} = macros[keybinding];
+        console.log('runMacro(' + keybinding + ')');
+        runCommand(gcode);
+    }
+    
     render(){
         return (
             <Panel collapsible header="Macros" bsStyle="primary" eventKey="3" defaultExpanded={true}>
                 <ButtonToolbar>
                     {Object.entries(this.props.macros).map((macro,i)=>{
                         let [keybinding, data] = macro;
-                        return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+                        //return <Button key={i} bsSize="small" onClick={(e)=>this.props.handleMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
+                        return <Button key={i} bsSize="small" onClick={(e)=>this.handleRunMacro(keybinding, this.props.macros)} title={"["+keybinding+"]"}>{data.label}</Button>})
                     }
                 </ButtonToolbar>
             </Panel>

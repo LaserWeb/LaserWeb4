@@ -9,6 +9,8 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import { setGcode } from '../actions/gcode';
 import CommandHistory from './command-history';
 
+import { alert, prompt, confirm} from './laserweb';
+
 import Icon from './font-awesome';
 
 import io from 'socket.io-client';

@@ -136,14 +136,38 @@ class Jog extends React.Component {
 
     checkSize() {
         console.log('checkSize');
-        var feedrate = $('#jogfeedxy').val() * 60;
-        var moves = `
+        let feedrate = $('#jogfeedxy').val() * 60;
+        let gcode = this.props.gcode;
+        let xArray = gcode.split(/x/i);
+        let xMin = 0;
+        let xMax = 0;
+        for (let i = 0; i<xArray.length; i++) {
+            if (parseFloat(xArray[i]) < xMin) {
+                xMin = parseFloat(xArray[i]);
+            }
+            if (parseFloat(xArray[i]) > xMax) {
+                xMax = parseFloat(xArray[i]);
+            }
+        }
+        let yArray = gcode.split(/y/i);
+        let yMin = 0;
+        let yMax = 0;
+        for (let i = 0; i<yArray.length; i++) {
+            if (parseFloat(yArray[i]) < yMin) {
+                yMin = parseFloat(yArray[i]);
+            }
+            if (parseFloat(yArray[i]) > yMax) {
+                yMax = parseFloat(yArray[i]);
+            }
+        }
+        let power = this.props.settings.gcodeToolTestPower;
+        let moves = `
             G90\n
-            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
-            G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
-            G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
-            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
-            G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
+            G0 X` + xMin + ` Y` + yMin + ` F` + feedrate + `\n
+            G1 X` + xMax + ` Y` + yMin + ` F` + feedrate + `\n
+            G1 X` + xMax + ` Y` + yMax + ` F` + feedrate + `\n
+            G1 X` + xMin + ` Y` + yMax + ` F` + feedrate + `\n
+            G1 X` + xMin + ` Y` + yMin + ` F` + feedrate + `\n
             G90\n`;
         runCommand(moves);
     }
@@ -610,37 +634,6 @@ export function runStatus(status) {
 //                                            <span className="input-group-addon">Z</span>
 //                                            <input id="jogfeedz" type="text" className="form-control numpad  input-sm" defaultValue="5" />
 //                                            <span className="input-group-addon">mm/s</span>
-
-//$('#bounding').on('click', function () {
-//    var bbox2 = new THREE.Box3().setFromObject(object);
-//    console.log('bbox for Draw Bounding Box: ' + object + ' Min X: ', (bbox2.min.x + (laserxmax / 2)), '  Max X:', (bbox2.max.x + (laserxmax / 2)), 'Min Y: ', (bbox2.min.y + (laserymax / 2)), '  Max Y:', (bbox2.max.y + (laserymax / 2)));
-//    printLog("Drawing Bounding Box...", msgcolor, "jog");
-//    var feedrate = $('#jogfeedxy').val() * 60;
-//    var moves = `
-//        G90\n
-//        G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
-//        G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
-//        G1 X` + (bbox2.max.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
-//        G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.max.y + (laserymax / 2)) + ` F` + feedrate + `\n
-//        G1 X` + (bbox2.min.x + (laserxmax / 2)) + ` Y` + (bbox2.min.y + (laserymax / 2)) + ` F` + feedrate + `\n
-//        G90\n`;
-//    sendCommand(moves);
-//});
-//
-//$('#homeX').on('click', function (ev) {
-//    var homecommand = document.getElementById('homingseq').value;
-//    sendCommand(homecommand + "X");
-//}); 
-//
-//$('#homeY').on('click', function (ev) {
-//    var homecommand = document.getElementById('homingseq').value;
-//    sendCommand(homecommand + "Y");
-//}); 
-//
-//$('#homeZ').on('click', function (ev) {
-//    var homecommand = document.getElementById('homingseq').value;
-//    sendCommand(homecommand + "Z");
-//});
 //
 //$('#XProbeMin').on('click', function (ev) {
 //    sendCommand('G38.2 X20');
@@ -672,20 +665,6 @@ export function runStatus(status) {
 //    clearInterval(ovLoop);
 //});
 //
-//// reset spindle override
-//$('#rS').on('click', function (ev) {
-//    console.log("S reset");
-//    override('S', 0);
-//});
-//
-//$('#lT').on('click', function () {
-//    if (isConnected) {
-//        var power = $('#lasertestpower').val();
-//        var duration = $('#lasertestduration').val();
-//        console.log('Laser Test', power + ', ' + duration);
-//        laserTest(power, duration);
-//    }
-//});
 //
 //$('#motorsOff').on('click', function () {
 //    if (isConnected) {

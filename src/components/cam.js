@@ -35,6 +35,8 @@ import { ApplicationSnapshotToolbar } from './settings';
 import { Button, ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import Icon from './font-awesome'
 
+import CommandHistory from './command-history'
+
 function NoDocumentsError(props) {
     let {documents, camBounds} = props;
     if (documents.length === 0)
@@ -59,7 +61,7 @@ class Cam extends React.Component {
                 let {settings, documents, operations} = that.props;
                 
                 let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder, 
-                    msg => console.log(msg), 
+                    (msg,level) => { CommandHistory.log(msg,level);}, 
                     (gcode) => {
                         that.props.dispatch(generatingGcode(false))
                         that.props.dispatch(setGcode(gcode));
