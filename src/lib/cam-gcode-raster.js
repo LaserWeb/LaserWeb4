@@ -15,6 +15,13 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         ok = false;
     }
 
+    if (settings.machineZEnabled) {
+        if (op.startHeight === "" || isNaN(op.startHeight)) {
+            showAlert("Start Height must be a valid number", "danger");
+            ok = false;
+        }
+    }
+
     if (!ok) {
         done(false);
         return [];
@@ -42,7 +49,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         for (let pass = 0; pass < op.passes; ++pass) {
             g += '\n\n; Pass ' + pass + '\r\n';
             if (settings.machineZEnabled) {
-                let zHeight = op.startHeight + settings.machineZToolOffset - (op.passDepth * pass);
+                let zHeight = Number(op.startHeight) + settings.machineZToolOffset - (op.passDepth * pass);
                 g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
