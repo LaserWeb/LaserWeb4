@@ -85,7 +85,7 @@ export const prompt = (message, placeholder, callback) => {
 }
 
 export const alert = (unsafeMessage) => {
-        vex.dialog.prompt({unsafeMessage})
+        vex.dialog.alert({unsafeMessage})
 }
 
 class LaserWeb extends React.Component {
