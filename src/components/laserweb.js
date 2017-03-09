@@ -48,7 +48,7 @@ import { GlobalStore } from '../index'
 import { VideoCapture } from '../lib/video-capture'
 
  var vex = require('vex-js/src/vex.js')
-        vex.registerPlugin(require('vex-dialog/src/vex.dialog.js'))
+try{ vex.registerPlugin(require('vex-dialog/src/vex.dialog.js'))} catch(e){}
         vex.defaultOptions.className = 'vex-theme-default'
 import 'vex-js/dist/css/vex.css';
 import 'vex-js/dist/css/vex-theme-default.css';
