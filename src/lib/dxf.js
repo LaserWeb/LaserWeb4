@@ -29,6 +29,8 @@ import vectorizeText from 'vectorize-text';
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
+import { alert } from '../components/laserweb'
+
 const debugShape = [0, 0, 0, 0];
 
 export function processDXF(state, docFile, dxfTree) {
@@ -46,13 +48,16 @@ export function processDXF(state, docFile, dxfTree) {
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
 
-                let layers = dxfTree.tables.layer.layers;
-                for (var prop in layers) {
-                    if (layers[prop].name == entity.layer)
-                        if(layers[prop].color)
-                            docLayer.color = layers[prop].color;
+                try {
+                  let layers = dxfTree.tables.layer.layers;
+                  for (var prop in layers) {
+                      if (layers[prop].name == entity.layer)
+                          if(layers[prop].color)
+                                docLayer.color = layers[prop].color;
+                  }
+                } catch(e) {
+                  docLayer.color = 0;
                 }
-
 
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
@@ -82,6 +87,9 @@ function drawEntity(state, entity, docLayer, index) {
         state = drawPoint(state, entity, docLayer, index);
     } else if (entity.type === 'DIMENSION') {
         state = drawDimension(state, entity, docLayer, index);
+    } else {
+      alert('Unsupported entity type:'+action.payload.file.type)
+      console.error('Unsupported entity type:', action.payload.file.type)
     }
     return state;
 }
