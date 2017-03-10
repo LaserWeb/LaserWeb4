@@ -29,7 +29,7 @@ import vectorizeText from 'vectorize-text';
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
-import { alert } from '../components/laserweb'
+import { confirm, prompt, alert } from '../components/laserweb'
 
 const debugShape = [0, 0, 0, 0];
 
@@ -56,6 +56,11 @@ export function processDXF(state, docFile, dxfTree) {
                                 docLayer.color = layers[prop].color;
                   }
                 } catch(e) {
+
+                  let msg = `${state[0].name}: Contains no [TABLES] section, defaults substituted \nPlease save your drawing as R12 ASCII DXF`;
+                  alert(msg)
+                  console.log(msg)
+
                   docLayer.color = 0;
                 }
 
@@ -88,8 +93,11 @@ function drawEntity(state, entity, docLayer, index) {
     } else if (entity.type === 'DIMENSION') {
         state = drawDimension(state, entity, docLayer, index);
     } else {
-      alert('Unsupported entity type:'+action.payload.file.type)
-      console.error('Unsupported entity type:', action.payload.file.type)
+
+      let msg = `${state[0].name}: Unsupported dxf entity: \n${entity.type}:${entity.name} \nPlease save your drawing as R12 ASCII DXF`;
+      alert(msg)
+      console.log(msg)
+
     }
     return state;
 }
@@ -150,7 +158,7 @@ function drawLine(state, entity, docLayer, index) {
                 p.push(coords[0], coords[1]);
             }
             //p.push(p0[0], p0[1]); // close off the shape
-            console.log(entity, p);
+            //console.log(entity, p);
         } else {
             let vertex = {};
             vertex = entity.vertices[i];
@@ -305,7 +313,7 @@ function drawText(state, entity, docLayer, index) {
       font: entity.fontFamily,
       polygons: true,
     });
-    console.log(`polygons: ${polygons}`);
+    //console.log(`polygons: ${polygons}`);
 
     let coords = [];
     polygons.forEach(function(loops) {
@@ -338,13 +346,17 @@ function drawText(state, entity, docLayer, index) {
 }
 
 function drawDimension(state, entity, docLayer, index) {
-    console.log("DIMENSION: " + entity);
+    let msg = `${state[0].name}: DIMENSION entities currently not supported`;
+    alert(msg)
+    console.log(msg)
     //TODO
     return state;
 }
 
 function drawSolid(state, entity, docLayer, index) {
-    console.log("SOLID: " + entity);
+    let msg = `${state[0].name}: SOLID entities currently not supported`;
+    alert(msg)
+    console.log(msg)
     //TODO
     return state;
 }
