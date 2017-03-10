@@ -182,17 +182,19 @@ class Jog extends React.Component {
     }
 
     jog(axis, dir) {
-        let dist = this.props.settings.jogStepsize; //jQuery('input[name=stp]:checked', '#stepsize').val(); //this.jogStepsize;
-        let feed;
+        let dist = this.props.settings.jogStepsize;
+        let units = this.props.settings.toolFeedUnits;
+        let feed, mult = 1;
+        if (units == 'mm/s') mult = 60;
         switch (axis) {
             case 'X':
-                feed = jQuery('#jogfeedxy').val() * 60;                
+                feed = jQuery('#jogfeedxy').val() * mult;                
                 break;
             case 'Y':
-                feed = jQuery('#jogfeedxy').val() * 60;                
+                feed = jQuery('#jogfeedxy').val() * mult;                
                 break;
             case 'Z':
-                feed = jQuery('#jogfeedz').val() * 60;                
+                feed = jQuery('#jogfeedz').val() * mult;                
                 break;
         }
         if (dir === '+') {
@@ -531,7 +533,7 @@ class Jog extends React.Component {
                                             <Input id="jogfeedxy" type="number" className="form-control numpad input-sm" value={this.state.jogFeedXY} onChangeValue={(e)=>{this.changeJogFeedXY(e)}} />
                                             <span className="input-group-addon">Z</span>
                                             <Input id="jogfeedz" type="number" className="form-control numpad input-sm" value={this.state.jogFeedZ} onChangeValue={(e)=>{this.changeJogFeedZ(e)}} />
-                                            <span className="input-group-addon">mm/s</span>
+                                            <span className="input-group-addon">{settings.toolFeedUnits}</span>
                                         </div>
                                     </td>
                                 </tr>
