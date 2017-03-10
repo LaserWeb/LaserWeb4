@@ -56,9 +56,11 @@ export function processDXF(state, docFile, dxfTree) {
                                 docLayer.color = layers[prop].color;
                   }
                 } catch(e) {
+
                   let msg = `${state[0].name}: Contains no [TABLES] section, defaults substituted \nPlease save your drawing as R12 ASCII DXF`;
                   alert(msg)
                   console.log(msg)
+
                   docLayer.color = 0;
                 }
 
@@ -91,9 +93,11 @@ function drawEntity(state, entity, docLayer, index) {
     } else if (entity.type === 'DIMENSION') {
         state = drawDimension(state, entity, docLayer, index);
     } else {
+
       let msg = `${state[0].name}: Unsupported dxf entity: \n${entity.type}:${entity.name} \nPlease save your drawing as R12 ASCII DXF`;
       alert(msg)
       console.log(msg)
+
     }
     return state;
 }
