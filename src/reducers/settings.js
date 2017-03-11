@@ -134,7 +134,7 @@ export const settings = objectNoId('settings', {
     toolTestDuration: 0,
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeEnd: "M2          ; End\r\n",
+    gcodeEnd: "M5          ; Switch tool offEnd\r\nM2          ; End\r\n",
     gcodeHoming:"",
     gcodeToolOn:"",
     gcodeToolOff:"",
