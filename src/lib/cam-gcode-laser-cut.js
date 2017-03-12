@@ -243,7 +243,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         gcodeToolOn: settings.gcodeToolOn,
         gcodeToolOff: settings.gcodeToolOff,
         gcodeSMaxValue: settings.gcodeSMaxValue,
-        });
+    });
 
     done(gcode)
 
