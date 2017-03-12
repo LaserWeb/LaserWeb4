@@ -110,13 +110,16 @@ export class NumberField extends React.Component {
     }
 }
 
-export function TextField({object, field, description, units = "", setAttrs, dispatch, ...rest}) {
+export function TextField({object, field, description, units = "", setAttrs, dispatch, labelAddon, ...rest}) {
+    if (labelAddon !== false) 
+        labelAddon = true;
     let isTextArea = typeof (rest.rows) != "undefined";
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <InputGroup style={{ width: "100%" }}>
-        {(!isTextArea) ? (<InputGroup.Addon>{description}</InputGroup.Addon>) : (<label htmlFor={field}>{description}</label>)}
+    
+        {(!isTextArea && labelAddon!==false) ? (<InputGroup.Addon>{description}</InputGroup.Addon>) : undefined}
         {(!isTextArea) ? (
             <FormControl
                 type="text"
@@ -125,12 +128,11 @@ export function TextField({object, field, description, units = "", setAttrs, dis
                 {...rest}
                 />
         ) : (
-
-                <FormControl componentClass="textarea" id={field}
+            <FormControl componentClass="textarea" id={field}
                     onChange={e => dispatch(setAttrs({ [field]: e.target.value }, object.id))}
                     value={object[field]}
                     {...rest}
-                    />
+                />
             )}
         {(units !== "") ? <InputGroup.Addon>{units}</InputGroup.Addon> : (undefined)}
 
@@ -138,7 +140,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
     return <TooltipFormGroup validationState={errors ? "error" : undefined}
         validationContent={errors}
-        validationPlacement="right">{input}</TooltipFormGroup>
+        validationPlacement="right">{!labelAddon || isTextArea ? <ControlLabel>{description}</ControlLabel> : undefined}{input}</TooltipFormGroup>
 
 }
 

@@ -8,6 +8,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 import { ButtonToolbar, Button } from 'react-bootstrap'
 import Icon from './font-awesome'
+import marked from 'marked';
 /**
  * About component.
  *
@@ -20,8 +21,20 @@ class About extends React.Component {
      * @return {String}
      */
     render() {
+
+        let machineAbout;
+        if (this.props.settings.__selectedProfile && this.props.profiles.hasOwnProperty(this.props.settings.__selectedProfile)){
+          let aboutFile=this.props.profiles[this.props.settings.__selectedProfile].machineAbout
+          if (aboutFile) {
+            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!../data/lw.machines/'+aboutFile))}}></div>
+          }
+        }
+
         return (
             <div>
+
+                {machineAbout}
+
                 <h3>Versions</h3>
                   <dl>
                     <dt><Icon name="cubes"/> Frontend: {this.props.settings.__version}</dt><dd></dd><p/>
@@ -59,7 +72,7 @@ class About extends React.Component {
 }
 
 About = connect(
-    state => ({ settings: state.settings })
+    state => ({ settings: state.settings, profiles: state.machineProfiles })
 )(About);
 
 // Exports

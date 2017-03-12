@@ -11,7 +11,7 @@
     "bundle-prod": "webpack -p --progress --colors",
     "build-docs": "jsdoc -c ./jsdoc.json",
     "installdev": "git submodule init && git submodule update --remote && npm install ",
-    "golive": "git checkout gh-pages && git pull && git merge --no-edit  && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
+    "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
   },
   "repository": {
     "type": "git",
@@ -97,9 +97,11 @@
     "sillyname": "^0.1.0",
     "slug": "^0.9.1",
     "snapsvg-cjs": "0.0.4",
+    "socket.io-client": "^1.7.3",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "validatorjs": "^3.8.0",
+    "vex-js": "^3.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.15.1",

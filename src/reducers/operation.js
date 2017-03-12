@@ -23,11 +23,11 @@ const operationBase = object('operation', {
     lineDistance: 0,
     lineAngle: 0,
     margin: 0,
-    passes: 0,
+    passes: 1,
     cutWidth: 0,
     stepOver: 0.4,
     passDepth: 0,
-    startHeight: 0,
+    startHeight: '',
     cutDepth: 0,
     segmentLength: 0,
     tabDepth: 0,
@@ -59,6 +59,7 @@ export const OPERATION_DEFAULTS = (state) => {
     return {
         laserDiameter: state.settings.machineBeamDiameter,
         useBlower: state.settings.machineBlowerEnabled,
+        startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
     }
 }
 

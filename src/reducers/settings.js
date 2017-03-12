@@ -104,17 +104,20 @@ export const settings = objectNoId('settings', {
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
+    machineOriginX: 0,
+    machineOriginY: 0,
     
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
+    machineZStartHeight : '',
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',
     machineBlowerGcodeOff: '',
     
     pxPerInch: 96,
-    dpiRasterBmp: 300,
+    dpiBitmap: 300,
     
     toolSafetyLockDisabled: true,
     toolCncMode: false,
@@ -133,7 +136,7 @@ export const settings = objectNoId('settings', {
     toolTestDuration: 0,
     
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeEnd: "M2          ; End\r\n",
+    gcodeEnd: "M5          ; Switch tool offEnd\r\nM2          ; End\r\n",
     gcodeHoming:"",
     gcodeToolOn:"",
     gcodeToolOff:"",

@@ -21,6 +21,8 @@ import Icon from './font-awesome';
 
 import { PerspectiveWebcam, VideoDeviceField, VideoControls, VideoResolutionField } from './webcam';
 
+import { alert, prompt, confirm } from './laserweb';
+
 export class ApplicationSnapshot extends React.Component {
 
     constructor(props) {
@@ -76,10 +78,12 @@ export class ApplicationSnapshotToolbar extends React.Component {
 
     handleDownload(statekeys) {
         statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        let file = prompt("Save as", this.props.saveAs || "laserweb-snapshot.json")
-        let settings = this.getExportData(statekeys);
-        let action = downloadSnapshot;
-        this.props.handleDownload(file, settings, action)
+        prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file) => {
+            if (!file) return;
+            let settings = this.getExportData(statekeys);
+            let action = downloadSnapshot;
+            this.props.handleDownload(file, settings, action)
+        })
     }
 
     handleUpload(file, statekeys) {
@@ -142,7 +146,7 @@ class SettingsPanel extends React.Component {
 
 }
 
-export function SettingsValidator({style, className = 'badge', noneOnSuccess = false, ...rest}) {
+export function SettingsValidator({ style, className = 'badge', noneOnSuccess = false, ...rest }) {
     let validator = ValidateSettings(false);
     let errors = (validator.fails()) ? ("Please review Settings:\n\n" + Object.values(validator.errors.errors)) : undefined
     if (noneOnSuccess && !errors) return null;
@@ -188,6 +192,13 @@ class Settings extends React.Component {
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
+        let button = null;
+        if (window.require) {
+            button = <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleDevTools(e) }}><Icon name="gear" /> Toggle Dev tools</Button>
+        } else {
+            button = null
+        }
+
         return (
             <div className="form">
 
@@ -199,13 +210,19 @@ class Settings extends React.Component {
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
+
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
+
+                        <hr />
+                        <NumberField {...{ object: this.props.settings, field: 'machineOriginX', setAttrs: setSettingsAttrs, description: 'Machine Origin X', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineOriginY', setAttrs: setSettingsAttrs, description: 'Machine Origin Y', units: 'mm' }} />
 
                         <hr />
                         <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage' }} />
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon: false, units: 'mm' }} />
+                                <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Start Height', labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
                         <hr />
@@ -282,8 +299,8 @@ class Settings extends React.Component {
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
                         <ButtonToolbar>
-                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleDevTools(e)}}><Icon name="gear"/> Open Dev tools</Button>
-                        <Button bsSize="xs" bsStyle="warning" onClick={(e)=>{this.props.handleRefresh(e)}}><Icon name="refresh"/> Refresh window</Button>
+                            {button}
+                            <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleRefresh(e) }}><Icon name="refresh" /> Refresh window</Button>
                         </ButtonToolbar>
                     </Panel>
                 </PanelGroup>
@@ -296,8 +313,8 @@ class Settings extends React.Component {
 
 const mapStateToProps = (state) => {
 
-    return { 
-        settings: state.settings, 
+    return {
+        settings: state.settings,
         profiles: state.machineProfiles
     }
 };
@@ -322,7 +339,7 @@ const mapDispatchToProps = (dispatch) => {
                 LocalStorage.save(name, stringify(settings), "application/json")
             } catch (e) {
                 console.error(e);
-                alert(e);
+                alert(e)
             }
             dispatch(action(settings));
         },
@@ -332,21 +349,28 @@ const mapDispatchToProps = (dispatch) => {
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
         },
-        handleDevTools:() => {
-            if (window.getFocusedWindow){
-                var focusedWindow = window.getFocusedWindow();
-                if (focusedWindow.isDevToolsOpened()) {
-                    focusedWindow.closeDevTools();
-                } else {
-                    focusedWindow.openDevTools();
+        handleDevTools: () => {
+            if (window.require) { // Are we in Electron?
+                const electron = window.require('electron');
+                const app = electron.remote;
+                var focusedWindow = app.BrowserWindow.getFocusedWindow()
+                // focusedWindow.openDevTools();
+                if (app.BrowserWindow.getFocusedWindow) {
+                    // var focusedWindow = app.BrowserWindow.getFocusedWindow()
+                    if (focusedWindow.isDevToolsOpened()) {
+                        focusedWindow.closeDevTools();
+                    } else {
+                        focusedWindow.openDevTools();
+                    }
                 }
             } else {
                 console.warn("Can't do that, pal")
             }
         },
-        handleRefresh:() => {
-            if (confirm("Are you sure? This will destroy unsaved work"))
-                location.reload();
+        handleRefresh: () => {
+
+            confirm("Are you sure? This will destroy unsaved work", (b) => { if (b) location.reload(); })
+
         }
     };
 };

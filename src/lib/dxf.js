@@ -29,7 +29,10 @@ import vectorizeText from 'vectorize-text';
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
 
+import { confirm, prompt, alert } from '../components/laserweb'
+
 const debugShape = [0, 0, 0, 0];
+var errorLog = [];
 
 export function processDXF(state, docFile, dxfTree) {
     var LayerLookup = new Map();
@@ -46,13 +49,17 @@ export function processDXF(state, docFile, dxfTree) {
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
 
-                let layers = dxfTree.tables.layer.layers;
-                for (var prop in layers) {
-                    if (layers[prop].name == entity.layer)
-                        if(layers[prop].color)
-                            docLayer.color = layers[prop].color;
+                // Some files only have an ENTITY section, give a default layer color
+                try {
+                  let layers = dxfTree.tables.layer.layers;
+                  for (var prop in layers) {
+                      if (layers[prop].name == entity.layer)
+                          if(layers[prop].color)
+                                docLayer.color = layers[prop].color;
+                  }
+                } catch(e) {
+                  docLayer.color = 0;
                 }
-
 
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
@@ -65,6 +72,15 @@ export function processDXF(state, docFile, dxfTree) {
             state = drawEntity(state, entity, docFile, i);
         }
     }
+
+    // Create errorLog message
+    if(errorLog.length) {
+      alert(`Errors found in ${docFile.name} please re-save in R12 ASCII format.\n\
+             Check console log and <a href="http://cncpro.co/index.php/35-documentation/working-with-files/working-with-dxf" target="_blank">documentation</a> for more details.`)
+      console.log(`Errors found in ${docFile.name}\n`+errorLog.join('\n'))
+    }
+    errorLog = [];
+
     return state;
 }
 
@@ -82,6 +98,8 @@ function drawEntity(state, entity, docLayer, index) {
         state = drawPoint(state, entity, docLayer, index);
     } else if (entity.type === 'DIMENSION') {
         state = drawDimension(state, entity, docLayer, index);
+    } else {
+      errorLog.push(`Unsupported dxf entity: ${entity.type}:${entity.name}`);
     }
     return state;
 }
@@ -142,7 +160,7 @@ function drawLine(state, entity, docLayer, index) {
                 p.push(coords[0], coords[1]);
             }
             //p.push(p0[0], p0[1]); // close off the shape
-            console.log(entity, p);
+            //console.log(entity, p);
         } else {
             let vertex = {};
             vertex = entity.vertices[i];
@@ -297,7 +315,7 @@ function drawText(state, entity, docLayer, index) {
       font: entity.fontFamily,
       polygons: true,
     });
-    console.log(`polygons: ${polygons}`);
+    //console.log(`polygons: ${polygons}`);
 
     let coords = [];
     polygons.forEach(function(loops) {
@@ -330,13 +348,13 @@ function drawText(state, entity, docLayer, index) {
 }
 
 function drawDimension(state, entity, docLayer, index) {
-    console.log("DIMENSION: " + entity);
+    errorLog.push(`DIMENSION entities currently not supported`);
     //TODO
     return state;
 }
 
 function drawSolid(state, entity, docLayer, index) {
-    console.log("SOLID: " + entity);
+    errorLog.push(`SOLID entities currently not supported`);
     //TODO
     return state;
 }

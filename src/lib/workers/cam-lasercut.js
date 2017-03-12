@@ -2,7 +2,8 @@ import { getLaserCutGcodeFromOp } from '../cam-gcode-laser-cut'
 
 onmessage = (event) => {
 
-    const {settings, opIndex, op, geometry, openGeometry, tabGeometry} = event.data
+    let {settings, opIndex, op, geometry = [], openGeometry = [], tabGeometry = []} = event.data
+
     const errors = [];
 
     const showAlert = (message, level) => {
