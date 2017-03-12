@@ -203,7 +203,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         camPaths = fillPath(geometry, op.lineDistance * mmToClipperScale, op.lineAngle);
     }
 
-    reduceCamPaths(camPaths, .5 * mmToClipperScale);
+    reduceCamPaths(camPaths, op.segmentLength * mmToClipperScale);
 
     let feedScale = 1;
     if (settings.toolFeedUnits === 'mm/s')
