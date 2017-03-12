@@ -32,6 +32,7 @@ import { addDocumentChild } from '../actions/document'
 import { confirm, prompt, alert } from '../components/laserweb'
 
 const debugShape = [0, 0, 0, 0];
+var errorLog = [];
 
 export function processDXF(state, docFile, dxfTree) {
     var LayerLookup = new Map();
@@ -48,6 +49,7 @@ export function processDXF(state, docFile, dxfTree) {
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
 
+                // Some files only have an ENTITY section, give a default layer color
                 try {
                   let layers = dxfTree.tables.layer.layers;
                   for (var prop in layers) {
@@ -56,9 +58,6 @@ export function processDXF(state, docFile, dxfTree) {
                                 docLayer.color = layers[prop].color;
                   }
                 } catch(e) {
-                  let msg = `${state[0].name}: Contains no [TABLES] section, defaults substituted \nPlease save your drawing as R12 ASCII DXF`;
-                  alert(msg)
-                  console.log(msg)
                   docLayer.color = 0;
                 }
 
@@ -73,6 +72,15 @@ export function processDXF(state, docFile, dxfTree) {
             state = drawEntity(state, entity, docFile, i);
         }
     }
+
+    // Create errorLog message
+    if(errorLog.length) {
+      alert(`Errors found in ${docFile.name} please re-save in R12 ASCII format.\n\
+             Check console log and <a href="http://cncpro.co/index.php/35-documentation/working-with-files/working-with-dxf" target="_blank">documentation</a> for more details.`)
+      console.log(`Errors found in ${docFile.name}\n`+errorLog.join('\n'))
+    }
+    errorLog = [];
+
     return state;
 }
 
@@ -91,9 +99,7 @@ function drawEntity(state, entity, docLayer, index) {
     } else if (entity.type === 'DIMENSION') {
         state = drawDimension(state, entity, docLayer, index);
     } else {
-      let msg = `${state[0].name}: Unsupported dxf entity: \n${entity.type}:${entity.name} \nPlease save your drawing as R12 ASCII DXF`;
-      alert(msg)
-      console.log(msg)
+      errorLog.push(`Unsupported dxf entity: ${entity.type}:${entity.name}`);
     }
     return state;
 }
@@ -342,17 +348,13 @@ function drawText(state, entity, docLayer, index) {
 }
 
 function drawDimension(state, entity, docLayer, index) {
-    let msg = `${state[0].name}: DIMENSION entities currently not supported`;
-    alert(msg)
-    console.log(msg)
+    errorLog.push(`DIMENSION entities currently not supported`);
     //TODO
     return state;
 }
 
 function drawSolid(state, entity, docLayer, index) {
-    let msg = `${state[0].name}: SOLID entities currently not supported`;
-    alert(msg)
-    console.log(msg)
+    errorLog.push(`SOLID entities currently not supported`);
     //TODO
     return state;
 }
