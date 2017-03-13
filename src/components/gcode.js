@@ -29,13 +29,16 @@ Gcode = connect(
         setGcode: e => dispatch(setGcode(e.target.value)),
         loadGcode: e => {
             let input = document.createElement('input');
-            input.type = "file";
-            input.onchange = e => {
-                let reader = new FileReader;
-                reader.onload = () => dispatch(setGcode(reader.result));
-                reader.readAsText(e.target.files[0]);
-            };
-            input.click();
+                input.type = "file";
+                input.onchange = e => {
+                    let reader = new FileReader;
+                        reader.onload = () => dispatch(setGcode(reader.result));
+                        reader.onerror = (e) => { console.log(e) }
+                        reader.readAsText(e.target.files[0]);
+                    this.value=null
+                    return false;
+                };
+                input.click();
         },
     })
 )(Gcode);
