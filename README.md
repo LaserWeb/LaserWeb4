@@ -29,6 +29,7 @@ The package list changes frequently; expect to do an **npm install** every time 
 
 ## LaserWeb Development Environment
 
+```
 -------------------------------------------------------------
  * npm install          -  Install the development environment.
  * npm start            -  Start the live development server.
