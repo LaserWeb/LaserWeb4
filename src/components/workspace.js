@@ -917,7 +917,7 @@ class Workspace extends React.Component {
                                             <input style={{ width: '250px' }} class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
                                         </div>
                                         <div className='input-group'>
-                                            <span className='input-group-addon'>G0 Feedrate</span>
+                                            <span className='input-group-addon'>Sim G0 Feed</span>
                                             <Input style={{ width: '85px' }} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
                                             <span className='input-group-addon'>mm/min</span>
                                         </div>
