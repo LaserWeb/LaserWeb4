@@ -91,23 +91,17 @@ class Grid {
             let c = [];
             this.offsetX = offsetX || 0
             this.offsetY = offsetY || 0
-            c.push(-CROSSHAIR / 2 + this.offsetX, CROSSHAIR / 2 + this.offsetY, 0, CROSSHAIR / 2 + this.offsetX, CROSSHAIR / 2 + this.offsetY, 0)
-            c.push(CROSSHAIR / 2 + this.offsetX, CROSSHAIR / 2 + this.offsetY, 0, CROSSHAIR / 2 + this.offsetX, -CROSSHAIR / 2 + this.offsetY, 0)
-            c.push(CROSSHAIR / 2 + this.offsetX, -CROSSHAIR / 2 + this.offsetY, 0, -CROSSHAIR / 2 + this.offsetX, -CROSSHAIR / 2 + this.offsetY, 0)
-            c.push(-CROSSHAIR / 2 + this.offsetX, -CROSSHAIR / 2 + this.offsetY, 0, -CROSSHAIR / 2 + this.offsetX, CROSSHAIR / 2 + this.offsetY, 0)
-
-            c.push(-CROSSHAIR / 2 + this.offsetX, this.offsetY, 0, CROSSHAIR / 2 + this.offsetX, this.offsetY, 0)
-            c.push(this.offsetX, -CROSSHAIR / 2 + this.offsetY, 0, this.offsetX, CROSSHAIR / 2 + this.offsetY, 0)
-
+            c.push(0, this.offsetY, 0, this.width, this.offsetY, 0);
+            c.push(this.offsetX, 0, 0, this.offsetX, this.height, 0);
             this.origin = new Float32Array(c)
             this.origincount = c.length / 3
         }
 
-        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 4, count: this.maincount - 4, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
-        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
-        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
+        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount , color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
         drawCommands.basic({ perspective, view, position: this.darkgrid, offset: 0, count: this.darkcount, color: [0.5, 0.5, 0.5, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // dark grid
-        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: this.origincount, color: [0.5, 0.5, 1, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // origin
+
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
 
     }
 };
