@@ -34,16 +34,16 @@ import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
 import Icon from './font-awesome'
 
 function StringInput(props) {
-    let {op, field, fillColors, strokeColors, ...rest} = props;
+    let { op, field, fillColors, strokeColors, ...rest } = props;
     return <Input value={op[field.name]}  {...rest } />;
 }
 
 function NumberInput(props) {
-    let {op, field, fillColors, strokeColors, ...rest} = props;
+    let { op, field, fillColors, strokeColors, ...rest } = props;
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return (
         <select value={op[field.name]}  {...rest} >
             <option>Conventional</option>
@@ -52,7 +52,7 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
     );
 }
 
-function GrayscaleInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return (
         <select value={op[field.name]}  {...rest} >
             <option>none</option>
@@ -71,11 +71,11 @@ function GrayscaleInput({op, field, onChangeValue, fillColors, strokeColors, ...
     );
 }
 
-function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
 }
 
-function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest}) {
+function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
@@ -108,7 +108,7 @@ class InputRange extends React.Component {
 }
 
 function RangeInput(minValue, maxValue) {
-    return ({op, field, onChangeValue, ...rest}) => {
+    return ({ op, field, onChangeValue, ...rest }) => {
         return <InputRange maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
     }
 }
@@ -133,7 +133,7 @@ class FilterInput extends React.Component {
     }
 
     render() {
-        let {op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest} = this.props;
+        let { op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest } = this.props;
         let raw = op[field.name];
         let colors = field.name === 'filterFillColor' ? fillColors : strokeColors;
         let value;
@@ -150,7 +150,7 @@ class FilterInput extends React.Component {
 }
 
 export function Error(props) {
-    let {bounds, operationsBounds, message} = props;
+    let { bounds, operationsBounds, message } = props;
     return (
         <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
             <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
@@ -165,7 +165,7 @@ export function Error(props) {
 Error = withStoredBounds(Error);
 
 function NoOperationsError(props) {
-    let {documents, operations, operationsBounds} = props;
+    let { documents, operations, operationsBounds } = props;
     if (documents.length && !operations.length)
         return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Documents(s) Here' /></GetBounds>;
     else
@@ -180,7 +180,7 @@ class Field extends React.Component {
     }
 
     onChangeValue(v) {
-        let {op, field} = this.props;
+        let { op, field } = this.props;
         if (op[field.name] !== v)
             this.props.dispatch(setOperationAttrs({ [field.name]: v }, op.id));
     }
@@ -195,9 +195,9 @@ class Field extends React.Component {
     }
 
     render() {
-        let {op, field, operationsBounds, fillColors, strokeColors, settings} = this.props;
+        let { op, field, operationsBounds, fillColors, strokeColors, settings } = this.props;
         let Input = field.input;
-        let {units} = field;
+        let { units } = field;
         let error;
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
@@ -225,11 +225,11 @@ class Doc extends React.Component {
     }
 
     render() {
-        let {op, documents, id} = this.props;
+        let { op, documents, id } = this.props;
         return (
             <tr>
                 <td style={{ width: '100%', whiteSpace: 'nowrap' }}>
-                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) } }>{documents.find(d => d.id === id).name}</a>
+                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) }}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
                     <button className="btn btn-default btn-xs" onClick={this.remove}>
@@ -397,10 +397,13 @@ class Operation extends React.Component {
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
         this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ type: type, ...attrs }, this.props.op.id))
         this.toggleDocs = e => this.props.dispatch(setOperationAttrs({ _docs_visible: !this.props.op._docs_visible }, this.props.op.id));
+
+        this.documentsCount = null;
+        this.documentTypes = { vectors: 0, images: 0 };
     }
 
     render() {
-        let {op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
+        let { op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings } = this.props;
         let error;
         if (!op.expanded) {
             for (let fieldName of types[op.type].fields) {
@@ -418,6 +421,33 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
+        let traverseDocumentTypes = (ids, documents) => {
+            let result = { images: 0, vectors: 0, };
+            ids.forEach((id) => {
+                let item = documents.find((item) => item.id == id)
+                if (item) {
+                    if (item.type === 'image') { result.images++ } else { result.vectors++ }
+                    if (item.children.length) {
+                        let { images, vectors } = traverseDocumentTypes(item.children, documents)
+                        result.images += images;
+                        result.vectors += vectors;
+                    }
+                }
+            })
+            return result;
+        }
+
+        if (op.documents.length !== this.documentsCount) {
+            this.documentsCount = op.documents.length
+            this.documentTypes = traverseDocumentTypes(op.documents, documents)
+        }
+
+        let availableOps = Object.keys(types);
+        if (!this.documentTypes.vectors) availableOps = availableOps.filter(item => item.match(/Raster/gi))
+        if (!this.documentTypes.images) availableOps = availableOps.filter(item => !item.match(/Raster/gi))
+
+        let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
+
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
@@ -428,9 +458,7 @@ class Operation extends React.Component {
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>
-                                {Object.keys(types).map(type => <option key={type}>{type}</option>)}
-                            </select>
+                            <select className="input-xs" value={availableOps.includes(op.type) ? op.type : availableOps[0]} onChange={this.setType}>{Object.keys(types).filter(millFilter).map(type => <option key={type} disabled={!availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
@@ -560,7 +588,7 @@ Operation = withStoredBounds(Operation);
 
 class Operations extends React.Component {
     render() {
-        let {operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
+        let { operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
         let fillColors = [];
         let strokeColors = [];
         let addColor = (colors, color) => {
@@ -601,7 +629,7 @@ class Operations extends React.Component {
 };
 
 Operations = connect(
-    ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
+    ({ operations, currentOperation, documents, settings }) => ({ operations, currentOperation, documents, settings }),
 )(withGetBounds(Operations));
 export { Operations };
 
@@ -624,8 +652,8 @@ class OperationToolbar extends React.Component {
 
     render() {
         return <ButtonToolbar>
-            <Button onClick={(e) => { this.handleAddSingle() } } bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
-            <Button onClick={(e) => { this.handleAddMultiple() } } bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
         </ButtonToolbar>
     }
 }
