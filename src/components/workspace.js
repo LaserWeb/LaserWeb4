@@ -530,7 +530,7 @@ class WorkspaceContent extends React.Component {
         let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
         this.videoElement = document.createElement('video')
         this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
-        this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
+        //this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
             if (!this.canvas)
