@@ -427,11 +427,13 @@ class Operation extends React.Component {
             this.documentsCount = nextProps.op.documents.length
             this.documentTypes = traverseDocumentTypes(nextProps.op.documents, nextProps.documents)
             this.availableOps = Object.keys(types);
-            if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
-            if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
+            if (nextProps.op.documents.length){
+                if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
+                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
 
-            if (!this.availableOps.includes(nextProps.op.type))
-                this.setTypeString(this.availableOps[0])
+                if (!this.availableOps.includes(nextProps.op.type))
+                    this.setTypeString(this.availableOps[0])
+            }
         }
 
     }
@@ -463,7 +465,7 @@ class Operation extends React.Component {
 
         if (op.name && op.name.length)
             header = (<h5 style={{ marginTop: 0 }} onClick={this.toggleExpanded}>{op.name}</h5>)
-
+            
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
