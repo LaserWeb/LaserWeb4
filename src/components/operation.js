@@ -404,8 +404,8 @@ class Operation extends React.Component {
         this.availableOps = Object.keys(types);
     }
 
-    componentWillReceiveProps(nextProps){
-        
+    componentWillReceiveProps(nextProps) {
+
         let traverseDocumentTypes = (ids, documents) => {
             let result = { images: 0, vectors: 0, };
             ids.forEach((id) => {
@@ -433,7 +433,7 @@ class Operation extends React.Component {
             if (!this.availableOps.includes(nextProps.op.type))
                 this.setTypeString(this.availableOps[0])
         }
-            
+
     }
 
     render() {
@@ -455,14 +455,14 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
-        
+
 
         let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
 
         let header;
 
-        if (op.name && op.name.length) 
-            header = (<h5 style={{marginTop: 0}} onClick={this.toggleExpanded}>{op.name}</h5>)
+        if (op.name && op.name.length)
+            header = (<h5 style={{ marginTop: 0 }} onClick={this.toggleExpanded}>{op.name}</h5>)
 
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
@@ -471,12 +471,12 @@ class Operation extends React.Component {
                     <i onClick={this.toggleExpanded}
                         className={op.expanded ? 'fa fa-fw fa-minus-circle' : 'fa fa-fw fa-plus-circle'} />
                 </div>
-                
+
                 <div style={{ display: 'table-cell', width: '100%' }}>
                     {header}
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        
-                        <div style={{whiteSpace:'nowrap'}}>
+
+                        <div style={{ whiteSpace: 'nowrap' }}>
                             <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(types).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
@@ -588,7 +588,7 @@ class Operation extends React.Component {
                 }
             } // types[op.type].allowTabs
         } // op.expanded
-        
+
         return <div className="operation-row">{rows}</div>;
     }
 }; // Operation
@@ -660,9 +660,10 @@ class OperationToolbar extends React.Component {
     }
 
     render() {
+        let hasSelected = this.props.documents.some((item) => item.selected)
         return <ButtonToolbar>
-            <Button onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
-            <Button onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
         </ButtonToolbar>
     }
 }
