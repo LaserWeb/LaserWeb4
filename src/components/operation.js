@@ -411,12 +411,12 @@ class Operation extends React.Component {
             ids.forEach((id) => {
                 let item = documents.find((item) => item.id == id)
                 if (item) {
-                    if (item.type === "image"){
+                    if (item.dataURL){
                         result.images++
-                    } else if (item.type === "g") {
-                        result.other++
-                    } else {
+                    } else if (item.rawPaths) {
                         result.vectors++
+                    } else {
+                        result.other++
                     }
                     
                     if (item.children.length) {
