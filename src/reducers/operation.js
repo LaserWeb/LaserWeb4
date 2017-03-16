@@ -34,6 +34,7 @@ const operationBase = object('operation', {
     clearance: 0,
     plungeRate: 0,
     cutRate: 0,
+    overScan: 0,
     toolAngle: 0,
     useA: false,
     aAxisStepsPerTurn: 0,
