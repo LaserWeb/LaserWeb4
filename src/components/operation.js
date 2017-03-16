@@ -407,15 +407,23 @@ class Operation extends React.Component {
     componentWillReceiveProps(nextProps) {
 
         let traverseDocumentTypes = (ids, documents) => {
-            let result = { images: 0, vectors: 0, };
+            let result = { images: 0, vectors: 0, other:0 };
             ids.forEach((id) => {
                 let item = documents.find((item) => item.id == id)
                 if (item) {
-                    if (item.type === 'image') { result.images++ } else { result.vectors++ }
+                    if (item.type === "image"){
+                        result.images++
+                    } else if (item.type === "g") {
+                        result.other++
+                    } else {
+                        result.vectors++
+                    }
+                    
                     if (item.children.length) {
-                        let { images, vectors } = traverseDocumentTypes(item.children, documents)
+                        let { images, vectors, other } = traverseDocumentTypes(item.children, documents)
                         result.images += images;
                         result.vectors += vectors;
+                        result.other += other;
                     }
                 }
             })
