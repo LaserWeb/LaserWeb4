@@ -322,7 +322,7 @@ const checkPassDepth = {
     error: (v, settings, op) => { return (op.type.match(/^Laser/)) ? checkGE0.error : checkPositive.error },
 }
 
-export const fields = {
+export const OPERATION_FIELDS = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
 
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
@@ -374,7 +374,7 @@ const tabFields = [
     { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
 ];
 
-export const types = {
+export const OPERATION_TYPES = {
     'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
@@ -401,24 +401,24 @@ class Operation extends React.Component {
 
         this.documentsCount = null;
         this.documentTypes = { vectors: 0, images: 0 };
-        this.availableOps = Object.keys(types);
+        this.availableOps = Object.keys(OPERATION_TYPES);
     }
 
     componentWillReceiveProps(nextProps) {
 
         let traverseDocumentTypes = (ids, documents) => {
-            let result = { images: 0, vectors: 0, other:0 };
+            let result = { images: 0, vectors: 0, other: 0 };
             ids.forEach((id) => {
                 let item = documents.find((item) => item.id == id)
                 if (item) {
-                    if (item.dataURL){
+                    if (item.dataURL) {
                         result.images++
                     } else if (item.rawPaths) {
                         result.vectors++
                     } else {
                         result.other++
                     }
-                    
+
                     if (item.children.length) {
                         let { images, vectors, other } = traverseDocumentTypes(item.children, documents)
                         result.images += images;
@@ -434,8 +434,8 @@ class Operation extends React.Component {
         if (nextProps.op.documents.length !== this.documentsCount) {
             this.documentsCount = nextProps.op.documents.length
             this.documentTypes = traverseDocumentTypes(nextProps.op.documents, nextProps.documents)
-            this.availableOps = Object.keys(types);
-            if (nextProps.op.documents.length){
+            this.availableOps = Object.keys(OPERATION_TYPES);
+            if (nextProps.op.documents.length) {
                 if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
                 if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
 
@@ -450,8 +450,8 @@ class Operation extends React.Component {
         let { op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings } = this.props;
         let error;
         if (!op.expanded) {
-            for (let fieldName of types[op.type].fields) {
-                let field = fields[fieldName];
+            for (let fieldName of OPERATION_TYPES[op.type].fields) {
+                let field = OPERATION_FIELDS[fieldName];
                 if (field.check && !field.check(op[fieldName], settings, op) && (!field.condition || field.condition(op, settings))) {
                     error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
@@ -473,7 +473,7 @@ class Operation extends React.Component {
 
         if (op.name && op.name.length)
             header = (<h5 style={{ marginTop: 0 }} onClick={this.toggleExpanded}>{op.name}</h5>)
-            
+
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
@@ -487,7 +487,7 @@ class Operation extends React.Component {
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
 
                         <div style={{ whiteSpace: 'nowrap' }}>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(types).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
@@ -527,11 +527,11 @@ class Operation extends React.Component {
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
                             <tbody>
-                                {types[op.type].fields
-                                    .filter(fieldName => { let f = fields[fieldName]; return !f.condition || f.condition(op, settings); })
+                                {OPERATION_TYPES[op.type].fields
+                                    .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return !f.condition || f.condition(op, settings); })
                                     .map(fieldName => {
                                         return <Field
-                                            key={fieldName} op={op} field={fields[fieldName]} selected={selected}
+                                            key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
                                             fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                                             operationsBounds={bounds} dispatch={dispatch} />
                                     })}
@@ -540,7 +540,7 @@ class Operation extends React.Component {
                     </div>
                 </div>,
             );
-            if (types[op.type].allowTabs) {
+            if (OPERATION_TYPES[op.type].allowTabs) {
                 rows.push(
                     <div key="space" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                         <div style={leftStyle} />
@@ -569,7 +569,7 @@ class Operation extends React.Component {
                             </div>
                         </div>,
                     );
-                    if (types[op.type].tabFields) {
+                    if (OPERATION_TYPES[op.type].tabFields) {
                         rows.push(
                             <div key="tabattrs" style={{ display: 'table-row' }}>
                                 <div style={leftStyle} />

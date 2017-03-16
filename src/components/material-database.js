@@ -9,7 +9,7 @@ import {
 } from '../actions/material-database.js'
 
 
-import * as operation from './operation'
+import { OPERATION_FIELDS, OPERATION_TYPES } from './operation'
 
 import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
 import { FileField } from './forms'
@@ -32,7 +32,7 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
-import { alert, prompt, confirm} from './laserweb';
+import { alert, prompt, confirm } from './laserweb';
 
 import '../styles/material-database.css'
 
@@ -56,7 +56,7 @@ export function ValidateMaterial(bool = true, rules = MATERIALDATABASE_VALIDATIO
     return check;
 }
 
-function MaterialModal({modal, className, header, footer, children, ...rest}) {
+function MaterialModal({ modal, className, header, footer, children, ...rest }) {
 
     return (
         <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
@@ -89,14 +89,14 @@ let shouldShow = (operation, filter) => {
 class MaterialMachineProfile extends React.Component {
 
     render() {
-        let {profiles, selected, onChange, blank = "*", label = "Profile Filter", ...rest} = this.props;
+        let { profiles, selected, onChange, blank = "*", label = "Profile Filter", ...rest } = this.props;
         let options = Object.entries(profiles).map((entry) => { let [value, item] = entry; return { value, label: item.machineLabel } });
         return <Select multi simpleValue delimiter="," value={selected} placeholder={label} options={options} onChange={(v) => { onChange(v) }} />
     }
 
 }
 
-MaterialMachineProfile = connect((state)=>{return {profiles: state.machineProfiles}})(MaterialMachineProfile)
+MaterialMachineProfile = connect((state) => { return { profiles: state.machineProfiles } })(MaterialMachineProfile)
 
 
 class MaterialDatabaseEditor extends React.Component {
@@ -144,9 +144,9 @@ class MaterialDatabaseEditor extends React.Component {
         this.props.handleChangeGroup(id, attrs)
     }
 
-    handleGroupTemplateClone(fromId, toId){
+    handleGroupTemplateClone(fromId, toId) {
         let from;
-        if (from=getMaterialDbGroup(this.props.groups,fromId))
+        if (from = getMaterialDbGroup(this.props.groups, fromId))
             this.props.handleGroupTemplateClone(from.template, toId)
     }
 
@@ -310,9 +310,9 @@ class PresetsPane extends React.Component {
             leftToolbar = (<div className="paneToolbar">
                 <h5>Group</h5>
                 <Button onClick={(e) => { this.props.onGroupEdit(this.props.groupId) }}
-                                        bsSize="xsmall" bsStyle={item.isEditable? "primary": "warning"} >
-                                        {item.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
-                                </Button>
+                    bsSize="xsmall" bsStyle={item.isEditable ? "primary" : "warning"} >
+                    {item.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                </Button>
             </div>)
 
             rightToolbar = (<div className="paneToolbar">
@@ -344,8 +344,8 @@ class PresetsPane extends React.Component {
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
                                 <Button onClick={(e) => { this.props.onPresetEdit(operation.id) }}
-                                        bsSize="xsmall" bsStyle={operation.isEditable? "primary": "warning"} >
-                                        {operation.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
+                                    bsSize="xsmall" bsStyle={operation.isEditable ? "primary" : "warning"} >
+                                    {operation.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
                                 </Button>
 
                                 <Button onClick={(e) => { this.props.onPresetDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
@@ -383,7 +383,6 @@ class PresetOperationSettings extends React.Component {
     render() {
         let result = "";
         let op = this.props.operation;
-        let OPDEF = operation.types;
         if (this.props.isEditable) {
             result = (<div>
 
@@ -406,12 +405,12 @@ class PresetOperationSettings extends React.Component {
 
                 <FormGroup>
                     <ControlLabel>Machine profile</ControlLabel>
-                    <MaterialMachineProfile label="Machine profile" onChange={(v)=>{this.props.onCellChange(op.id, { machine_profile: v })}} selected={op.machine_profile} />
+                    <MaterialMachineProfile label="Machine profile" onChange={(v) => { this.props.onCellChange(op.id, { machine_profile: v }) }} selected={op.machine_profile} />
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Type</ControlLabel>
                     <FormControl componentClass="select" placeholder="type" value={op.type} onChange={(e) => this.props.onCellChange(op.id, { type: e.target.value })}>
-                        {Object.keys(OPDEF).map((option, i) => { return <option key={i} value={option}>{option}</option> })}
+                        {Object.keys(OPERATION_TYPES).map((option, i) => { return <option key={i} value={option}>{option}</option> })}
                     </FormControl>
                     <FormControl.Feedback />
                 </FormGroup>
@@ -433,27 +432,27 @@ class PresetOperationSettings extends React.Component {
     }
 }
 
-const OMIT_FIELDS_EDITION=['name','filterFillColor', 'filterStrokeColor']
+const OMIT_FIELDS_EDITION = ['name', 'filterFillColor', 'filterStrokeColor']
 
 class PresetOperationParameters extends React.Component {
 
     render() {
         const OP = this.props.operation;
-        const OPDEF = operation.types[this.props.operation.type]
+        const OPDEF = OPERATION_TYPES[this.props.operation.type]
         const fields = {};
 
-        OPDEF.fields.filter((field)=> { return !OMIT_FIELDS_EDITION.includes(field)}).forEach((key) => {
+        OPDEF.fields.filter((field) => { return !OMIT_FIELDS_EDITION.includes(field) }).forEach((key) => {
 
-            const PARAMDEF = operation.fields[key];
+            const PARAMDEF = OPERATION_FIELDS[key];
             let FieldType = PARAMDEF.input
-            
-            let error=undefined;
+
+            let error = undefined;
             let className = [FieldType.name];
 
-            if (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings))) 
-                error = (typeof PARAMDEF.error=='function') ? PARAMDEF.error(OP.params[PARAMDEF.name], this.props.settings, OP):  PARAMDEF.error
+            if (PARAMDEF.check && !PARAMDEF.check(OP.params[PARAMDEF.name], this.props.settings, OP) && (!PARAMDEF.condition || PARAMDEF.condition(OP, this.props.settings)))
+                error = (typeof PARAMDEF.error == 'function') ? PARAMDEF.error(OP.params[PARAMDEF.name], this.props.settings, OP) : PARAMDEF.error
 
-            if (error!==undefined)
+            if (error !== undefined)
                 className.push("has-error")
 
             if (OP.isEditable || this.props.isEditable) {
@@ -475,7 +474,7 @@ class PresetOperationParameters extends React.Component {
                 <tbody>
                     {Object.entries(fields).map((entry, i) => {
                         let [key, field] = entry;
-                        return (<tr key={i}><th>{operation.fields[key].label}</th><td>{React.cloneElement(field)}</td></tr>);
+                        return (<tr key={i}><th>{OPERATION_FIELDS[key].label}</th><td>{React.cloneElement(field)}</td></tr>);
                     })}
                 </tbody>
             </table></div>
@@ -537,9 +536,6 @@ class MaterialDatabasePicker extends React.Component {
     }
 
     explainOperation(op) {
-
-        const OPERATION_TYPES = operation.types;
-        const OPERATION_FIELDS = operation.fields;
 
         let currentOperation = OPERATION_TYPES[op.type];
         return currentOperation.fields.map((field) => {
@@ -608,7 +604,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addGroup())
         },
         handleDelGroup: (id) => {
-            confirm("Are you sure?",(b)=>{
+            confirm("Are you sure?", (b) => {
                 if (b) dispatch(deleteGroup(id))
             })
         },
@@ -619,7 +615,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(addPreset(id))
         },
         handleDelPreset: (id) => {
-            confirm("Are you sure?",(b)=>{
+            confirm("Are you sure?", (b) => {
                 if (b) dispatch(deletePreset(id))
             })
         },
