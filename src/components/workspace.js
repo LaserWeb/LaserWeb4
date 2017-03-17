@@ -97,7 +97,7 @@ class Grid {
             this.origincount = c.length / 3
         }
 
-        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount , color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
         drawCommands.basic({ perspective, view, position: this.darkgrid, offset: 0, count: this.darkcount, color: [0.5, 0.5, 0.5, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // dark grid
 
         drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
@@ -112,10 +112,10 @@ function GridText(props) {
     offsetY = offsetY || 0
     let a = [];
     for (let x = spacing; x <= width; x += spacing)
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x + offsetX)}/>);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x + offsetX)} />);
     a.push(<Text3d key="x-label" x={width + 15} y={0} size={10} style={{ color: '#CC0000' }}>X</Text3d>);
     for (let y = spacing; y <= height; y += spacing)
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y + offsetY)}/>);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y + offsetY)} />);
     a.push(<Text3d key="y-label" x={0} y={height + 15} size={10} style={{ color: '#00CC00' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
@@ -546,6 +546,8 @@ class WorkspaceContent extends React.Component {
             // BINDS VIDEO FEED with TEXTURE
 
             if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
+                this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
+                /*
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
                 // APPLIES FX CHAIN
@@ -556,7 +558,6 @@ class WorkspaceContent extends React.Component {
                         { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
                     ]
                 )
-                /*
                 let videoTexture = fxChain(this.drawCommands,
                     [
                         {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
@@ -835,7 +836,7 @@ class WorkspaceContent extends React.Component {
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
                             settings={this.props.settings}
-                        />
+                            />
                     </SetSize>
                 </div>
             </div>
