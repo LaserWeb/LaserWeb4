@@ -90,7 +90,9 @@ export class Text3d extends React.Component {
         return (
             nextProps.x !== this.props.x ||
             nextProps.y !== this.props.y ||
-            nextProps.size !== this.props.size);
+            nextProps.size !== this.props.size ||
+            nextProps.label !== this.props.label
+        );
     }
 
     render() {
@@ -104,7 +106,7 @@ export class Text3d extends React.Component {
                     top: 0,
                     fontSize: this.props.size * 10,
                 })}>
-                    {this.props.children}
+                    {this.props.label || this.props.children}
                 </div>
             </div >
         );

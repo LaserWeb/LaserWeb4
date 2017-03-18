@@ -19,8 +19,9 @@ export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
                 return Object.assign({}, state, allowed);
             
             case actionTypes.INIT:
-                return Object.assign(action.payload.machineProfiles, initialState);
-                
+                if (action.payload) return Object.assign(action.payload.machineProfiles, initialState);
+                return state;
+            
             default:
                 return state;
         }

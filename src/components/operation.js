@@ -33,17 +33,19 @@ import { MaterialPickerButton } from './material-database'
 import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
 import Icon from './font-awesome'
 
+import { Details } from './material-database'
+
 function StringInput(props) {
-    let {op, field, fillColors, strokeColors, ...rest} = props;
+    let { op, field, fillColors, strokeColors, ...rest } = props;
     return <Input value={op[field.name]}  {...rest } />;
 }
 
 function NumberInput(props) {
-    let {op, field, fillColors, strokeColors, ...rest} = props;
+    let { op, field, fillColors, strokeColors, ...rest } = props;
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return (
         <select value={op[field.name]}  {...rest} >
             <option>Conventional</option>
@@ -52,7 +54,7 @@ function DirectionInput({op, field, onChangeValue, fillColors, strokeColors, ...
     );
 }
 
-function GrayscaleInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return (
         <select value={op[field.name]}  {...rest} >
             <option>none</option>
@@ -71,11 +73,11 @@ function GrayscaleInput({op, field, onChangeValue, fillColors, strokeColors, ...
     );
 }
 
-function CheckboxInput({op, field, onChangeValue, fillColors, strokeColors, ...rest}) {
+function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
 }
 
-function ToggleInput({op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest}) {
+function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
@@ -85,14 +87,14 @@ class InputRange extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange.bind(this)
-        this.state = Object.assign({min: this.props.minValue, max: this.props.maxValue},this.props.value);
+        this.state = Object.assign({ min: this.props.minValue, max: this.props.maxValue }, this.props.value);
     }
 
     handleChange(key, v) {
         let state = Object.assign(this.state, { [key]: parseFloat(v) })
-            state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
-            state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
-            
+        state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
+        state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
+
 
         this.setState(state)
         this.props.onChangeValue(state);
@@ -101,14 +103,14 @@ class InputRange extends React.Component {
     render() {
         let { min, max } = this.state;
         return <div>
-            <label style={{whiteSpace:"nowrap"}} >Min <input size="3" style={{display:"inline-block"}} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
-            <label style={{whiteSpace:"nowrap"}} >Max <input size="3" style={{display:"inline-block"}} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
-            </div>
+            <label style={{ whiteSpace: "nowrap" }} >Min <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
+            <label style={{ whiteSpace: "nowrap" }} >Max <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
+        </div>
     }
 }
 
 function RangeInput(minValue, maxValue) {
-    return ({op, field, onChangeValue, ...rest}) => {
+    return ({ op, field, onChangeValue, ...rest }) => {
         return <InputRange maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
     }
 }
@@ -133,7 +135,7 @@ class FilterInput extends React.Component {
     }
 
     render() {
-        let {op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest} = this.props;
+        let { op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest } = this.props;
         let raw = op[field.name];
         let colors = field.name === 'filterFillColor' ? fillColors : strokeColors;
         let value;
@@ -150,7 +152,7 @@ class FilterInput extends React.Component {
 }
 
 export function Error(props) {
-    let {bounds, operationsBounds, message} = props;
+    let { bounds, operationsBounds, message } = props;
     return (
         <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
             <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
@@ -165,7 +167,7 @@ export function Error(props) {
 Error = withStoredBounds(Error);
 
 function NoOperationsError(props) {
-    let {documents, operations, operationsBounds} = props;
+    let { documents, operations, operationsBounds } = props;
     if (documents.length && !operations.length)
         return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Documents(s) Here' /></GetBounds>;
     else
@@ -180,7 +182,7 @@ class Field extends React.Component {
     }
 
     onChangeValue(v) {
-        let {op, field} = this.props;
+        let { op, field } = this.props;
         if (op[field.name] !== v)
             this.props.dispatch(setOperationAttrs({ [field.name]: v }, op.id));
     }
@@ -195,14 +197,14 @@ class Field extends React.Component {
     }
 
     render() {
-        let {op, field, operationsBounds, fillColors, strokeColors, settings} = this.props;
+        let { op, field, operationsBounds, fillColors, strokeColors, settings } = this.props;
         let Input = field.input;
-        let {units} = field;
+        let { units } = field;
         let error;
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
-            error = <Error operationsBounds={operationsBounds} message={(typeof field.error=='function') ? field.error(op[field.name], settings, op):  field.error} />;
+            error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
         return (
             <GetBounds Type="tr">
                 <th>{field.label}</th>
@@ -225,10 +227,10 @@ class Doc extends React.Component {
     }
 
     render() {
-        let {op, documents, id} = this.props;
+        let { op, documents, id } = this.props;
         return (
             <tr>
-                <td style={{ width: '100%', whiteSpace:'nowrap' }}>
+                <td style={{ width: '100%', whiteSpace: 'nowrap' }}>
                     └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) }}>{documents.find(d => d.id === id).name}</a>
                 </td>
                 <td>
@@ -284,7 +286,7 @@ function checkRange(min, max) {
             if (isFinite(v)) {
                 return v >= min && v <= max;
             } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
-                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max) 
+                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max)
             }
         },
         error: 'Must be in range [' + min + ' , ' + max + ']',
@@ -322,7 +324,7 @@ const checkPassDepth = {
     error: (v, settings, op) => { return (op.type.match(/^Laser/)) ? checkGE0.error : checkPositive.error },
 }
 
-export const fields = {
+export const OPERATION_FIELDS = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
 
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
@@ -368,18 +370,27 @@ export const fields = {
     burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: { name: 'verboseGcode', label: 'Verbose GCode', units: '', input: ToggleInput },                      // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+
+    overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
 };
+
+export const OPERATION_GROUPS = { 
+    'Advanced': {
+        collapsible: false,
+        fields: ['smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'overScan']
+    }
+}
 
 const tabFields = [
     { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
 ];
 
-export const types = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
+export const OPERATION_TYPES = {
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'useBlower'] },
+    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'overScan', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'useBlower'] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
@@ -387,24 +398,96 @@ export const types = {
     'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
 };
 
+const groupFields = (fields) => {
+    let groups = { '_default': { visible: true, collapsible: false, fields: [] } };
+    fields.forEach(field => {
+        Object.entries(OPERATION_GROUPS).forEach(entry => {
+            let [key, group] = entry;
+            if (!groups[key]) {
+                groups[key] = Object.assign({}, group)
+                groups[key].fields = []
+            }
+
+            if (group.fields.includes(field)) {
+                groups[key].fields.push(field)
+            } else {
+                groups['_default'].fields.push(field)
+            }
+        })
+    })
+    return groups;
+}
+
+const traverseDocumentTypes = (ids, documents) => {
+    let result = { images: 0, vectors: 0, other: 0 };
+    ids.forEach((id) => {
+        let item = documents.find((item) => item.id == id)
+        if (item) {
+            if (item.dataURL) {
+                result.images++
+            } else if (item.rawPaths) {
+                result.vectors++
+            } else {
+                result.other++
+            }
+
+            if (item.children.length) {
+                let { images, vectors, other } = traverseDocumentTypes(item.children, documents)
+                result.images += images;
+                result.vectors += vectors;
+                result.other += other;
+            }
+        }
+    })
+    return result;
+}
+
 class Operation extends React.Component {
 
     componentWillMount() {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
+        this.setTypeString = e => this.props.dispatch(setOperationAttrs({ type: e }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
         this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ type: type, ...attrs }, this.props.op.id))
         this.toggleDocs = e => this.props.dispatch(setOperationAttrs({ _docs_visible: !this.props.op._docs_visible }, this.props.op.id));
+
+        this.documentsCount = null;
+        this.documentTypes = { vectors: 0, images: 0 };
+        this.availableOps = Object.keys(OPERATION_TYPES);
+        this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+    }
+
+    componentWillReceiveProps(nextProps) {
+
+        if (nextProps.op.documents.length !== this.documentsCount) {
+            this.documentsCount = nextProps.op.documents.length
+            this.documentTypes = traverseDocumentTypes(nextProps.op.documents, nextProps.documents)
+            this.availableOps = Object.keys(OPERATION_TYPES);
+            if (nextProps.op.documents.length) {
+                if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
+                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
+
+                if (!this.availableOps.includes(nextProps.op.type))
+                    this.setTypeString(this.availableOps[0])
+            }
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.op.type != this.props.op.type) {
+            this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+        }
     }
 
     render() {
-        let {op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings} = this.props;
+        let { op, documents, selected, bounds, dispatch, fillColors, strokeColors, settings } = this.props;
         let error;
         if (!op.expanded) {
-            for (let fieldName of types[op.type].fields) {
-                let field = fields[fieldName];
+            for (let fieldName of OPERATION_TYPES[op.type].fields) {
+                let field = OPERATION_FIELDS[fieldName];
                 if (field.check && !field.check(op[fieldName], settings, op) && (!field.condition || field.condition(op, settings))) {
                     error = <Error operationsBounds={bounds} message="Expand to setup operation" />;
                     break;
@@ -418,6 +501,15 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
+
+
+        let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
+
+        let header;
+
+        if (op.name && op.name.length)
+            header = (<h5 style={{ marginTop: 0 }} onClick={this.toggleExpanded}>{op.name}</h5>)
+
         let rows = [
             <GetBounds Type="div" key="header" style={{ display: 'table-row' }} data-operation-id={op.id}>
                 <div style={leftStyle} />
@@ -425,12 +517,13 @@ class Operation extends React.Component {
                     <i onClick={this.toggleExpanded}
                         className={op.expanded ? 'fa fa-fw fa-minus-circle' : 'fa fa-fw fa-plus-circle'} />
                 </div>
+
                 <div style={{ display: 'table-cell', width: '100%' }}>
+                    {header}
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>
-                                {Object.keys(types).map(type => <option key={type}>{type}</option>)}
-                            </select>
+
+                        <div style={{ whiteSpace: 'nowrap' }}>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
@@ -470,20 +563,33 @@ class Operation extends React.Component {
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
                             <tbody>
-                                {types[op.type].fields
-                                    .filter(fieldName => { let f = fields[fieldName]; return !f.condition || f.condition(op, settings); })
-                                    .map(fieldName => {
-                                        return <Field
-                                            key={fieldName} op={op} field={fields[fieldName]} selected={selected}
-                                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                            operationsBounds={bounds} dispatch={dispatch} />
-                                    })}
+                                {Object.entries(this.operationGroups || {}).map((entry) => {
+                                    let [key, group] = entry;
+                                    let fields = group.fields
+                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return !f.condition || f.condition(op, settings); })
+                                                .map(fieldName => {
+                                                    return <Field
+                                                        key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
+                                                        fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                                                        operationsBounds={bounds} dispatch={dispatch} />
+                                                })
+                                    if (key !== '_default' && group.fields.length) {
+                                        if (group.collapsible) {
+                                            return <tr key={key}><td><Details className="operationGroup" handler={(<h4>{key}</h4>)}><table><tbody>{fields}</tbody></table> </Details></td></tr>
+                                        } else {
+                                            return <tr key={key}><td><h4>{key}</h4><table><tbody>{fields}</tbody></table></td></tr>
+                                        }
+                                    } else {
+                                        return <tr key={key}><td><table><tbody>{fields}</tbody></table></td></tr>
+                                    }
+                                    
+                                })}
                             </tbody>
                         </table>
                     </div>
                 </div>,
             );
-            if (types[op.type].allowTabs) {
+            if (OPERATION_TYPES[op.type].allowTabs) {
                 rows.push(
                     <div key="space" style={{ display: 'table-row' }} data-operation-id={op.id} data-operation-tabs={true}>
                         <div style={leftStyle} />
@@ -512,7 +618,7 @@ class Operation extends React.Component {
                             </div>
                         </div>,
                     );
-                    if (types[op.type].tabFields) {
+                    if (OPERATION_TYPES[op.type].tabFields) {
                         rows.push(
                             <div key="tabattrs" style={{ display: 'table-row' }}>
                                 <div style={leftStyle} />
@@ -541,17 +647,7 @@ class Operation extends React.Component {
                 }
             } // types[op.type].allowTabs
         } // op.expanded
-        else if (op.name && op.name.length) {
-            rows.push(
-                <div key="attrs" style={{ display: 'table-row' }}>
-                    <div style={leftStyle} />
-                    <div style={{ display: 'table-cell' }} />
-                    <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                        {op.name}
-                    </div>
-                </div>,
-            );
-        }
+
         return <div className="operation-row">{rows}</div>;
     }
 }; // Operation
@@ -560,7 +656,7 @@ Operation = withStoredBounds(Operation);
 
 class Operations extends React.Component {
     render() {
-        let {operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
+        let { operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
         let fillColors = [];
         let strokeColors = [];
         let addColor = (colors, color) => {
@@ -601,7 +697,7 @@ class Operations extends React.Component {
 };
 
 Operations = connect(
-    ({operations, currentOperation, documents, settings}) => ({ operations, currentOperation, documents, settings }),
+    ({ operations, currentOperation, documents, settings }) => ({ operations, currentOperation, documents, settings }),
 )(withGetBounds(Operations));
 export { Operations };
 
@@ -623,9 +719,10 @@ class OperationToolbar extends React.Component {
     }
 
     render() {
+        let hasSelected = this.props.documents.some((item) => item.selected)
         return <ButtonToolbar>
-            <Button onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
-            <Button onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
         </ButtonToolbar>
     }
 }

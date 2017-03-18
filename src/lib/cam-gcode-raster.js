@@ -91,6 +91,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 burnWhite: op.burnWhite,
                 verboseG: op.verboseGcode,
                 diagonal: op.diagonal,
+                overscan: op.overScan,
                 nonBlocking: false,
                 milling: false,
                 filters: {
