@@ -33,6 +33,8 @@ import { MaterialPickerButton } from './material-database'
 import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
 import Icon from './font-awesome'
 
+import { Details } from './material-database'
+
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
     return <Input value={op[field.name]}  {...rest } />;
@@ -368,9 +370,16 @@ export const OPERATION_FIELDS = {
     burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: { name: 'verboseGcode', label: 'Verbose GCode', units: '', input: ToggleInput },                      // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-    
+
     overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
 };
+
+export const OPERATION_GROUPS = { 
+    'Advanced': {
+        collapsible: false,
+        fields: ['smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'overScan']
+    }
+}
 
 const tabFields = [
     { name: 'tabDepth', label: 'Tab Depth', units: 'mm', input: NumberInput, ...checkGE0 },
@@ -389,6 +398,50 @@ export const OPERATION_TYPES = {
     'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
 };
 
+const groupFields = (fields) => {
+    let groups = { '_default': { visible: true, collapsible: false, fields: [] } };
+    fields.forEach(field => {
+        Object.entries(OPERATION_GROUPS).forEach(entry => {
+            let [key, group] = entry;
+            if (!groups[key]) {
+                groups[key] = Object.assign({}, group)
+                groups[key].fields = []
+            }
+
+            if (group.fields.includes(field)) {
+                groups[key].fields.push(field)
+            } else {
+                groups['_default'].fields.push(field)
+            }
+        })
+    })
+    return groups;
+}
+
+const traverseDocumentTypes = (ids, documents) => {
+    let result = { images: 0, vectors: 0, other: 0 };
+    ids.forEach((id) => {
+        let item = documents.find((item) => item.id == id)
+        if (item) {
+            if (item.dataURL) {
+                result.images++
+            } else if (item.rawPaths) {
+                result.vectors++
+            } else {
+                result.other++
+            }
+
+            if (item.children.length) {
+                let { images, vectors, other } = traverseDocumentTypes(item.children, documents)
+                result.images += images;
+                result.vectors += vectors;
+                result.other += other;
+            }
+        }
+    })
+    return result;
+}
+
 class Operation extends React.Component {
 
     componentWillMount() {
@@ -404,34 +457,10 @@ class Operation extends React.Component {
         this.documentsCount = null;
         this.documentTypes = { vectors: 0, images: 0 };
         this.availableOps = Object.keys(OPERATION_TYPES);
+        this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
     }
 
     componentWillReceiveProps(nextProps) {
-
-        let traverseDocumentTypes = (ids, documents) => {
-            let result = { images: 0, vectors: 0, other: 0 };
-            ids.forEach((id) => {
-                let item = documents.find((item) => item.id == id)
-                if (item) {
-                    if (item.dataURL) {
-                        result.images++
-                    } else if (item.rawPaths) {
-                        result.vectors++
-                    } else {
-                        result.other++
-                    }
-
-                    if (item.children.length) {
-                        let { images, vectors, other } = traverseDocumentTypes(item.children, documents)
-                        result.images += images;
-                        result.vectors += vectors;
-                        result.other += other;
-                    }
-                }
-            })
-            return result;
-        }
-
 
         if (nextProps.op.documents.length !== this.documentsCount) {
             this.documentsCount = nextProps.op.documents.length
@@ -445,7 +474,12 @@ class Operation extends React.Component {
                     this.setTypeString(this.availableOps[0])
             }
         }
+    }
 
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.op.type != this.props.op.type) {
+            this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+        }
     }
 
     render() {
@@ -529,14 +563,27 @@ class Operation extends React.Component {
                     <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                         <table>
                             <tbody>
-                                {OPERATION_TYPES[op.type].fields
-                                    .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return !f.condition || f.condition(op, settings); })
-                                    .map(fieldName => {
-                                        return <Field
-                                            key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
-                                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                            operationsBounds={bounds} dispatch={dispatch} />
-                                    })}
+                                {Object.entries(this.operationGroups || {}).map((entry) => {
+                                    let [key, group] = entry;
+                                    let fields = group.fields
+                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return !f.condition || f.condition(op, settings); })
+                                                .map(fieldName => {
+                                                    return <Field
+                                                        key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
+                                                        fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                                                        operationsBounds={bounds} dispatch={dispatch} />
+                                                })
+                                    if (key !== '_default' && group.fields.length) {
+                                        if (group.collapsible) {
+                                            return <tr key={key}><td><Details className="operationGroup" handler={(<h4>{key}</h4>)}><table><tbody>{fields}</tbody></table> </Details></td></tr>
+                                        } else {
+                                            return <tr key={key}><td><h4>{key}</h4><table><tbody>{fields}</tbody></table></td></tr>
+                                        }
+                                    } else {
+                                        return <tr key={key}><td><table><tbody>{fields}</tbody></table></td></tr>
+                                    }
+                                    
+                                })}
                             </tbody>
                         </table>
                     </div>

@@ -485,7 +485,7 @@ PresetOperationParameters = connect((state) => { return { settings: state.settin
 
 
 
-class Details extends React.Component {
+export class Details extends React.Component {
 
     constructor(props) {
         super(props);
@@ -498,7 +498,7 @@ class Details extends React.Component {
     }
 
     render() {
-        return <div className={"details " + (this.props.className ? this.props.className : "")}>
+        return <div className={"details " + (this.props.className ? this.props.className : "")} style={this.props.style}>
             <heading>
 
                 <div className="summary" onClick={() => this.setState({ open: !this.state.open })}><Icon name={this.state.open ? 'chevron-up' : 'chevron-down'} />&nbsp;{this.props.handler}</div>
