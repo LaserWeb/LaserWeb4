@@ -263,19 +263,9 @@ class Settings extends React.Component {
                         <table width="100%"><tbody><tr>
                             <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} /></td>
                             <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
-                            <td width="10%" style={{ verticalAlign: 'bottom' }}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
                         </tr></tbody></table>
 
 
-                        {isVideoDeviceSelected ? <PerspectiveWebcam
-                            showCoordinators={this.state.showVideoControls}
-                            width="640" height="480"
-                            device={this.props.settings['toolVideoDevice']}
-                            perspective={this.props.settings['toolVideoPerspective']}
-                            lens={this.props.settings['toolVideoLens']}
-                            fov={this.props.settings['toolVideoFov']}
-                            resolution={this.props.settings['toolVideoResolution']}
-                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) }} /> : undefined}
 
                         <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
                             lens={this.props.settings['toolVideoLens']}
