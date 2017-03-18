@@ -132,7 +132,7 @@ class LaserWeb extends React.Component {
                             <Settings id="settings" title="Settings" icon="cogs" />
                             <About id="about" title="About" icon="question" />
                         </Sidebar>
-                        <Workspace style={{ flexGrow: 1 }} />
+                        <Workspace style={{ flexGrow: 1, position:"relative" }} />
                     </div>
                 </DocumentCacheHolder>
             </AllowCapture>

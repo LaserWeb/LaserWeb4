@@ -36,10 +36,13 @@ import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
 import CommandHistory from './command-history'
-import { getVideoResolution } from '../lib/video-capture'
 
 import { Button, ButtonToolbar } from 'react-bootstrap'
 import Icon from './font-awesome'
+
+import Draggable from 'react-draggable';
+
+import { VideoPort } from './webcam'
 
 function camera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
     let perspective;
@@ -853,6 +856,9 @@ class Workspace extends React.Component {
                         <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} onCommandExec={runCommand} />
                     </div>
                 </div>
+                
+                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
+                
             </div>
         )
     }
