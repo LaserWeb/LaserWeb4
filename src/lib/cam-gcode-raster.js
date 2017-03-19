@@ -37,7 +37,13 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     // POSTPROCESS GCODE;
     const postProcessing = (gc) => {
         let g = '';
-        let raster = gc.join('\r\n') + "\r\n\r\n";
+        let raster = '';
+        for (let line of gc)
+            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F')
+                raster += line + '\r\n';
+            else
+                raster += '; stripped: ' + line + '\r\n';
+        raster += '\r\n\r\n';
 
         if (op.useBlower) {
             if (settings.machineBlowerGcodeOn) {
