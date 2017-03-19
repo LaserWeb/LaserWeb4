@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { PerspectiveWebcam, VideoDeviceField, VideoControls, VideoResolutionField } from './webcam';
+import { VideoDeviceField, VideoPort, VideoResolutionField } from './webcam';
 
 import { alert, prompt, confirm } from './laserweb';
 
@@ -157,7 +157,7 @@ class Settings extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { errors: null, showVideoControls: false }
+        this.state = { errors: null }
     }
 
     validate(data, rules) {
@@ -186,9 +186,7 @@ class Settings extends React.Component {
 
     render() {
 
-        const showVideoControls = (e) => {
-            this.setState({ showVideoControls: !this.state.showVideoControls })
-        }
+       
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
@@ -263,27 +261,10 @@ class Settings extends React.Component {
                         <table width="100%"><tbody><tr>
                             <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} /></td>
                             <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
-                            <td width="10%" style={{ verticalAlign: 'bottom' }}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
+
                         </tr></tbody></table>
 
-
-                        {isVideoDeviceSelected ? <PerspectiveWebcam
-                            showCoordinators={this.state.showVideoControls}
-                            width="640" height="480"
-                            device={this.props.settings['toolVideoDevice']}
-                            perspective={this.props.settings['toolVideoPerspective']}
-                            lens={this.props.settings['toolVideoLens']}
-                            fov={this.props.settings['toolVideoFov']}
-                            resolution={this.props.settings['toolVideoResolution']}
-                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) }} /> : undefined}
-
-                        <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
-                            lens={this.props.settings['toolVideoLens']}
-                            fov={this.props.settings['toolVideoFov']}
-                            videoWidth="640" videoHeight="480"
-                            perspective={this.props.settings['toolVideoPerspective']}
-                            resolution={this.props.settings['toolVideoResolution']}
-                            onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} /></div></Collapse>
+                        <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                     </Panel>

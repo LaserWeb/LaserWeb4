@@ -356,6 +356,54 @@ VideoResolutionField.defaultProps = {
 }
 
 
+export class VideoPort extends React.Component {
+
+    componentDidMount()
+    {
+        if (this.props.enabled)
+            this.enableVideo()
+    }
+    componentDidUpdate(prevProps)
+    {
+        if (prevProps.enabled !== this.props.enabled)
+            this.enableVideo();
+    }
+
+    enableVideo()
+    {
+        let enable=()=>{
+            if (!(window.videoCapture && window.videoCapture.isReady))
+                 requestAnimationFrame(enable);
+
+            let myvideo=ReactDOM.findDOMNode(this)
+            if (this.props.enabled) {
+                let stream=window.videoCapture.getStream();
+                
+                if (myvideo.srcObject!==stream)
+                    myvideo.srcObject=stream
+                    myvideo.style.display='block'
+            } else {
+                myvideo.style.display='none'
+            }
+           
+        }
+        enable();
+    }
+
+    render() {
+        let video=<video ref="videoport" style={{ pointerEvents: this.props.enabled? 'all':'none', position: this.props.draggable? "absolute":"static", width: this.props.width||320, height:this.props.height||240, zIndex:100000}}/>;
+        if (this.props.draggable) {
+            return <Draggable bounds={this.props.draggable}>{video}</Draggable>
+        } else {
+            return video;
+        }
+    }
+}
+
+VideoPort.defaultProps={
+    draggable: false
+}
+
 export class VideoControls extends React.Component {
 
     constructor(props) {

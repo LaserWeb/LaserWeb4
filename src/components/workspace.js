@@ -36,10 +36,13 @@ import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 
 import CommandHistory from './command-history'
-import { getVideoResolution } from '../lib/video-capture'
 
 import { Button, ButtonToolbar } from 'react-bootstrap'
 import Icon from './font-awesome'
+
+import Draggable from 'react-draggable';
+
+import { VideoPort } from './webcam'
 
 function camera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
     let perspective;
@@ -97,7 +100,7 @@ class Grid {
             this.origincount = c.length / 3
         }
 
-        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount , color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
+        drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
         drawCommands.basic({ perspective, view, position: this.darkgrid, offset: 0, count: this.darkcount, color: [0.5, 0.5, 0.5, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // dark grid
 
         drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
@@ -112,10 +115,10 @@ function GridText(props) {
     offsetY = offsetY || 0
     let a = [];
     for (let x = spacing; x <= width; x += spacing)
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x + offsetX)}/>);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x + offsetX)} />);
     a.push(<Text3d key="x-label" x={width + 15} y={0} size={10} style={{ color: '#CC0000' }}>X</Text3d>);
     for (let y = spacing; y <= height; y += spacing)
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y + offsetY)}/>);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y + offsetY)} />);
     a.push(<Text3d key="y-label" x={0} y={height + 15} size={10} style={{ color: '#00CC00' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
@@ -334,48 +337,6 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 } // drawDocuments
 
 
-// WEBCAM
-function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
-    let stream = window.videoCapture.getStream();
-    if (!videoElement.srcObject || (videoElement.srcObject != stream))
-        videoElement.srcObject = stream;
-
-    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
-        videoTexture.set({ image: videoElement, width: size.width, height: size.height })
-        return true;
-    }
-    return false;
-}
-
-function fxChain(drawCommands, fx) {
-    let fxTexture;
-    fx.forEach((params) => {
-        let cb = () => {
-            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
-            drawCommands[params.name](uniforms)
-            fxTexture = (params.buffer) ? params.buffer.texture : null;
-        }
-
-        if (params.buffer) {
-            drawCommands.useFrameBuffer(params.buffer, cb)
-        } else {
-            cb()
-        }
-    })
-    return fxTexture;
-}
-
-function drawVideo(perspective, view, drawCommands, videoTexture, size) {
-    drawCommands.image({
-        perspective, view,
-        location: [0, 0, 0],
-        size: [size.width, size.height],
-        texture: videoTexture,
-        selected: false,
-    });
-}
-// /WEBCAM 
-
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
@@ -527,10 +488,6 @@ class WorkspaceContent extends React.Component {
 
         // WEBCAM INIT
         let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
-        let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
-        this.videoElement = document.createElement('video')
-        this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
-        //this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -542,29 +499,6 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
-            // WEBCAM
-            // BINDS VIDEO FEED with TEXTURE
-
-            if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
-                let l = this.props.settings.toolVideoLens
-                let f = this.props.settings.toolVideoFov
-                // APPLIES FX CHAIN
-
-
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )
-                /*
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
-                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )
-                */
-            }
 
             this.grid.draw(this.drawCommands, {
                 perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
@@ -835,7 +769,7 @@ class WorkspaceContent extends React.Component {
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
                             settings={this.props.settings}
-                        />
+                            />
                     </SetSize>
                 </div>
             </div>
@@ -922,6 +856,9 @@ class Workspace extends React.Component {
                         <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} onCommandExec={runCommand} />
                     </div>
                 </div>
+                
+                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
+                
             </div>
         )
     }

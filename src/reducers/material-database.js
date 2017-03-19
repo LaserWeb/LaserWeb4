@@ -1,76 +1,74 @@
 
 import omit from 'object.omit'
-import {deepMerge} from "../lib/helpers"
+import { deepMerge } from "../lib/helpers"
 import generateName from 'sillyname'
 import uuid from 'node-uuid';
 
 const initialState = require("../data/material-database.json");
 
-import {types} from "../components/operation";
-
 function generateInteger(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min)) + min;
 }
 
-const GROUP_TEMPLATE=()=>{
+const GROUP_TEMPLATE = () => {
     return {
         id: uuid.v4(),
         name: generateName(),
-        notes:"",
+        notes: "",
         template: PRESET_TEMPLATE('Laser Cut'),
-        presets:[]
+        presets: []
     }
 }
 
-const PRESET_TEMPLATE=(type, machineProfile=null)=>{
+const PRESET_TEMPLATE = (type, machineProfile = null) => {
     return {
         id: uuid.v4(),
-        name: "** "+generateName()+" **",
-        notes:"",
-        type:type,
-        machine_profile:machineProfile,
-        params:{}
+        name: "** " + generateName() + " **",
+        notes: "",
+        type: type,
+        machine_profile: machineProfile,
+        params: {}
     }
 }
 
 
-const togglePresetAttribute = (state, id, attribute, processPreset=null) => {
+const togglePresetAttribute = (state, id, attribute, processPreset = null) => {
     return state.map((group) => {
-        if (!group.presets || !group.presets.find((preset)=>{ return preset.id === id})) 
+        if (!group.presets || !group.presets.find((preset) => { return preset.id === id }))
             return group;
-        
-        group.presets=group.presets.map((preset,i)=> {
-                if (preset.id!==id)
-                    return preset;
-                
-                if (typeof preset[attribute] == "undefined")
-                    preset[attribute]=false;
-                
-                preset[attribute]=!preset[attribute];
-                
-                if (processPreset)
-                    preset = processPreset(preset)
 
+        group.presets = group.presets.map((preset, i) => {
+            if (preset.id !== id)
                 return preset;
-                
+
+            if (typeof preset[attribute] == "undefined")
+                preset[attribute] = false;
+
+            preset[attribute] = !preset[attribute];
+
+            if (processPreset)
+                preset = processPreset(preset)
+
+            return preset;
+
         })
-        
+
         return group;
     })
 }
 
-const toggleGroupAttribute = (state, id,  attribute, processGroup=null) => {
+const toggleGroupAttribute = (state, id, attribute, processGroup = null) => {
     return state.map((group) => {
         if (group.id !== id)
             return group;
         if (typeof group[attribute] == "undefined")
-            group[attribute]=false;
-            
-        group[attribute]=!group[attribute];
+            group[attribute] = false;
+
+        group[attribute] = !group[attribute];
 
         if (processGroup)
             group = processGroup(group)
-        
+
         return group;
     })
 }
@@ -78,97 +76,97 @@ const toggleGroupAttribute = (state, id,  attribute, processGroup=null) => {
 
 export const materialDatabase = (state = initialState, action) => {
 
-    
-        switch (action.type) {
-          
-            case "MATERIALDB_UPLOAD":
-                return action.payload.database;
-          
-            case "MATERIALDB_DOWNLOAD":
-                return state;
-          
-            case "MATERIALDB_GROUP_ADD":
-                state = [...state, GROUP_TEMPLATE()];
-                return state;
-                
-            case "MATERIALDB_GROUP_DELETE":
-                return state.filter((group)=>{
-                    return (group.id !== action.payload);
-                })
-            
-            case "MATERIALDB_GROUP_SET_ATTRS":
-                return state.map((group) => {
-                    if (group.id !== action.payload.groupId)
-                        return group;
-                    
-                    let attrs=omit(action.payload.attrs, ['id','presets']); // dont overwrite id,presets
-                    group=deepMerge(group, attrs )
+
+    switch (action.type) {
+
+        case "MATERIALDB_UPLOAD":
+            return action.payload.database;
+
+        case "MATERIALDB_DOWNLOAD":
+            return state;
+
+        case "MATERIALDB_GROUP_ADD":
+            state = [...state, GROUP_TEMPLATE()];
+            return state;
+
+        case "MATERIALDB_GROUP_DELETE":
+            return state.filter((group) => {
+                return (group.id !== action.payload);
+            })
+
+        case "MATERIALDB_GROUP_SET_ATTRS":
+            return state.map((group) => {
+                if (group.id !== action.payload.groupId)
                     return group;
-                })
 
-            case "MATERIALDB_GROUP_TOGGLE_VIEW" :
-                return toggleGroupAttribute(state, action.payload, 'isOpened');
+                let attrs = omit(action.payload.attrs, ['id', 'presets']); // dont overwrite id,presets
+                group = deepMerge(group, attrs)
+                return group;
+            })
 
-            case "MATERIALDB_GROUP_TOGGLE_EDIT":
+        case "MATERIALDB_GROUP_TOGGLE_VIEW":
+            return toggleGroupAttribute(state, action.payload, 'isOpened');
 
-                //disable children edit.
-                const processGroup=(group)=>{
-                    if (group.isEditable){
-                        group.presets=group.presets.map((preset, i) =>{
-                            preset.isEditable=false;
-                            return preset;    
-                        })
-                    }
-                    return group;
-                }
+        case "MATERIALDB_GROUP_TOGGLE_EDIT":
 
-                return toggleGroupAttribute(state, action.payload, 'isEditable', processGroup )
-            
-            case "MATERIALDB_PRESET_ADD":
-                return state.map((group) => {
-                    if (group.id !== action.payload.groupId)
-                        return group;
-                      
-                    let template=group.template || {};
-                    let attrs=action.payload.attrs || {};
-                    group.presets=[...group.presets, Object.assign(PRESET_TEMPLATE(),omit(template,['id','name']), omit(attrs,['id']))]
-                    
-                    return group;
-                });
-
-            case "MATERIALDB_PRESET_SET_ATTRS":
-                return state.map((group) => {
-                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload.presetId})) 
-                        return group;
-                    
-                    
-                    group.presets=group.presets.map((preset)=> {
-                            if (preset.id!==action.payload.presetId)
-                                return preset;
-                            return deepMerge(preset, action.payload.attrs)
-                            
+            //disable children edit.
+            const processGroup = (group) => {
+                if (group.isEditable) {
+                    group.presets = group.presets.map((preset, i) => {
+                        preset.isEditable = false;
+                        return preset;
                     })
-                    
+                }
+                return group;
+            }
+
+            return toggleGroupAttribute(state, action.payload, 'isEditable', processGroup)
+
+        case "MATERIALDB_PRESET_ADD":
+            return state.map((group) => {
+                if (group.id !== action.payload.groupId)
                     return group;
+
+                let template = group.template || {};
+                let attrs = action.payload.attrs || {};
+                group.presets = [...group.presets, Object.assign(PRESET_TEMPLATE(), omit(template, ['id', 'name']), omit(attrs, ['id']))]
+
+                return group;
+            });
+
+        case "MATERIALDB_PRESET_SET_ATTRS":
+            return state.map((group) => {
+                if (!group.presets || !group.presets.find((preset) => { return preset.id === action.payload.presetId }))
+                    return group;
+
+
+                group.presets = group.presets.map((preset) => {
+                    if (preset.id !== action.payload.presetId)
+                        return preset;
+                    return deepMerge(preset, action.payload.attrs)
+
                 })
 
-            
-            case "MATERIALDB_PRESET_DELETE":
-                return state.map((group) => {
-                    if (!group.presets || !group.presets.find((preset)=>{ return preset.id === action.payload})) 
-                        return group;
-                    
-                    group.presets=group.presets.filter((preset,i)=> { return (preset.id!==action.payload) })
-                    
+                return group;
+            })
+
+
+        case "MATERIALDB_PRESET_DELETE":
+            return state.map((group) => {
+                if (!group.presets || !group.presets.find((preset) => { return preset.id === action.payload }))
                     return group;
-                })
-               
-                
-            case "MATERIALDB_PRESET_TOGGLE_EDIT":
-                return togglePresetAttribute(state, action.payload,'isEditable')
-            
-            default:
-                return state;
-        }
-    
+
+                group.presets = group.presets.filter((preset, i) => { return (preset.id !== action.payload) })
+
+                return group;
+            })
+
+
+        case "MATERIALDB_PRESET_TOGGLE_EDIT":
+            return togglePresetAttribute(state, action.payload, 'isEditable')
+
+        default:
+            return state;
+    }
+
 }
