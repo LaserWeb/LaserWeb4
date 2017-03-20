@@ -377,8 +377,8 @@ export class VideoPort extends React.Component {
                  requestAnimationFrame(enable);
 
             let myvideo=ReactDOM.findDOMNode(this).querySelector('video')
-                console.log(myvideo)
-            if (this.props.enabled) {
+                
+            if (this.props.enabled && myvideo) {
                 let stream=window.videoCapture.getStream();
                 
                 if (myvideo.srcObject!==stream)
@@ -417,7 +417,7 @@ export class VideoPort extends React.Component {
                 zIndex={10000}
             >{video}</Rnd>
         } else {
-            return video;
+            return <div>{video}</div>;
         }
     }
 }
