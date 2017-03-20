@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
+import Rnd from 'react-rnd';
 import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
@@ -375,15 +376,16 @@ export class VideoPort extends React.Component {
             if (!(window.videoCapture && window.videoCapture.isReady))
                  requestAnimationFrame(enable);
 
-            let myvideo=ReactDOM.findDOMNode(this)
+            let myvideo=ReactDOM.findDOMNode(this).querySelector('video')
+                console.log(myvideo)
             if (this.props.enabled) {
                 let stream=window.videoCapture.getStream();
                 
                 if (myvideo.srcObject!==stream)
                     myvideo.srcObject=stream
-                    myvideo.style.display='block'
+                    ReactDOM.findDOMNode(this).style.display='block'
             } else {
-                myvideo.style.display='none'
+                ReactDOM.findDOMNode(this).style.display='none'
             }
            
         }
@@ -391,9 +393,29 @@ export class VideoPort extends React.Component {
     }
 
     render() {
-        let video=<video ref="videoport" style={{ pointerEvents: this.props.enabled? 'all':'none', position: this.props.draggable? "absolute":"static", width: this.props.width||320, height:this.props.height||240, zIndex:100000}}/>;
+        
+        let video=<video ref="videoport" style={{width: '100%'}}/>;
+
+        const dragStyle={
+            pointerEvents: this.props.enabled? 'all':'none', 
+        }
+
         if (this.props.draggable) {
-            return <Draggable bounds={this.props.draggable}>{video}</Draggable>
+            return   <Rnd
+                ref={c => { this.rnd = c; }}
+                initial={{
+                    width: this.props.width||320,
+                    height: this.props.height||240,
+                }}
+                style={dragStyle}
+                minWidth={160}
+                minHeight={120}
+                maxWidth={800}
+                maxHeight={600}
+                lockAspectRatio={true}
+                bounds={this.props.draggable}
+                zIndex={10000}
+            >{video}</Rnd>
         } else {
             return video;
         }
