@@ -61,7 +61,7 @@ class Cam extends React.Component {
                 let {settings, documents, operations} = that.props;
                 
                 let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder, 
-                    (msg,level) => { CommandHistory.log(msg,level);}, 
+                    (msg,level) => { CommandHistory.write(msg,level);}, 
                     (gcode) => {
                         that.props.dispatch(generatingGcode(false))
                         that.props.dispatch(setGcode(gcode));
@@ -179,10 +179,13 @@ Cam = connect(
                 let reader = new FileReader;
                 if (file.name.substr(-4) === '.svg') {
                     reader.onload = () => {
+                        var cc = window.console
+                        window.console = CommandHistory;
                         let parser = new Parser({});
                         parser.parse(reader.result)
-                            .then(tags => dispatch(loadDocument(file, { parser, tags })))
-                            .catch(e => console.log('error:', e))
+                            .then((tags) => { dispatch(loadDocument(file, { parser, tags })); window.console = cc;})
+                            .catch((e) => { CommandHistory.error(String(e)); window.console = cc;})
+                        
                     }
                     reader.readAsText(file);
                 }
