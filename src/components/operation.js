@@ -448,6 +448,7 @@ class Operation extends React.Component {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.setTypeString = e => this.props.dispatch(setOperationAttrs({ type: e }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
+        this.toggleEnabled = e => this.props.dispatch(setOperationAttrs({ enabled: !this.props.op.enabled }, this.props.op.id));
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
@@ -527,7 +528,8 @@ class Operation extends React.Component {
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
-                            <button className="btn btn-default btn-xs" onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
+                         <button className={"btn btn-warning btn-xs "+(op.enabled? '':'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>
+                         <button className="btn btn-default btn-xs " onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
                             <button className="btn btn-default btn-xs" onClick={this.moveDn}><i className="fa fa-arrow-down"></i></button>
                             <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
                         </div>
@@ -648,7 +650,7 @@ class Operation extends React.Component {
             } // types[op.type].allowTabs
         } // op.expanded
 
-        return <div className="operation-row">{rows}</div>;
+        return <div className={"operation-row "+(op.enabled? "":"disabled")} >{rows}</div>;
     }
 }; // Operation
 

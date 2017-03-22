@@ -34,8 +34,6 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = operations[opIndex];
 
-
-
         const jobDone = (g, cb) => { 
             if (g !== false) { gcode.push(g); cb(); } 
         }
@@ -98,8 +96,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             })
         }
 
-
-        QE.push((cb) => {
+        if (op.enabled) QE.push((cb) => {
             console.log(op.type + "->" + jobIndex)
             preflightPromise(settings, documents, opIndex, op, workers)
                 .then((preflight) => {

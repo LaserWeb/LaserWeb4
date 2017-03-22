@@ -229,6 +229,13 @@ body, html, .full-height {
     background-color:#eee;
 }
 
+.operation-row.disabled > * {
+    opacity:0.5; 
+}
+.operation-row.disabled > *:first-child {
+    opacity:1
+}
+
 .operation-row:nth-child(even) {
     background-color: #ddd;
 }
@@ -382,6 +389,12 @@ button:hover,
 
 .btn-highlight {
     border-color: red !important;
+}
+
+.btn.btn-off {
+    background: black;
+    color: white;
+    border-color: black
 }
 
 .fa-stack{
