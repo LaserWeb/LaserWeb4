@@ -91,7 +91,7 @@ export default class CommandHistory extends React.Component {
             this.setState({ currentLine: '', lines, cursor: lines.length });
 
             if (window.commandLog)
-                CommandHistory.log(value)
+                CommandHistory.write(value)
 
         }
         if (typeof this.props.onCommandExec !== "undefined")
