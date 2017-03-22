@@ -11,6 +11,7 @@ before_install:
   - cd ../
   - git clone https://github.com/LaserWeb/lw.comm-server.git
   - cd lw.comm-server
+  - git checkout electron_bundler
   - npm install
   - ./node_modules/.bin/electron-rebuild
   - npm run dist
