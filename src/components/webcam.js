@@ -361,24 +361,23 @@ export class VideoPort extends React.Component {
 
     componentDidMount()
     {
-        if (this.props.enabled)
-            this.enableVideo()
+        this.enableVideo()
     }
     componentDidUpdate(prevProps)
     {
-        if (prevProps.enabled !== this.props.enabled)
-            this.enableVideo();
+        this.enableVideo();
     }
 
     enableVideo()
     {
+        ReactDOM.findDOMNode(this).style.pointerEvents=(this.props.enabled) ? 'all':'none';
         let enable=()=>{
-            if (!(window.videoCapture && window.videoCapture.isReady))
+            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
                  requestAnimationFrame(enable);
 
             let myvideo=ReactDOM.findDOMNode(this).querySelector('video')
-                console.log(myvideo)
-            if (this.props.enabled) {
+                
+            if (this.props.enabled && myvideo) {
                 let stream=window.videoCapture.getStream();
                 
                 if (myvideo.srcObject!==stream)
@@ -389,16 +388,16 @@ export class VideoPort extends React.Component {
             }
            
         }
-        enable();
+        try {
+            enable();
+        } catch(e) {
+            
+        }
     }
 
     render() {
-        
+       
         let video=<video ref="videoport" style={{width: '100%'}}/>;
-
-        const dragStyle={
-            pointerEvents: this.props.enabled? 'all':'none', 
-        }
 
         if (this.props.draggable) {
             return   <Rnd
@@ -407,7 +406,6 @@ export class VideoPort extends React.Component {
                     width: this.props.width||320,
                     height: this.props.height||240,
                 }}
-                style={dragStyle}
                 minWidth={160}
                 minHeight={120}
                 maxWidth={800}
@@ -417,7 +415,7 @@ export class VideoPort extends React.Component {
                 zIndex={10000}
             >{video}</Rnd>
         } else {
-            return video;
+            return <div>{video}</div>;
         }
     }
 }

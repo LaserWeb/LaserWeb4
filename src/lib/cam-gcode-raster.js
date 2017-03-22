@@ -90,6 +90,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 toolDiameter: op.laserDiameter,
                 beamRange: { min: 0, max: settings.gcodeSMaxValue },
                 beamPower: op.laserPowerRange, //Go go power rangeR!
+                rapidRate: false,
                 feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
                 offsets: { X: doc.translate[0], Y: doc.translate[1] },
                 trimLine: op.trimLine,

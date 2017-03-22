@@ -9,6 +9,7 @@ import { GlobalStore } from '../index';
 const operationBase = object('operation', {
     id: '',
     name: '',
+    enabled: true,
     documents: [],
     tabDocuments: [],
     expanded: false,

@@ -112,7 +112,7 @@ class LaserWeb extends React.Component {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
                 window.videoCapture = new VideoCapture()
-                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(obj) })
+                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(this.props.settings.toolVideoDevice,obj) })
             })
         }
     }
@@ -162,8 +162,8 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch(macroAction)
             }
         },
-        handleVideoStream: (props) => {
-            //console.log(props)
+        handleVideoStream: (deviceId, props) => {
+            if (props===false) dispatch({type: "SETTINGS_SET_ATTRS", payload:{ attrs: {toolVideoDevice:null} }})
         }
 
     }

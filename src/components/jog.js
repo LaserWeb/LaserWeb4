@@ -226,7 +226,7 @@ class Jog extends React.Component {
         let {dispatch} = this.props;
         dispatch(setSettingsAttrs({jogStepsize: stepsize}));
         console.log('Jog will use ' + stepsize + ' mm per click');
-        CommandHistory.log('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARN);
+        CommandHistory.write('Jog will use ' + stepsize + ' mm per click', CommandHistory.WARN);
         //$('.stepsizeval').empty();
         //$('.stepsizeval').html(stepsize + 'mm');
     }

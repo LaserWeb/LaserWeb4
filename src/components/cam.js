@@ -34,6 +34,7 @@ import { ApplicationSnapshotToolbar } from './settings';
 
 import { Button, ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import Icon from './font-awesome'
+import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
 
@@ -61,7 +62,7 @@ class Cam extends React.Component {
                 let {settings, documents, operations} = that.props;
                 
                 let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder, 
-                    (msg,level) => { CommandHistory.log(msg,level);}, 
+                    (msg,level) => { CommandHistory.write(msg,level);}, 
                     (gcode) => {
                         that.props.dispatch(generatingGcode(false))
                         that.props.dispatch(setGcode(gcode));
@@ -164,7 +165,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
-        saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
+        saveGcode: () => { prompt('Download as','gcode.gcode',(name)=>{ if (name!==null) sendAsFile(name, state.gcode.content)}) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
@@ -179,10 +180,13 @@ Cam = connect(
                 let reader = new FileReader;
                 if (file.name.substr(-4) === '.svg') {
                     reader.onload = () => {
+                        var cc = window.console
+                        window.console = CommandHistory;
                         let parser = new Parser({});
                         parser.parse(reader.result)
-                            .then(tags => dispatch(loadDocument(file, { parser, tags })))
-                            .catch(e => console.log('error:', e))
+                            .then((tags) => { dispatch(loadDocument(file, { parser, tags })); window.console = cc;})
+                            .catch((e) => { CommandHistory.error(String(e)); window.console = cc;})
+                        
                     }
                     reader.readAsText(file);
                 }
