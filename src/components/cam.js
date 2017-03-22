@@ -34,6 +34,7 @@ import { ApplicationSnapshotToolbar } from './settings';
 
 import { Button, ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import Icon from './font-awesome'
+import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
 
@@ -164,7 +165,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
-        saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
+        saveGcode: () => { prompt('Download as','gcode.gcode',(name)=>{ if (name!==null) sendAsFile(name, state.gcode.content)}) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
