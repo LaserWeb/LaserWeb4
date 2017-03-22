@@ -71,7 +71,7 @@ class Com extends React.Component {
         });
         
         socket.on('disconnect', function() {
-            CommandHistory.write('Disconnected from Server ' + settings.comServerIP, CommandHistory.DANGER);
+            CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
             //console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
             $('#connectS').removeClass('disabled');
@@ -114,7 +114,7 @@ class Com extends React.Component {
                 console.log('interfaces: ' + interfaces);
                 //CommandHistory.write('interfaces: ' + interfaces);
             } else {
-                CommandHistory.write('No supported interfaces found on server!', CommandHistory.DANGER);
+                CommandHistory.error('No supported interfaces found on server!')
             }
         });
 
@@ -132,7 +132,7 @@ class Com extends React.Component {
                 console.log('ports: ' + ports);
                 //CommandHistory.write('ports: ' + ports);
             } else {
-                CommandHistory.write('No serial ports found on server!', CommandHistory.DANGER);
+                CommandHistory.error('No serial ports found on server!')
             }
         });
 
@@ -191,7 +191,7 @@ class Com extends React.Component {
                 machineConnected = false;
                 $('#connect').removeClass('disabled');
                 $('#disconnect').addClass('disabled');
-                CommandHistory.write('Machine disconnected', CommandHistory.DANGER);
+                CommandHistory.error('Machine disconnected')
             }
         });
 
@@ -208,7 +208,7 @@ class Com extends React.Component {
             fDate = data.date;
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (fVersion < '1.1e') {
-                CommandHistory.write('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e', CommandHistory.DANGER);
+                CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
                 socket.emit('closePort', 1);
                 machineConnected = false;
                 //console.log('GRBL < 1.1 not supported!');
@@ -238,7 +238,7 @@ class Com extends React.Component {
                 playing = false;
                 paused = false;
             } else if (status === 'alarm') {
-                CommandHistory.write('ALARM!', CommandHistory.DANGER);
+                CommandHistory.error('ALARM!')
                 //socket.emit('clearAlarm', 2);
             }
             runStatus(status);
@@ -374,7 +374,7 @@ class Com extends React.Component {
             machineConnected = false;
             $('#connect').removeClass('disabled');
             $('#disconnect').addClass('disabled');
-            CommandHistory.write('Server connection closed', CommandHistory.DANGER);
+            CommandHistory.error('Server connection closed')
             // websocket is closed.
             //console.log('Server connection closed'); 
             let serverVersion = 'not connected';
@@ -382,7 +382,7 @@ class Com extends React.Component {
         });
 
         socket.on('error', function (data) {
-            CommandHistory.write('Server error: ' + data, CommandHistory.DANGER);
+            CommandHistory.error('Server error: ' + data)
             //console.log('error: ' + data);
         });
 
@@ -568,10 +568,10 @@ export function runCommand(gcode) {
                 socket.emit('runCommand', gcode);
             }
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -587,13 +587,13 @@ export function runJob(job) {
                 jobStartTime = new Date(Date.now());
                 socket.emit('runJob', job);
             } else {
-                CommandHistory.write('Job empty!', CommandHistory.DANGER);
+                CommandHistory.error('Job empty!')
             }
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -607,10 +607,10 @@ export function pauseJob() {
             $('#playicon').addClass('fa-play');
             socket.emit('pause');
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -624,10 +624,10 @@ export function resumeJob() {
             $('#playicon').addClass('fa-pause');
             socket.emit('resume');
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -643,10 +643,10 @@ export function abortJob() {
             $('#playicon').addClass('fa-play');
             socket.emit('stop');
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -657,10 +657,10 @@ export function clearAlarm(method) {
             CommandHistory.write('Resetting alarm', CommandHistory.INFO);
             socket.emit('clearAlarm', method);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -670,10 +670,10 @@ export function setZero(axis) {
             CommandHistory.write('Set ' + axis + ' Axis zero', CommandHistory.INFO);
             socket.emit('setZero', axis);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -683,10 +683,10 @@ export function gotoZero(axis) {
             CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
             socket.emit('gotoZero', axis);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -696,10 +696,10 @@ export function laserTest(power, duration, maxS) {
             console.log('laserTest(' + power + ', ' + duration + ', ' + maxS + ')');
             socket.emit('laserTest', power + ',' + duration + ',' + maxS);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -709,10 +709,10 @@ export function jog(axis, dist, feed) {
             //console.log('jog(' + axis + ',' + dist + ',' + feed + ')');
             socket.emit('jog', axis + ',' + dist + ',' + feed);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -722,10 +722,10 @@ export function feedOverride(step) {
             console.log('feedOverride ' + step);
             socket.emit('feedOverride', step);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -735,23 +735,23 @@ export function spindleOverride(step) {
             console.log('spindleOverride ' + step);
             socket.emit('spindleOverride', step);
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
 export function resetMachine() {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.write('Resetting Machine', CommandHistory.DANGER);
+            CommandHistory.error('Resetting Machine')
             socket.emit('resetMachine');
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -789,10 +789,10 @@ export function playpauseMachine() {
             }
             // end isConnected
         } else {
-            CommandHistory.write('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.write('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
