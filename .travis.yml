@@ -17,9 +17,7 @@ before_install:
   - npm run dist
 after_success:
   - rm -rf node_modules
-  - ls -l dist
-  - rm -rf dist/*
-  - ls -l ../lw.comm-server/dist
+  - rm -rf dist/linux-unpacked
   - rm -rf app
 addons:
   artifacts: true
