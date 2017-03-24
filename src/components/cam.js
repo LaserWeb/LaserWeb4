@@ -38,78 +38,58 @@ import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
 
+import { FileField } from './forms'
+
 function NoDocumentsError(props) {
-    let {documents, camBounds} = props;
+    let { documents, camBounds } = props;
     if (documents.length === 0)
         return <GetBounds Type="span"><Error operationsBounds={camBounds} message='Click here to begin' /></GetBounds>;
     else
         return <span />;
 }
 
-function GcodeProgress({gcoding, onStop}){
-    return <div style={{display:"flex", flexDirection:"row"}}><ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{flexGrow:1,marginBottom: "0px"}}/><Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o"/></Button></div>
+function GcodeProgress({ gcoding, onStop }) {
+    return <div style={{ display: "flex", flexDirection: "row" }}><ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{ flexGrow: 1, marginBottom: "0px" }} /><Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o" /></Button></div>
 }
 
-GcodeProgress = connect((state)=>{return {gcoding: state.gcode.gcoding}})(GcodeProgress)
+GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
 
 
 
-class FileButton extends React.Component {
 
-    componentDidMount()
-    {
-        this.loadFile = (ce) =>{
-            let modifiers={shift: ce.shiftKey, meta: ce.metaKey, ctrl: ce.ctrlKey}
-            let that=this;
-            let input = document.createElement('input')
-                input.type='file';
-                input.multiple=true;
-                input.value=null;
-                input.onchange= (e) => {
-                    that.props.onChange(e, modifiers)
-                    this.value=null;
-                }
-                input.click();
-        }
-    }
-
-    render() {
-        return <span style={this.props.style} onClick={this.loadFile}>{this.props.children}</span>
-    }
-}
 
 class Cam extends React.Component {
 
- 
-    componentWillMount() {
-            let that=this
-            window.generateGcode = e => {
-            
-                let {settings, documents, operations} = that.props;
-                
-                let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder, 
-                    (msg,level) => { CommandHistory.write(msg,level);}, 
-                    (gcode) => {
-                        that.props.dispatch(generatingGcode(false))
-                        that.props.dispatch(setGcode(gcode));
-                    },
-                    (percent) => {
-                        that.props.dispatch(generatingGcode(true,percent))
-                    }
-                );
-                return QE;
-            }
 
-            this.generateGcode.bind(this)
-            this.stopGcode.bind(this)
+    componentWillMount() {
+        let that = this
+        window.generateGcode = e => {
+
+            let { settings, documents, operations } = that.props;
+
+            let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
+                (msg, level) => { CommandHistory.write(msg, level); },
+                (gcode) => {
+                    that.props.dispatch(generatingGcode(false))
+                    that.props.dispatch(setGcode(gcode));
+                },
+                (percent) => {
+                    that.props.dispatch(generatingGcode(true, percent))
+                }
+            );
+            return QE;
+        }
+
+        this.generateGcode.bind(this)
+        this.stopGcode.bind(this)
     }
 
     generateGcode(e) {
         this.QE = window.generateGcode(e);
     }
 
-    stopGcode(e){
-        if (this.QE){
+    stopGcode(e) {
+        if (this.QE) {
             this.QE.end();
         }
     }
@@ -123,11 +103,11 @@ class Cam extends React.Component {
             nextProps.gcode !== this.props.gcode ||    // Needed for saveGcode() to work
             nextProps.gcoding.percent !== this.props.gcoding.percent ||
             nextProps.gcoding.enable !== this.props.gcoding.enable
-        ); 
+        );
     }
 
     render() {
-        let {documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds} = this.props;
+        let { documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
 
@@ -143,10 +123,10 @@ class Cam extends React.Component {
                                         <label>Documents</label>
                                     </td>
                                     <td>
-                                        <FileButton style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument}>
+                                        <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             <NoDocumentsError camBounds={bounds} documents={documents} />
-                                        </FileButton>
+                                        </FileField>
                                     </td>
                                 </tr>
                                 <tr>
@@ -163,21 +143,22 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <Alert bsStyle="success" style={{padding: "4px"}}>
+                <Alert bsStyle="success" style={{ padding: "4px" }}>
                     <table style={{ width: 100 + '%' }}>
                         <tbody><tr>
                             <th>GCODE</th>
-                            <td style={{width:"80%", textAlign:"right"}}>{!this.props.gcoding.enable ? ( 
-                                <ButtonToolbar style={{float:"right"}}>
-                                <button title="Generate G-Code from Operations below" className={"btn btn-xs btn-attention "+(this.props.dirty?'btn-warning':'btn-primary')} disabled={!valid || this.props.gcoding.enable} onClick={(e)=>this.generateGcode(e)}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
-                                <ButtonGroup>
-                        
-                        <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
-                        <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                        <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.loadGcode}><i className="fa fa-folder-open" /></button>
-                    </ButtonGroup>
-                        <button title="Clear" className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
-                    </ButtonToolbar>):<GcodeProgress onStop={(e)=>this.stopGcode(e)}/>}</td>
+                            <td style={{ width: "80%", textAlign: "right" }}>{!this.props.gcoding.enable ? (
+                                <ButtonToolbar style={{ float: "right" }}>
+                                    <button title="Generate G-Code from Operations below" className={"btn btn-xs btn-attention " + (this.props.dirty ? 'btn-warning' : 'btn-primary')} disabled={!valid || this.props.gcoding.enable} onClick={(e) => this.generateGcode(e)}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
+                                    <ButtonGroup>
+                                        <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
+                                        <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                                        <FileField onChange={this.props.loadGcode} disabled={!valid || this.props.gcoding.enable}>
+                                        <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} ><i className="fa fa-folder-open" /></button>
+                                        </FileField>
+                                    </ButtonGroup>
+                                    <button title="Clear" className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
+                                </ButtonToolbar>) : <GcodeProgress onStop={(e) => this.stopGcode(e)} />}</td>
                         </tr></tbody>
                     </table>
                 </Alert>
@@ -189,8 +170,8 @@ class Cam extends React.Component {
 
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
-        saveGcode: (e) => { prompt('Save as','gcode.gcode',(file)=> { if (file!==null) sendAsFile(file, state.gcode.content) }, !e.shiftKey)  },
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty,
+        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(file, state.gcode.content) }, !e.shiftKey) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
@@ -199,8 +180,7 @@ Cam = connect(
         clearGcode: () => {
             dispatch(setGcode(""))
         },
-        loadDocument: (e, modifiers={}) => {
-
+        loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
             for (let file of e.target.files) {
                 let reader = new FileReader;
@@ -210,12 +190,12 @@ Cam = connect(
                         window.console = CommandHistory;
                         let parser = new Parser({});
                         parser.parse(reader.result)
-                            .then((tags) => { 
+                            .then((tags) => {
                                 dispatch(loadDocument(file, { parser, tags }, modifiers));
                                 window.console = ___cc;
                             })
-                            .catch((e) => { CommandHistory.error(String(e)); window.console = ___cc;})
-                        
+                            .catch((e) => { CommandHistory.error(String(e)); window.console = ___cc; })
+
                     }
                     reader.readAsText(file);
                 }
@@ -253,14 +233,9 @@ Cam = connect(
             }
         },
         loadGcode: e => {
-            let input = document.createElement('input');
-            input.type = "file";
-            input.onchange = e => {
-                let reader = new FileReader;
-                reader.onload = () => dispatch(setGcode(reader.result));
-                reader.readAsText(e.target.files[0]);
-            };
-            input.click();
+            let reader = new FileReader;
+            reader.onload = () => dispatch(setGcode(reader.result));
+            reader.readAsText(e.target.files[0]);
         },
     }),
 )(Cam);

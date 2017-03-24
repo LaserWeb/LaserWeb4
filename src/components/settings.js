@@ -103,7 +103,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
     render() {
         let buttons = [];
         if (this.props.loadButton) {
-            buttons.push(<FileField dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
+            buttons.push(<FileField onChange={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)}><Button bsStyle="danger" bsSize="xs">Load <Icon name="upload" /></Button></FileField>);
         }
         if (this.props.saveButton) {
             buttons.push(<Button onClick={(e) => this.handleDownload(this.props.saveButton, this.props.saveName, e)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
@@ -116,7 +116,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
         }
 
         return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong>
-            <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</ButtonGroup>
+            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</div>
             <br style={{ clear: 'both' }} />
         </div>
     }
