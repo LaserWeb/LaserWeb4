@@ -10,6 +10,8 @@ import keydown, { Keys } from 'react-keydown';
 
 import { isObject } from '../lib/helpers';
 
+import stringify from 'json-stringify-safe'
+
 const keystrokes = ["shift+up", "shift+down", "shift+enter"]
 
 // level STD, INFO, WARN, DANGER, SUCCESS
@@ -132,15 +134,15 @@ export default class CommandHistory extends React.Component {
     }
 
     static log(...args) {
-        CommandHistory.write(args.map(arg => isObject(arg)? JSON.stringify(arg) : String(arg)).join(' '))
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '))
     }
 
     static warn(...args) {
-        CommandHistory.write(args.map(arg => isObject(arg)? JSON.stringify(arg) : String(arg)).join(' '), 2)
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '), 2)
     }
 
     static error(...args) {
-        CommandHistory.write(args.map(arg => isObject(arg)? JSON.stringify(arg) : String(arg)).join(' '), 3)
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '), 3)
     }
 
     render() {
