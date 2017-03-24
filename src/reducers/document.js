@@ -55,7 +55,7 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, settings, { file, content }) {
+function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let { parser, tags } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
@@ -133,7 +133,7 @@ function loadSvg(state, settings, { file, content }) {
 
     let doc = {
         ...initialDocument,
-        id: uuid.v4(),
+        id: id,
         type: 'document',
         name: file.name,
         isRoot: true,
@@ -146,7 +146,7 @@ function loadSvg(state, settings, { file, content }) {
     return state;
 }
 
-function processImage(doc, settings, context) {
+function processImage(doc, settings, { file, context }) {
     // Adjusting by Quadrant setting.
     let imageWidth = context.naturalWidth / settings.dpiBitmap * 25.4;
     let imageHeight = context.naturalHeight / settings.dpiBitmap * 25.4;
@@ -176,11 +176,11 @@ function processImage(doc, settings, context) {
 
 }
 
-function loadImage(state, settings, { file, content, context }) {
+function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
     state = state.slice();
     let doc = {
         ...initialDocument,
-        id: uuid.v4(),
+        id: id,
         type: 'image',
         name: file.name,
         isRoot: true,
@@ -198,11 +198,11 @@ function loadImage(state, settings, { file, content, context }) {
     return state;
 }
 
-function loadDxf(state, settings, { file, content }) {
+function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
     state = state.slice();
     let docFile = {
         ...initialDocument,
-        id: uuid.v4(),
+        id: id,
         type: 'document',
         name: file.name,
         isRoot: true,
@@ -215,14 +215,30 @@ function loadDxf(state, settings, { file, content }) {
 }
 
 export function documentsLoad(state, settings, action) {
+    state = state.slice();
+    let docId;
+    
+    if (action.payload.modifiers.shift) {
+        console.warn('Replacing occurrences of '+action.payload.file.name)
+        let doc = state.find((doc,index,docs) => doc.name === action.payload.file.name)
+        if (doc) {
+             docId = doc.id;
+             let ids = getSubtreeIds(state, docId);
+             state = state.filter(o => !ids.includes(o.id))
+                .map(parent => Object.assign({}, parent, {
+                    children: parent.children.filter(childId => childId !== docId)
+                }));
+        }
+    }
+
     if (action.payload.file.type === 'image/svg+xml')
-        return loadSvg(state, settings, action.payload);
+        return loadSvg(state, settings, action.payload, docId);
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
-        return loadDxf(state, settings, action.payload);
+        return loadDxf(state, settings, action.payload, docId);
     else if (action.payload.file.type.substring(0, 6) === 'image/') {
-        return loadImage(state, settings, action.payload);
+        return loadImage(state, settings, action.payload, docId);
     } else {
-        alert('Unsupported file type:'+action.payload.file.type)
+        alert('Unsupported file type:' + action.payload.file.type)
         console.error('Unsupported file type:', action.payload.file.type)
         return state;
     }

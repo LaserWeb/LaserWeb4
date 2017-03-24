@@ -52,6 +52,32 @@ function GcodeProgress({gcoding, onStop}){
 
 GcodeProgress = connect((state)=>{return {gcoding: state.gcode.gcoding}})(GcodeProgress)
 
+
+
+class FileButton extends React.Component {
+
+    componentDidMount()
+    {
+        this.loadFile = (ce) =>{
+            let modifiers={shift: ce.shiftKey, meta: ce.metaKey, ctrl: ce.ctrlKey}
+            let that=this;
+            let input = document.createElement('input')
+                input.type='file';
+                input.multiple=true;
+                input.value=null;
+                input.onchange= (e) => {
+                    that.props.onChange(e, modifiers)
+                    this.value=null;
+                }
+                input.click();
+        }
+    }
+
+    render() {
+        return <span style={this.props.style} onClick={this.loadFile}>{this.props.children}</span>
+    }
+}
+
 class Cam extends React.Component {
 
  
@@ -117,11 +143,10 @@ class Cam extends React.Component {
                                         <label>Documents</label>
                                     </td>
                                     <td>
-                                        <span style={{ float: 'right', position: 'relative', cursor: 'pointer' }}>
+                                        <FileButton style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                                            <input onChange={loadDocument} type="file" multiple={true} value="" style={{ opacity: 0, position: 'absolute', top: 0, left: 0 }} />
                                             <NoDocumentsError camBounds={bounds} documents={documents} />
-                                        </span>
+                                        </FileButton>
                                     </td>
                                 </tr>
                                 <tr>
@@ -174,18 +199,22 @@ Cam = connect(
         clearGcode: () => {
             dispatch(setGcode(""))
         },
-        loadDocument: e => {
+        loadDocument: (e, modifiers={}) => {
+
             // TODO: report errors
             for (let file of e.target.files) {
                 let reader = new FileReader;
                 if (file.name.substr(-4) === '.svg') {
                     reader.onload = () => {
-                        var cc = window.console
+                        var ___cc = window.console
                         window.console = CommandHistory;
                         let parser = new Parser({});
                         parser.parse(reader.result)
-                            .then((tags) => { dispatch(loadDocument(file, { parser, tags })); window.console = cc;})
-                            .catch((e) => { CommandHistory.error(String(e)); window.console = cc;})
+                            .then((tags) => { 
+                                dispatch(loadDocument(file, { parser, tags }, modifiers));
+                                window.console = ___cc;
+                            })
+                            .catch((e) => { CommandHistory.error(String(e)); window.console = ___cc;})
                         
                     }
                     reader.readAsText(file);
@@ -194,7 +223,7 @@ Cam = connect(
                     reader.onload = () => {
                         var parser = new DxfParser();
                         var dxfTree = parser.parseSync(reader.result);
-                        dispatch(loadDocument(file, dxfTree));
+                        dispatch(loadDocument(file, dxfTree, modifiers));
                     }
                     reader.readAsText(file);
                 }
@@ -211,14 +240,14 @@ Cam = connect(
                     reader.onload = () => {
                         promisedImage(reader.result)
                             .then((img) => {
-                                dispatch(loadDocument(file, reader.result, img));
+                                dispatch(loadDocument(file, reader.result, modifiers, img));
                             })
                             .catch(e => console.log('error:', e))
                     }
                     reader.readAsDataURL(file);
                 }
                 else {
-                    reader.onload = () => dispatch(loadDocument(file, reader.result));
+                    reader.onload = () => dispatch(loadDocument(file, reader.result, modifiers));
                     reader.readAsDataURL(file);
                 }
             }
