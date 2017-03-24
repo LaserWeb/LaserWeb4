@@ -80,7 +80,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
         prompt('Save as', saveName || "laserweb-snapshot.json", (file) => {
             if (file!==null) {
                 statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-                this.props.handleDownload(saveName, this.getExportData(statekeys), downloadSnapshot)
+                this.props.handleDownload(file, this.getExportData(statekeys), downloadSnapshot)
             }
         }, !e.shiftKey)
     }
