@@ -76,14 +76,10 @@ export class ApplicationSnapshotToolbar extends React.Component {
         return exp;
     }
 
-    handleDownload(statekeys) {
+    handleDownload(statekeys, saveName) {
+        if (!saveName) saveName="laserweb-snapshot.json"
         statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file) => {
-            if (!file) return;
-            let settings = this.getExportData(statekeys);
-            let action = downloadSnapshot;
-            this.props.handleDownload(file, settings, action)
-        })
+        this.props.handleDownload(saveName, this.getExportData(statekeys), downloadSnapshot)
     }
 
     handleUpload(file, statekeys) {
@@ -107,7 +103,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
             buttons.push(<FileField dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
         }
         if (this.props.saveButton) {
-            buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+            buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton, this.props.saveName)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
         if (this.props.recoverButton) {
             buttons.push(<Button onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);

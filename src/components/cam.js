@@ -107,7 +107,7 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} label="Workspace" className="well well-sm" />
+                <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
                 <div className="panel panel-info" style={{ marginBottom: 3 }}>
                     <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>
@@ -165,7 +165,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
-        saveGcode: () => { prompt('Download as','gcode.gcode',(name)=>{ if (name!==null) sendAsFile(name, state.gcode.content)}) },
+        saveGcode: () => { sendAsFile('gcode.gcode', state.gcode.content) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
