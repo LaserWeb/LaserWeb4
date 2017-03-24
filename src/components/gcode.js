@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 
 import { setGcode } from '../actions/gcode';
 import { sendAsFile } from '../lib/helpers';
+import { prompt } from './laserweb';
 
 class Gcode extends React.Component {
     render() {
@@ -23,7 +24,7 @@ class Gcode extends React.Component {
 Gcode = connect(
     state => ({
         gcode: state.gcode.content,
-        saveGcode: () => sendAsFile('gcode.gcode', state.gcode.content),
+        saveGcode: (e) => { prompt('Save as','gcode.gcode',(file)=> { if (file!==null) sendAsFile(file, state.gcode.content) }, !e.shiftKey)  }
     }),
     dispatch => ({
         setGcode: e => dispatch(setGcode(e.target.value)),

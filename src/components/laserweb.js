@@ -65,8 +65,8 @@ export const confirm = (message, callback) => {
         vex.dialog.confirm({message,callback})
 }
 
-export const prompt = (message, placeholder, callback) => {
-        
+export const prompt = (message, placeholder, callback, skip) => {
+        if (skip) return callback(placeholder);
         vex.dialog.open({
             message,
             input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,

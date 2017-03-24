@@ -165,7 +165,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty:state.gcode.dirty,
-        saveGcode: () => { sendAsFile('gcode.gcode', state.gcode.content) },
+        saveGcode: (e) => { prompt('Save as','gcode.gcode',(file)=> { if (file!==null) sendAsFile(file, state.gcode.content) }, !e.shiftKey)  },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
