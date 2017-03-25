@@ -146,7 +146,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     return state;
 }
 
-function processImage(doc, settings, { file, context }) {
+function processImage(doc, settings, context) {
     // Adjusting by Quadrant setting.
     let imageWidth = context.naturalWidth / settings.dpiBitmap * 25.4;
     let imageHeight = context.naturalHeight / settings.dpiBitmap * 25.4;
