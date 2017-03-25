@@ -158,7 +158,7 @@ class MaterialDatabaseEditor extends React.Component {
                 footer={<ButtonToolbar>
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'json')}><Icon name="download" /> .json</Button>
                     <Button bsStyle="info" disabled={true} title="Soon :P" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
-                    <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)} buttonClass="btn btn-danger" />
+                    <FileField onChange={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)}><Button bsStyle="danger"><Icon name="upload" /></Button></FileField>
                 </ButtonToolbar>}
             >
                 <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) }} />

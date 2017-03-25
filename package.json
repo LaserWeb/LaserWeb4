@@ -66,6 +66,7 @@
     "jsdoc": "^3.4.1",
     "json-loader": "^0.5.4",
     "json-stringify-pretty-compact": "^1.0.2",
+    "json-stringify-safe": "^5.0.1",
     "keyboardjs": "^2.3.3",
     "lw.comm-server": "git+https://github.com/LaserWeb/lw.comm-server.git",
     "lw.raster-to-gcode": "^0.6.3",

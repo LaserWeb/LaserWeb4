@@ -48,7 +48,7 @@ export class ApplicationSnapshot extends React.Component {
             <div className="well well-sm " id="ApplicationSnapshot">
                 <CheckBoxListField onChange={(data) => this.handleChange(data)} data={data} />
                 <section>
-                    <ApplicationSnapshotToolbar loadButton saveButton stateKeys={this.state.keys} label="On File" saveAs="laserweb-snapshot.json" />
+                    <ApplicationSnapshotToolbar loadButton saveButton stateKeys={this.state.keys} label="On File" saveName="laserweb-snapshot.json" />
                 </section>
                 <section>
                     <ApplicationSnapshotToolbar recoverButton storeButton stateKeys={this.state.keys} label="On LocalStorage" />
@@ -76,14 +76,13 @@ export class ApplicationSnapshotToolbar extends React.Component {
         return exp;
     }
 
-    handleDownload(statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file) => {
-            if (!file) return;
-            let settings = this.getExportData(statekeys);
-            let action = downloadSnapshot;
-            this.props.handleDownload(file, settings, action)
-        })
+    handleDownload(statekeys, saveName, e) {
+        prompt('Save as', saveName || "laserweb-snapshot.json", (file) => {
+            if (file!==null) {
+                statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
+                this.props.handleDownload(file, this.getExportData(statekeys), downloadSnapshot)
+            }
+        }, !e.shiftKey)
     }
 
     handleUpload(file, statekeys) {
@@ -104,10 +103,10 @@ export class ApplicationSnapshotToolbar extends React.Component {
     render() {
         let buttons = [];
         if (this.props.loadButton) {
-            buttons.push(<FileField dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
+            buttons.push(<FileField onChange={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)}><Button bsStyle="danger" bsSize="xs">Load <Icon name="upload" /></Button></FileField>);
         }
         if (this.props.saveButton) {
-            buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+            buttons.push(<Button onClick={(e) => this.handleDownload(this.props.saveButton, this.props.saveName, e)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
         if (this.props.recoverButton) {
             buttons.push(<Button onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);
@@ -117,7 +116,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
         }
 
         return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong>
-            <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</ButtonGroup>
+            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</div>
             <br style={{ clear: 'both' }} />
         </div>
     }
@@ -274,8 +273,8 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr />
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr />
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr />
+                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr />
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />

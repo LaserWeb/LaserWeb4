@@ -233,13 +233,40 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
 };
 
 
-export function FileField({label, dispatch, buttonClass = "btn", icon = "upload", ...rest}) {
-    return (
-        <Button bsClass={buttonClass} style={{ position: "relative", display: "inline-block", overflow: "hidden" }} {...rest} >
-            {label} <Icon name={icon}/>
-            <input onChange={dispatch} type="file" value="" style={{ position: "absolute", left: 0, top: 0, height: "100%", opacity: 0, width: "100%" }} />
-        </Button>
-    )
+export class FileField extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.handleClick.bind(this)
+        this.handleChange.bind(this)
+        this.nativeClick = null;
+    }
+
+    handleClick(ce) {
+        ce.persist();
+        if (this.props.disabled) return;
+        
+        if (!this.nativeClick){
+             this.nativeClick = ce;
+             this.input.click()
+        }
+        
+    }
+
+    handleChange(e) {
+        e.persist()
+        if (this.nativeClick) {
+            this.props.onChange(e, { ctrl: this.nativeClick.ctrlKey, shift: this.nativeClick.shiftKey, meta: this.nativeClick.metaKey })
+            this.nativeClick = null
+            this.input.value = null;
+        }
+    }
+
+    render() {
+        return <span style={this.props.style} onClick={e => this.handleClick(e)}>{this.props.children}
+            <input type="file" ref={(input) => { this.input = input }} multiple onChange={e => this.handleChange(e)} style={{display:"none"}} />
+        </span>
+    }
 }
 
 export class CheckBoxListField extends React.Component {
