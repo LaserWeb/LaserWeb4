@@ -39,7 +39,7 @@ class MachineProfile extends React.Component {
     
     handleSelect(e){
         let value=e.target.value
-        this.setState({selected: value});
+        if (value) this.setState({selected: value});
         
     }
     
@@ -50,7 +50,7 @@ class MachineProfile extends React.Component {
     
     handleSave(e) {
         let currentProfile = this._getSelectedProfile();
-        this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
+        if (currentProfile) this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
     }
     
     handleAppend(e){
