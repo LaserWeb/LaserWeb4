@@ -17,8 +17,9 @@ function Subtree(props) {
         Right = ({object}) => <span />,
         rowNumber = { value: 0 },
         indent = 0,
+        selectedDocuments=[]
     } = props;
-
+   
     return (
         <div>
             <div style={{
@@ -29,7 +30,7 @@ function Subtree(props) {
                     justifyContent: 'space-between',
                     marginLeft: indent,
                 }}>
-                    <div style={{ cursor: 'pointer' }}>
+                    <div style={{ cursor: 'pointer' }} className={selectedDocuments.includes(object.id)? 'dot':undefined}>
                         <i
                             onClick={() => toggleExpanded(object)}
                             className={!object.children.length ? '' : object.expanded ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
@@ -44,7 +45,7 @@ function Subtree(props) {
                     object.expanded ? object.children.map(childId => {
                         let child = objects.find(child => child.id == childId);
                         return (
-                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 18 }} />
+                            <Subtree key={childId}  {...{ objects, object: child, toggleExpanded, Label, Right, rowNumber, indent: indent + 18, selectedDocuments }} />
                         )
                     }) : undefined
                 }

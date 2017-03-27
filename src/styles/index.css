@@ -616,3 +616,5 @@ button:hover,
 .btn-attention.btn-warning:after { content: '\2219'; color: red; font-size: 80px; position:absolute; line-height: 6px; top:-7px; right:-10px; text-shadow: 0px 0px 2px white }
 
 .details.operationGroup {margin-left: 0; }
+
+.dot > span {background: rgb(130, 200, 255)}
