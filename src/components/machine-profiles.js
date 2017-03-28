@@ -76,7 +76,8 @@ class MachineProfile extends React.Component {
         let profileOptions=[];
         let description;
         let selected;
-        let disabledDelete=!this.state.selected.length || this.state.selected.substr(0,1)=='*';
+        const disabledApply = !this.state.selected.length
+        const disabledDelete= disabledApply || this.state.selected.substr(0,1)=='*'; 
         
         
         Object.keys(this.props.profiles).forEach((key) => {
@@ -109,9 +110,9 @@ class MachineProfile extends React.Component {
                     
                     
                     <ButtonGroup>
-                        <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}}><Icon name="share" /> Apply</Button>
-                        <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}}><Icon name="save" /> Save</Button>
-                        <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
+                        <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}} disabled={disabledApply} title="Applies selected profile"><Icon name="share" /> Apply</Button>
+                        <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}} title="Updates selected profile with current configuration" disabled={disabledDelete}><Icon name="pencil" /> Update</Button>
+                        <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} title="Delete selected profile" disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
                     </ButtonGroup>
                      <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
                     {description}
