@@ -382,6 +382,7 @@ export class VideoPort extends React.Component {
                 
                 if (myvideo.srcObject!==stream)
                     myvideo.srcObject=stream
+                    myvideo.play();
                     ReactDOM.findDOMNode(this).style.display='block'
             } else {
                 ReactDOM.findDOMNode(this).style.display='none'
