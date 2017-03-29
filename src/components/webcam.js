@@ -339,6 +339,7 @@ export class VideoResolutionField extends React.Component {
 
     handleChange(v) {
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        if (v.value) window.videoCapture.refreshStream({ resolution: v.value }, (s) => { console.log('Resolution change: ' + v.value + ' [' + s.id + ']') })
     }
 
     render() {
@@ -368,7 +369,7 @@ export class VideoPort extends React.Component {
 
     enableVideo() {
         const selfNode = ReactDOM.findDOMNode(this);
-              selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
+        selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
 
         let enable = () => {
             if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
@@ -377,13 +378,9 @@ export class VideoPort extends React.Component {
             const myvideo = selfNode.querySelector('video')
 
             if (this.props.enabled && myvideo) {
-                let stream = window.videoCapture.getStream();
-
-                if (myvideo.srcObject !== stream) {
+                const stream = window.videoCapture.getStream();
+                if (myvideo.srcObject !== stream)
                     myvideo.srcObject = stream
-                    myvideo.play();
-                }
-
                 selfNode.style.display = 'block'
             } else {
                 selfNode.style.display = 'none'
@@ -393,13 +390,13 @@ export class VideoPort extends React.Component {
         try {
             enable();
         } catch (e) {
-            
+
         }
     }
 
     render() {
 
-        let video = <video ref="videoport" style={{ width: '100%' }} />;
+        let video = <video ref="videoport" style={{ width: '100%' }} autoPlay />;
 
         if (this.props.draggable) {
             return <Rnd
