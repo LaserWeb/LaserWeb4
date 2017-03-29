@@ -374,14 +374,15 @@ export class VideoPort extends React.Component {
             if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
                 requestAnimationFrame(enable);
 
-            let myvideo = selfNode.querySelector('video')
+            const myvideo = selfNode.querySelector('video')
 
             if (this.props.enabled && myvideo) {
                 let stream = window.videoCapture.getStream();
 
-                if (myvideo.srcObject !== stream)
+                if (myvideo.srcObject !== stream) {
                     myvideo.srcObject = stream
-                myvideo.play();
+                    myvideo.play();
+                }
 
                 selfNode.style.display = 'block'
             } else {
