@@ -168,7 +168,8 @@ export const materialDatabase = (state = initialState, action) => {
             return togglePresetAttribute(state, action.payload, 'isEditable')
 
         case actionTypes.INIT:
-                if (action.payload) return Object.assign(action.payload.materialDatabase, initialState);
+                let lockedState = initialState.slice().map((vendor)=>{ return {...vendor, locked:true }});
+                if (action.payload) return Object.assign(action.payload.materialDatabase, lockedState);
                 return state;
 
         default:
