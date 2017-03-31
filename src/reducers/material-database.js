@@ -168,7 +168,6 @@ export const materialDatabase = (state = initialState, action) => {
             return togglePresetAttribute(state, action.payload, 'isEditable')
 
         case actionTypes.INIT:
-                console.log(action.payload)
                 if (action.payload) return Object.assign(action.payload.materialDatabase, initialState);
                 return state;
 
