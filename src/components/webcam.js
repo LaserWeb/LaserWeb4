@@ -339,6 +339,7 @@ export class VideoResolutionField extends React.Component {
 
     handleChange(v) {
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        if (v.value) window.videoCapture.refreshStream({ resolution: v.value }, (s) => { console.log('Resolution change: ' + v.value + ' [' + s.id + ']') })
     }
 
     render() {
@@ -359,53 +360,50 @@ VideoResolutionField.defaultProps = {
 
 export class VideoPort extends React.Component {
 
-    componentDidMount()
-    {
+    componentDidMount() {
         this.enableVideo()
     }
-    componentDidUpdate(prevProps)
-    {
+    componentDidUpdate(prevProps) {
         this.enableVideo();
     }
 
-    enableVideo()
-    {
-        ReactDOM.findDOMNode(this).style.pointerEvents=(this.props.enabled) ? 'all':'none';
-        let enable=()=>{
-            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
-                 requestAnimationFrame(enable);
+    enableVideo() {
+        const selfNode = ReactDOM.findDOMNode(this);
+        selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
 
-            let myvideo=ReactDOM.findDOMNode(this).querySelector('video')
-                
+        let enable = () => {
+            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
+                requestAnimationFrame(enable);
+
+            const myvideo = selfNode.querySelector('video')
+
             if (this.props.enabled && myvideo) {
-                let stream=window.videoCapture.getStream();
-                
-                if (myvideo.srcObject!==stream)
-                    myvideo.srcObject=stream
-                    myvideo.play();
-                    ReactDOM.findDOMNode(this).style.display='block'
+                const stream = window.videoCapture.getStream();
+                if (myvideo.srcObject !== stream)
+                    myvideo.srcObject = stream
+                selfNode.style.display = 'block'
             } else {
-                ReactDOM.findDOMNode(this).style.display='none'
+                selfNode.style.display = 'none'
             }
-           
+
         }
         try {
             enable();
-        } catch(e) {
-            
+        } catch (e) {
+
         }
     }
 
     render() {
-       
-        let video=<video ref="videoport" style={{width: '100%'}}/>;
+
+        let video = <video ref="videoport" style={{ width: '100%' }} autoPlay />;
 
         if (this.props.draggable) {
-            return   <Rnd
+            return <Rnd
                 ref={c => { this.rnd = c; }}
                 initial={{
-                    width: this.props.width||320,
-                    height: this.props.height||240,
+                    width: this.props.width || 320,
+                    height: this.props.height || 240,
                 }}
                 minWidth={160}
                 minHeight={120}
@@ -421,7 +419,7 @@ export class VideoPort extends React.Component {
     }
 }
 
-VideoPort.defaultProps={
+VideoPort.defaultProps = {
     draggable: false
 }
 

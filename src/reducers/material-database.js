@@ -4,7 +4,9 @@ import { deepMerge } from "../lib/helpers"
 import generateName from 'sillyname'
 import uuid from 'node-uuid';
 
-const initialState = require("../data/material-database.json");
+import {actionTypes} from 'redux-localstorage'
+
+const initialState = require("../data/lw.materials/material-database.json");
 
 function generateInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -164,6 +166,10 @@ export const materialDatabase = (state = initialState, action) => {
 
         case "MATERIALDB_PRESET_TOGGLE_EDIT":
             return togglePresetAttribute(state, action.payload, 'isEditable')
+
+        case actionTypes.INIT:
+                if (action.payload) return Object.assign(action.payload.machineProfiles, initialState);
+                return state;
 
         default:
             return state;

@@ -93,7 +93,7 @@ export class VideoCapture {
             navigator.getUserMedia(constraints, (stream)=>{
                 that.stream = stream;
                 that.isReady = true;
-                callback(that.stream)
+                callback(stream)
             },(err)=> {
                 console.error(err)
             })
@@ -113,8 +113,7 @@ export class VideoCapture {
 
     refreshStream(props, callback)
     {
-        if (!props) props=this.props;
-
+        props=Object.assign(this.props,props);
         this.createStream(props ,callback)
     }
 
