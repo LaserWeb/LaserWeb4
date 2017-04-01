@@ -45,27 +45,26 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 raster += '; stripped: ' + line + '\r\n';
         raster += '\r\n\r\n';
 
-        if (op.useBlower) {
-            if (settings.machineBlowerGcodeOn) {
-                g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
-            }
-        }
-
-
         for (let pass = 0; pass < op.passes; ++pass) {
             g += '\n\n; Pass ' + pass + '\r\n';
+
+            if (op.useBlower) {
+                if (settings.machineBlowerGcodeOn) {
+                    g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+                }
+            }
+
             if (settings.machineZEnabled) {
                 let zHeight = Number(op.startHeight) + settings.machineZToolOffset - (op.passDepth * pass);
                 g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
             g += raster;
-        }
 
-
-        if (op.useBlower) {
-            if (settings.machineBlowerGcodeOff) {
-                g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+            if (op.useBlower) {
+                if (settings.machineBlowerGcodeOff) {
+                    g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+                }
             }
         }
 
