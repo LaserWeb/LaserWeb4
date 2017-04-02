@@ -77,7 +77,7 @@ class MachineProfile extends React.Component {
         let description;
         let selected;
         const disabledApply = !this.state.selected.length
-        const disabledDelete= disabledApply || this.state.selected.substr(0,1)=='*'; 
+        const disabledDelete= disabledApply || this.props.profiles[this.state.selected]._locked
         
         
         Object.keys(this.props.profiles).forEach((key) => {

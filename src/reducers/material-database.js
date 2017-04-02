@@ -4,7 +4,7 @@ import { deepMerge } from "../lib/helpers"
 import generateName from 'sillyname'
 import uuid from 'node-uuid';
 
-import {actionTypes} from 'redux-localstorage'
+import { actionTypes } from 'redux-localstorage'
 
 const initialState = require("../data/lw.materials/material-database.json");
 
@@ -168,9 +168,11 @@ export const materialDatabase = (state = initialState, action) => {
             return togglePresetAttribute(state, action.payload, 'isEditable')
 
         case actionTypes.INIT:
-                let lockedState = initialState.slice().map((vendor)=>{ return {...vendor, locked:true }});
-                if (action.payload) return Object.assign(action.payload.materialDatabase, lockedState);
-                return state;
+            if (action.payload) {
+                let lockedState = initialState.slice().map((vendor) => { return { ...vendor, _locked: true } });
+                return Object.assign(action.payload.materialDatabase, lockedState);
+            }
+            return state;
 
         default:
             return state;

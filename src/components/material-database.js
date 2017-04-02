@@ -204,7 +204,7 @@ class GroupsPane extends React.Component {
                     <div className="listing">
                         {this.props.items.map((item, i) => {
                             return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
-                                <h5 title={item.locked? "This grouping is locked. Will be reset on next application start.":undefined} >{item.name} {item.locked? <Icon name="lock"/>:undefined} </h5>
+                                <h5 title={item._locked? "This grouping is locked. Will be reset on next application start.":undefined} >{item.name} {item._locked? <Icon name="lock"/>:undefined} </h5>
                                 <small>{item.notes}</small>
                             </heading>
                         })}
