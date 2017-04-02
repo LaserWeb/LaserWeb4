@@ -108,7 +108,7 @@ export class Macros extends React.Component {
                 </ButtonGroup>
                 <FormControl componentClass="textarea" ref="gcode" placeholder="Gcode" value={this.state.gcode} onChange={(e) => this.handleFormChange(e, 'gcode')} />
                 <Button bsStyle="primary" onClick={(e) => this.handleAppend(e)} style={{ float: "left" }} disabled={errors !== undefined} title={JSON.stringify(errors)}><Icon name="share" /> Set</Button>
-                <Button bsStyle="danger" onClick={(e) => this.handleRemove(e)} style={{ float: "right" }}><Icon name="trash" /> Remove</Button>
+                <Button bsStyle="danger" disabled={this.state._locked} title={this.state._locked ? 'This is a locked macro':undefined} onClick={(e) => this.handleRemove(e)} style={{ float: "right" }}><Icon name="trash" /> Remove</Button>
             </div>
 
         )

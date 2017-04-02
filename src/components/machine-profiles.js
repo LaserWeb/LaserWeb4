@@ -82,7 +82,6 @@ class MachineProfile extends React.Component {
         
         Object.keys(this.props.profiles).forEach((key) => {
             let profile=this.props.profiles[key];
-            
             profileOptions.push(<option key={key} value={key} >{profile.machineLabel}</option>);
         });
         
@@ -93,8 +92,6 @@ class MachineProfile extends React.Component {
             description=(<details><summary>{machinedesc? machinedesc : "Details" }</summary><pre>{settings}</pre></details>);
         }
         
-        
-        
         return (
             
                 <div>
@@ -104,10 +101,7 @@ class MachineProfile extends React.Component {
                     <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}} value={this.state.selected} ref="select" className="full-width">
                       <option value="">Select a Machine Profile</option>
                       {profileOptions}
-                      
                     </FormControl>
-                    
-                    
                     
                     <ButtonGroup>
                         <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}} disabled={disabledApply} title="Applies selected profile"><Icon name="share" /> Apply</Button>
@@ -117,7 +111,6 @@ class MachineProfile extends React.Component {
                      <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
                     {description}
                     </FormGroup>
-                    
                     
                     <FormGroup controlId="formControlsAppend">
                    
