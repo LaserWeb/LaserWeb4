@@ -2,12 +2,12 @@ import { objectNoId } from '../reducers/object'
 import omit from 'object.omit'
 
 import Validator from 'validatorjs';
+import { actionTypes } from 'redux-localstorage'
 
 const initialState = require("../data/macros.json");
 
 export const MACRO_VALIDATION_RULES = {
     label: 'required',
-    keybinding: 'required',
     gcode: 'required'
 }
 
