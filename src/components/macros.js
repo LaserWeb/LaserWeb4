@@ -93,7 +93,7 @@ export class Macros extends React.Component {
     render() {
 
         let errors = this.getErrors(this.state);
-        console.log(this.props.macros)
+
         return (
             <div className="macros">
                 <small className="help-block">Append new key binding to Gcode. Page must be reloaded to take effect</small>
