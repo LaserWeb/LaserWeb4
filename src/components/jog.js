@@ -59,11 +59,45 @@ class Jog extends React.Component {
         };
     }
 
-    componentDidMount() {
+    @keydown('alt+right')
+    jogRight(event) {
+        event.preventDefault();
+        this.jog('X', '+')
+    }
+
+    @keydown('alt+left')
+    jogLeft(event) {
+        event.preventDefault();
+        this.jog('X', '-')
+    }
+
+    @keydown('alt+up')
+    jogUp(event) {
+        event.preventDefault();
+        this.jog('Y', '+')
+    }
+
+    @keydown('alt+down')
+    jogDown(event) {
+        event.preventDefault();
+        this.jog('Y', '-')
+    }
+
+    @keydown('ctrl+alt+up')
+    jogZUp(event) {
+        event.preventDefault();
+        this.jog('Z', '+')
+    }
+
+    @keydown('ctrl+alt+down')
+    jogZDown(event) {
+        event.preventDefault();
+        this.jog('Z', '-')
     }
 
     @keydown('ctrl+x')
     keylogger( event ) {
+        event.preventDefault();
         resetMachine();
     }
 
