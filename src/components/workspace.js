@@ -34,6 +34,7 @@ import SetSize from './setsize';
 import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
+import { clamp } from '../lib/helpers'
 
 import CommandHistory from './command-history'
 
@@ -43,6 +44,8 @@ import Icon from './font-awesome'
 import Draggable from 'react-draggable';
 
 import { VideoPort } from './webcam'
+
+import { LiveJogging } from './jog'
 
 function camera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
     let perspective;
@@ -599,6 +602,17 @@ class WorkspaceContent extends React.Component {
 
     onPointerDown(e) {
         e.preventDefault();
+
+        if (e.altKey && LiveJogging.isEnabled()) {
+            
+            let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
+                jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
+                jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            let jogF = this.props.settings.jogFeedXY;
+            CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
+            return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
+        }
+
         e.target.setPointerCapture(e.pointerId);
         if (this.pointers.length && e.pointerType !== this.pointers[0].pointerType)
             this.pointers = [];

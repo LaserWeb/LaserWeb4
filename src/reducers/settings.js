@@ -155,7 +155,7 @@ export const settings = objectNoId('settings', {
     connectIP: '',
 
     jogStepsize: 1,
-    jogFeedXY: 30,
-    jogFeedZ:5,
+    jogFeedXY: 1800,
+    jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
 });

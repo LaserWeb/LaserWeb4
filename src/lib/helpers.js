@@ -46,3 +46,7 @@ export function cast(value, def = '') {
     if (value === true) return "Yes";
     return String(value);
 }
+
+export function clamp(num, min, max) {
+  return num <= min ? min : num >= max ? max : num;
+}
