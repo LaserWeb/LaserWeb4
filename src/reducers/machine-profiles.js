@@ -12,7 +12,9 @@ export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
                 return state;
                 
             case "MACHINEPROFILES_REMOVE":
-                return omit(state,(val,key)=>{return key!==action.payload.id && (!lock || !action.payload.id.match(lock))});
+                let item = state[action.payload.id]
+                if (!item || item._locked) return state;
+                return omit(state, action.payload.id);
             
             case "MACHINEPROFILES_LOAD":
                 let allowed=omit(action.payload.machines,(val,key) => { return !key.match(lock)});
