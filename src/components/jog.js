@@ -109,7 +109,8 @@ class Jog extends React.Component {
     }
 
     @keydown('ctrl+x')
-    keylogger(event) {
+
+    keylogger( event ) {
         event.preventDefault();
         resetMachine();
     }
