@@ -459,23 +459,7 @@ class Com extends React.Component {
                 </PanelGroup>
             </div>    
         )
-        /*      <h4>Fancy controls examples</h4>
-                <NumberField {...{ object: settings, field: 'serverIP', setAttrs: setSettingsAttrs, description: 'Server IP', units: 'IPv4' }} />
-                <ToggleField {...{ object: settings, field: 'commServerConnect', setAttrs: setSettingsAttrs, description: 'Connect server' }} />
-
-                <h4>Basic controls examples</h4>
-                <button onClick={e => this.useGcode()}>Use gcode</button>
-
-                <input type="checkbox"
-                    checked={settings.commServerConnect}
-                    onChange={e => dispatch(setSettingsAttrs({ commServerConnect: e.target.checked }))}
-                    />
-                <br />
-                
-                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
-                <button onClick={e => { CommandHistory.write("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
-
-        */
+      
     }
 }
 
