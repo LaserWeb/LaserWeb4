@@ -250,7 +250,7 @@ export class FileField extends React.Component {
              this.nativeClick = ce;
              let nullify = (e)=>{
                 e.target.removeEventListener(e.type, nullify);
-                this.nativeClick = null;
+                setTimeout(()=>{this.nativeClick = null},200);
              }
              window.addEventListener('focus', nullify)
              this.input.click()
