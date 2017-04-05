@@ -20,7 +20,8 @@ import { MacrosBar } from './macros';
 
 import '../styles/index.css'
 import Icon from './font-awesome'
-import Toggle from "react-toggle";
+import Toggle from 'react-toggle';
+import { Label } from 'react-bootstrap'
 
 var ovStep = 1;
 var ovLoop;
@@ -140,7 +141,7 @@ class Jog extends React.Component {
             this.setState({
                 isPlaying: true,
                 liveJogging: {
-                    ... this.state.liveJogging, active: false, disabled: true
+                    ... this.state.liveJogging, disabled: true, hasHomed: false
                 }
             })
 
@@ -710,7 +711,7 @@ export class LiveJogging extends React.Component {
         }
 
         return <div className="toggleField">
-            <Toggle disabled={!this.props.hasHomed || this.props.disabled} id="toggle_liveJogging" defaultChecked={this.props.active} onChange={e => toggleLiveJogging(e.target.checked)} /><label htmlFor="toggle_liveJogging" title="Live jogging allows to travel pressing ALT+Click in the workspace. Prior homing mandatory. Use carefully."> Live Jogging</label>
+            <Toggle disabled={!this.props.hasHomed || this.props.disabled} id="toggle_liveJogging" checked={this.props.active} onChange={e => toggleLiveJogging(e.target.checked)} /><label htmlFor="toggle_liveJogging" title="Live jogging allows to travel pressing ALT+Click in the workspace. Prior homing mandatory. Use carefully."> Live Jogging {this.props.hasHomed ? '': <Label bsStyle="danger" title="Home all first!"><Icon name="home"/></Label>}</label>
         </div>
 
     }
