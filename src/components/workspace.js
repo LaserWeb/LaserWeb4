@@ -602,17 +602,6 @@ class WorkspaceContent extends React.Component {
 
     onPointerDown(e) {
         e.preventDefault();
-
-        if (e.altKey && LiveJogging.isEnabled()) {
-            
-            let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
-                jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
-                jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
-            let jogF = this.props.settings.jogFeedXY;
-            CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
-            return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
-        }
-
         e.target.setPointerCapture(e.pointerId);
         if (this.pointers.length && e.pointerType !== this.pointers[0].pointerType)
             this.pointers = [];
@@ -621,9 +610,19 @@ class WorkspaceContent extends React.Component {
         this.adjustingCamera = false;
         this.needToSelect = null;
         this.toggle = e.ctrlKey || e.shiftKey;
+        this.liveJoggingKey = e.altKey || e.metaKey
         this.moveStarted = false;
         this.fingers = null;
         this.jogMode = this.props.mode=='jog';
+
+        if (LiveJogging.isEnabled() && this.liveJoggingKey && this.jogMode) {
+            let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
+                jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
+                jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            let jogF = this.props.settings.jogFeedXY;
+            CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
+            return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
+        }
 
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
         if (cachedDocument && e.button === 0 && !this.jogMode) {
