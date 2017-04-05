@@ -623,8 +623,10 @@ class WorkspaceContent extends React.Component {
         this.toggle = e.ctrlKey || e.shiftKey;
         this.moveStarted = false;
         this.fingers = null;
+        this.jogMode = this.props.mode=='jog';
+
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
-        if (cachedDocument && e.button === 0) {
+        if (cachedDocument && e.button === 0 && !this.jogMode) {
             this.movingObjects = true;
             if (cachedDocument.document.selected)
                 this.needToSelect = cachedDocument.document.id;
@@ -756,7 +758,9 @@ class WorkspaceContent extends React.Component {
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
             nextProps.settings.machineOriginX !== this.props.settings.machineOriginX || nextProps.settings.machineOriginY !== this.props.settings.machineOriginY ||
             nextProps.documents !== this.props.documents ||
-            nextProps.camera !== this.props.camera);
+            nextProps.camera !== this.props.camera ||
+            nextProps.mode !== this.props.mode
+        );
     }
 
     render() {
@@ -786,13 +790,14 @@ class WorkspaceContent extends React.Component {
                             />
                     </SetSize>
                 </div>
+                <div className={"workspace-content workspace-overlay "+this.props.mode}></div>
             </div>
         );
     }
 } // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace, mode: state.panes.selected })
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
