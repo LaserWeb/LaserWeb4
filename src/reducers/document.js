@@ -10,6 +10,7 @@ import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
 
+import CommandHistory from '../components/command-history'
 import { alert } from '../components/laserweb'
 
 const initialDocument = {
@@ -147,6 +148,12 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
 }
 
 function processImage(doc, settings, context) {
+
+    if (!context) {
+        CommandHistory.warn('Cannot process image '+doc.name)
+        return doc;
+    }
+
     // Adjusting by Quadrant setting.
     let imageWidth = context.naturalWidth / settings.dpiBitmap * 25.4;
     let imageHeight = context.naturalHeight / settings.dpiBitmap * 25.4;
