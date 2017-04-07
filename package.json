@@ -56,6 +56,7 @@
     "file-loader": "^0.9.0",
     "flat": "^2.0.1",
     "flatnest": "^1.0.0",
+    "floyd-steinberg": "^1.0.5",
     "font-awesome": "^4.6.3",
     "gl-matrix": "^2.3.2",
     "glfx": "0.0.4",
