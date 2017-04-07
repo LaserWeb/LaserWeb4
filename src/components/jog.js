@@ -480,7 +480,7 @@ class Jog extends React.Component {
                                 <div className="btn-group">
                                     <button type='button' id="stopBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.abortJob(e) }}>
                                         <span className="fa-stack fa-1x">
-                                            <i className="fa fa-stop fa-stack-1x"></i>
+                                            <i id="stopIcon" className="fa fa-stop fa-stack-1x"></i>
                                             <strong className="fa-stack-1x icon-top-text">abort</strong>
                                             <strong className="fa-stack-1x icon-bot-text">job</strong>
                                         </span>
@@ -713,4 +713,3 @@ export class LiveJogging extends React.Component {
 
     }
 }
-

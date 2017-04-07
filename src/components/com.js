@@ -69,7 +69,7 @@ class Com extends React.Component {
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         });
-        
+
         socket.on('disconnect', function() {
             CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
             //console.log('Disconnected from Server ' + settings.commServerIP);
@@ -99,7 +99,7 @@ class Com extends React.Component {
             //CommandHistory.write('Server version: ' + serverVersion, CommandHistory.INFO);
             console.log('serverVersion: ' + serverVersion);
         });
-        
+
         socket.on('interfaces', function(data) {
             serverConnected = true;
             $('#connectS').addClass('disabled');
@@ -220,7 +220,7 @@ class Com extends React.Component {
             alert(data);
             //setGcode(data);
         });
-        
+
         socket.on('runStatus', function (status) {
             //CommandHistory.write('runStatus: ' + status);
             console.log('runStatus: ' + status);
@@ -259,7 +259,7 @@ class Com extends React.Component {
                         style = CommandHistory.DANGER;
                     } else if (data.indexOf('error:') === 0) {
                         style = CommandHistory.DANGER;
-                    }                    
+                    }
                     CommandHistory.write(data, style);
                 }
             }
@@ -367,7 +367,7 @@ class Com extends React.Component {
             }
         });
 
-        socket.on('close', function() { 
+        socket.on('close', function() {
             serverConnected = false;
             $('#connectS').removeClass('disabled');
             $('#disconnectS').addClass('disabled');
@@ -376,7 +376,7 @@ class Com extends React.Component {
             $('#disconnect').addClass('disabled');
             CommandHistory.error('Server connection closed')
             // websocket is closed.
-            //console.log('Server connection closed'); 
+            //console.log('Server connection closed');
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         });
@@ -387,7 +387,7 @@ class Com extends React.Component {
         });
 
     }
-    
+
     handleDisconnectServer() {
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
@@ -396,7 +396,7 @@ class Com extends React.Component {
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         }
     }
-    
+
     handleConnectMachine() {
         var connectVia = this.props.settings.connectVia;
         var connectPort = this.props.settings.connectPort.trim();
@@ -423,10 +423,10 @@ class Com extends React.Component {
         socket.emit('closePort');
     }
 
-    
+
     render() {
         let {settings, dispatch} = this.props;
-        
+
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
@@ -457,9 +457,9 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
                 </PanelGroup>
-            </div>    
+            </div>
         )
-      
+
     }
 }
 
@@ -490,6 +490,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('clear');
         $('#stopBtn .icon-bot-text').html('alarm');
+        $('#stopIcon').removeClass('fa-stop');
+        $('#stopIcon').addClass('fa-unlock');
 //        if ($('#alarmmodal').is(':visible')) {
 //            // Nothing, its already open
 //        } else {
@@ -502,6 +504,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
 //        }
@@ -512,6 +516,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('resume');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -523,6 +529,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('run');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -534,6 +542,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('pause');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
