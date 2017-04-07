@@ -1,4 +1,4 @@
-import RasterToGcode from 'lw.raster-to-gcode';
+import RasterToGcode from './vendors/raster-to-gcode';
 import queue from 'queue'
 
 export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers) {
@@ -108,6 +108,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     grayscale: op.grayscale,
                     shadesOfGray: op.shadesOfGray,
                     invertColor: op.invertColor,
+                    dithering: op.dithering
                 }
             }
             let r2g = new RasterToGcode(params)
