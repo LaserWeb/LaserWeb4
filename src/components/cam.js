@@ -28,7 +28,7 @@ import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
-import { sendAsFile, openDataWindow } from '../lib/helpers';
+import { sendAsFile, openDataWindow, captureConsole } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
@@ -186,15 +186,23 @@ Cam = connect(
                 let reader = new FileReader;
                 if (file.name.substr(-4) === '.svg') {
                     reader.onload = () => {
-                        var ___cc = window.console
-                        window.console = CommandHistory;
+                        const release = captureConsole()
+                        
                         let parser = new Parser({});
-                        parser.parse(reader.result)
-                            .then((tags) => {
-                                dispatch(loadDocument(file, { parser, tags }, modifiers));
-                                window.console = ___cc;
+                            parser.parse(reader.result)
+                                .then((tags) => {
+                                    dispatch(loadDocument(file, { parser, tags }, modifiers));
+                                    let captures=release(true);;
+                                    if (captures.filter(i => i.method=='warn')) 
+                                        CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
+                                    if (captures.filter(i => i.method=='error')) 
+                                        CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+                                })
+                            .catch((e) => { 
+                                    release(true);
+                                    CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+                                    CommandHistory.error(e)
                             })
-                            .catch((e) => { CommandHistory.error(String(e)); window.console = ___cc; })
 
                     }
                     reader.readAsText(file);
