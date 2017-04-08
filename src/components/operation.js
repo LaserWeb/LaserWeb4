@@ -115,6 +115,17 @@ function RangeInput(minValue, maxValue) {
     }
 }
 
+function TagInput(statekey, opts = { multi: true, simpleValue:true, delimiter:',', clearable:true }, connector) {
+   
+    if (!connector) connector = (state) => { return { options: Object.entries(state[statekey]).map(i => { return { label: i[1].label, value: i[0] } }) } }
+    return connect(connector)(React.createClass({
+        render: function() {
+            return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{...opts}} />
+        }
+    }))
+   
+}
+
 function ColorBox(v) {
     let rgb = 'rgb(' + v.color[0] * 255 + ',' + v.color[1] * 255 + ',' + v.color[2] * 255 + ')';
     return (
@@ -207,7 +218,7 @@ class Field extends React.Component {
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
         return (
             <GetBounds Type="tr">
-                <th>{field.label}</th>
+                <th width="30%">{field.label}</th>
                 <td>
                     <Input
                         op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
@@ -370,16 +381,23 @@ export const OPERATION_FIELDS = {
     burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: { name: 'verboseGcode', label: 'Verbose GCode', units: '', input: ToggleInput },                      // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-    dithering: { name: 'dithering', label: 'Dithering',units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-
-
+    dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
+
+    hookOperationStart: { name: 'hookOperationStart', label: 'Pre Op', units: '', input: TagInput('macros') },
+    hookOperationEnd: { name: 'hookOperationEnd', label: 'Post Op', units: '', input: TagInput('macros') },
+    hookPassStart: { name: 'hookPassStart', label: 'Pre Pass', units: '', input: TagInput('macros') },
+    hookPassEnd: { name: 'hookPassEnd', label: 'Post Pass', units: '', input: TagInput('macros') },
 };
 
-export const OPERATION_GROUPS = { 
-    'Advanced': {
+export const OPERATION_GROUPS = {
+    'Filters': {
         collapsible: false,
         fields: ['smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'overScan', 'dithering']
+    },
+    'Macros': {
+        collapsible: true,
+        fields: ['hookOperationStart', 'hookOperationEnd', 'hookPassStart', 'hookPassEnd']
     }
 }
 
@@ -388,35 +406,38 @@ const tabFields = [
 ];
 
 export const OPERATION_TYPES = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower'] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'overScan', 'smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'dithering', 'useBlower'] },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate'] },
-    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate'] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower', ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
-const groupFields = (fields) => {
+const groupFields = (ofields) => {
     let groups = { '_default': { visible: true, collapsible: false, fields: [] } };
-    fields.forEach(field => {
-        Object.entries(OPERATION_GROUPS).forEach(entry => {
-            let [key, group] = entry;
-            if (!groups[key]) {
-                groups[key] = Object.assign({}, group)
-                groups[key].fields = []
-            }
+    let fields=ofields.slice();
 
-            if (group.fields.includes(field)) {
-                groups[key].fields.push(field)
-            } else {
-                groups['_default'].fields.push(field)
-            }
+    Object.entries(OPERATION_GROUPS).forEach(entry => {
+        let [key, group] = entry;
+        if (!groups.hasOwnProperty(key)) {
+            groups[key] = Object.assign({}, group)
+            groups[key].fields = []
+        }
+        group.fields.forEach(field => {  
+            let index=fields.indexOf(field);
+            if (index>-1)
+                groups[key].fields.push(fields.splice(index,1).pop())
+            
         })
     })
+    
+    groups['_default'].fields = fields
+        
     return groups;
 }
 
@@ -530,8 +551,8 @@ class Operation extends React.Component {
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
-                         <button className={"btn btn-warning btn-xs "+(op.enabled? '':'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>
-                         <button className="btn btn-default btn-xs " onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
+                            <button className={"btn btn-warning btn-xs " + (op.enabled ? '' : 'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>
+                            <button className="btn btn-default btn-xs " onClick={this.moveUp}><i className="fa fa-arrow-up"></i></button>
                             <button className="btn btn-default btn-xs" onClick={this.moveDn}><i className="fa fa-arrow-down"></i></button>
                             <button className="btn btn-danger btn-xs" onClick={this.remove}><i className="fa fa-times"></i></button>
                         </div>
@@ -570,13 +591,13 @@ class Operation extends React.Component {
                                 {Object.entries(this.operationGroups || {}).map((entry) => {
                                     let [key, group] = entry;
                                     let fields = group.fields
-                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return !f.condition || f.condition(op, settings); })
-                                                .map(fieldName => {
-                                                    return <Field
+                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return f && (!f.condition || f.condition(op, settings)); })
+                                        .map(fieldName => {
+                                            return <Field
                                                         key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
-                                                        fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                                        operationsBounds={bounds} dispatch={dispatch} />
-                                                })
+                                                fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                                                operationsBounds={bounds} dispatch={dispatch} />
+                                        })
                                     if (key !== '_default' && group.fields.length) {
                                         if (group.collapsible) {
                                             return <tr key={key}><td><Details className="operationGroup" handler={(<h4>{key}</h4>)}><table><tbody>{fields}</tbody></table> </Details></td></tr>
@@ -652,7 +673,7 @@ class Operation extends React.Component {
             } // types[op.type].allowTabs
         } // op.expanded
 
-        return <div className={"operation-row "+(op.enabled? "":"disabled")} >{rows}</div>;
+        return <div className={"operation-row " + (op.enabled ? "" : "disabled")} >{rows}</div>;
     }
 }; // Operation
 

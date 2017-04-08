@@ -18,7 +18,27 @@
 import { getLaserRasterGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
 
+import { GlobalStore } from '../index'
+
 import queue from 'queue';
+
+export const expandHookGCode = (operation) =>{
+    let macros = GlobalStore().getState().macros;
+    let op=Object.assign({},operation)
+    let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
+        hooks.forEach(hook => {
+            let keys = op[hook].split(',')
+            let gcode='';
+            if (keys.length){
+                keys.forEach(key=>{
+                    if (macros[key]) gcode+=("\r\n; Macro ["+hook+"]: "+macros[key].label+"\r\n"+macros[key].gcode+"\r\n")
+                })
+            }
+            op[hook] = gcode;
+        })
+
+    return op;
+}
 
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert, done, progress) {
     "use strict";
@@ -32,19 +52,17 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     let jobIndex = 0;
 
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
-        let op = operations[opIndex];
+        let op = expandHookGCode(operations[opIndex]);
 
         const jobDone = (g, cb) => { 
             if (g !== false) { gcode.push(g); cb(); } 
         }
 
         let invokeWebWorker = (ww, props, cb, jobIndex) => {
-            //console.log("starting job " + jobIndex)
             let peasant = new ww();
             peasant.onmessage = (e) => {
                 let data = JSON.parse(e.data)
                 if (data.event == 'onDone') {
-                    //console.log("job done " + jobIndex)
                     jobDone(data.gcode, cb)
                 } else if (data.event == 'onProgress') {
                     let p = parseInt((jobIndex * QE.chunk) + (data.progress * QE.chunk / 100))

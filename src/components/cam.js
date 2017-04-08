@@ -193,14 +193,14 @@ Cam = connect(
                                 .then((tags) => {
                                     dispatch(loadDocument(file, { parser, tags }, modifiers));
                                     let captures=release(true);;
-                                    if (captures.filter(i => i.method=='warn')) 
+                                    if (captures.filter(i => i.method=='warn').length) 
                                         CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
-                                    if (captures.filter(i => i.method=='error')) 
+                                    if (captures.filter(i => i.method=='error').length) 
                                         CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
                                 })
                             .catch((e) => { 
                                     release(true);
-                                    CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+                                    CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
                                     CommandHistory.error(e)
                             })
 
