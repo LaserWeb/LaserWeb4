@@ -66,14 +66,14 @@ body, html, .full-height {
 
 .workspace-overlay {
     pointer-events: none;
-    
+
 }
 
 .workspace-overlay.jog {
-   border: 10px solid #cef;
+   border: 5px dashed #ccc;
     opacity: 0.5
 }
-.workspace-overlay.jog:after { color: #357; content:"Jog Mode"; font-size: 10px; text-transform: uppercase; position:absolute; right:2px}
+.workspace-overlay.jog:after { color: #bbb; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px}
 
 #workspace-controls {
     flex-grow: 0;
@@ -237,7 +237,7 @@ body, html, .full-height {
 }
 
 .operation-row.disabled > * {
-    opacity:0.5; 
+    opacity:0.5;
 }
 .operation-row.disabled > *:first-child {
     opacity:1
@@ -250,7 +250,7 @@ body, html, .full-height {
 .operations td {
     padding-left: 4px;
     padding-right: 4px;
-    
+
 }
 
 .operations td > input {width: 100%}

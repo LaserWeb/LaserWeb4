@@ -8,7 +8,8 @@ import React from 'react'
 import { connect } from 'react-redux';
 import keydown, { Keys } from 'react-keydown';
 
-import { PanelGroup, Panel, ProgressBar } from 'react-bootstrap';
+import { PanelGroup, Panel, ProgressBar, Nav, NavItem } from 'react-bootstrap';
+
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
 
@@ -17,6 +18,7 @@ import CommandHistory from './command-history';
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
 import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
+import { Macros } from './macros'
 
 import '../styles/index.css'
 import Icon from './font-awesome'
@@ -322,6 +324,19 @@ class Jog extends React.Component {
         spindleOverride(-ovStep);
     }
 
+    handleSelect(selectedKey) {
+      // console.log(this)
+      this.setState({ activeKey: selectedKey })
+      if (selectedKey == '1') {
+        $('#macrosSetup').hide();
+        $('#macrosBar').show();
+      } else if (selectedKey == '2') {
+        $('#macrosSetup').show();
+        $('#macrosBar').hide();
+      }
+    }
+
+
     /**
      * Render the component.
      * @return {String}
@@ -329,9 +344,7 @@ class Jog extends React.Component {
     render() {
         let { settings, dispatch } = this.props;
         return (
-            <div style={{ paddingTop: 2 }}>
-                <PanelGroup>
-                    <Panel collapsible header="Jog" bsStyle="primary" eventKey="1" defaultExpanded={true}>
+            <div style={{ paddingTop: 6 }}>
                         <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
                         <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
                         <div id="mPosition" style={{ padding: 5 }}>
@@ -445,10 +458,7 @@ class Jog extends React.Component {
                                 </div>
                             </div>
                         </div>
-                    </Panel>
-
-                    <Panel collapsible header="Control" bsStyle="primary" eventKey="2" defaultExpanded={true}>
-                        <div id="controlmachine" className="btn-group" role="group" aria-label="controljob">
+                        <div id="controlmachine" className="btn-group" role="group" aria-label="controljob" style={{ paddingTop: 6 }}>
                             <div className="btn-group btn-group-justified">
                                 <div className="btn-group">
                                     <button type='button' id="homeAll" className="btn btn-ctl btn-default" onClick={(e) => { this.homeAll(e) }}>
@@ -506,148 +516,163 @@ class Jog extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <table className='centerTable' style={{ width: 99 + '%' }}>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <button id="lT" type="button" data-title="Laser Test" className="btn btn-ctl btn-default" onClick={(e) => { this.laserTest(e) }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-fire fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Laser</strong>
-                                                <strong className="fa-stack-1x icon-bot-text">Test</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button id="yP" type="button" data-title="Jog Y+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Y', '+') }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-arrow-up fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Y+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button id="motorsOff" type="button" data-title="Motors Off" className="btn btn-ctl btn-default" style={{ display: 'none' }} onClick={(e) => { this.motorsOff(e) }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-power-off fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Motors</strong>
-                                                <strong className="fa-stack-1x icon-bot-text">Off</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td></td>
-                                    <td>
-                                        <button id="zP" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '+') }}>
-                                            <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Z+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button id="xM" type="button" data-title="Jog X-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('X', '-') }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-arrow-left fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">X-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button id="yM" type="button" data-title="Jog Y-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Y', '-') }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-arrow-down fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Y-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button id="xP" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('X', '+') }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-arrow-right fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">X+</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <div style={{ width: '8px' }}></div>
-                                    </td>
-                                    <td>
-                                        <button id="zM" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '-') }}>
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-arrow-down fa-stack-1x"></i>
-                                                <strong className="fa-stack-1x icon-top-text">Z-</strong>
-                                                <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                            </span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colSpan="5">
-                                        <div className="input-group">
-                                            <span className="input-group-addon">X/Y</span>
-                                            <Input id="jogfeedxy" type="number" className="form-control numpad input-sm" value={this.state.jogFeedXY} onChangeValue={(e) => { this.changeJogFeedXY(e) }} />
-                                            <span className="input-group-addon">Z</span>
-                                            <Input id="jogfeedz" type="number" className="form-control numpad input-sm" value={this.state.jogFeedZ} onChangeValue={(e) => { this.changeJogFeedZ(e) }} />
-                                            <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colSpan="5">
-                                        <form id="stepsize" >
-                                            <div data-toggle="buttons">
-                                                <label className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(0.1) }} >
-                                                    <input type="radio" name="stp" defaultValue="0.1" />
-                                                    <span className="fa-stack fa-1x">
-                                                        <i className="fa fa-arrows-h fa-stack-1x"></i>
-                                                        <strong className="fa-stack-1x icon-top-text">jog by</strong>
-                                                        <strong className="fa-stack-1x icon-bot-text">0.1mm</strong>
-                                                    </span>
-                                                </label>
-                                                <label className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(1) }} >
-                                                    <input type="radio" name="stp" defaultValue="1" />
-                                                    <span className="fa-stack fa-1x">
-                                                        <i className="fa fa-arrows-h fa-stack-1x"></i>
-                                                        <strong className="fa-stack-1x icon-top-text">jog by</strong>
-                                                        <strong className="fa-stack-1x icon-bot-text">1mm</strong>
-                                                    </span>
-                                                </label>
-                                                <label className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(10) }} >
-                                                    <input type="radio" name="stp" defaultValue="10" />
-                                                    <span className="fa-stack fa-1x">
-                                                        <i className="fa fa-arrows-h fa-stack-1x"></i>
-                                                        <strong className="fa-stack-1x icon-top-text">jog by</strong>
-                                                        <strong className="fa-stack-1x icon-bot-text">10mm</strong>
-                                                    </span>
-                                                </label>
-                                                <label className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(100) }} >
-                                                    <input type="radio" name="stp" defaultValue="100" />
-                                                    <span className="fa-stack fa-1x">
-                                                        <i className="fa fa-arrows-h fa-stack-1x"></i>
-                                                        <strong className="fa-stack-1x icon-top-text">jog by</strong>
-                                                        <strong className="fa-stack-1x icon-bot-text">100mm</strong>
-                                                    </span>
-                                                </label>
+                        <div style={{ paddingTop: 6 }}>
+                            <table className='centerTable' style={{ width: 99 + '%' }}>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <button id="lT" type="button" data-title="Laser Test" className="btn btn-ctl btn-default" onClick={(e) => { this.laserTest(e) }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-fire fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Laser</strong>
+                                                    <strong className="fa-stack-1x icon-bot-text">Test</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button style={{ backgroundColor: '#dbffdf' }} id="yP" type="button" data-title="Jog Y+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Y', '+') }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-arrow-up fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Y+</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button id="motorsOff" type="button" data-title="Motors Off" className="btn btn-ctl btn-default" style={{ display: 'none' }} onClick={(e) => { this.motorsOff(e) }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-power-off fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Motors</strong>
+                                                    <strong className="fa-stack-1x icon-bot-text">Off</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                            <button style={{ backgroundColor: '#dbe8ff' }} id="zP" type="button" data-title="Jog Z+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '+') }}>
+                                                <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Z+</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button style={{ backgroundColor: '#ffdbdb' }} id="xM" type="button" data-title="Jog X-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('X', '-') }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-arrow-left fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">X-</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button style={{ backgroundColor: '#dbffdf' }} id="yM" type="button" data-title="Jog Y-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Y', '-') }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-arrow-down fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Y-</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button style={{ backgroundColor: '#ffdbdb' }} id="xP" type="button" data-title="Jog X+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('X', '+') }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-arrow-right fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">X+</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <div style={{ width: '8px' }}></div>
+                                        </td>
+                                        <td>
+                                            <button style={{ backgroundColor: '#dbe8ff' }} id="zM" type="button" data-title="Jog Z-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '-') }}>
+                                                <span className="fa-stack fa-1x">
+                                                    <i className="fa fa-arrow-down fa-stack-1x"></i>
+                                                    <strong className="fa-stack-1x icon-top-text">Z-</strong>
+                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                </span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
+                                            <div className="input-group">
+                                                <span className="input-group-addon">X/Y Jog</span>
+                                                <Input id="jogfeedxy" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedXY} onChangeValue={(e) => { this.changeJogFeedXY(e) }} />
+                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
                                             </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <hr />
-                        <LiveJogging {... this.state.liveJogging}
-                            onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
-                    </Panel>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
+                                            <div className="input-group">
+                                                <span className="input-group-addon">Z Jog </span>
+                                                <Input id="jogfeedz" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedZ} onChangeValue={(e) => { this.changeJogFeedZ(e) }} />
+                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
+                                            <form id="stepsize" >
+                                                <div data-toggle="buttons">
+                                                    <label style={{ backgroundColor: '#F5F5F5' }} className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(0.1) }} >
+                                                        <input type="radio" name="stp" defaultValue="0.1" />
+                                                        <span className="fa-stack fa-1x">
+                                                            <i className="fa fa-arrows-h fa-stack-1x"></i>
+                                                            <strong className="fa-stack-1x icon-top-text">jog by</strong>
+                                                            <strong className="fa-stack-1x icon-bot-text">0.1mm</strong>
+                                                        </span>
+                                                    </label>
+                                                    <label style={{ backgroundColor: '#F0F0F0' }} className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(1) }} >
+                                                        <input type="radio" name="stp" defaultValue="1" />
+                                                        <span className="fa-stack fa-1x">
+                                                            <i className="fa fa-arrows-h fa-stack-1x"></i>
+                                                            <strong className="fa-stack-1x icon-top-text">jog by</strong>
+                                                            <strong className="fa-stack-1x icon-bot-text">1mm</strong>
+                                                        </span>
+                                                    </label>
+                                                    <label style={{ backgroundColor: '#E8E8E8' }} className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(10) }} >
+                                                        <input type="radio" name="stp" defaultValue="10" />
+                                                        <span className="fa-stack fa-1x">
+                                                            <i className="fa fa-arrows-h fa-stack-1x"></i>
+                                                            <strong className="fa-stack-1x icon-top-text">jog by</strong>
+                                                            <strong className="fa-stack-1x icon-bot-text">10mm</strong>
+                                                        </span>
+                                                    </label>
+                                                    <label style={{ backgroundColor: '#E0E0E0' }} className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(100) }} >
+                                                        <input type="radio" name="stp" defaultValue="100" />
+                                                        <span className="fa-stack fa-1x">
+                                                            <i className="fa fa-arrows-h fa-stack-1x"></i>
+                                                            <strong className="fa-stack-1x icon-top-text">jog by</strong>
+                                                            <strong className="fa-stack-1x icon-bot-text">100mm</strong>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
+                                            <LiveJogging {... this.state.liveJogging}
+                                            onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                    <MacrosBar />
+                        <Nav bsStyle="tabs" activeKey={1} onSelect={this.handleSelect.bind(this)} id="macrosNav">
+                            <NavItem eventKey={1} title="Macros">Macros</NavItem>
+                            <NavItem eventKey={2} title="Setup">Setup</NavItem>
+                        </Nav>
 
-                </PanelGroup>
+                        <div id="macrosBar"><MacrosBar /></div>
+                        <div id="macrosSetup" style={{ display: 'none' }}><Macros /></div>
 
             </div>
         )
@@ -708,7 +733,7 @@ export class LiveJogging extends React.Component {
         }
 
         return <div className="toggleField">
-            <Toggle disabled={!this.props.hasHomed || this.props.disabled} id="toggle_liveJogging" checked={this.props.active} onChange={e => toggleLiveJogging(e.target.checked)} /><label htmlFor="toggle_liveJogging" title="Live jogging allows to travel pressing (ALT or META)+Click in the workspace. Prior homing mandatory. Use carefully."> Live Jogging {this.props.hasHomed ? '': <Label bsStyle="danger" title="Home all first!"><Icon name="home"/></Label>}</label>
+            <Toggle disabled={!this.props.hasHomed || this.props.disabled} id="toggle_liveJogging" checked={this.props.active} onChange={e => toggleLiveJogging(e.target.checked)} /><label htmlFor="toggle_liveJogging" title="Live jogging allows to travel pressing (ALT or META)+Click in the workspace. Prior homing mandatory. Use carefully."> Live Jogging {this.props.hasHomed ? '': <Label bsStyle="danger" title="Home all first!"><Icon name="home"/>Disabled</Label>}</label>
         </div>
 
     }

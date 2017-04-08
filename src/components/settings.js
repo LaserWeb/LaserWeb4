@@ -13,7 +13,6 @@ import { SETTINGS_VALIDATION_RULES, ValidateSettings } from '../reducers/setting
 
 import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
-import { Macros } from './macros'
 
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField } from './forms';
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
@@ -185,7 +184,7 @@ class Settings extends React.Component {
 
     render() {
 
-       
+
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
@@ -266,10 +265,6 @@ class Settings extends React.Component {
                         <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
-                    </Panel>
-
-                    <Panel collapsible header="Macros" bsStyle="info" eventKey="7">
-                        <Macros />
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
