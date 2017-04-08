@@ -330,10 +330,10 @@ class Jog extends React.Component {
     render() {
         let { settings, dispatch } = this.props;
         return (
-            <div style={{ paddingTop: 6 }}>
+            <div style={{ paddingTop: 6 }} >
                         <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
                         <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
-                        <div id="mPosition" style={{ padding: 5 }}>
+                        <div id="mPosition" className="well well-sm" style={{ marginBottom: 7}}>
                             <div id="rX" className="drolabel">X:</div>
                             <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
                                 <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3 }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -444,65 +444,67 @@ class Jog extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <div id="controlmachine" className="btn-group" role="group" aria-label="controljob" style={{ paddingTop: 6 }}>
-                            <div className="btn-group btn-group-justified">
-                                <div className="btn-group">
-                                    <button type='button' id="homeAll" className="btn btn-ctl btn-default" onClick={(e) => { this.homeAll(e) }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i className="fa fa-home fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">home</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">all</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div className="btn-group">
-                                    <button type='button' id="playBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.runJob(e) }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i id="playicon" className="fa fa-play fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">run</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">job</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div className="btn-group" style={{ display: 'none' }}>
-                                    <button type='button' id="uploadBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.uploadSD(e) }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i className="fa fa-hdd-o fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">upload</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">to SD</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div className="btn-group">
-                                    <button type='button' id="stopBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.abortJob(e) }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i id="stopIcon" className="fa fa-stop fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">abort</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">job</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div className="btn-group">
-                                    <button type='button' id="zeroAll" className="btn btn-ctl btn-default" onClick={(e) => { this.setZero('all') }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i className="fa fa-crosshairs fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">set</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">zero</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div className="btn-group">
-                                    <button type='button' id="bounding" className="btn btn-ctl btn-default" onClick={(e) => { this.checkSize(e) }}>
-                                        <span className="fa-stack fa-1x">
-                                            <i className="fa fa-square-o fa-stack-1x"></i>
-                                            <strong className="fa-stack-1x icon-top-text">check</strong>
-                                            <strong className="fa-stack-1x icon-bot-text">size</strong>
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
+                        <div className="well well-sm" style={{ marginBottom: 7}}>
+                          <div id="controlmachine" className="btn-group" role="group" aria-label="controljob">
+                              <div className="btn-group btn-group-justified">
+                                  <div className="btn-group">
+                                      <button type='button' id="homeAll" className="btn btn-ctl btn-default" onClick={(e) => { this.homeAll(e) }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i className="fa fa-home fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">home</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">all</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                                  <div className="btn-group">
+                                      <button type='button' id="playBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.runJob(e) }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i id="playicon" className="fa fa-play fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">run</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">job</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                                  <div className="btn-group" style={{ display: 'none' }}>
+                                      <button type='button' id="uploadBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.uploadSD(e) }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i className="fa fa-hdd-o fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">upload</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">to SD</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                                  <div className="btn-group">
+                                      <button type='button' id="stopBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.abortJob(e) }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i id="stopIcon" className="fa fa-stop fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">abort</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">job</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                                  <div className="btn-group">
+                                      <button type='button' id="zeroAll" className="btn btn-ctl btn-default" onClick={(e) => { this.setZero('all') }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i className="fa fa-crosshairs fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">set</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">zero</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                                  <div className="btn-group">
+                                      <button type='button' id="bounding" className="btn btn-ctl btn-default" onClick={(e) => { this.checkSize(e) }}>
+                                          <span className="fa-stack fa-1x">
+                                              <i className="fa fa-square-o fa-stack-1x"></i>
+                                              <strong className="fa-stack-1x icon-top-text">check</strong>
+                                              <strong className="fa-stack-1x icon-bot-text">size</strong>
+                                          </span>
+                                      </button>
+                                  </div>
+                              </div>
+                          </div>
                         </div>
-                        <div style={{ paddingTop: 6 }}>
+                        <div className="well well-sm" style={{ marginBottom: 7}}>
                             <table className='centerTable' style={{ width: 99 + '%' }}>
                                 <tbody>
                                     <tr>
@@ -586,24 +588,6 @@ class Jog extends React.Component {
                                     </tr>
                                     <tr>
                                         <td colSpan="5">
-                                            <div className="input-group">
-                                                <span className="input-group-addon">X/Y Jog</span>
-                                                <Input id="jogfeedxy" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedXY} onChangeValue={(e) => { this.changeJogFeedXY(e) }} />
-                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td colSpan="5">
-                                            <div className="input-group">
-                                                <span className="input-group-addon">Z Jog </span>
-                                                <Input id="jogfeedz" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedZ} onChangeValue={(e) => { this.changeJogFeedZ(e) }} />
-                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td colSpan="5">
                                             <form id="stepsize" >
                                                 <div data-toggle="buttons">
                                                     <label style={{ backgroundColor: '#F5F5F5' }} className="btn btn-jog btn-default" onClick={(e) => { this.changeStepsize(0.1) }} >
@@ -644,6 +628,24 @@ class Jog extends React.Component {
                                     </tr>
                                     <tr>
                                         <td colSpan="5">
+                                            <div className="input-group">
+                                                <span className="input-group-addon">X/Y Jog</span>
+                                                <Input id="jogfeedxy" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedXY} onChangeValue={(e) => { this.changeJogFeedXY(e) }} />
+                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
+                                            <div className="input-group">
+                                                <span className="input-group-addon">Z Jog </span>
+                                                <Input id="jogfeedz" type="number" className="form-control numpad input-sm text-right" value={this.state.jogFeedZ} onChangeValue={(e) => { this.changeJogFeedZ(e) }} />
+                                                <span className="input-group-addon"><small>{settings.toolFeedUnits}</small></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="5">
                                             <LiveJogging {... this.state.liveJogging}
                                             onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
                                         </td>
@@ -652,7 +654,7 @@ class Jog extends React.Component {
                             </table>
                         </div>
 
-                        <div id="macrosBar"><MacrosBar /></div>
+                        <div className="well well-sm" style={{ marginBottom: 7}} id="macrosBar"><MacrosBar /></div>
 
             </div>
         )
