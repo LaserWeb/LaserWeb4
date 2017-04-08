@@ -113,7 +113,23 @@ class Cam extends React.Component {
 
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                <div className="panel panel-danger" style={{ marginBottom: 0 }}>
+                    <div className="panel-heading" style={{ padding: 2 }}>
+                        <table style={{ width: 100 + '%' }}>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <label>Workspace</label>
+                                    </td>
+                                    <td>
+                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div className="Resizer horizontal" style={{ marginTop: '2px', marginBottom: '2px' }}></div>
                 <div className="panel panel-info" style={{ marginBottom: 3 }}>
                     <div className="panel-heading" style={{ padding: 2 }}>
                         <table style={{ width: 100 + '%' }}>
@@ -143,7 +159,7 @@ class Cam extends React.Component {
                         <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
                     </div>
                 </Splitter>
-                <Alert bsStyle="success" style={{ padding: "4px" }}>
+                <Alert bsStyle="success" style={{ padding: "4px", marginBottom: 7 }}>
                     <table style={{ width: 100 + '%' }}>
                         <tbody><tr>
                             <th>GCODE</th>
@@ -187,18 +203,18 @@ Cam = connect(
                 if (file.name.substr(-4) === '.svg') {
                     reader.onload = () => {
                         const release = captureConsole()
-                        
+
                         let parser = new Parser({});
                             parser.parse(reader.result)
                                 .then((tags) => {
                                     dispatch(loadDocument(file, { parser, tags }, modifiers));
                                     let captures=release(true);;
-                                    if (captures.filter(i => i.method=='warn').length) 
+                                    if (captures.filter(i => i.method=='warn').length)
                                         CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
-                                    if (captures.filter(i => i.method=='error').length) 
+                                    if (captures.filter(i => i.method=='error').length)
                                         CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
                                 })
-                            .catch((e) => { 
+                            .catch((e) => {
                                     release(true);
                                     CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
                                     CommandHistory.error(e)

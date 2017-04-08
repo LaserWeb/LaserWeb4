@@ -336,7 +336,7 @@ class Jog extends React.Component {
                         <div id="mPosition" className="well well-sm" style={{ marginBottom: 7}}>
                             <div id="rX" className="drolabel">X:</div>
                             <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3 }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#ffdbdb' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span className="fa-stack fa-1x">
                                         <i className="fa fa-caret-down fa-stack-1x"></i>
                                     </span>
@@ -354,12 +354,12 @@ class Jog extends React.Component {
                                     <li id="gotoXZero"><a href="#" onClick={(e) => { this.gotoZero('x') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to X0</a></li>
                                 </ul>
                             </div>
-                            <div id="mX" className="droPos" style={{ marginRight: 0 }}>0.00</div><div className="droUnit"> mm</div>
+                            <div id="mX" className="droPos" style={{ marginRight: 0, backgroundColor: '#ffdbdb' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#ffdbdb' }}> mm</div>
                             <br />
 
                             <div id="rY" className="drolabel">Y:</div>
                             <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3 }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbffdf' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span className="fa-stack fa-1x">
                                         <i className="fa fa-caret-down fa-stack-1x"></i>
                                     </span>
@@ -377,12 +377,12 @@ class Jog extends React.Component {
                                     <li id="gotoYZero"><a href="#" onClick={(e) => { this.gotoZero('y') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Y0</a></li>
                                 </ul>
                             </div>
-                            <div id="mY" className="droPos" style={{ marginRight: 0 }}>0.00</div><div className="droUnit"> mm</div>
+                            <div id="mY" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbffdf' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbffdf' }}> mm</div>
                             <br />
 
                             <div id="rZ" className="drolabel">Z:</div>
                             <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3 }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbe8ff' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span className="fa-stack fa-1x">
                                         <i className="fa fa-caret-down fa-stack-1x"></i>
                                     </span>
@@ -399,7 +399,7 @@ class Jog extends React.Component {
                                     <li id="gotoZZero"><a href="#" onClick={(e) => { this.gotoZero('z') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
                                 </ul>
                             </div>
-                            <div id="mZ" className="droPos" style={{ marginRight: 0 }}>0.00</div><div className="droUnit"> mm</div>
+                            <div id="mZ" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbe8ff' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbe8ff' }}> mm</div>
                             <br />
 
                             <div id="overrides">
