@@ -40,7 +40,7 @@ import CommandHistory from './command-history'
 
 import { FileField } from './forms'
 
-export const DOCUMENT_FILETYPES = 'image/*,.gcode,.gc,.nc,.svg'
+export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
 
 
 function NoDocumentsError(props) {
