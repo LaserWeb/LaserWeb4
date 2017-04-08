@@ -8,7 +8,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 import keydown, { Keys } from 'react-keydown';
 
-import { PanelGroup, Panel, ProgressBar, Nav, NavItem } from 'react-bootstrap';
+import { PanelGroup, Panel, ProgressBar} from 'react-bootstrap';
 
 import { setSettingsAttrs } from '../actions/settings';
 import { setWorkspaceAttrs } from '../actions/workspace';
@@ -18,7 +18,6 @@ import CommandHistory from './command-history';
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
 import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
-import { Macros } from './macros'
 
 import '../styles/index.css'
 import Icon from './font-awesome'
@@ -324,20 +323,7 @@ class Jog extends React.Component {
         spindleOverride(-ovStep);
     }
 
-    handleSelect(selectedKey) {
-      // console.log(this)
-      this.setState({ activeKey: selectedKey })
-      if (selectedKey == '1') {
-        $('#macrosSetup').hide();
-        $('#macrosBar').show();
-      } else if (selectedKey == '2') {
-        $('#macrosSetup').show();
-        $('#macrosBar').hide();
-      }
-    }
-
-
-    /**
+     /**
      * Render the component.
      * @return {String}
      */
@@ -666,13 +652,7 @@ class Jog extends React.Component {
                             </table>
                         </div>
 
-                        <Nav bsStyle="tabs" activeKey={1} onSelect={this.handleSelect.bind(this)} id="macrosNav">
-                            <NavItem eventKey={1} title="Macros">Macros</NavItem>
-                            <NavItem eventKey={2} title="Setup">Setup</NavItem>
-                        </Nav>
-
                         <div id="macrosBar"><MacrosBar /></div>
-                        <div id="macrosSetup" style={{ display: 'none' }}><Macros /></div>
 
             </div>
         )
