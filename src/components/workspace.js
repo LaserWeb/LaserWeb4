@@ -47,7 +47,7 @@ import { VideoPort } from './webcam'
 
 import { LiveJogging } from './jog'
 
-function camera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
+function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
     if (showPerspective)
@@ -536,7 +536,7 @@ class WorkspaceContent extends React.Component {
 
     setCamera(props) {
         this.camera =
-            camera({
+            calcCamera({
                 viewportWidth: props.width,
                 viewportHeight: props.height,
                 fovy: props.camera.fovy,
@@ -726,6 +726,20 @@ class WorkspaceContent extends React.Component {
                         fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
                     }));
                 } else if (pointer.button === 0) {
+                    let view = calcCamera({
+                        viewportWidth: this.props.width,
+                        viewportHeight: this.props.height,
+                        fovy: camera.fovy,
+                        near: .1,
+                        far: 2000,
+                        eye: [0, 0, vec3.distance(camera.eye, camera.center)],
+                        center: [0, 0, 0],
+                        up: [0, 1, 0],
+                        showPerspective: false,
+                    }).view;
+                    let scale = 2 * window.devicePixelRatio / this.props.width / view[0];
+                    dx *= scale;
+                    dy *= scale;
                     let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
                     this.props.dispatch(setCameraAttrs({
                         eye: vec3.add([], camera.eye,
