@@ -261,6 +261,8 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
 
+    if (op.hookOperationStart.length) gcode+=op.hookOperationStart;
+
     gcode += getMillGcode({
         paths: camPaths,
         ramp: false,
@@ -278,6 +280,8 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         tabGeometry: op.type === 'Mill V Carve' ? [] : tabGeometry,
         tabZ: -op.tabDepth,
     });
+
+    if (op.hookOperationEnd.length) gcode+=op.hookOperationEnd;
 
     done(gcode)
 

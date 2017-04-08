@@ -55,6 +55,12 @@ const operationBase = object('operation', {
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
     _docs_visible: true,
+    // Hooks!
+    hookOperationStart: '',
+    hookOperationEnd: '',
+    hookPassStart: '',
+    hookPassEnd: ''
+    
 });
 
 export const OPERATION_DEFAULTS = (state) => {

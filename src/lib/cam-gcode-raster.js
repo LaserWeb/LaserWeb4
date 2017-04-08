@@ -45,8 +45,12 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 raster += '; stripped: ' + line + '\r\n';
         raster += '\r\n\r\n';
 
+        if (op.hookOperationStart.length) g+=op.hookOperationStart;
+
         for (let pass = 0; pass < op.passes; ++pass) {
             g += '\n\n; Pass ' + pass + '\r\n';
+
+            if (op.hookPassStart.length) g+=op.hookPassStart;
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOn) {
@@ -66,7 +70,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
                 }
             }
+
+            if (op.hookPassEnd.length) g+=op.hookPassEnd;
         }
+
+        if (op.hookOperationEnd.length) g+=op.hookOperationEnd;
 
         return g;
     }
