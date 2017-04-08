@@ -40,6 +40,9 @@ import CommandHistory from './command-history'
 
 import { FileField } from './forms'
 
+export const DOCUMENT_FILETYPES = 'image/*,.gcode,.gc,.nc,.svg'
+
+
 function NoDocumentsError(props) {
     let { documents, camBounds } = props;
     if (documents.length === 0)
@@ -139,7 +142,7 @@ class Cam extends React.Component {
                                         <label>Documents</label>
                                     </td>
                                     <td>
-                                        <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument}>
+                                        <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             <NoDocumentsError camBounds={bounds} documents={documents} />
                                         </FileField>
@@ -169,7 +172,7 @@ class Cam extends React.Component {
                                     <ButtonGroup>
                                         <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
                                         <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
-                                        <FileField onChange={this.props.loadGcode} disabled={!valid || this.props.gcoding.enable}>
+                                        <FileField onChange={this.props.loadGcode} disabled={!valid || this.props.gcoding.enable} accept=".gcode,.gc,.nc">
                                         <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} ><i className="fa fa-folder-open" /></button>
                                         </FileField>
                                     </ButtonGroup>
@@ -249,6 +252,10 @@ Cam = connect(
                             .catch(e => console.log('error:', e))
                     }
                     reader.readAsDataURL(file);
+                } else if (file.name.match(/\.(nc|gc|gcode)$/gi)) {
+                    let reader = new FileReader;
+                    reader.onload = () => dispatch(setGcode(reader.result));
+                    reader.readAsText(file);
                 }
                 else {
                     reader.onload = () => dispatch(loadDocument(file, reader.result, modifiers));

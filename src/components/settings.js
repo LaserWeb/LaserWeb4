@@ -105,7 +105,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
     render() {
         let buttons = [];
         if (this.props.loadButton) {
-            buttons.push(<FileField onChange={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)}><Button bsStyle="danger" bsSize="xs">Load <Icon name="upload" /></Button></FileField>);
+            buttons.push(<FileField onChange={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} accept="application/json, .json"><Button bsStyle="danger" bsSize="xs">Load <Icon name="upload" /></Button></FileField>);
         }
         if (this.props.saveButton) {
             buttons.push(<Button onClick={(e) => this.handleDownload(this.props.saveButton, this.props.saveName, e)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
