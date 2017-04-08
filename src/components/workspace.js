@@ -613,12 +613,12 @@ class WorkspaceContent extends React.Component {
         this.liveJoggingKey = e.altKey || e.metaKey
         this.moveStarted = false;
         this.fingers = null;
-        this.jogMode = this.props.mode=='jog';
+        this.jogMode = this.props.mode == 'jog';
 
         if (LiveJogging.isEnabled() && this.liveJoggingKey && this.jogMode) {
             let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
-                jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
-                jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
+            jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
             let jogF = this.props.settings.jogFeedXY;
             CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
             return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
@@ -786,10 +786,10 @@ class WorkspaceContent extends React.Component {
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
                             settings={this.props.settings}
-                            />
+                        />
                     </SetSize>
                 </div>
-                <div className={"workspace-content workspace-overlay "+this.props.mode}></div>
+                <div className={"workspace-content workspace-overlay " + this.props.mode}></div>
             </div>
         );
     }
@@ -874,9 +874,9 @@ class Workspace extends React.Component {
                         <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} onCommandExec={runCommand} />
                     </div>
                 </div>
-                
+
                 <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
-                
+
             </div>
         )
     }
