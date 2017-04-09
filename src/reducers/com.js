@@ -1,4 +1,6 @@
 
+import { objectNoId } from '../reducers/object'
+
 export const COM_INITIALSTATE = {
     serverConnected: false,
     machineConnected: false,
@@ -6,9 +8,13 @@ export const COM_INITIALSTATE = {
     paused:false,
 
     comInterfaces:[],
-    comPorts:[]
+    comPorts:[],
+
+    laserTestOn: false,
+    feedOverride:'',
+    spindleOverride: '',
+    queued:0,
+    status:'idle',
 }
 
-export function com(state = COM_INITIALSTATE, action) {
-    return state;
-}
+export const com = objectNoId('com', COM_INITIALSTATE)

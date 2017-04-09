@@ -46,6 +46,8 @@ import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
 
+import commClient from '../lib/lw.comm-client'
+
  var vex = require('vex-js/src/vex.js')
 try{ vex.registerPlugin(require('vex-dialog/src/vex.dialog.js'))} catch(e){}
         vex.defaultOptions.className = 'vex-theme-default'
@@ -107,6 +109,10 @@ class LaserWeb extends React.Component {
             })
         }
 
+        if (!window.comms) {
+            window.comms = new commClient(this.props);
+        }
+
         if (!window.videoCapture) {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
@@ -145,11 +151,14 @@ const mapStateToProps = (state) => {
         visible: state.panes.visible,
         documents: state.documents,
         settings: state.settings,
+        com: state.com, 
+        gcode: state.gcode.content
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        dispatch, 
         handleUndo: evt => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))
