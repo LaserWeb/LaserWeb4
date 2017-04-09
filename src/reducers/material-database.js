@@ -6,7 +6,9 @@ import uuid from 'node-uuid';
 
 import { actionTypes } from 'redux-localstorage'
 
-const initialState = require("../data/lw.materials/material-database.json");
+import { OPERATION_INITIALSTATE } from './operation'
+
+export const MATERIALDB_INITIALSTATE = require("../data/lw.materials/material-database.json");
 
 function generateInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -29,7 +31,7 @@ const PRESET_TEMPLATE = (type, machineProfile = null) => {
         notes: "",
         type: type,
         machine_profile: machineProfile,
-        params: {}
+        params: OPERATION_INITIALSTATE
     }
 }
 
@@ -76,7 +78,7 @@ const toggleGroupAttribute = (state, id, attribute, processGroup = null) => {
 }
 
 
-export const materialDatabase = (state = initialState, action) => {
+export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
 
     switch (action.type) {
@@ -169,7 +171,7 @@ export const materialDatabase = (state = initialState, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = initialState.slice().map((vendor) => { return { ...vendor, _locked: true } });
+                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { return { ...vendor, _locked: true } });
                 return Object.assign(action.payload.materialDatabase, lockedState);
             }
             return state;
