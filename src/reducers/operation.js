@@ -6,7 +6,7 @@ import arrayMove from 'array-move'
 
 import { GlobalStore } from '../index';
 
-const operationBase = object('operation', {
+export const OPERATION_INITIALSTATE={
     id: '',
     name: '',
     enabled: true,
@@ -61,7 +61,9 @@ const operationBase = object('operation', {
     hookPassStart: '',
     hookPassEnd: ''
     
-});
+}
+
+const operationBase = object('operation', OPERATION_INITIALSTATE);
 
 export const OPERATION_DEFAULTS = (state) => {
     if (!state) state=GlobalStore().getState()

@@ -2,9 +2,9 @@
 import omit from 'object.omit'
 import {actionTypes} from 'redux-localstorage'
 
-const initialState = require("../data/lw.machines/machine-profiles.json");
+export const MACHINEPROFILES_INITIALSTATE = require("../data/lw.machines/machine-profiles.json");
 
-export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
+export const machineProfiles = (state = MACHINEPROFILES_INITIALSTATE, action, lock=/^\*/gi) => {
         switch (action.type) {
             case "MACHINEPROFILES_ADD":
                 if (!lock.exec(action.payload.id)) 
@@ -23,7 +23,7 @@ export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
             case actionTypes.INIT:
                 if (action.payload) {
                     let lockedState = {}
-                    Object.entries(initialState).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
+                    Object.entries(MACHINEPROFILES_INITIALSTATE).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
                     return Object.assign(action.payload.machineProfiles, lockedState);
                 }
                 return state;

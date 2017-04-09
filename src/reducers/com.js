@@ -1,5 +1,5 @@
 
-const initialState = {
+export const COM_INITIALSTATE = {
     serverConnected: false,
     machineConnected: false,
     playing: false,
@@ -9,6 +9,6 @@ const initialState = {
     comPorts:[]
 }
 
-export function com(state = initialState, action) {
+export function com(state = COM_INITIALSTATE, action) {
     return state;
 }

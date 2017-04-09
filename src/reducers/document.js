@@ -13,7 +13,7 @@ import { processDXF } from '../lib/dxf'
 import CommandHistory from '../components/command-history'
 import { alert } from '../components/laserweb'
 
-const initialDocument = {
+export const DOCUMENT_INITIALSTATE = {
     id: '',
     type: '?',
     name: '',
@@ -31,7 +31,7 @@ const initialDocument = {
     dpi: 1,
 };
 
-const documentBase = object('document', initialDocument);
+const documentBase = object('document', DOCUMENT_INITIALSTATE);
 
 export function document(state, action) {
     switch (action.type) {
@@ -73,7 +73,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     function addChildren(parent, tag) {
         for (let child of tag.children) {
             let c = {
-                ...initialDocument,
+                ...DOCUMENT_INITIALSTATE,
                 id: uuid.v4(),
                 type: child.name,
                 name: child.name + ': ' + child.attrs.id,
@@ -133,7 +133,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     }
 
     let doc = {
-        ...initialDocument,
+        ...DOCUMENT_INITIALSTATE,
         id: id,
         type: 'document',
         name: file.name,
@@ -186,7 +186,7 @@ function processImage(doc, settings, context) {
 function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
     state = state.slice();
     let doc = {
-        ...initialDocument,
+        ...DOCUMENT_INITIALSTATE,
         id: id,
         type: 'image',
         name: file.name,
@@ -208,7 +208,7 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
 function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
     state = state.slice();
     let docFile = {
-        ...initialDocument,
+        ...DOCUMENT_INITIALSTATE,
         id: id,
         type: 'document',
         name: file.name,

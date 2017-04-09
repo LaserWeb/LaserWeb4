@@ -3,65 +3,7 @@ import Validator from 'validatorjs';
 import {GlobalStore} from '../index';
 
 const version = require("../../package.json").version;
-
- /*
-        {
-             "__version": "Laserweb 0.4 alpha",
-            "__timestamp" : "2016-10-28 12:00:00",
-            
-            "toolCncMode": "Disable",
-            "debug": "undefined",
-            
-            "dpiBitmap": 300,
-            "dpiDefault": 72,
-            "dpiIllustrator": 72,
-            "dpiInkscape": 96,
-            
-            "gcodeStart":"",
-            "gcodeEnd":"",
-            "gcodeHoming":";$H",
-            "gcodeToolOn":"M3",
-            "gcodeToolOff":"M5",
-            "gcodeToolTestPower":"0",
-            "gcodeToolTestDuration":"0",
-            
-            "machineWidth": 420,
-            "machineHeight": 297,
-            "machineBeamDiameter": 0.2,
-            
-            "jogFeedXY": 2000,
-            "jogFeedZ": 10,
-            
-            "imagePosition": "BottomLeft",
-            
-            "lasermultiply": 255,
-            
-            "lastJogSize": 10,
-            "lastUsedBaud": "115200",
-            "lastUsedPort": "/dev/cu.wchusbserial1420",
-            "loglevel": "ERROR",
-            "rapidspeed": "30",
-            "toolSafetyLockDisabled": "Disable",
-            "smoothieIp": "",
-            
-            
-            "subnet1": "",
-            "subnet2": "",
-            "subnet3": "",
-            "tour_current_step": "0",
-            "tour_end": "yes",
-            "useNumPad": "Disable",
-            "useVideo": "Disable",
-            "webcamUrl": "",
-            "wifisubnet1": "",
-            "wifisubnet2": "",
-            "wifisubnet3": ""
-        }
-    
-*/
  
-
-
 export const SETTINGS_VALIDATION_RULES = {
     machineWidth:'numeric|min:100',
     machineHeight:'numeric|min:100',
@@ -96,7 +38,7 @@ export function ValidateSettings(bool=true, rules=SETTINGS_VALIDATION_RULES, set
     return check;
 }
 
-export const settings = objectNoId('settings', {
+export const SETTINGS_INITIALSTATE = {
     
     __version: version,
     __selectedProfile: null,
@@ -158,4 +100,6 @@ export const settings = objectNoId('settings', {
     jogFeedXY: 1800,
     jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
-});
+}
+
+export const settings = objectNoId('settings', SETTINGS_INITIALSTATE);
