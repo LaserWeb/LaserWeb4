@@ -322,55 +322,219 @@ class commClient
         }
     }
 
-    runCommand()
-    {
-
+    __emit(caption, command, args=[]){
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                CommandHistory.write(caption, CommandHistory.INFO);
+                this.socket.emit([command, ...args].join(','))
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
-    runJob()
+    runCommand(gcode)
     {
+        return this.__emit("Run Command", 'runCommand',[gcode])
+        /*
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                if (gcode) {
+                    socket.emit('runCommand', gcode);
+                }
+            } else {
+                CommandHistory.error('Machine is not connected!')
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+        }
+        */
+    }
 
+    runJob(job)
+    {
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                if (job.length > 0) {
+                    CommandHistory.write('Running Job', CommandHistory.INFO);
+                    this.props.dispatch({type: 'COM_SET_ATTRS', payload: {attrs: {
+                        playing: true,
+                        jobStartTime: new Date(Date.now()).toJSON()
+                    }}})
+                    this.socket.emit('runJob', job);
+                    return true;
+                } else {
+                    CommandHistory.error('Job empty!')
+                    return false;
+                }
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
     pauseJob()
     {
-
+        console.log('pauseJob');
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                this.props.dispatch({type: 'COM_SET_ATTRS', payload: {attrs: { paused:true }}})
+                this.runStatus('paused');
+                this.socket.emit('pause');
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
     resumeJob()
     {
-
+        console.log('resumeJob');
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                this.props.dispatch({type: 'COM_SET_ATTRS', payload: {attrs: { paused:false }}})
+                this.runStatus('running');
+                this.socket.emit('resume');
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
     abortJob()
     {
-
+        console.log('abortJob');
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                CommandHistory.write('Aborting job', CommandHistory.INFO);
+                this.props.dispatch({type: 'COM_SET_ATTRS', payload: {attrs: { paused:false, playing: false }}})
+                this.runStatus('stopped');
+                this.socket.emit('stop');
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
-    clearAlarm(){
+    
 
+    clearAlarm(method){
+        return this.__emit('Resetting alarm', 'clearAlarm', [method])
+        /*
+         console.log('clearAlarm');
+         if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                CommandHistory.write('Resetting alarm', CommandHistory.INFO);
+                this.socket.emit('clearAlarm', method);
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+        }
+        */
     }
 
-    setZero(){
-
+    setZero(axis){
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                CommandHistory.write('Set ' + axis + ' Axis zero', CommandHistory.INFO);
+                this.socket.emit('setZero', axis);
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false
+        }
     }
 
-    gotoZero(){
-
+    gotoZero(axis){
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
+                this.socket.emit('gotoZero', axis);
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
-    laserTest(){
-
+    laserTest(power, duration, maxS){
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                console.log('laserTest(' + power + ', ' + duration + ', ' + maxS + ')');
+                this.socket.emit('laserTest', power + ',' + duration + ',' + maxS);
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
     
-    jog()
-    {
-
+    jog(axis, dist, feed) {
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                this.socket.emit('jog', axis + ',' + dist + ',' + feed);
+                return true;
+            } else {
+                CommandHistory.error('Machine is not connected!')
+                return false;
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+            return false;
+        }
     }
 
-    feedOverride()
+    feedOverride(step)
     {
-
+        if (this.props.com.serverConnected) {
+            if (this.props.com.machineConnected){
+                console.log('feedOverride ' + step);
+                socket.emit('feedOverride', step);
+            } else {
+                CommandHistory.error('Machine is not connected!')
+            }
+        } else {
+            CommandHistory.error('Server is not connected!')
+        }
     }
 
     splindleOverride()

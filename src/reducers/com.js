@@ -15,6 +15,8 @@ export const COM_INITIALSTATE = {
     spindleOverride: '',
     queued:0,
     status:'idle',
+    jobStartTime: null,
+
 }
 
 export const com = objectNoId('com', COM_INITIALSTATE)
