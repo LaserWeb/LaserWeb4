@@ -9,6 +9,7 @@ export const COM_INITIALSTATE = {
 
     comInterfaces:[],
     comPorts:[],
+    comServerVersion:null,
 
     laserTestOn: false,
     feedOverride:'',

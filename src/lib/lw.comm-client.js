@@ -40,10 +40,23 @@ class commClient {
 
     constructor(props) {
         this.props = props;
-        this.connectServer(this.props.settings.comServerIP)
+    }
+
+    isServerConnected()
+    {
+        return this.props.com.serverConnected;
+    }
+
+    isMachineConnected()
+    {
+        return this.props.com.machineConnected;
     }
 
     connectServer(server) {
+
+        if (!server)
+            server = this.props.settings.comServerIP;
+
         this.socket = io('ws://' + server);
 
         const socket = this.socket;
@@ -52,29 +65,27 @@ class commClient {
         CommandHistory.write('Connecting to Server @ ' + server, CommandHistory.INFO);
 
         socket.on('connect', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'connect', attrs: { serverConnected: true } } })
             socket.emit('firstload');
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         });
 
         socket.on('disconnect', function () {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: false, machineConnected: false } } })
-            CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
+            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'disconnect', attrs: { serverConnected: false, machineConnected: false } } })
+            CommandHistory.error('Disconnected from Server ' + that.props.settings.comServerIP)
         });
 
         socket.on('serverConfig', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
-            that.props.dispatch(setSettingsAttrs({ comServerVersion: data.serverVersion }));
+            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: {  command: 'serverConfig', serverConnected: true, comServerVersion: data.serverVersion } } })
             console.log('serverVersion: ' + data.serverVersion);
         });
 
         socket.on('interfaces', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'interfaces', attrs: { serverConnected: true } } })
             if (data.length > 0) {
                 let interfaces = [...data]
-                that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { comInterfaces: interfaces } } })
-                that.props.dispatch(setSettingsAttrs({ comInterfaces: interfaces }));
+                that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'interfaces', attrs: { comInterfaces: interfaces } } })
                 console.log('interfaces: ' + interfaces);
             } else {
                 CommandHistory.error('No supported interfaces found on server!')
@@ -140,7 +151,7 @@ class commClient {
         });
 
         socket.on('firmware', function (data) {
-            console.log('firmware: ' + data.join(' '));
+            console.log('firmware: ' + JSON.stringify(data));
 
             let attrs = {
                 serverConnected: true,
@@ -183,10 +194,12 @@ class commClient {
         });
 
         socket.on('data', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: true, paused: true } } })
+            if (!this.props.com.machineConnected || !this.props.com.serverConnected)
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { machineConnected: true, serverConnected: true } } })
+
             if (data) {
                 if (data.indexOf('<') === 0) {
-                    that.updateStatus(data);
+                    this.updateStatus(data);
                 } else {
                     var style = CommandHistory.STD;
                     if (data.indexOf('[MSG:') === 0) {
@@ -199,7 +212,7 @@ class commClient {
                     CommandHistory.write(data, style);
                 }
             }
-        });
+        }.bind(this));
 
         socket.on('wPos', function (wpos) {
             that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, machineConnected: true } } })
@@ -224,25 +237,32 @@ class commClient {
 
         // feed override report (from server)
         socket.on('feedOverride', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, feedOverride: data.toString() } } })
-        });
+            if (this.props.com.feedOverride!==data.toString())
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, feedOverride: data.toString() } } })
+        }.bind(this));
 
         // spindle override report (from server)
         socket.on('spindleOverride', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, spindleOverride: data.toString() } } })
-        });
+            if (this.props.com.spindleOverride!==data.toString())
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, spindleOverride: data.toString() } } })
+        }.bind(this));
 
         // real feed report (from server)
         socket.on('realFeed', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
-            console.log('realFeed ' + data);
-        });
+            if (this.props.com.serverConnected!==true){
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+                console.log('realFeed ' + data);
+            }
+        }.bind(this));
 
         // real spindle report (from server)
         socket.on('realSpindle', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
-            console.log('realSpindle ' + data);
-        });
+            const that = window.comms
+            if (this.props.com.serverConnected!==true){
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+                console.log('realSpindle ' + data);
+            }
+        }.bind(this));
 
         // laserTest state
         socket.on('laserTest', function (data) {
@@ -257,11 +277,11 @@ class commClient {
         });
 
         socket.on('qCount', function (data) {
-            that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, queued: parseInt(data) } } })
+            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, queued: parseInt(data) } } })
 
-            if (playing && data === 0) {
-                that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
-                that.runStatus('stopped');
+            if (this.props.com.playing && data === 0) {
+                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
+                this.runStatus('stopped');
 
                 if (jobStartTime >= 0) {
                     var jobFinishTime = new Date(Date.now());
@@ -276,7 +296,7 @@ class commClient {
                     CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
                 }
             }
-        });
+        }.bind(this));
 
         socket.on('close', function () {
             that.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: false, machineConnected: false } } })
@@ -299,15 +319,11 @@ class commClient {
         }
     }
 
-    connectMachine() {
-        var connectVia = this.props.settings.connectVia;
-        var connectPort = this.props.settings.connectPort.trim();
-        var connectBaud = this.props.settings.connectBaud;
-        var connectIP = this.props.settings.connectIP;
+    connectMachine({ connectVia, connectPort, connectBaud, connectIp}) {
         switch (connectVia) {
             case 'USB':
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
-                this.socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort.trim() + ',' + connectBaud + 'baud', CommandHistory.INFO);
+                this.socket.emit('connectTo', connectVia + ',' + connectPort.trim() + ',' + connectBaud);
                 break;
             case 'Telnet':
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
@@ -341,6 +357,11 @@ class commClient {
             CommandHistory.error('Server is not connected!')
             return false;
         }
+    }
+
+    getServerConfig()
+    {
+        return this.__emit("Refresh config", 'getServerConfig');
     }
 
     runCommand(gcode) {
@@ -412,11 +433,15 @@ class commClient {
         return this.__emit('Jog(' + axis + ', ' + dist + ', ' + feed + ')', 'jog', [axis, dist, feed])
     }
 
+    jogTo(x,y,z,feed) {
+        console.error("need to implement")
+    }
+
     feedOverride(step) {
         return this.__emit('feedOverride(' + step + ')', 'feedOverride', [step])
     }
 
-    splindleOverride(step) {
+    spindleOverride(step) {
         return this.__emit('spindleOverride(' + step + ')', 'spindleOverride', [step])
     }
 

@@ -122,10 +122,10 @@ class LaserWeb extends React.Component {
         }
     }
 
-    componentDidUpdate() {
-        if (!window.comms) {
-            window.comms.props = this.props;
-        }
+    componentWillReceiveProps(nextProps) {
+        
+            window.comms.props = nextProps;
+        
     }
 
     render() {
