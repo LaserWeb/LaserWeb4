@@ -122,6 +122,12 @@ class LaserWeb extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        if (!window.comms) {
+            window.comms.props = this.props;
+        }
+    }
+
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock
         // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
