@@ -222,14 +222,15 @@ class Jog extends React.Component {
                 yMax = parseFloat(yArray[i]);
             }
         }
-        let power = this.props.settings.gcodeToolTestPower;
+        let power = this.props.settings.gcodeCheckSizePower / 100 * this.props.settings.gcodeSMaxValue;
         let moves = `
             G90\n
             G0 X` + xMin + ` Y` + yMin + ` F` + feedrate + `\n
-            G1 X` + xMax + ` Y` + yMin + ` F` + feedrate + `\n
-            G1 X` + xMax + ` Y` + yMax + ` F` + feedrate + `\n
-            G1 X` + xMin + ` Y` + yMax + ` F` + feedrate + `\n
-            G1 X` + xMin + ` Y` + yMin + ` F` + feedrate + `\n
+            G1 F` + feedrate + ` S` + power + `\n
+            G1 X` + xMax + ` Y` + yMin + `\n
+            G1 X` + xMax + ` Y` + yMax + `\n
+            G1 X` + xMin + ` Y` + yMax + `\n
+            G1 X` + xMin + ` Y` + yMin + `\n
             G90\n`;
         runCommand(moves);
     }
