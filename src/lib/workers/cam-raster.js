@@ -1,4 +1,4 @@
-import { RasterToGcode } from '../vendors/raster-to-gcode.js'
+import { RasterToGcode } from '../lw.raster2gcode/raster-to-gcode.js'
 
 // On messsage received
 self.onmessage = function (event) {
