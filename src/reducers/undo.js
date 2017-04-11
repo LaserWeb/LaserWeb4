@@ -1,7 +1,7 @@
 
 export function undoCombineReducers(reducers,
                                     initialState={},
-                                    shouldSaveUndo= (action)=>{return !['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO','SPLITTER_SET_SIZE'].includes(action.type);},
+                                    shouldSaveUndo= (action)=>{return !['@@INIT', 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO'].includes(action.type);},
                                     undoStateKey='history'
                     ){
   
@@ -47,7 +47,7 @@ const LAST_ACTION_TTL = 2000;
 const BLACKLIST = [/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO', 'LOADED', /^SPLITTER|^MATERIALDB_|^SELECT_PANE|^GCODE_GENERATION|^COM/gi];
 
 
-const shouldSaveUndo = (action) => {
+export const shouldSaveUndo = (action) => {
 
     //Last action TTL
     if (LAST_ACTION_TIMEOUT)
