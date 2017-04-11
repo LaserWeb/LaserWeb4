@@ -83,6 +83,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeToolOn:"",
     gcodeToolOff:"",
     gcodeSMaxValue: 1,
+    gcodeCheckSizePower: 0, 
     gcodeToolTestPower: 0, 
     gcodeToolTestDuration: 0,
     

@@ -41,6 +41,17 @@ The package list changes frequently; expect to do an **npm install** every time 
 -------------------------------------------------------------
 ```
 
+## ssh keypair
+
+You need an ssh keypair tied to your GitHub account to build. Your keypair is missing if you see this error:
+
+```
+Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+
+See https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
+
 ## Push update to live gh-pages version
 
 Once tested, push updates to Github Pages
