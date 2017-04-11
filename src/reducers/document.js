@@ -108,7 +108,9 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
                 let i = new Image;
-                i.src = dataURL;
+                    i.src = dataURL;
+                    i.width = child.attrs.width;
+                    i.height = child.attrs.height;
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
                 let rawW = element.width.baseVal.value;
