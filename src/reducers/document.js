@@ -109,8 +109,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                     continue;
                 let i = new Image;
                     i.src = dataURL;
-                    i.width = child.attrs.width;
-                    i.height = child.attrs.height;
+
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
                 let rawW = element.width.baseVal.value;
@@ -122,7 +121,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 c = {
                     ...c,
                     translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
-                    scale: [w / i.width, h / i.height, 1],
+                    scale: [w / child.attrs.width, h / child.attrs.height, 1],
                     mimeType: file.type,
                     dataURL: dataURL,
                     dpi: 25.4,
