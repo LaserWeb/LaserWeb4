@@ -103,7 +103,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                     c.strokeColor[3] = .3;
             } else if (child.name === 'image') {
                 let element = child.element;
-                let mat = Snap(element).transform().globalMatrix;
+                let mat = Snap(element).transform().localMatrix;
                 let dataURL = element.getAttribute('xlink:href');
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
