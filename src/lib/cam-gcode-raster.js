@@ -1,4 +1,4 @@
-import RasterToGcode from './vendors/raster-to-gcode';
+import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
 
 export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers) {

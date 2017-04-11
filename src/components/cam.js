@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Parser from '../lib/lw.svg-parser/src/parser';
+import Parser from '../lib/lw.svg-parser/parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
 import ReactDOM from 'react-dom'
