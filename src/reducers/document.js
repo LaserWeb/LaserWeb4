@@ -118,10 +118,12 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
                 let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
                 let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
+
+              
                 c = {
                     ...c,
                     translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
-                    scale: [w / child.attrs.width, h / child.attrs.height, 1],
+                    scale: [w / child.naturalWidth, h / child.naturalHeight, 1],
                     mimeType: file.type,
                     dataURL: dataURL,
                     dpi: 25.4,
