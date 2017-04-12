@@ -107,8 +107,6 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 let dataURL = element.getAttribute('xlink:href');
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
-                let i = new Image;
-                    i.src = dataURL;
 
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
@@ -118,7 +116,6 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
                 let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
                 let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
-
               
                 c = {
                     ...c,
