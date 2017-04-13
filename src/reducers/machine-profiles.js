@@ -2,9 +2,9 @@
 import omit from 'object.omit'
 import {actionTypes} from 'redux-localstorage'
 
-const initialState = require("../data/lw.machines/machine-profiles.json");
+export const MACHINEPROFILES_INITIALSTATE = require("../data/lw.machines/machine-profiles.json");
 
-export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
+export const machineProfiles = (state = MACHINEPROFILES_INITIALSTATE, action, lock=/^\*/gi) => {
         switch (action.type) {
             case "MACHINEPROFILES_ADD":
                 if (!lock.exec(action.payload.id)) 
@@ -12,16 +12,22 @@ export const machineProfiles = (state = initialState, action, lock=/^\*/gi) => {
                 return state;
                 
             case "MACHINEPROFILES_REMOVE":
-                return omit(state,(val,key)=>{return key!==action.payload.id && (!lock || !action.payload.id.match(lock))});
+                let item = state[action.payload.id]
+                if (!item || item._locked) return state;
+                return omit(state, action.payload.id);
             
             case "MACHINEPROFILES_LOAD":
                 let allowed=omit(action.payload.machines,(val,key) => { return !key.match(lock)});
                 return Object.assign({}, state, allowed);
             
             case actionTypes.INIT:
-                if (action.payload) return Object.assign(action.payload.machineProfiles, initialState);
+                if (action.payload) {
+                    let lockedState = {}
+                    Object.entries(MACHINEPROFILES_INITIALSTATE).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
+                    return Object.assign(action.payload.machineProfiles, lockedState);
+                }
                 return state;
-            
+
             default:
                 return state;
         }

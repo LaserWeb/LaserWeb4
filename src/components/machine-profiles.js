@@ -39,7 +39,7 @@ class MachineProfile extends React.Component {
     
     handleSelect(e){
         let value=e.target.value
-        this.setState({selected: value});
+        if (value) this.setState({selected: value});
         
     }
     
@@ -50,7 +50,7 @@ class MachineProfile extends React.Component {
     
     handleSave(e) {
         let currentProfile = this._getSelectedProfile();
-        this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
+        if (currentProfile) this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
     }
     
     handleAppend(e){
@@ -76,12 +76,12 @@ class MachineProfile extends React.Component {
         let profileOptions=[];
         let description;
         let selected;
-        let disabledDelete=!this.state.selected.length || this.state.selected.substr(0,1)=='*';
+        const disabledApply = !this.state.selected.length
+        const disabledDelete= disabledApply || (this.props.profiles[this.state.selected] && this.props.profiles[this.state.selected]._locked)
         
         
         Object.keys(this.props.profiles).forEach((key) => {
             let profile=this.props.profiles[key];
-            
             profileOptions.push(<option key={key} value={key} >{profile.machineLabel}</option>);
         });
         
@@ -92,8 +92,6 @@ class MachineProfile extends React.Component {
             description=(<details><summary>{machinedesc? machinedesc : "Details" }</summary><pre>{settings}</pre></details>);
         }
         
-        
-        
         return (
             
                 <div>
@@ -103,20 +101,16 @@ class MachineProfile extends React.Component {
                     <FormControl componentClass="select" onChange={(e)=>{this.handleSelect(e)}} value={this.state.selected} ref="select" className="full-width">
                       <option value="">Select a Machine Profile</option>
                       {profileOptions}
-                      
                     </FormControl>
                     
-                    
-                    
                     <ButtonGroup>
-                        <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}}><Icon name="share" /> Apply</Button>
-                        <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}}><Icon name="save" /> Save</Button>
-                        <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
+                        <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}} disabled={disabledApply} title="Applies selected profile"><Icon name="share" /> Apply</Button>
+                        <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}} title="Updates selected profile with current configuration" disabled={disabledDelete}><Icon name="pencil" /> Update</Button>
+                        <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} title="Delete selected profile" disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
                     </ButtonGroup>
                      <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
                     {description}
                     </FormGroup>
-                    
                     
                     <FormGroup controlId="formControlsAppend">
                    

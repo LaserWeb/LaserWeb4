@@ -9,7 +9,7 @@ import React from 'react'
 // Actions
 import * as panesActions from '../actions/panes'
 
-const INITIAL_PANE='cam'
+export const PANES_INITIALSTATE='cam'
 
 
 /**
@@ -31,7 +31,7 @@ function handleVisible(state = {}, action) {
     }
 }
 
-function handleSelected(state = INITIAL_PANE, action) {
+function handleSelected(state = PANES_INITIALSTATE, action) {
     switch (action.type) {
         case panesActions.selectPane.TYPE:
             return action.payload.id;

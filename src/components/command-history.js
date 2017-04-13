@@ -8,6 +8,10 @@ import { dispatch, connect } from 'react-redux';
 
 import keydown, { Keys } from 'react-keydown';
 
+import { isObject } from '../lib/helpers';
+
+import stringify from 'json-stringify-safe'
+
 const keystrokes = ["shift+up", "shift+down", "shift+enter"]
 
 // level STD, INFO, WARN, DANGER, SUCCESS
@@ -15,7 +19,7 @@ const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 
 const CommandHistory_CLASS = ['default', 'info', 'warning', 'danger', 'success'];
 
 const createCommandLogLine = (message, level = 0, icon = undefined) => {
-    if (typeof icon == 'undefined') icon = level;
+    if (icon === undefined) icon = level;
     level = isNaN(level) ? level : CommandHistory_CLASS[level]
     icon = isNaN(icon) ? icon : CommandHistory_ICON[icon]
     let line = document.createElement('code')
@@ -89,7 +93,7 @@ export default class CommandHistory extends React.Component {
             this.setState({ currentLine: '', lines, cursor: lines.length });
 
             if (window.commandLog)
-                CommandHistory.log(value)
+                CommandHistory.write(value)
 
         }
         if (typeof this.props.onCommandExec !== "undefined")
@@ -116,7 +120,7 @@ export default class CommandHistory extends React.Component {
 
     }
 
-    static log(message, level, icon) {
+    static write(message, level, icon) {
         if (!window.commandLog)
             window.commandLog = document.createElement('div')
 
@@ -127,6 +131,18 @@ export default class CommandHistory extends React.Component {
                 node.scrollTop = node.scrollHeight
         }
 
+    }
+
+    static log(...args) {
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '))
+    }
+
+    static warn(...args) {
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '), 2)
+    }
+
+    static error(...args) {
+        CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '), 3)
     }
 
     render() {

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
+import Rnd from 'react-rnd';
 import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
@@ -338,6 +339,7 @@ export class VideoResolutionField extends React.Component {
 
     handleChange(v) {
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        if (v.value) window.videoCapture.refreshStream({ resolution: v.value }, (s) => { console.log('Resolution change: ' + v.value + ' [' + s.id + ']') })
     }
 
     render() {
@@ -355,6 +357,71 @@ VideoResolutionField.defaultProps = {
     description: 'Video Resolution'
 }
 
+
+export class VideoPort extends React.Component {
+
+    componentDidMount() {
+        this.enableVideo()
+    }
+    componentDidUpdate(prevProps) {
+        this.enableVideo();
+    }
+
+    enableVideo() {
+        const selfNode = ReactDOM.findDOMNode(this);
+        selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
+
+        let enable = () => {
+            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
+                requestAnimationFrame(enable);
+
+            const myvideo = selfNode.querySelector('video')
+
+            if (this.props.enabled && myvideo) {
+                const stream = window.videoCapture.getStream();
+                if (myvideo.srcObject !== stream)
+                    myvideo.srcObject = stream
+                selfNode.style.display = 'block'
+            } else {
+                selfNode.style.display = 'none'
+            }
+
+        }
+        try {
+            enable();
+        } catch (e) {
+
+        }
+    }
+
+    render() {
+
+        let video = <video ref="videoport" style={{ width: '100%' }} autoPlay />;
+
+        if (this.props.draggable) {
+            return <Rnd
+                ref={c => { this.rnd = c; }}
+                initial={{
+                    width: this.props.width || 320,
+                    height: this.props.height || 240,
+                }}
+                minWidth={160}
+                minHeight={120}
+                maxWidth={800}
+                maxHeight={600}
+                lockAspectRatio={true}
+                bounds={this.props.draggable}
+                zIndex={10000}
+            >{video}</Rnd>
+        } else {
+            return <div>{video}</div>;
+        }
+    }
+}
+
+VideoPort.defaultProps = {
+    draggable: false
+}
 
 export class VideoControls extends React.Component {
 

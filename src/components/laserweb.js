@@ -28,7 +28,6 @@ import Workspace from './workspace'
 import Com from './com'
 import Jog from './jog'
 import Cam from './cam'
-import Gcode from './gcode'
 import Quote from './quote'
 import Settings from './settings'
 import About from './about'
@@ -65,8 +64,8 @@ export const confirm = (message, callback) => {
         vex.dialog.confirm({message,callback})
 }
 
-export const prompt = (message, placeholder, callback) => {
-        
+export const prompt = (message, placeholder, callback, skip) => {
+        if (skip) return callback(placeholder);
         vex.dialog.open({
             message,
             input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,
@@ -112,7 +111,7 @@ class LaserWeb extends React.Component {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
                 window.videoCapture = new VideoCapture()
-                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(obj) })
+                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(this.props.settings.toolVideoDevice,obj) })
             })
         }
     }
@@ -126,13 +125,13 @@ class LaserWeb extends React.Component {
                 <DocumentCacheHolder style={{ width: '100%' }} documents={this.props.documents}>
                     <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
                         <Sidebar ref="sidebar" style={{ flexGrow: 0, flexShrink: 0 }}>
-                            <Cam id="cam" title="CAM" icon="pencil-square-o" />
+                            <Cam id="cam" title="Files" icon="pencil-square-o" />
                             <Com id="com" title="Comms" icon="plug" />
-                            <Jog id="jog" title="Jog" icon="arrows-alt" />
+                            <Jog id="jog" title="Control" icon="arrows-alt" />
                             <Settings id="settings" title="Settings" icon="cogs" />
                             <About id="about" title="About" icon="question" />
                         </Sidebar>
-                        <Workspace style={{ flexGrow: 1 }} />
+                        <Workspace style={{ flexGrow: 1, position:"relative" }} />
                     </div>
                 </DocumentCacheHolder>
             </AllowCapture>
@@ -162,8 +161,8 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch(macroAction)
             }
         },
-        handleVideoStream: (props) => {
-            //console.log(props)
+        handleVideoStream: (deviceId, props) => {
+            if (props===false) dispatch({type: "SETTINGS_SET_ATTRS", payload:{ attrs: {toolVideoDevice:null} }})
         }
 
     }

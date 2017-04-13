@@ -173,6 +173,21 @@ function DocumentRight({object, dispatch}) {
 }
 DocumentRight = connect()(DocumentRight);
 
+const getSelectedParents=(documents)=>{
+    let objects = documents.filter(i=>i.selected);
+    let tree=new Set();
+    let getPath= (object) =>{
+        let item = documents.find( item => item.children && item.children.includes(object.id));
+            if (item) {
+                tree.add(item.id);
+                getPath(item);
+            }
+
+    }
+    objects.forEach((i)=>getPath(i))
+    return [...tree]
+}
+
 export function Documents({documents, toggleExpanded}) {
     let rowNumber = { value: 0 };
     return (
@@ -183,7 +198,8 @@ export function Documents({documents, toggleExpanded}) {
                     <Subtree
                         key={document.id} objects={documents} object={document}
                         Label={DocumentLabel} Right={DocumentRight} rowNumber={rowNumber}
-                        toggleExpanded={object => toggleExpanded(object)} />
+                        toggleExpanded={object => toggleExpanded(object)}
+                        selectedDocuments={getSelectedParents(documents)} />
                 ))}
         </div>
 

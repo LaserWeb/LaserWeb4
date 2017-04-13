@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { PerspectiveWebcam, VideoDeviceField, VideoControls, VideoResolutionField } from './webcam';
+import { VideoDeviceField, VideoPort, VideoResolutionField } from './webcam';
 
 import { alert, prompt, confirm } from './laserweb';
 
@@ -48,10 +48,12 @@ export class ApplicationSnapshot extends React.Component {
             <div className="well well-sm " id="ApplicationSnapshot">
                 <CheckBoxListField onChange={(data) => this.handleChange(data)} data={data} />
                 <section>
-                    <ApplicationSnapshotToolbar loadButton saveButton stateKeys={this.state.keys} label="On File" saveAs="laserweb-snapshot.json" />
+                  <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>On File</strong></td>
+                    <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={this.state.keys} saveName="laserweb-snapshot.json" /></td></tr></tbody></table>
                 </section>
                 <section>
-                    <ApplicationSnapshotToolbar recoverButton storeButton stateKeys={this.state.keys} label="On LocalStorage" />
+                  <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>On LocalStorage</strong></td>
+                    <td><ApplicationSnapshotToolbar recoverButton storeButton stateKeys={this.state.keys} /></td></tr></tbody></table>
                 </section>
             </div>
         )
@@ -76,14 +78,13 @@ export class ApplicationSnapshotToolbar extends React.Component {
         return exp;
     }
 
-    handleDownload(statekeys) {
-        statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
-        prompt("Save as", this.props.saveAs || "laserweb-snapshot.json", (file) => {
-            if (!file) return;
-            let settings = this.getExportData(statekeys);
-            let action = downloadSnapshot;
-            this.props.handleDownload(file, settings, action)
-        })
+    handleDownload(statekeys, saveName, e) {
+        prompt('Save as', saveName || "laserweb-snapshot.json", (file) => {
+            if (file!==null) {
+                statekeys = Array.isArray(statekeys) ? statekeys : (this.props.stateKeys || []);
+                this.props.handleDownload(file, this.getExportData(statekeys), downloadSnapshot)
+            }
+        }, !e.shiftKey)
     }
 
     handleUpload(file, statekeys) {
@@ -104,10 +105,10 @@ export class ApplicationSnapshotToolbar extends React.Component {
     render() {
         let buttons = [];
         if (this.props.loadButton) {
-            buttons.push(<FileField dispatch={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} label="Load" buttonClass="btn btn-danger btn-xs" icon="upload" />);
+            buttons.push(<FileField onChange={(e) => this.handleUpload(e.target.files[0], this.props.loadButton)} accept="application/json, .json"><Button bsStyle="danger" bsSize="xs">Load <Icon name="upload" /></Button></FileField>);
         }
         if (this.props.saveButton) {
-            buttons.push(<Button onClick={() => this.handleDownload(this.props.saveButton)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
+            buttons.push(<Button onClick={(e) => this.handleDownload(this.props.saveButton, this.props.saveName, e)} className="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
         if (this.props.recoverButton) {
             buttons.push(<Button onClick={(e) => this.handleRecover(this.props.recoverButton)} bsClass="btn btn-danger btn-xs">Load <Icon name="upload" /></Button>);
@@ -116,9 +117,8 @@ export class ApplicationSnapshotToolbar extends React.Component {
             buttons.push(<Button onClick={(e) => this.handleStore(this.props.storeButton)} bsClass="btn btn-success btn-xs">Save <Icon name="download" /></Button>);
         }
 
-        return <div className={this.props.className}><strong>{this.props.label || "Snapshot"}</strong>
-            <ButtonGroup style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</ButtonGroup>
-            <br style={{ clear: 'both' }} />
+        return <div>
+            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</div>
         </div>
     }
 }
@@ -157,7 +157,7 @@ class Settings extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { errors: null, showVideoControls: false }
+        this.state = { errors: null }
     }
 
     validate(data, rules) {
@@ -186,9 +186,7 @@ class Settings extends React.Component {
 
     render() {
 
-        const showVideoControls = (e) => {
-            this.setState({ showVideoControls: !this.state.showVideoControls })
-        }
+
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
@@ -248,6 +246,7 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', rows: 5, style: { resize: "vertical" } }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                     </SettingsPanel>
@@ -263,27 +262,10 @@ class Settings extends React.Component {
                         <table width="100%"><tbody><tr>
                             <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device' }} /></td>
                             <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
-                            <td width="10%" style={{ verticalAlign: 'bottom' }}><FormGroup><Button onClick={showVideoControls} bsStyle="primary" active={this.state.showVideoControls} disabled={!(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length)} ><Icon name="gears" /></Button></FormGroup></td>
+
                         </tr></tbody></table>
 
-
-                        {isVideoDeviceSelected ? <PerspectiveWebcam
-                            showCoordinators={this.state.showVideoControls}
-                            width="640" height="480"
-                            device={this.props.settings['toolVideoDevice']}
-                            perspective={this.props.settings['toolVideoPerspective']}
-                            lens={this.props.settings['toolVideoLens']}
-                            fov={this.props.settings['toolVideoFov']}
-                            resolution={this.props.settings['toolVideoResolution']}
-                            onStop={(perspective) => { this.props.handleSettingChange({ toolVideoPerspective: perspective }) }} /> : undefined}
-
-                        <Collapse in={this.state.showVideoControls && isVideoDeviceSelected}><div><VideoControls
-                            lens={this.props.settings['toolVideoLens']}
-                            fov={this.props.settings['toolVideoFov']}
-                            videoWidth="640" videoHeight="480"
-                            perspective={this.props.settings['toolVideoPerspective']}
-                            resolution={this.props.settings['toolVideoResolution']}
-                            onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} /></div></Collapse>
+                        <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                     </Panel>
@@ -293,8 +275,10 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveAs="laserweb-settings.json" /><hr />
-                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveAs="laserweb-profiles.json" /><hr />
+                        <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
+                        <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr /></td></tr></tbody></table>
+                        <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Machine Profiles</strong></td>
+                        <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr /></td></tr></tbody></table>
                         <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />

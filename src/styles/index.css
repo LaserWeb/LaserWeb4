@@ -66,7 +66,14 @@ body, html, .full-height {
 
 .workspace-overlay {
     pointer-events: none;
+
 }
+
+.workspace-overlay.jog {
+   border: 5px dashed #ccc;
+    opacity: 0.5
+}
+.workspace-overlay.jog:after { color: #bbb; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px}
 
 #workspace-controls {
     flex-grow: 0;
@@ -229,6 +236,13 @@ body, html, .full-height {
     background-color:#eee;
 }
 
+.operation-row.disabled > * {
+    opacity:0.5;
+}
+.operation-row.disabled > *:first-child {
+    opacity:1
+}
+
 .operation-row:nth-child(even) {
     background-color: #ddd;
 }
@@ -236,7 +250,7 @@ body, html, .full-height {
 .operations td {
     padding-left: 4px;
     padding-right: 4px;
-    
+
 }
 
 .operations td > input {width: 100%}
@@ -382,6 +396,12 @@ button:hover,
 
 .btn-highlight {
     border-color: red !important;
+}
+
+.btn.btn-off {
+    background: black;
+    color: white;
+    border-color: black
 }
 
 .fa-stack{
@@ -603,3 +623,5 @@ button:hover,
 .btn-attention.btn-warning:after { content: '\2219'; color: red; font-size: 80px; position:absolute; line-height: 6px; top:-7px; right:-10px; text-shadow: 0px 0px 2px white }
 
 .details.operationGroup {margin-left: 0; }
+
+.dot > span {background: rgb(130, 200, 255)}

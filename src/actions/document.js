@@ -25,6 +25,6 @@ export function scaleTranslateSelectedDocuments(scale, translate) {
     return { type: 'DOCUMENT_SCALE_TRANSLATE_SELECTED', payload: { scale, translate } };
 }
 
-export function loadDocument(file, content, context=undefined) {
-    return { type: 'DOCUMENT_LOAD', payload: { file, content, context } };
+export function loadDocument(file, content, modifiers={}, context=undefined) {
+    return { type: 'DOCUMENT_LOAD', payload: { file, content, context, modifiers } };
 }
