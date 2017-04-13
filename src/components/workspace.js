@@ -530,7 +530,7 @@ class WorkspaceContent extends React.Component {
         let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
         this.videoElement = document.createElement('video')
         this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
-        //this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
+        this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -547,24 +547,24 @@ class WorkspaceContent extends React.Component {
 
             if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
                 this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
-                /*
+                
                 let l = this.props.settings.toolVideoLens
                 let f = this.props.settings.toolVideoFov
                 // APPLIES FX CHAIN
 
-
+                /*
                 let videoTexture = fxChain(this.drawCommands,
                     [
                         { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
                     ]
-                )
+                ) */
                 let videoTexture = fxChain(this.drawCommands,
                     [
                         {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
                         {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
                     ]
                 )
-                */
+                
             }
 
             this.grid.draw(this.drawCommands, {
