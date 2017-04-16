@@ -393,7 +393,7 @@ export const OPERATION_FIELDS = {
 export const OPERATION_GROUPS = {
     'Filters': {
         collapsible: false,
-        fields: ['smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'overScan', 'dithering']
+        fields: ['smoothing', 'brightness', 'contrast', 'gamma', 'grayscale', 'shadesOfGray', 'invertColor', 'dithering']
     },
     'Macros': {
         collapsible: true,
@@ -410,7 +410,12 @@ export const OPERATION_TYPES = {
     'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'segmentLength', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
-    'Laser Raster': { allowTabs: false, tabFields: false, fields: ['name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower', ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Raster': { 
+            allowTabs: false, tabFields: false, fields: [
+                'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+                'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan',
+                 ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
+            ] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'cutWidth', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
