@@ -413,7 +413,7 @@ export const OPERATION_TYPES = {
     'Laser Raster': { 
             allowTabs: false, tabFields: false, fields: [
                 'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-                'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan',
+                'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA',
                  ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
             ] },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'clearance', 'toolDiameter', 'passDepth', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
