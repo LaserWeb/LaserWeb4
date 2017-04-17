@@ -170,11 +170,13 @@ const mapStateToProps = (state) => {
         visible: state.panes.visible,
         documents: state.documents,
         settings: state.settings,
+        com: state.com,
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        dispatch,
         handleUndo: evt => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))
