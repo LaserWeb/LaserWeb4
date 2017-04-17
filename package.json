@@ -1,7 +1,7 @@
 {
   "name": "laserweb",
-  "version": "4.0.719",
-  "description": "LaserWeb UI...",
+  "version": "4.0.721",
+  "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
     "start-server": "node node_modules/lw.comm-server/server.js",

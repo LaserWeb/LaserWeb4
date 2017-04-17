@@ -52,7 +52,7 @@ class Com extends React.Component {
             }
         }
     }
-
+    
     handleConnectServer() {
         let that = this;
         let {settings, dispatch} = this.props;
@@ -65,7 +65,7 @@ class Com extends React.Component {
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
-            socket.emit('firstload');
+            //socket.emit('firstLoad');
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         });
@@ -129,10 +129,10 @@ class Com extends React.Component {
                 }
                 that.setState({comPorts: ports});
                 dispatch(setSettingsAttrs({comPorts: ports}));
-                console.log('ports: ' + ports);
-                //CommandHistory.write('ports: ' + ports);
+                //console.log('ports: ' + ports);
+                CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
             } else {
-                CommandHistory.error('No serial ports found on server!')
+                CommandHistory.error('No serial ports found on server!');
             }
         });
 
@@ -404,14 +404,30 @@ class Com extends React.Component {
         var connectIP = this.props.settings.connectIP;
         switch (connectVia) {
             case 'USB':
+                if (!connectPort) {
+                    CommandHistory.write('Could not connect! -> please select port', CommandHistory.DANGER);
+                    break;
+                }
+                if (!connectBaud) {
+                    CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
+                    break;
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
                 break;
             case 'Telnet':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
             case 'ESP8266':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
