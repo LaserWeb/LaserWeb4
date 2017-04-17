@@ -103,12 +103,11 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                     c.strokeColor[3] = .3;
             } else if (child.name === 'image') {
                 let element = child.element;
-                let mat = Snap(element).transform().globalMatrix;
+                let mat = Snap(element).transform().localMatrix;
                 let dataURL = element.getAttribute('xlink:href');
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
-                let i = new Image;
-                i.src = dataURL;
+
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
                 let rawW = element.width.baseVal.value;
@@ -117,10 +116,11 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
                 let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
                 let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
+              
                 c = {
                     ...c,
                     translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
-                    scale: [w / i.width, h / i.height, 1],
+                    scale: [w / child.naturalWidth, h / child.naturalHeight, 1],
                     mimeType: file.type,
                     dataURL: dataURL,
                     dpi: 25.4,

@@ -27,49 +27,438 @@ var xpos, ypos, zpos;
 
 class Com extends React.Component {
 
-    componentDidMount() {
-        if (!window.comms.isServerConnected()) 
-            window.comms.connectServer();
+    constructor(props) {
+        super(props);
+        let {comInterfaces, comPorts} = this.props.settings;
+        this.state = {comInterfaces: comInterfaces, comPorts: comPorts};
     }
 
+    componentDidMount() {
+        if (!serverConnected) {
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
+            if (!socket && !serverConnected) {
+                this.handleConnectServer();
+            }
+        } else {
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (!machineConnected) {
+                $('#connect').removeClass('disabled');
+                $('#disconnect').addClass('disabled');
+            } else {
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+            }
+        }
+    }
+    
     handleConnectServer() {
-        window.comms.connectServer();
+        let that = this;
+        let {settings, dispatch} = this.props;
+        let server = settings.comServerIP;
+        CommandHistory.write('Connecting to Server @ ' + server, CommandHistory.INFO);
+        //console.log('Connecting to Server ' + server);
+        socket = io('ws://' + server);
+
+        socket.on('connect', function(data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            //socket.emit('firstLoad');
+            socket.emit('getServerConfig');
+            CommandHistory.write('Server connected', CommandHistory.SUCCESS);
+        });
+
+        socket.on('disconnect', function() {
+            CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
+            //console.log('Disconnected from Server ' + settings.commServerIP);
+            serverConnected = false;
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
+            machineConnected = false;
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
+        });
+
+//        socket.on('open', function(data) {
+//            serverConnected = true;
+//            $('#connectS').addClass('disabled');
+//            $('#disconnectS').removeClass('disabled');
+//            // Web Socket is connected
+//            //console.log('open ' + data);
+//            socket.emit('getInterfaces');
+//            socket.emit('getPorts');
+//            CommandHistory.write('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.INFO);
+//        });
+
+        socket.on('serverConfig', function (data) {
+            serverConnected = true;
+            let serverVersion = data.serverVersion;
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+            //CommandHistory.write('Server version: ' + serverVersion, CommandHistory.INFO);
+            console.log('serverVersion: ' + serverVersion);
+        });
+
+        socket.on('interfaces', function(data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                let interfaces = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    interfaces.push(data[i]);
+                }
+                that.setState({comInterfaces: interfaces});
+                dispatch(setSettingsAttrs({comInterfaces: interfaces}));
+                console.log('interfaces: ' + interfaces);
+                //CommandHistory.write('interfaces: ' + interfaces);
+            } else {
+                CommandHistory.error('No supported interfaces found on server!')
+            }
+        });
+
+        socket.on('ports', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                let ports = new Array();
+                for (var i = 0; i < data.length; i++) {
+                    ports.push(data[i].comName);
+                }
+                that.setState({comPorts: ports});
+                dispatch(setSettingsAttrs({comPorts: ports}));
+                //console.log('ports: ' + ports);
+                CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
+            } else {
+                CommandHistory.error('No serial ports found on server!');
+            }
+        });
+
+        socket.on('activeInterface', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                //set the actual interface
+            }
+            console.log('activeInterface: ' + data);
+        });
+
+        socket.on('activePort', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                //set the actual port
+            }
+            console.log('activePorts: ' + data);
+        });
+
+        socket.on('activeBaudRate', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                //set the actual baudrate
+            }
+            console.log('activeBaudrate: ' + data);
+        });
+
+        socket.on('activeIP', function (data) {
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.length > 0) {
+                //set the actual machine IP
+            }
+            console.log('activeIP: ' + data);
+        });
+
+        socket.on('connectStatus', function (data) {
+            console.log('connectStatus: ' + data);
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            if (data.indexOf('opened') >= 0) {
+                machineConnected = true;
+                $('#connect').addClass('disabled');
+                $('#disconnect').removeClass('disabled');
+                CommandHistory.write('Machine connected', CommandHistory.SUCCESS);
+            }
+            if (data.indexOf('Connect') >= 0) {
+                machineConnected = false;
+                $('#connect').removeClass('disabled');
+                $('#disconnect').addClass('disabled');
+                CommandHistory.error('Machine disconnected')
+            }
+        });
+
+        socket.on('firmware', function (data) {
+            console.log('firmware: ' + data);
+            serverConnected = true;
+            $('#connectS').addClass('disabled');
+            $('#disconnectS').removeClass('disabled');
+            machineConnected = true;
+            $('#connect').addClass('disabled');
+            $('#disconnect').removeClass('disabled');
+            firmware = data.firmware;
+            fVersion = data.version;
+            fDate = data.date;
+            CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
+            if (fVersion < '1.1e') {
+                CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
+                socket.emit('closePort', 1);
+                machineConnected = false;
+                //console.log('GRBL < 1.1 not supported!');
+            }
+        });
+
+        socket.on('runningJob', function (data) {
+            CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
+            alert(data);
+            //setGcode(data);
+        });
+
+        socket.on('runStatus', function (status) {
+            //CommandHistory.write('runStatus: ' + status);
+            console.log('runStatus: ' + status);
+            if (status === 'running') {
+                playing = true;
+                paused = false;
+            } else if (status === 'paused') {
+                paused = true;
+            } else if (status === 'resumed') {
+                paused = false;
+            } else if (status === 'stopped') {
+                playing = false;
+                paused = false;
+            } else if (status === 'finished') {
+                playing = false;
+                paused = false;
+            } else if (status === 'alarm') {
+                CommandHistory.error('ALARM!')
+                //socket.emit('clearAlarm', 2);
+            }
+            runStatus(status);
+        });
+
+        socket.on('data', function (data) {
+            serverConnected = true;
+            machineConnected = true;
+            if (data) {
+                if (data.indexOf('<') === 0) {
+                    //CommandHistory.write('statusReport: ' + data);
+                    updateStatus(data);
+                } else {
+                    var style = CommandHistory.STD;
+                    if (data.indexOf('[MSG:') === 0) {
+                        style = CommandHistory.WARN;
+                    } else if (data.indexOf('ALARM:') === 0) {
+                        style = CommandHistory.DANGER;
+                    } else if (data.indexOf('error:') === 0) {
+                        style = CommandHistory.DANGER;
+                    }
+                    CommandHistory.write(data, style);
+                }
+            }
+        });
+
+        socket.on('wPos', function (wpos) {
+            serverConnected = true;
+            machineConnected = true;
+            let {x, y, z} = wpos; //var pos = wpos.split(',');
+            let posChanged = false;
+            if (xpos !== x) {
+                xpos = x;
+                posChanged = true;
+            }
+            if (ypos !== y) {
+                ypos = y;
+                posChanged = true;
+            }
+            if (zpos !== z) {
+                zpos = z;
+                posChanged = true;
+            }
+            if (posChanged) {
+                //CommandHistory.write('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                $('#mX').html(xpos);
+                $('#mY').html(ypos);
+                $('#mZ').html(zpos);
+                dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+            }
+        });
+
+        // feed override report (from server)
+        socket.on('feedOverride', function (data) {
+            serverConnected = true;
+            //CommandHistory.write('feedOverride: ' + data, CommandHistory.STD);
+            //console.log('feedOverride ' + data);
+            $('#oF').html(data.toString() + '<span class="drounitlabel"> %</span>');
+        });
+
+        // spindle override report (from server)
+        socket.on('spindleOverride', function (data) {
+            serverConnected = true;
+            //CommandHistory.write('spindleOverride: ' + data, CommandHistory.STD);
+            //console.log('spindleOverride ' + data);
+            $('#oS').html(data.toString() + '<span class="drounitlabel"> %</span>');
+        });
+
+        // real feed report (from server)
+        socket.on('realFeed', function (data) {
+            serverConnected = true;
+            //CommandHistory.write('realFeed: ' + data, CommandHistory.STD);
+            //console.log('realFeed ' + data);
+            //$('#mF').html(data);
+        });
+
+        // real spindle report (from server)
+        socket.on('realSpindle', function (data) {
+            serverConnected = true;
+            //CommandHistory.write('realSpindle: ' + data, CommandHistory.STD);
+            //console.log('realSpindle ' + data);
+            //$('#mS').html(data);
+        });
+
+        // laserTest state
+        socket.on('laserTest', function (data) {
+            serverConnected = true;
+            //CommandHistory.write('laserTest: ' + data, CommandHistory.STD);
+            //console.log('laserTest ' + data);
+            if (data > 0){
+                laserTestOn = true;
+                $("#lT").addClass('btn-highlight');
+            } else if (data === 0) {
+                laserTestOn = false;
+                $('#lT').removeClass('btn-highlight');
+            }
+        });
+
+        socket.on('qCount', function (data) {
+            serverConnected = true;
+            $('#connect').addClass('disabled');
+            $('#disconnect').removeClass('disabled');
+            //console.log('qCount ' + data);
+            data = parseInt(data);
+            $('#queueCnt').html('Queued: ' + data);
+            if (playing && data === 0) {
+                playing = false;
+                paused = false;
+                runStatus('stopped');
+                $('#playicon').removeClass('fa-pause');
+                $('#playicon').addClass('fa-play');
+
+                if (jobStartTime >= 0) {
+                    var jobFinishTime = new Date(Date.now());
+                    var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
+                    var elapsedTime = Math.round(elapsedTimeMS / 1000);
+                    CommandHistory.write("Job started at " + jobStartTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.write("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.write("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
+                    jobStartTime = -1;
+                    let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
+                    dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
+                    CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
+                }
+            }
+        });
+
+        socket.on('close', function() {
+            serverConnected = false;
+            $('#connectS').removeClass('disabled');
+            $('#disconnectS').addClass('disabled');
+            machineConnected = false;
+            $('#connect').removeClass('disabled');
+            $('#disconnect').addClass('disabled');
+            CommandHistory.error('Server connection closed')
+            // websocket is closed.
+            //console.log('Server connection closed');
+            let serverVersion = 'not connected';
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+        });
+
+        socket.on('error', function (data) {
+            CommandHistory.error('Server error: ' + data)
+            //console.log('error: ' + data);
+        });
+
     }
 
     handleDisconnectServer() {
-        window.comms.disconnectServer();
+        if (socket) {
+            CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
+            socket.disconnect();
+            let serverVersion = 'not connected';
+            dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+        }
     }
 
     handleConnectMachine() {
-
-        let { connectVia, connectPort, connectBaud, connectIp} = this.props.settings;
-        window.comms.connectMachine({ connectVia, connectPort, connectBaud, connectIp});
+        var connectVia = this.props.settings.connectVia;
+        var connectPort = this.props.settings.connectPort.trim();
+        var connectBaud = this.props.settings.connectBaud;
+        var connectIP = this.props.settings.connectIP;
+        switch (connectVia) {
+            case 'USB':
+                if (!connectPort) {
+                    CommandHistory.write('Could not connect! -> please select port', CommandHistory.DANGER);
+                    break;
+                }
+                if (!connectBaud) {
+                    CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
+                    break;
+                }
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
+                break;
+            case 'Telnet':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP);
+                break;
+            case 'ESP8266':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP);
+                break;
+        }
     }
 
     handleDisconnectMachine() {
-        window.comms.disconnectMachine();
+        CommandHistory.write('Disconnecting Machine', CommandHistory.INFO);
+        socket.emit('closePort');
     }
 
 
     render() {
-        let {settings, com, dispatch} = this.props;
-        
+        let {settings, dispatch} = this.props;
+
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
                         <TextField {...{ object: settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
-                            <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}} disabled={com.serverConnected}><Icon name="share" /> Connect</Button>
-                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}} disabled={!com.serverConnected}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
                     <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="2" defaultExpanded={true}>
-                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.props.com.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
+                        <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
-                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.props.com.comPorts, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
+                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.comPorts, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
                                 <SelectField {...{ object: settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
                             </div>
                         </Collapse>
@@ -79,8 +468,8 @@ class Com extends React.Component {
                             </div>
                         </Collapse>
                         <ButtonGroup>
-                            <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}} disabled={com.machineConnected}><Icon name="share" /> Connect</Button>
-                            <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}} disabled={!com.machineConnected}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
                 </PanelGroup>
@@ -90,64 +479,335 @@ class Com extends React.Component {
     }
 }
 
+function secToHMS(sec) {
+    let hours = Math.floor(sec / 3600);
+    let minutes = Math.floor(sec / 60) % 60;
+    if (minutes < 10) {
+        minutes = '0' + minutes;
+    }
+    let seconds = sec % 60;
+    if (seconds < 10) {
+        seconds = '0' + seconds;
+    }
+    return hours + ':' + minutes + ':' + seconds;
+}
+
+function updateStatus(data) {
+    // Smoothieware: <Idle,MPos:49.5756,279.7644,-15.0000,WPos:0.0000,0.0000,0.0000>
+    // till GRBL v0.9: <Idle,MPos:0.000,0.000,0.000,WPos:0.000,0.000,0.000>
+    // since GRBL v1.1: <Idle|WPos:0.000,0.000,0.000|Bf:15,128|FS:0,0|Pn:S|WCO:0.000,0.000,0.000> (when $10=2)
+
+    // Extract state
+    var state = data.substring(data.indexOf('<') + 1, data.search(/(,|\|)/));
+    if (state === 'Alarm') {
+        $("#machineStatus").removeClass('badge-ok');
+        $("#machineStatus").addClass('badge-notify');
+        $("#machineStatus").removeClass('badge-warn');
+        $("#machineStatus").removeClass('badge-busy');
+        $('#stopBtn .icon-top-text').html('clear');
+        $('#stopBtn .icon-bot-text').html('alarm');
+        $('#stopIcon').removeClass('fa-stop');
+        $('#stopIcon').addClass('fa-unlock');
+//        if ($('#alarmmodal').is(':visible')) {
+//            // Nothing, its already open
+//        } else {
+//            //$('#alarmmodal').modal('show');
+//        }
+    } else if (state === 'Home') {
+        $("#machineStatus").removeClass('badge-ok');
+        $("#machineStatus").removeClass('badge-notify');
+        $("#machineStatus").removeClass('badge-warn');
+        $("#machineStatus").addClass('badge-busy');
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
+    } else if (state === 'Hold') {
+        $("#machineStatus").removeClass('badge-ok');
+        $("#machineStatus").removeClass('badge-notify');
+        $("#machineStatus").addClass('badge-warn');
+        $("#machineStatus").removeClass('badge-busy');
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
+        //$('#playBtn .icon-top-text').html('resume');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
+    } else if (state === 'Idle') {
+        $("#machineStatus").addClass('badge-ok');
+        $("#machineStatus").removeClass('badge-notify');
+        $("#machineStatus").removeClass('badge-warn');
+        $("#machineStatus").removeClass('badge-busy');
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
+        //$('#playBtn .icon-top-text').html('run');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
+    } else if (state === 'Run') {
+        $("#machineStatus").removeClass('badge-ok');
+        $("#machineStatus").removeClass('badge-notify');
+        $("#machineStatus").removeClass('badge-warn');
+        $("#machineStatus").addClass('badge-busy');
+        $('#stopBtn .icon-top-text').html('abort');
+        $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
+        //$('#playBtn .icon-top-text').html('pause');
+//        if ($('#alarmmodal').is(':visible')) {
+//            $('#alarmmodal').modal('hide');
+//        }
+    }
+    $('#machineStatus').html(state);
+}
+
+
 export function runCommand(gcode) {
-    return window.comms.runCommand(gcode);
+    if (serverConnected) {
+        if (machineConnected){
+            if (gcode) {
+                //CommandHistory.write('Running Command', CommandHistory.INFO);
+                //console.log('runCommand', gcode);
+                socket.emit('runCommand', gcode);
+            }
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function runJob(job) {
-    return window.comms.runJob(job);
+    if (serverConnected) {
+        if (machineConnected){
+            if (job.length > 0) {
+                CommandHistory.write('Running Job', CommandHistory.INFO);
+                playing = true;
+                runStatus('running');
+                $('#playicon').removeClass('fa-play');
+                $('#playicon').addClass('fa-pause');
+                jobStartTime = new Date(Date.now());
+                socket.emit('runJob', job);
+            } else {
+                CommandHistory.error('Job empty!')
+            }
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function pauseJob() {
-    return window.comms.pauseJob();
+    console.log('pauseJob');
+    if (serverConnected) {
+        if (machineConnected){
+            paused = true;
+            runStatus('paused');
+            $('#playicon').removeClass('fa-pause');
+            $('#playicon').addClass('fa-play');
+            socket.emit('pause');
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function resumeJob() {
-    return window.comms.resumeJob();
+    console.log('resumeJob');
+    if (serverConnected) {
+        if (machineConnected){
+            paused = false;
+            runStatus('running');
+            $('#playicon').removeClass('fa-play');
+            $('#playicon').addClass('fa-pause');
+            socket.emit('resume');
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function abortJob() {
-    return window.comms.abortJob();
+    console.log('abortJob');
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Aborting job', CommandHistory.INFO);
+            playing = false;
+            paused = false;
+            runStatus('stopped');
+            $('#playicon').removeClass('fa-pause');
+            $('#playicon').addClass('fa-play');
+            socket.emit('stop');
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function clearAlarm(method) {
-    return window.comms.clearAlarm(method);
+    console.log('clearAlarm');
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Resetting alarm', CommandHistory.INFO);
+            socket.emit('clearAlarm', method);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function setZero(axis) {
-    return window.comms.setZero(axis);
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Set ' + axis + ' Axis zero', CommandHistory.INFO);
+            socket.emit('setZero', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function gotoZero(axis) {
-    return window.comms.gotoZero(axis);
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
+            socket.emit('gotoZero', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function laserTest(power, duration, maxS) {
-    return window.comms.laserTest(power, duration, maxS);
+    if (serverConnected) {
+        if (machineConnected){
+            console.log('laserTest(' + power + ', ' + duration + ', ' + maxS + ')');
+            socket.emit('laserTest', power + ',' + duration + ',' + maxS);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function jog(axis, dist, feed) {
-    return window.comms.jog(axis, dist, feed);
+    if (serverConnected) {
+        if (machineConnected){
+            //console.log('jog(' + axis + ',' + dist + ',' + feed + ')');
+            socket.emit('jog', axis + ',' + dist + ',' + feed);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function feedOverride(step) {
-    return window.comms.feedOverride(step)
+    if (serverConnected) {
+        if (machineConnected){
+            console.log('feedOverride ' + step);
+            socket.emit('feedOverride', step);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function spindleOverride(step) {
-    return window.comms.spindleOverride(step)
+    if (serverConnected) {
+        if (machineConnected){
+            console.log('spindleOverride ' + step);
+            socket.emit('spindleOverride', step);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function resetMachine() {
-    return window.comms.resetMachine()
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.error('Resetting Machine')
+            socket.emit('resetMachine');
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 export function playpauseMachine() {
-     return window.comms.playpauseMachine()
+    if (serverConnected) {
+        if (machineConnected){
+            if (playing === true) {
+                if (paused === true) {
+                    // unpause
+                    var laseroncmd = document.getElementById('laseron').value;
+                    if (laseroncmd.length === 0) {
+                        laseroncmd = 0;
+                    }
+                    socket.emit('resume', laseroncmd);
+                    paused = false;
+                    runStatus('running');
+                    $('#playicon').removeClass('fa-play');
+                    $('#playicon').addClass('fa-pause');
+                    // end ifPaused
+                } else {
+                    // pause
+                    var laseroffcmd = document.getElementById('laseroff').value;
+                    if (laseroffcmd.length === 0) {
+                        laseroffcmd = 0;
+                    }
+                    socket.emit('pause', laseroffcmd);
+                    paused = true;
+                    runStatus('paused');
+                    $('#playicon').removeClass('fa-pause');
+                    $('#playicon').addClass('fa-play');
+                }
+                // end isPlaying
+            } else {
+                playGcode();
+            }
+            // end isConnected
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
 }
 
 Com = connect(
-    state => ({ settings: state.settings, documents: state.documents, gcode: state.gcode.content, com: state.com })
+    state => ({ settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
 )(Com);
 
 export default Com

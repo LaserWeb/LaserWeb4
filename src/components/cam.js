@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Parser from '../lib/lw.svg-parser/src/parser';
+import Parser from '../lib/lw.svg-parser/parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -58,6 +58,16 @@ function GcodeProgress({ gcoding, onStop }) {
 GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
 
 
+export class CAMValidator extends React.Component {
+    render(){
+        let {noneOnSuccess, documents, className, style} = this.props;
+        let errors = (!documents) ? "Add files to begin" : undefined
+        if (noneOnSuccess && !errors) return null;
+        return <span className={className} title={errors ? errors : "Good to go!"} style={style}><Icon name={errors ? 'warning' : 'check'} /></span>
+    }
+}
+
+CAMValidator = connect((state)=>{return { documents: state.documents.length}})(CAMValidator)
 
 
 
@@ -144,7 +154,7 @@ class Cam extends React.Component {
                                     <td>
                                         <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                                            <NoDocumentsError camBounds={bounds} documents={documents} />
+                                            {(this.props.panes.visible)? <NoDocumentsError camBounds={bounds} documents={documents} />:undefined}
                                         </FileField>
                                     </td>
                                 </tr>
@@ -187,9 +197,47 @@ class Cam extends React.Component {
     }
 };
 
+
+const promisedImage = (path) => {
+    return new Promise(resolve => {
+        let img = new Image();
+        img.onload = () => { resolve(img) }
+        img.src = path;
+    })
+}
+
+const imageTagPromise = (tags) => {
+    return new Promise(resolve => {
+        let images=[];
+        const walker=(tag)=>{
+            if (tag.name==='image')
+                images.push(tag);
+            if (tag.children)
+                tag.children.forEach(t=>walker(t))    
+        }
+
+        const consumer=() => {
+            if (images.length){
+                let tag = images.shift()
+                let dataURL = tag.element.getAttribute('xlink:href')
+                if (dataURL.substring(0, 5) !== 'data:')
+                    return consumer();
+                let image = new Image();
+                    image.onload = ()=> { tag.naturalWidth = image.naturalWidth; tag.naturalHeight = image.naturalHeight; consumer()}
+                    image.src = dataURL;
+            } else {
+                 resolve(tags);
+            }
+        }
+
+        walker(tags);
+        consumer();
+    })
+}
+
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty,
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
         saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(file, state.gcode.content) }, !e.shiftKey) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
@@ -210,12 +258,15 @@ Cam = connect(
                         let parser = new Parser({});
                             parser.parse(reader.result)
                                 .then((tags) => {
-                                    dispatch(loadDocument(file, { parser, tags }, modifiers));
-                                    let captures=release(true);;
+                                    let captures=release(true);
                                     if (captures.filter(i => i.method=='warn').length)
                                         CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
                                     if (captures.filter(i => i.method=='error').length)
                                         CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+
+                                    imageTagPromise(tags).then((tags)=>{
+                                        dispatch(loadDocument(file, { parser, tags }, modifiers));
+                                    })
                                 })
                             .catch((e) => {
                                     release(true);
@@ -235,14 +286,6 @@ Cam = connect(
                     reader.readAsText(file);
                 }
                 else if (file.type.substring(0, 6) === 'image/') {
-
-                    const promisedImage = (path) => {
-                        return new Promise(resolve => {
-                            let img = new Image();
-                            img.onload = () => { resolve(img) }
-                            img.src = path;
-                        })
-                    }
 
                     reader.onload = () => {
                         promisedImage(reader.result)

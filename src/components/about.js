@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import { ButtonToolbar, Button } from 'react-bootstrap'
 import Icon from './font-awesome'
 import marked from 'marked';
+import { version } from '../reducers/settings'
+
 /**
  * About component.
  *
@@ -37,7 +39,7 @@ class About extends React.Component {
 
                 <h3>Versions</h3>
                   <dl>
-                    <dt><Icon name="cubes"/> Frontend: {this.props.settings.__version}</dt><dd></dd><p/>
+                    <dt><Icon name="cubes"/> Frontend: {version}</dt><dd></dd><p/>
                     <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion}</dt><dd></dd><p/>
                   </dl>
                 <h3>Support Communities</h3>
