@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -153,8 +153,9 @@ function mergePaths(bounds, paths) {
 }
 
 // Compute paths for pocket operation on Clipper geometry. Returns array
-// of CamPath. cutterDia is in Clipper units. stepover is in the range (0, 1].
+// of CamPath. cutterDia is in Clipper units. stepover is in the range (0, 100).
 export function pocket(geometry, cutterDia, stepover, climb) {
+    stepover = stepover / 100;
     let current = offset(geometry, -cutterDia / 2);
     let bounds = current.slice(0);
     let allPaths = [];
@@ -170,9 +171,11 @@ export function pocket(geometry, cutterDia, stepover, climb) {
 };
 
 // Compute paths for inside/outside operation on Clipper geometry. Returns array
-// of CamPath. cutterDia and width are in Clipper units. stepover is in the 
+// of CamPath. cutterDia and width are in Clipper units. stepover is in the
 // range (0, 1].
 export function insideOutside(geometry, cutterDia, isInside, width, stepover, climb, allowRecutInBounds) {
+
+    stepover = stepover / 100;
     width = Math.max(width, cutterDia);
 
     let currentWidth = cutterDia;
