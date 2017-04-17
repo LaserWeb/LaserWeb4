@@ -4,6 +4,3 @@
 [submodule "src/data/lw.materials"]
 	path = src/data/lw.materials
 	url = https://github.com/LaserWeb/lw.materials.git
-[submodule "src/lib/lw.svg-parser"]
-	path = src/lib/lw.svg-parser
-	url = git@github.com:LaserWeb/lw.svg-parser.git
