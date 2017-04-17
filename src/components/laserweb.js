@@ -52,6 +52,8 @@ vex.defaultOptions.className = 'vex-theme-default'
 import 'vex-js/dist/css/vex.css';
 import 'vex-js/dist/css/vex-theme-default.css';
 
+import commClient from '../lib/lw.comm-client'
+
 import { version } from '../reducers/settings'
 
 /**
@@ -125,7 +127,16 @@ class LaserWeb extends React.Component {
                 window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(this.props.settings.toolVideoDevice, obj) })
             })
         }
+
+        if (!window.comms) {
+            window.comms = new commClient(this.props);
+        }
+
     }
+
+     componentWillReceiveProps(nextProps) {
+            window.comms.props = nextProps;
+     }
 
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock
