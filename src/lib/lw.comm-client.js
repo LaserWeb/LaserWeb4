@@ -65,7 +65,7 @@ class commClient {
 
         socket.on('connect', function (data) {
             this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'connect', attrs: { serverConnected: true } } })
-            socket.emit('firstload');
+            //socket.emit('firstload');
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         }.bind(this));
@@ -97,7 +97,7 @@ class commClient {
                 let ports = data.map(i => i.comName)
                 this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { comPorts: ports } } })
                 this.props.dispatch(setSettingsAttrs({ comPorts: ports }));
-                console.log('ports: ' + ports);
+                CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
             } else {
                 CommandHistory.error('No serial ports found on server!')
             }
@@ -320,14 +320,21 @@ class commClient {
     connectMachine({ connectVia, connectPort, connectBaud, connectIp}) {
         switch (connectVia) {
             case 'USB':
+                if (!connectPort)  return CommandHistory.write('Could not connect! -> please select port', CommandHistory.DANGER);
+                if (!connectBaud)  return CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
+
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort.trim() + ',' + connectBaud + 'baud', CommandHistory.INFO);
                 this.socket.emit('connectTo', connectVia + ',' + connectPort.trim() + ',' + connectBaud);
                 break;
             case 'Telnet':
+                if (!connectIP) return CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 this.socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
             case 'ESP8266':
+                if (!connectIP) return CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 this.socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
