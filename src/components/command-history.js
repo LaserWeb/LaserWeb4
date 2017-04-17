@@ -12,7 +12,7 @@ import { isObject } from '../lib/helpers';
 
 import stringify from 'json-stringify-safe'
 
-const keystrokes = ["shift+up", "shift+down", "shift+enter"]
+const COMMAND_HISTORY_KEYSTROKES = ["shift+up", "shift+down", "shift+enter"]
 
 // level STD, INFO, WARN, DANGER, SUCCESS
 const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle', 'check-circle'];
@@ -42,7 +42,7 @@ export default class CommandHistory extends React.Component {
     }
 
 
-    @keydown(keystrokes)
+    @keydown(COMMAND_HISTORY_KEYSTROKES)
     handleKey(e) {
         if (e.which == 38) {
             this.handleCommandUp(e)
