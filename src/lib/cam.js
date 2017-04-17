@@ -172,7 +172,7 @@ export function pocket(geometry, cutterDia, stepover, climb) {
 
 // Compute paths for inside/outside operation on Clipper geometry. Returns array
 // of CamPath. cutterDia and width are in Clipper units. stepover is in the
-// range (0, 1].
+// range (0, 100].
 export function insideOutside(geometry, cutterDia, isInside, width, stepover, climb, allowRecutInBounds) {
 
     stepover = stepover / 100;
