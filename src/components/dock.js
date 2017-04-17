@@ -14,7 +14,7 @@ import Icon from './font-awesome'
 import * as actions from '../actions/panes'
 
 import { SettingsValidator } from './settings';
-
+import { CAMValidator } from './cam';
 /**
  * Dock item component.
  *
@@ -75,15 +75,20 @@ class Dock extends React.Component {
         return (
             <ul className="dock full-height">
                 {
-                    React.Children.map(this.props.children, item => (
-                        <Button
+                    React.Children.map(this.props.children, item => {
+
+                        let validation;
+                        if (item.props.id=='settings') validation=<SettingsValidator className="notification" noneOnSuccess />;
+                        if (item.props.id=='cam') validation=<CAMValidator className="notification" noneOnSuccess />;
+
+                        return <Button
                             {...item.props}
                             key={item.props.id}
                             active={item.props.id === this.props.selected}
                             dimmed={this.props.dimmed}
                             onClick={() => this.props.onButtonClick(item.props.id)}
-                            >{item.props.id=='settings' ? <SettingsValidator className="notification" noneOnSuccess /> : undefined}</Button>
-                    ))
+                            >{validation}</Button>
+                    })
                 }
             </ul>
         )

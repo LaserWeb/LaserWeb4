@@ -58,6 +58,16 @@ function GcodeProgress({ gcoding, onStop }) {
 GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
 
 
+export class CAMValidator extends React.Component {
+    render(){
+        let {noneOnSuccess, documents, className, style} = this.props;
+        let errors = (!documents) ? "Add files to begin" : undefined
+        if (noneOnSuccess && !errors) return null;
+        return <span className={className} title={errors ? errors : "Good to go!"} style={style}><Icon name={errors ? 'warning' : 'check'} /></span>
+    }
+}
+
+CAMValidator = connect((state)=>{return { documents: state.documents.length}})(CAMValidator)
 
 
 
@@ -144,7 +154,7 @@ class Cam extends React.Component {
                                     <td>
                                         <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                                            <NoDocumentsError camBounds={bounds} documents={documents} />
+                                            {(this.props.panes.visible)? <NoDocumentsError camBounds={bounds} documents={documents} />:undefined}
                                         </FileField>
                                     </td>
                                 </tr>
@@ -227,7 +237,7 @@ const imageTagPromise = (tags) => {
 
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty,
+        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
         saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(file, state.gcode.content) }, !e.shiftKey) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
