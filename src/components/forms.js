@@ -248,6 +248,11 @@ export class FileField extends React.Component {
         
         if (!this.nativeClick){
              this.nativeClick = ce;
+             let nullify = (e)=>{
+                e.target.removeEventListener(e.type, nullify);
+                setTimeout(()=>{this.nativeClick = null},200);
+             }
+             window.addEventListener('focus', nullify)
              this.input.click()
         }
         
@@ -264,7 +269,7 @@ export class FileField extends React.Component {
 
     render() {
         return <span style={this.props.style} onClick={e => this.handleClick(e)}>{this.props.children}
-            <input type="file" ref={(input) => { this.input = input }} multiple onChange={e => this.handleChange(e)} style={{display:"none"}} />
+            <input type="file" ref={(input) => { this.input = input }} multiple onChange={e => this.handleChange(e)} style={{display:"none"}} accept={this.props.accept} />
         </span>
     }
 }

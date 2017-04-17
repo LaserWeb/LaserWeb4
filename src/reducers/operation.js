@@ -6,7 +6,7 @@ import arrayMove from 'array-move'
 
 import { GlobalStore } from '../index';
 
-const operationBase = object('operation', {
+export const OPERATION_INITIALSTATE={
     id: '',
     name: '',
     enabled: true,
@@ -53,8 +53,17 @@ const operationBase = object('operation', {
     burnWhite: true,        // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+    dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
     _docs_visible: true,
-});
+    // Hooks!
+    hookOperationStart: '',
+    hookOperationEnd: '',
+    hookPassStart: '',
+    hookPassEnd: ''
+    
+}
+
+const operationBase = object('operation', OPERATION_INITIALSTATE);
 
 export const OPERATION_DEFAULTS = (state) => {
     if (!state) state=GlobalStore().getState()

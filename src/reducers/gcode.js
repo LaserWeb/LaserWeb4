@@ -1,11 +1,11 @@
 
-const initialState = {
+export const GCODE_INITIALSTATE = {
     gcoding: { enable: false, percent: 0},
     content: '',
     dirty:false,
 }
 
-export function gcode(state = initialState, action) {
+export function gcode(state = GCODE_INITIALSTATE, action) {
 
     if (action.type.match(/^(DOCUMENT|OPERATION)_/gi)) {
         if (action.type=='DOCUMENT_SET_ATTRS'){

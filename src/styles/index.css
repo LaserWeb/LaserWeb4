@@ -36,7 +36,7 @@ body, html, .full-height {
     overflow-x: hidden;
 }
 
-#sidebar .dock .notification {display:block; position:absolute; right:-3px; top:-5px; color: white; background: red; height: 20px; width: 20px; border-radius: 10px; font-size: 7px; line-height: 22px}
+#sidebar .dock .notification {display:block; position:absolute; right:-5px; top:-7px; color: white; background: red; height: 20px; width: 20px; border-radius: 10px; font-size: 7px; line-height: 22px}
 
 #sidebar .dock {
     min-width: 60px;
@@ -66,7 +66,14 @@ body, html, .full-height {
 
 .workspace-overlay {
     pointer-events: none;
+
 }
+
+.workspace-overlay.jog {
+   border: 5px dashed #ccc;
+    opacity: 0.5
+}
+.workspace-overlay.jog:after { color: #bbb; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px}
 
 #workspace-controls {
     flex-grow: 0;
@@ -230,7 +237,7 @@ body, html, .full-height {
 }
 
 .operation-row.disabled > * {
-    opacity:0.5; 
+    opacity:0.5;
 }
 .operation-row.disabled > *:first-child {
     opacity:1
@@ -243,7 +250,7 @@ body, html, .full-height {
 .operations td {
     padding-left: 4px;
     padding-right: 4px;
-    
+
 }
 
 .operations td > input {width: 100%}

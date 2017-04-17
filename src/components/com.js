@@ -52,7 +52,7 @@ class Com extends React.Component {
             }
         }
     }
-
+    
     handleConnectServer() {
         let that = this;
         let {settings, dispatch} = this.props;
@@ -65,11 +65,11 @@ class Com extends React.Component {
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
-            socket.emit('firstload');
+            //socket.emit('firstLoad');
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         });
-        
+
         socket.on('disconnect', function() {
             CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
             //console.log('Disconnected from Server ' + settings.commServerIP);
@@ -99,7 +99,7 @@ class Com extends React.Component {
             //CommandHistory.write('Server version: ' + serverVersion, CommandHistory.INFO);
             console.log('serverVersion: ' + serverVersion);
         });
-        
+
         socket.on('interfaces', function(data) {
             serverConnected = true;
             $('#connectS').addClass('disabled');
@@ -129,10 +129,10 @@ class Com extends React.Component {
                 }
                 that.setState({comPorts: ports});
                 dispatch(setSettingsAttrs({comPorts: ports}));
-                console.log('ports: ' + ports);
-                //CommandHistory.write('ports: ' + ports);
+                //console.log('ports: ' + ports);
+                CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
             } else {
-                CommandHistory.error('No serial ports found on server!')
+                CommandHistory.error('No serial ports found on server!');
             }
         });
 
@@ -220,7 +220,7 @@ class Com extends React.Component {
             alert(data);
             //setGcode(data);
         });
-        
+
         socket.on('runStatus', function (status) {
             //CommandHistory.write('runStatus: ' + status);
             console.log('runStatus: ' + status);
@@ -259,7 +259,7 @@ class Com extends React.Component {
                         style = CommandHistory.DANGER;
                     } else if (data.indexOf('error:') === 0) {
                         style = CommandHistory.DANGER;
-                    }                    
+                    }
                     CommandHistory.write(data, style);
                 }
             }
@@ -367,7 +367,7 @@ class Com extends React.Component {
             }
         });
 
-        socket.on('close', function() { 
+        socket.on('close', function() {
             serverConnected = false;
             $('#connectS').removeClass('disabled');
             $('#disconnectS').addClass('disabled');
@@ -376,7 +376,7 @@ class Com extends React.Component {
             $('#disconnect').addClass('disabled');
             CommandHistory.error('Server connection closed')
             // websocket is closed.
-            //console.log('Server connection closed'); 
+            //console.log('Server connection closed');
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         });
@@ -387,7 +387,7 @@ class Com extends React.Component {
         });
 
     }
-    
+
     handleDisconnectServer() {
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
@@ -396,7 +396,7 @@ class Com extends React.Component {
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         }
     }
-    
+
     handleConnectMachine() {
         var connectVia = this.props.settings.connectVia;
         var connectPort = this.props.settings.connectPort.trim();
@@ -404,14 +404,30 @@ class Com extends React.Component {
         var connectIP = this.props.settings.connectIP;
         switch (connectVia) {
             case 'USB':
+                if (!connectPort) {
+                    CommandHistory.write('Could not connect! -> please select port', CommandHistory.DANGER);
+                    break;
+                }
+                if (!connectBaud) {
+                    CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
+                    break;
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
                 break;
             case 'Telnet':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
             case 'ESP8266':
+                if (!connectIP) {
+                    CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
+                    break;
+                } 
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
@@ -423,10 +439,10 @@ class Com extends React.Component {
         socket.emit('closePort');
     }
 
-    
+
     render() {
         let {settings, dispatch} = this.props;
-        
+
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
@@ -457,25 +473,9 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
                 </PanelGroup>
-            </div>    
+            </div>
         )
-        /*      <h4>Fancy controls examples</h4>
-                <NumberField {...{ object: settings, field: 'serverIP', setAttrs: setSettingsAttrs, description: 'Server IP', units: 'IPv4' }} />
-                <ToggleField {...{ object: settings, field: 'commServerConnect', setAttrs: setSettingsAttrs, description: 'Connect server' }} />
 
-                <h4>Basic controls examples</h4>
-                <button onClick={e => this.useGcode()}>Use gcode</button>
-
-                <input type="checkbox"
-                    checked={settings.commServerConnect}
-                    onChange={e => dispatch(setSettingsAttrs({ commServerConnect: e.target.checked }))}
-                    />
-                <br />
-                
-                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
-                <button onClick={e => { CommandHistory.write("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
-
-        */
     }
 }
 
@@ -506,6 +506,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('clear');
         $('#stopBtn .icon-bot-text').html('alarm');
+        $('#stopIcon').removeClass('fa-stop');
+        $('#stopIcon').addClass('fa-unlock');
 //        if ($('#alarmmodal').is(':visible')) {
 //            // Nothing, its already open
 //        } else {
@@ -518,6 +520,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
 //        }
@@ -528,6 +532,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('resume');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -539,6 +545,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('run');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -550,6 +558,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('pause');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
