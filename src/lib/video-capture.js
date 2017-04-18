@@ -81,7 +81,7 @@ export class VideoCapture {
         constraints = Object.assign({ video: true, audio: false }, constraints)
 
         if (device) {
-            constraints = Object.assign(constraints, { 
+            constraints = Object.assign(constraints, {
                 video: {
                     deviceId: { exact: device },
                     width: { exact: resolution.width },
@@ -97,7 +97,13 @@ export class VideoCapture {
                 that.isReady = true;
                 callback(stream)
             }, (err) => {
-                console.error(err)
+                that.delCache();
+                navigator.getUserMedia({ video: { deviceId: { exact: device } } }, (stream) => {
+                    that.stream = stream;
+                    that.isReady = true;
+                    callback(stream)
+                }, console.log)
+
             })
         }
 
@@ -238,6 +244,10 @@ export class VideoCapture {
     setCache(data, replace = false) {
         if (!replace) data = Object.assign(this.getCache(), data)
         window.localStorage.setItem(VIDEO_CAPTURE_CACHE_KEY, JSON.stringify(data))
+    }
+
+    delCache() {
+        window.localStorage.removeItem(VIDEO_CAPTURE_CACHE_KEY)
     }
 
 }

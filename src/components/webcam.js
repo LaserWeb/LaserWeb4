@@ -78,16 +78,11 @@ export class VideoResolutionField extends React.Component {
         if (nextProps.deviceId !== this.props.deviceId) {
             this.getResolutions(nextProps.deviceId)
         }
-
-        let thisres = this.props.object[this.props.field];
-        let nextres = nextProps.object[nextProps.field];
-        if ((thisres !== nextres) && nextres){
-            this.setResolution(nextres)
-        }
     }
 
     handleChange(v) {
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        if (v.value) this.setResolution(v.value)
     }
 
     render() {
