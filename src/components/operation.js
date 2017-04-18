@@ -283,7 +283,7 @@ const checkPercent = {
 
 const checkStepOver = {
     check: v => v > 0 && v <= 100,
-    error: 'Must be in range 0-100%',
+    error: 'Must be > 0 and <= 100',
 };
 
 const checkToolAngle = {
