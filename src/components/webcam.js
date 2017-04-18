@@ -430,7 +430,7 @@ export class VideoControls extends React.Component {
         this.handleChange.bind(this)
         this.handlePerspectiveCoord.bind(this)
         this.handlePerspectiveReset.bind(this)
-        this.handlePerspectiveToggle.bind(this)
+        //this.handlePerspectiveToggle.bind(this)
 
         let { width, height } = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
@@ -470,13 +470,13 @@ export class VideoControls extends React.Component {
             this.props.onChange(state);
     }
 
-    handlePerspectiveToggle() {
-        let state = Object.assign({}, this.state);
-        state.perspective.enabled = !state.perspective.enabled
-        this.setState(state)
-        if (this.props.onChange)
-            this.props.onChange(state);
-    }
+    // handlePerspectiveToggle() {
+    //     let state = Object.assign({}, this.state);
+    //     state.perspective.enabled = !state.perspective.enabled
+    //     this.setState(state)
+    //     if (this.props.onChange)
+    //         this.props.onChange(state);
+    // }
 
     componentWillReceiveProps(nextProps) {
         let { width, height } = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
@@ -494,9 +494,11 @@ export class VideoControls extends React.Component {
             <table width="100%" className="table table-compact">
                 <caption>Perspective</caption>
                 <tbody>
+                    {/*
                     <tr>
                         <th>Enable</th><td colSpan="2"><Toggle checked={enabled} onChange={e => this.handlePerspectiveToggle(e)} /></td><td colSpan="6"><Button bsStyle="warning" onClick={e => this.handlePerspectiveReset()}>Reset</Button></td>
                     </tr>
+                    */}
                     <tr><th>Before</th>
                         {before.map((value, i) => {
                             return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('before', i, e.target.value) }} step="any" /></td>

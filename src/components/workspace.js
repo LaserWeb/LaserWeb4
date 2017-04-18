@@ -35,6 +35,7 @@ import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 import { clamp } from '../lib/helpers'
+import { getVideoResolution } from '../lib/video-capture';
 
 import CommandHistory from './command-history'
 
@@ -42,8 +43,6 @@ import { Button, ButtonToolbar } from 'react-bootstrap'
 import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';
-
-import { VideoPort } from './webcam'
 
 import { LiveJogging } from './jog'
 
@@ -377,6 +376,24 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
 } // drawSelectedDocuments
 
 
+// Webcam effects
+function fxChain(drawCommands, fx) {
+    let fxTexture;
+    fx.forEach((params) => {
+        let cb = () => {
+            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
+            drawCommands[params.name](uniforms)
+            fxTexture = (params.buffer) ? params.buffer.texture : null;
+        }
+
+        if (params.buffer) {
+            drawCommands.useFrameBuffer(params.buffer, cb)
+        } else {
+            cb()
+        }
+    })
+    return fxTexture;
+}
 
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -510,26 +527,28 @@ class WorkspaceContent extends React.Component {
             // WEBCAM
             // BINDS VIDEO FEED with TEXTURE
 
-            if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
-                this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
-                
-                let l = this.props.settings.toolVideoLens
-                let f = this.props.settings.toolVideoFov
-                // APPLIES FX CHAIN
+            if (this.props.workspace.showWebcam) {
+     
+                let stream = window.videoCapture.getStream();
+                if (!this.videoElement.srcObject || (this.videoElement.srcObject != stream))
+                    this.videoElement.srcObject = stream;
 
-                /*
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                ) */
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
-                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )
-                
+                if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+                    this.videoTexture.set({ image: this.videoElement, width: videoSize.width, height: videoSize.height })
+                    
+                    this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
+            
+                    let l = this.props.settings.toolVideoLens
+                    let f = this.props.settings.toolVideoFov
+                    
+                    // APPLIES FX CHAIN
+                    let videoTexture = fxChain(this.drawCommands,
+                        [
+                            {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
+                            {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                        ]
+                    )
+                }      
             }
 
             this.grid.draw(this.drawCommands, {
@@ -917,9 +936,6 @@ class Workspace extends React.Component {
                         <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} onCommandExec={runCommand} />
                     </div>
                 </div>
-
-                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
-
             </div>
         )
     }

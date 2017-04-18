@@ -225,7 +225,7 @@ export class VideoCapture {
                     })
                 })
             } else {
-                console.log("selected device not found")
+                console.log("selected device not found; video disabled")
                 callback(false)
             }
         })

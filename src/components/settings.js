@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { VideoDeviceField, VideoPort, VideoResolutionField } from './webcam';
+import { VideoDeviceField, VideoPort, VideoControls, VideoResolutionField } from './webcam';
 
 import { alert, prompt, confirm } from './laserweb';
 
@@ -266,6 +266,13 @@ class Settings extends React.Component {
                         </tr></tbody></table>
 
                         <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
+                        <VideoControls
+                            lens={this.props.settings['toolVideoLens']}
+                            fov={this.props.settings['toolVideoFov']}
+                            videoWidth="640" videoHeight="480"
+                            perspective={this.props.settings['toolVideoPerspective']}
+                            resolution={this.props.settings['toolVideoResolution']}
+                            onChange={(v) => this.props.handleSettingChange({ toolVideoLens: v.lens, toolVideoFov: v.fov, toolVideoPerspective: v.perspective })} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
                     </Panel>
