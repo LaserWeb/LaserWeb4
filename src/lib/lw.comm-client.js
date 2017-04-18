@@ -21,6 +21,8 @@ import CommandHistory from '../components/command-history'
 
 import { setSettingsAttrs } from '../actions/settings'
 
+import equals from 'shallow-equals'
+
 
 export function secToHMS(sec) {
     let hours = Math.floor(sec / 3600);
@@ -64,27 +66,28 @@ class commClient {
         CommandHistory.write('Connecting to Server @ ' + server, CommandHistory.INFO);
 
         socket.on('connect', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'connect', attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true }, 'connect')
             //socket.emit('firstload');
             socket.emit('getServerConfig');
             CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         }.bind(this));
 
         socket.on('disconnect', function () {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'disconnect', attrs: { serverConnected: false, machineConnected: false } } })
+            this.__shouldDispatch({ serverConnected: false, machineConnected: false }, 'disconnect' )
             CommandHistory.error('Disconnected from Server ' + this.props.settings.comServerIP)
         }.bind(this));
 
         socket.on('serverConfig', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: {  command: 'serverConfig', serverConnected: true, comServerVersion: data.serverVersion } } })
+            this.__shouldDispatch({serverConnected: true, comServerVersion: data.serverVersion}, 'serverConfig')
             console.log('serverVersion: ' + data.serverVersion);
         }.bind(this));
 
         socket.on('interfaces', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'interfaces', attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true }, 'interfaces')
+            
             if (data.length > 0) {
                 let interfaces = [...data]
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { command: 'interfaces', attrs: { comInterfaces: interfaces } } })
+                this.__shouldDispatch({ comInterfaces: interfaces }, 'interfaces')
                 console.log('interfaces: ' + interfaces);
             } else {
                 CommandHistory.error('No supported interfaces found on server!')
@@ -92,10 +95,10 @@ class commClient {
         }.bind(this));
 
         socket.on('ports', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true }, 'ports')
             if (data.length > 0) {
                 let ports = data.map(i => i.comName)
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { comPorts: ports } } })
+                this.__shouldDispatch({ comPorts: ports }, 'ports')
                 this.props.dispatch(setSettingsAttrs({ comPorts: ports }));
                 CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
             } else {
@@ -104,7 +107,7 @@ class commClient {
         }.bind(this));
 
         socket.on('activeInterface', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true })
             if (data.length > 0) {
                 //set the actual interface
             }
@@ -112,7 +115,7 @@ class commClient {
         }.bind(this));
 
         socket.on('activePort', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true })
             if (data.length > 0) {
                 //set the actual port
             }
@@ -120,7 +123,7 @@ class commClient {
         }.bind(this));
 
         socket.on('activeBaudRate', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true })
             if (data.length > 0) {
                 //set the actual baudrate
             }
@@ -128,7 +131,7 @@ class commClient {
         }.bind(this));
 
         socket.on('activeIP', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true })
             if (data.length > 0) {
                 //set the actual machine IP
             }
@@ -137,14 +140,14 @@ class commClient {
 
         socket.on('connectStatus', function (data) {
             console.log('connectStatus: ' + data);
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            this.__shouldDispatch({ serverConnected: true })
 
             if (data.indexOf('opened') >= 0) {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { machineConnected: true } } })
+                this.__shouldDispatch({ machineConnected: true })
                 CommandHistory.write('Machine connected', CommandHistory.SUCCESS);
             }
             if (data.indexOf('Connect') >= 0) {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { machineConnected: false } } })
+                this.__shouldDispatch({ machineConnected: false })
                 CommandHistory.error('Machine disconnected')
             }
         }.bind(this));
@@ -173,28 +176,28 @@ class commClient {
         }.bind(this));
 
         socket.on('runStatus', function (status) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { status } } })
+            this.__shouldDispatch({ status })
+            
             console.log('runStatus: ' + status);
             if (status === 'running') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: true, paused: false } } })
+                this.__shouldDispatch({ playing: true, paused: false })
             } else if (status === 'paused') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: true } } })
+                this.__shouldDispatch({ paused: true })
             } else if (status === 'resumed') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false } } })
+                this.__shouldDispatch({ paused: false })
             } else if (status === 'stopped') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
+                this.__shouldDispatch({ playing: false, paused: false })
             } else if (status === 'finished') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
+                this.__shouldDispatch( { playing: false, paused: false })
             } else if (status === 'alarm') {
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
+                this.__shouldDispatch( { playing: false, paused: false })
                 CommandHistory.error('ALARM!')
             }
             this.runStatus(status);
         }.bind(this));
 
         socket.on('data', function (data) {
-            if (!this.props.com.machineConnected || !this.props.com.serverConnected)
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { machineConnected: true, serverConnected: true } } })
+            this.__shouldDispatch({ machineConnected: true, serverConnected: true })
 
             if (data) {
                 if (data.indexOf('<') === 0) {
@@ -214,7 +217,7 @@ class commClient {
         }.bind(this));
 
         socket.on('wPos', function (wpos) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, machineConnected: true } } })
+            this.__shouldDispatch({ machineConnected: true, serverConnected: true })
             let { x, y, z } = wpos; //var pos = wpos.split(',');
             let posChanged = false;
             if (xpos !== x) {
@@ -236,30 +239,25 @@ class commClient {
 
         // feed override report (from server)
         socket.on('feedOverride', function (data) {
-            if (this.props.com.feedOverride!==data.toString())
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, feedOverride: data.toString() } } })
+            this.__shouldDispatch({ serverConnected: true, feedOverride: data.toString() })
         }.bind(this));
 
         // spindle override report (from server)
         socket.on('spindleOverride', function (data) {
-            if (this.props.com.spindleOverride!==data.toString())
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, spindleOverride: data.toString() } } })
+            this.__shouldDispatch({ serverConnected: true, spindleOverride: data.toString() })
         }.bind(this));
 
         // real feed report (from server)
         socket.on('realFeed', function (data) {
-            if (this.props.com.serverConnected!==true){
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            if (this.__shouldDispatch({ serverConnected: true }))
                 console.log('realFeed ' + data);
-            }
+            
         }.bind(this));
 
         // real spindle report (from server)
         socket.on('realSpindle', function (data) {
-            if (this.props.com.serverConnected!==true){
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true } } })
+            if (this.__shouldDispatch({ serverConnected: true }))
                 console.log('realSpindle ' + data);
-            }
         }.bind(this));
 
         // laserTest state
@@ -271,11 +269,12 @@ class commClient {
                 attrs.laserTestOn = false;
             }
 
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs } })
+            this.__shouldDispatch(attrs)
+            
         }.bind(this));
 
         socket.on('qCount', function (data) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: true, queued: parseInt(data) } } })
+            this.__shouldDispatch({ serverConnected: true, queued: parseInt(data) })
 
             if (this.props.com.playing && data === 0) {
                 this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: false, paused: false } } })
@@ -297,7 +296,7 @@ class commClient {
         }.bind(this));
 
         socket.on('close', function () {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { serverConnected: false, machineConnected: false } } })
+            this.__shouldDispatch({ serverConnected: false, machineConnected: false })
             CommandHistory.error('Server connection closed')
             let serverVersion = 'not connected';
             this.props.dispatch(setSettingsAttrs({ comServerVersion: serverVersion }));
@@ -348,6 +347,16 @@ class commClient {
         }
     }
 
+    __shouldDispatch(attrs, command, type, state) {
+        if (!state) state=this.props.com;
+        if (!type) type = 'COM_SET_ATTRS';
+        if (!equals(Object.assign(state, attrs), state)) {
+            this.props.dispatch({ type, payload: { command,  attrs } })
+            return true;
+        } 
+        return false;
+    }
+
     __emit(caption, command, args = []) {
         if (this.props.com.serverConnected) {
             if (this.props.com.machineConnected) {
@@ -381,7 +390,7 @@ class commClient {
         }
 
         if (this.__emit("Running Job", 'runJob', [job])) {
-            this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { playing: true, jobStartTime: new Date(Date.now()).toJSON() } } })
+            this.__shouldDispatch({ playing: true, jobStartTime: new Date(Date.now()).toJSON() })
             return true;
         }
 
@@ -391,9 +400,7 @@ class commClient {
 
     pauseJob() {
         if (this.__emit("Pause Job", 'pause')) {
-            if (!this.props.com.paused)
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: true } } })
-
+            this.__shouldDispatch({ attrs: { paused: true } })
             this.runStatus('paused');
             return true;
         }
@@ -403,9 +410,7 @@ class commClient {
     resumeJob() {
 
         if (this.__emit("Resume Job", 'resume')) {
-            if (this.props.com.paused)
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false } } })
-
+            this.__shouldDispatch({ attrs: { paused: false } })
             this.runStatus('running');
             return true;
         }
@@ -415,8 +420,7 @@ class commClient {
     abortJob() {
  
         if (this.__emit("Abort Job", 'stop')) {
-            if (this.props.com.paused || this.props.com.playing)
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false, playing: false } } })
+            this.__shouldDispatch({ paused: false, playing: false })
             this.runStatus('stopped');
             return true;
         }
@@ -471,7 +475,7 @@ class commClient {
                             laseroncmd = 0;
                         }
                         this.socket.emit('resume', laseroncmd);
-                        this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false } } })
+                        this.__shouldDispatch({ paused: false })
                         this.runStatus('running');
 
                         // end ifPaused
@@ -482,7 +486,7 @@ class commClient {
                             laseroffcmd = 0;
                         }
                         this.socket.emit('pause', laseroffcmd);
-                        this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: true } } })
+                        this.__shouldDispatch({ paused: true })
                         this.runStatus('paused');
                     }
                     // end isPlaying
@@ -507,15 +511,16 @@ class commClient {
         switch (status) {
 
             case 'running':
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: true, playing: true } } })
+                this.__shouldDispatch({ paused: true, playing: true })
             case 'paused':
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: true } } })
+                this.__shouldDispatch({ paused: true })
             case 'resumed':
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false } } })
+                this.__shouldDispatch({ paused: false })
             case 'stopped':
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false, playing: false } } })
+                this.__shouldDispatch({ paused: false, playing: false })
             case 'finished':
-                this.props.dispatch({ type: 'COM_SET_ATTRS', payload: { attrs: { paused: false, playing: false } } })
+                this.__shouldDispatch({ paused: false, playing: false })
+
             // case 'alarm':
 
         }
