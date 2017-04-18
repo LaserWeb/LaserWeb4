@@ -34,14 +34,19 @@ import SetSize from './setsize';
 import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
+import { clamp } from '../lib/helpers'
+import { getVideoResolution } from '../lib/video-capture';
 
 import CommandHistory from './command-history'
-import { getVideoResolution } from '../lib/video-capture'
 
 import { Button, ButtonToolbar } from 'react-bootstrap'
 import Icon from './font-awesome'
 
-function camera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
+import Draggable from 'react-draggable';
+
+import { LiveJogging } from './jog'
+
+function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
     if (showPerspective)
@@ -334,48 +339,6 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
 } // drawDocuments
 
 
-// WEBCAM
-function bindVideoTexture(drawCommands, videoTexture, videoElement, size) {
-    let stream = window.videoCapture.getStream();
-    if (!videoElement.srcObject || (videoElement.srcObject != stream))
-        videoElement.srcObject = stream;
-
-    if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
-        videoTexture.set({ image: videoElement, width: size.width, height: size.height })
-        return true;
-    }
-    return false;
-}
-
-function fxChain(drawCommands, fx) {
-    let fxTexture;
-    fx.forEach((params) => {
-        let cb = () => {
-            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
-            drawCommands[params.name](uniforms)
-            fxTexture = (params.buffer) ? params.buffer.texture : null;
-        }
-
-        if (params.buffer) {
-            drawCommands.useFrameBuffer(params.buffer, cb)
-        } else {
-            cb()
-        }
-    })
-    return fxTexture;
-}
-
-function drawVideo(perspective, view, drawCommands, videoTexture, size) {
-    drawCommands.image({
-        perspective, view,
-        location: [0, 0, 0],
-        size: [size.width, size.height],
-        texture: videoTexture,
-        selected: false,
-    });
-}
-// /WEBCAM 
-
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
@@ -413,6 +376,24 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
 } // drawSelectedDocuments
 
 
+// Webcam effects
+function fxChain(drawCommands, fx) {
+    let fxTexture;
+    fx.forEach((params) => {
+        let cb = () => {
+            let uniforms = Object.assign({ texture: fxTexture }, params.uniforms);
+            drawCommands[params.name](uniforms)
+            fxTexture = (params.buffer) ? params.buffer.texture : null;
+        }
+
+        if (params.buffer) {
+            drawCommands.useFrameBuffer(params.buffer, cb)
+        } else {
+            cb()
+        }
+    })
+    return fxTexture;
+}
 
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -527,10 +508,11 @@ class WorkspaceContent extends React.Component {
 
         // WEBCAM INIT
         let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
+        
         let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
         this.videoElement = document.createElement('video')
         this.videoTexture = this.drawCommands.createTexture(videoSize.width, videoSize.height);
-        //this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
+        this.barrelBuffer = this.drawCommands.createFrameBuffer(videoSize.width, videoSize.height);
 
         let draw = () => {
             if (!this.canvas)
@@ -545,26 +527,28 @@ class WorkspaceContent extends React.Component {
             // WEBCAM
             // BINDS VIDEO FEED with TEXTURE
 
-            if (this.props.workspace.showWebcam && bindVideoTexture(this.drawCommands, this.videoTexture, this.videoElement, videoSize)) {
-                this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
-                /*
-                let l = this.props.settings.toolVideoLens
-                let f = this.props.settings.toolVideoFov
-                // APPLIES FX CHAIN
+            if (this.props.workspace.showWebcam) {
+     
+                let stream = window.videoCapture.getStream();
+                if (!this.videoElement.srcObject || (this.videoElement.srcObject != stream))
+                    this.videoElement.srcObject = stream;
 
-
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        { name: 'image', buffer: null, uniforms: { texture: this.videoTexture, perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [workspaceSize.width, workspaceSize.height], selected: false } }  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )
-                let videoTexture = fxChain(this.drawCommands,
-                    [
-                        {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
-                        {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
-                    ]
-                )
-                */
+                if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+                    this.videoTexture.set({ image: this.videoElement, width: videoSize.width, height: videoSize.height })
+                    
+                    this.drawCommands.image({ perspective: this.camera.perspective, view: this.camera.view, location: [0, 0, 0], size: [this.props.settings.machineWidth, this.props.settings.machineHeight], texture: this.videoTexture, selected: false, });
+            
+                    let l = this.props.settings.toolVideoLens
+                    let f = this.props.settings.toolVideoFov
+                    
+                    // APPLIES FX CHAIN
+                    let videoTexture = fxChain(this.drawCommands,
+                        [
+                            {name: 'barrelDistort',  buffer: this.barrelBuffer, uniforms: { texture: this.videoTexture, lens: [l.a, l.b, l.F, l.scale], fov: [f.x, f.y] } },
+                            {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, view: this.camera.view, location: [0,0,0], size: [workspaceSize.width, workspaceSize.height], selected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                        ]
+                    )
+                }      
             }
 
             this.grid.draw(this.drawCommands, {
@@ -600,7 +584,7 @@ class WorkspaceContent extends React.Component {
 
     setCamera(props) {
         this.camera =
-            camera({
+            calcCamera({
                 viewportWidth: props.width,
                 viewportHeight: props.height,
                 fovy: props.camera.fovy,
@@ -674,10 +658,22 @@ class WorkspaceContent extends React.Component {
         this.adjustingCamera = false;
         this.needToSelect = null;
         this.toggle = e.ctrlKey || e.shiftKey;
+        this.liveJoggingKey = e.altKey || e.metaKey
         this.moveStarted = false;
         this.fingers = null;
+        this.jogMode = this.props.mode == 'jog';
+
+        if (LiveJogging.isEnabled() && this.liveJoggingKey && this.jogMode) {
+            let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
+            jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
+            jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            let jogF = this.props.settings.jogFeedXY;
+            CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
+            return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
+        }
+
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
-        if (cachedDocument && e.button === 0) {
+        if (cachedDocument && e.button === 0 && !this.jogMode) {
             this.movingObjects = true;
             if (cachedDocument.document.selected)
                 this.needToSelect = cachedDocument.document.id;
@@ -778,6 +774,20 @@ class WorkspaceContent extends React.Component {
                         fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
                     }));
                 } else if (pointer.button === 0) {
+                    let view = calcCamera({
+                        viewportWidth: this.props.width,
+                        viewportHeight: this.props.height,
+                        fovy: camera.fovy,
+                        near: .1,
+                        far: 2000,
+                        eye: [0, 0, vec3.distance(camera.eye, camera.center)],
+                        center: [0, 0, 0],
+                        up: [0, 1, 0],
+                        showPerspective: false,
+                    }).view;
+                    let scale = 2 * window.devicePixelRatio / this.props.width / view[0];
+                    dx *= scale;
+                    dy *= scale;
                     let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
                     this.props.dispatch(setCameraAttrs({
                         eye: vec3.add([], camera.eye,
@@ -809,7 +819,9 @@ class WorkspaceContent extends React.Component {
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
             nextProps.settings.machineOriginX !== this.props.settings.machineOriginX || nextProps.settings.machineOriginY !== this.props.settings.machineOriginY ||
             nextProps.documents !== this.props.documents ||
-            nextProps.camera !== this.props.camera);
+            nextProps.camera !== this.props.camera ||
+            nextProps.mode !== this.props.mode
+        );
     }
 
     render() {
@@ -836,16 +848,17 @@ class WorkspaceContent extends React.Component {
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
                             settings={this.props.settings}
-                            />
+                        />
                     </SetSize>
                 </div>
+                <div className={"workspace-content workspace-overlay " + this.props.mode}></div>
             </div>
         );
     }
 } // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace, mode: state.panes.selected })
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {

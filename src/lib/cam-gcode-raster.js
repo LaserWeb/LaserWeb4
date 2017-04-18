@@ -1,4 +1,4 @@
-import RasterToGcode from 'lw.raster-to-gcode';
+import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
 
 export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers) {
@@ -37,31 +37,44 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     // POSTPROCESS GCODE;
     const postProcessing = (gc) => {
         let g = '';
-        let raster = gc.join('\r\n') + "\r\n\r\n";
+        let raster = '';
+        for (let line of gc)
+            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F')
+                raster += line + '\r\n';
+            else
+                raster += '; stripped: ' + line + '\r\n';
+        raster += '\r\n\r\n';
 
-        if (op.useBlower) {
-            if (settings.machineBlowerGcodeOn) {
-                g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
-            }
-        }
-
+        if (op.hookOperationStart.length) g+=op.hookOperationStart;
 
         for (let pass = 0; pass < op.passes; ++pass) {
             g += '\n\n; Pass ' + pass + '\r\n';
+
+            if (op.hookPassStart.length) g+=op.hookPassStart;
+
+            if (op.useBlower) {
+                if (settings.machineBlowerGcodeOn) {
+                    g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+                }
+            }
+
             if (settings.machineZEnabled) {
                 let zHeight = Number(op.startHeight) + settings.machineZToolOffset - (op.passDepth * pass);
                 g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
             g += raster;
-        }
 
-
-        if (op.useBlower) {
-            if (settings.machineBlowerGcodeOff) {
-                g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+            if (op.useBlower) {
+                if (settings.machineBlowerGcodeOff) {
+                    g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+                }
             }
+
+            if (op.hookPassEnd.length) g+=op.hookPassEnd;
         }
+
+        if (op.hookOperationEnd.length) g+=op.hookOperationEnd;
 
         return g;
     }
@@ -84,6 +97,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 toolDiameter: op.laserDiameter,
                 beamRange: { min: 0, max: settings.gcodeSMaxValue },
                 beamPower: op.laserPowerRange, //Go go power rangeR!
+                rapidRate: false,
                 feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
                 offsets: { X: doc.translate[0], Y: doc.translate[1] },
                 trimLine: op.trimLine,
@@ -102,6 +116,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     grayscale: op.grayscale,
                     shadesOfGray: op.shadesOfGray,
                     invertColor: op.invertColor,
+                    dithering: op.dithering
                 }
             }
             let r2g = new RasterToGcode(params)

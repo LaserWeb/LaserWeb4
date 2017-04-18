@@ -10,9 +10,10 @@ import { addDocument, addDocumentChild } from '../actions/document'
 import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
 
+import CommandHistory from '../components/command-history'
 import { alert } from '../components/laserweb'
 
-const initialDocument = {
+export const DOCUMENT_INITIALSTATE = {
     id: '',
     type: '?',
     name: '',
@@ -30,7 +31,7 @@ const initialDocument = {
     dpi: 1,
 };
 
-const documentBase = object('document', initialDocument);
+const documentBase = object('document', DOCUMENT_INITIALSTATE);
 
 export function document(state, action) {
     switch (action.type) {
@@ -55,7 +56,7 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, settings, { file, content }) {
+function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let { parser, tags } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
@@ -72,7 +73,7 @@ function loadSvg(state, settings, { file, content }) {
     function addChildren(parent, tag) {
         for (let child of tag.children) {
             let c = {
-                ...initialDocument,
+                ...DOCUMENT_INITIALSTATE,
                 id: uuid.v4(),
                 type: child.name,
                 name: child.name + ': ' + child.attrs.id,
@@ -102,12 +103,11 @@ function loadSvg(state, settings, { file, content }) {
                     c.strokeColor[3] = .3;
             } else if (child.name === 'image') {
                 let element = child.element;
-                let mat = Snap(element).transform().globalMatrix;
+                let mat = Snap(element).transform().localMatrix;
                 let dataURL = element.getAttribute('xlink:href');
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
-                let i = new Image;
-                i.src = dataURL;
+
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
                 let rawW = element.width.baseVal.value;
@@ -116,10 +116,11 @@ function loadSvg(state, settings, { file, content }) {
                 let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
                 let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
                 let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
+              
                 c = {
                     ...c,
                     translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
-                    scale: [w / i.width, h / i.height, 1],
+                    scale: [w / child.naturalWidth, h / child.naturalHeight, 1],
                     mimeType: file.type,
                     dataURL: dataURL,
                     dpi: 25.4,
@@ -132,8 +133,8 @@ function loadSvg(state, settings, { file, content }) {
     }
 
     let doc = {
-        ...initialDocument,
-        id: uuid.v4(),
+        ...DOCUMENT_INITIALSTATE,
+        id: id,
         type: 'document',
         name: file.name,
         isRoot: true,
@@ -147,6 +148,12 @@ function loadSvg(state, settings, { file, content }) {
 }
 
 function processImage(doc, settings, context) {
+
+    if (!context) {
+        CommandHistory.warn('Cannot process image '+doc.name)
+        return doc;
+    }
+
     // Adjusting by Quadrant setting.
     let imageWidth = context.naturalWidth / settings.dpiBitmap * 25.4;
     let imageHeight = context.naturalHeight / settings.dpiBitmap * 25.4;
@@ -176,11 +183,11 @@ function processImage(doc, settings, context) {
 
 }
 
-function loadImage(state, settings, { file, content, context }) {
+function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
     state = state.slice();
     let doc = {
-        ...initialDocument,
-        id: uuid.v4(),
+        ...DOCUMENT_INITIALSTATE,
+        id: id,
         type: 'image',
         name: file.name,
         isRoot: true,
@@ -198,11 +205,11 @@ function loadImage(state, settings, { file, content, context }) {
     return state;
 }
 
-function loadDxf(state, settings, { file, content }) {
+function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
     state = state.slice();
     let docFile = {
-        ...initialDocument,
-        id: uuid.v4(),
+        ...DOCUMENT_INITIALSTATE,
+        id: id,
         type: 'document',
         name: file.name,
         isRoot: true,
@@ -215,14 +222,30 @@ function loadDxf(state, settings, { file, content }) {
 }
 
 export function documentsLoad(state, settings, action) {
+    state = state.slice();
+    let docId;
+    
+    if (action.payload.modifiers.shift) {
+        console.warn('Replacing occurrences of '+action.payload.file.name)
+        let doc = state.find((doc,index,docs) => doc.name === action.payload.file.name)
+        if (doc) {
+             docId = doc.id;
+             let ids = getSubtreeIds(state, docId);
+             state = state.filter(o => !ids.includes(o.id))
+                .map(parent => Object.assign({}, parent, {
+                    children: parent.children.filter(childId => childId !== docId)
+                }));
+        }
+    }
+
     if (action.payload.file.type === 'image/svg+xml')
-        return loadSvg(state, settings, action.payload);
+        return loadSvg(state, settings, action.payload, docId);
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
-        return loadDxf(state, settings, action.payload);
+        return loadDxf(state, settings, action.payload, docId);
     else if (action.payload.file.type.substring(0, 6) === 'image/') {
-        return loadImage(state, settings, action.payload);
+        return loadImage(state, settings, action.payload, docId);
     } else {
-        alert('Unsupported file type:'+action.payload.file.type)
+        alert('Unsupported file type:' + action.payload.file.type)
         console.error('Unsupported file type:', action.payload.file.type)
         return state;
     }

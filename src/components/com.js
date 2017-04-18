@@ -57,7 +57,7 @@ class Com extends React.Component {
         let that = this;
         let {settings, dispatch} = this.props;
         let server = settings.comServerIP;
-        CommandHistory.log('Connecting to Server @ ' + server, CommandHistory.INFO);
+        CommandHistory.write('Connecting to Server @ ' + server, CommandHistory.INFO);
         //console.log('Connecting to Server ' + server);
         socket = io('ws://' + server);
 
@@ -67,11 +67,11 @@ class Com extends React.Component {
             $('#disconnectS').removeClass('disabled');
             socket.emit('firstload');
             socket.emit('getServerConfig');
-            CommandHistory.log('Server connected', CommandHistory.SUCCESS);
+            CommandHistory.write('Server connected', CommandHistory.SUCCESS);
         });
-        
+
         socket.on('disconnect', function() {
-            CommandHistory.log('Disconnected from Server ' + settings.comServerIP, CommandHistory.DANGER);
+            CommandHistory.error('Disconnected from Server ' + settings.comServerIP)
             //console.log('Disconnected from Server ' + settings.commServerIP);
             serverConnected = false;
             $('#connectS').removeClass('disabled');
@@ -89,17 +89,17 @@ class Com extends React.Component {
 //            //console.log('open ' + data);
 //            socket.emit('getInterfaces');
 //            socket.emit('getPorts');
-//            CommandHistory.log('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.INFO);
+//            CommandHistory.write('Socket opened: ' + data + '(' + socket.id + ')', CommandHistory.INFO);
 //        });
 
         socket.on('serverConfig', function (data) {
             serverConnected = true;
             let serverVersion = data.serverVersion;
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
-            //CommandHistory.log('Server version: ' + serverVersion, CommandHistory.INFO);
+            //CommandHistory.write('Server version: ' + serverVersion, CommandHistory.INFO);
             console.log('serverVersion: ' + serverVersion);
         });
-        
+
         socket.on('interfaces', function(data) {
             serverConnected = true;
             $('#connectS').addClass('disabled');
@@ -112,9 +112,9 @@ class Com extends React.Component {
                 that.setState({comInterfaces: interfaces});
                 dispatch(setSettingsAttrs({comInterfaces: interfaces}));
                 console.log('interfaces: ' + interfaces);
-                //CommandHistory.log('interfaces: ' + interfaces);
+                //CommandHistory.write('interfaces: ' + interfaces);
             } else {
-                CommandHistory.log('No supported interfaces found on server!', CommandHistory.DANGER);
+                CommandHistory.error('No supported interfaces found on server!')
             }
         });
 
@@ -130,9 +130,9 @@ class Com extends React.Component {
                 that.setState({comPorts: ports});
                 dispatch(setSettingsAttrs({comPorts: ports}));
                 console.log('ports: ' + ports);
-                //CommandHistory.log('ports: ' + ports);
+                //CommandHistory.write('ports: ' + ports);
             } else {
-                CommandHistory.log('No serial ports found on server!', CommandHistory.DANGER);
+                CommandHistory.error('No serial ports found on server!')
             }
         });
 
@@ -185,13 +185,13 @@ class Com extends React.Component {
                 machineConnected = true;
                 $('#connect').addClass('disabled');
                 $('#disconnect').removeClass('disabled');
-                CommandHistory.log('Machine connected', CommandHistory.SUCCESS);
+                CommandHistory.write('Machine connected', CommandHistory.SUCCESS);
             }
             if (data.indexOf('Connect') >= 0) {
                 machineConnected = false;
                 $('#connect').removeClass('disabled');
                 $('#disconnect').addClass('disabled');
-                CommandHistory.log('Machine disconnected', CommandHistory.DANGER);
+                CommandHistory.error('Machine disconnected')
             }
         });
 
@@ -206,9 +206,9 @@ class Com extends React.Component {
             firmware = data.firmware;
             fVersion = data.version;
             fDate = data.date;
-            CommandHistory.log('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
+            CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (fVersion < '1.1e') {
-                CommandHistory.log('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e', CommandHistory.DANGER);
+                CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
                 socket.emit('closePort', 1);
                 machineConnected = false;
                 //console.log('GRBL < 1.1 not supported!');
@@ -216,13 +216,13 @@ class Com extends React.Component {
         });
 
         socket.on('runningJob', function (data) {
-            CommandHistory.log('runningJob(' + data.length + ')', CommandHistory.WARN);
+            CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
             alert(data);
             //setGcode(data);
         });
-        
+
         socket.on('runStatus', function (status) {
-            //CommandHistory.log('runStatus: ' + status);
+            //CommandHistory.write('runStatus: ' + status);
             console.log('runStatus: ' + status);
             if (status === 'running') {
                 playing = true;
@@ -238,7 +238,7 @@ class Com extends React.Component {
                 playing = false;
                 paused = false;
             } else if (status === 'alarm') {
-                CommandHistory.log('ALARM!', CommandHistory.DANGER);
+                CommandHistory.error('ALARM!')
                 //socket.emit('clearAlarm', 2);
             }
             runStatus(status);
@@ -249,7 +249,7 @@ class Com extends React.Component {
             machineConnected = true;
             if (data) {
                 if (data.indexOf('<') === 0) {
-                    //CommandHistory.log('statusReport: ' + data);
+                    //CommandHistory.write('statusReport: ' + data);
                     updateStatus(data);
                 } else {
                     var style = CommandHistory.STD;
@@ -259,8 +259,8 @@ class Com extends React.Component {
                         style = CommandHistory.DANGER;
                     } else if (data.indexOf('error:') === 0) {
                         style = CommandHistory.DANGER;
-                    }                    
-                    CommandHistory.log(data, style);
+                    }
+                    CommandHistory.write(data, style);
                 }
             }
         });
@@ -283,7 +283,7 @@ class Com extends React.Component {
                 posChanged = true;
             }
             if (posChanged) {
-                //CommandHistory.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                //CommandHistory.write('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 $('#mX').html(xpos);
                 $('#mY').html(ypos);
@@ -295,7 +295,7 @@ class Com extends React.Component {
         // feed override report (from server)
         socket.on('feedOverride', function (data) {
             serverConnected = true;
-            //CommandHistory.log('feedOverride: ' + data, CommandHistory.STD);
+            //CommandHistory.write('feedOverride: ' + data, CommandHistory.STD);
             //console.log('feedOverride ' + data);
             $('#oF').html(data.toString() + '<span class="drounitlabel"> %</span>');
         });
@@ -303,7 +303,7 @@ class Com extends React.Component {
         // spindle override report (from server)
         socket.on('spindleOverride', function (data) {
             serverConnected = true;
-            //CommandHistory.log('spindleOverride: ' + data, CommandHistory.STD);
+            //CommandHistory.write('spindleOverride: ' + data, CommandHistory.STD);
             //console.log('spindleOverride ' + data);
             $('#oS').html(data.toString() + '<span class="drounitlabel"> %</span>');
         });
@@ -311,7 +311,7 @@ class Com extends React.Component {
         // real feed report (from server)
         socket.on('realFeed', function (data) {
             serverConnected = true;
-            //CommandHistory.log('realFeed: ' + data, CommandHistory.STD);
+            //CommandHistory.write('realFeed: ' + data, CommandHistory.STD);
             //console.log('realFeed ' + data);
             //$('#mF').html(data);
         });
@@ -319,7 +319,7 @@ class Com extends React.Component {
         // real spindle report (from server)
         socket.on('realSpindle', function (data) {
             serverConnected = true;
-            //CommandHistory.log('realSpindle: ' + data, CommandHistory.STD);
+            //CommandHistory.write('realSpindle: ' + data, CommandHistory.STD);
             //console.log('realSpindle ' + data);
             //$('#mS').html(data);
         });
@@ -327,7 +327,7 @@ class Com extends React.Component {
         // laserTest state
         socket.on('laserTest', function (data) {
             serverConnected = true;
-            //CommandHistory.log('laserTest: ' + data, CommandHistory.STD);
+            //CommandHistory.write('laserTest: ' + data, CommandHistory.STD);
             //console.log('laserTest ' + data);
             if (data > 0){
                 laserTestOn = true;
@@ -356,47 +356,47 @@ class Com extends React.Component {
                     var jobFinishTime = new Date(Date.now());
                     var elapsedTimeMS = jobFinishTime.getTime() - jobStartTime.getTime();
                     var elapsedTime = Math.round(elapsedTimeMS / 1000);
-                    CommandHistory.log("Job started at " + jobStartTime.toString(), CommandHistory.SUCCESS);
-                    CommandHistory.log("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
-                    CommandHistory.log("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
+                    CommandHistory.write("Job started at " + jobStartTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.write("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
+                    CommandHistory.write("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
                     jobStartTime = -1;
                     let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
                     dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
-                    CommandHistory.log("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
+                    CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
                 }
             }
         });
 
-        socket.on('close', function() { 
+        socket.on('close', function() {
             serverConnected = false;
             $('#connectS').removeClass('disabled');
             $('#disconnectS').addClass('disabled');
             machineConnected = false;
             $('#connect').removeClass('disabled');
             $('#disconnect').addClass('disabled');
-            CommandHistory.log('Server connection closed', CommandHistory.DANGER);
+            CommandHistory.error('Server connection closed')
             // websocket is closed.
-            //console.log('Server connection closed'); 
+            //console.log('Server connection closed');
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         });
 
         socket.on('error', function (data) {
-            CommandHistory.log('Server error: ' + data, CommandHistory.DANGER);
+            CommandHistory.error('Server error: ' + data)
             //console.log('error: ' + data);
         });
 
     }
-    
+
     handleDisconnectServer() {
         if (socket) {
-            CommandHistory.log('Disconnecting from server', CommandHistory.INFO);
+            CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
         }
     }
-    
+
     handleConnectMachine() {
         var connectVia = this.props.settings.connectVia;
         var connectPort = this.props.settings.connectPort.trim();
@@ -404,29 +404,29 @@ class Com extends React.Component {
         var connectIP = this.props.settings.connectIP;
         switch (connectVia) {
             case 'USB':
-                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
                 break;
             case 'Telnet':
-                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
             case 'ESP8266':
-                CommandHistory.log('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
         }
     }
 
     handleDisconnectMachine() {
-        CommandHistory.log('Disconnecting Machine', CommandHistory.INFO);
+        CommandHistory.write('Disconnecting Machine', CommandHistory.INFO);
         socket.emit('closePort');
     }
 
-    
+
     render() {
         let {settings, dispatch} = this.props;
-        
+
         return (
             <div style={{paddingTop: 2}}>
                 <PanelGroup>
@@ -457,25 +457,9 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
                 </PanelGroup>
-            </div>    
+            </div>
         )
-        /*      <h4>Fancy controls examples</h4>
-                <NumberField {...{ object: settings, field: 'serverIP', setAttrs: setSettingsAttrs, description: 'Server IP', units: 'IPv4' }} />
-                <ToggleField {...{ object: settings, field: 'commServerConnect', setAttrs: setSettingsAttrs, description: 'Connect server' }} />
 
-                <h4>Basic controls examples</h4>
-                <button onClick={e => this.useGcode()}>Use gcode</button>
-
-                <input type="checkbox"
-                    checked={settings.commServerConnect}
-                    onChange={e => dispatch(setSettingsAttrs({ commServerConnect: e.target.checked }))}
-                    />
-                <br />
-                
-                <button onClick={e => dispatch(setWorkspaceAttrs({ workPos: [50, 50, 0] }))}>Set Work Pos B</button>
-                <button onClick={e => { CommandHistory.log("weeheh",CommandHistory.DANGER) } }>Console LOG</button>
-
-        */
     }
 }
 
@@ -506,6 +490,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('clear');
         $('#stopBtn .icon-bot-text').html('alarm');
+        $('#stopIcon').removeClass('fa-stop');
+        $('#stopIcon').addClass('fa-unlock');
 //        if ($('#alarmmodal').is(':visible')) {
 //            // Nothing, its already open
 //        } else {
@@ -518,6 +504,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
 //        }
@@ -528,6 +516,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('resume');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -539,6 +529,8 @@ function updateStatus(data) {
         $("#machineStatus").removeClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('run');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -550,6 +542,8 @@ function updateStatus(data) {
         $("#machineStatus").addClass('badge-busy');
         $('#stopBtn .icon-top-text').html('abort');
         $('#stopBtn .icon-bot-text').html('job');
+        $('#stopIcon').removeClass('fa-unlock');
+        $('#stopIcon').addClass('fa-stop');
         //$('#playBtn .icon-top-text').html('pause');
 //        if ($('#alarmmodal').is(':visible')) {
 //            $('#alarmmodal').modal('hide');
@@ -563,15 +557,15 @@ export function runCommand(gcode) {
     if (serverConnected) {
         if (machineConnected){
             if (gcode) {
-                //CommandHistory.log('Running Command', CommandHistory.INFO);
+                //CommandHistory.write('Running Command', CommandHistory.INFO);
                 //console.log('runCommand', gcode);
                 socket.emit('runCommand', gcode);
             }
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -579,7 +573,7 @@ export function runJob(job) {
     if (serverConnected) {
         if (machineConnected){
             if (job.length > 0) {
-                CommandHistory.log('Running Job', CommandHistory.INFO);
+                CommandHistory.write('Running Job', CommandHistory.INFO);
                 playing = true;
                 runStatus('running');
                 $('#playicon').removeClass('fa-play');
@@ -587,13 +581,13 @@ export function runJob(job) {
                 jobStartTime = new Date(Date.now());
                 socket.emit('runJob', job);
             } else {
-                CommandHistory.log('Job empty!', CommandHistory.DANGER);
+                CommandHistory.error('Job empty!')
             }
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -607,10 +601,10 @@ export function pauseJob() {
             $('#playicon').addClass('fa-play');
             socket.emit('pause');
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -624,10 +618,10 @@ export function resumeJob() {
             $('#playicon').addClass('fa-pause');
             socket.emit('resume');
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -635,7 +629,7 @@ export function abortJob() {
     console.log('abortJob');
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Aborting job', CommandHistory.INFO);
+            CommandHistory.write('Aborting job', CommandHistory.INFO);
             playing = false;
             paused = false;
             runStatus('stopped');
@@ -643,10 +637,10 @@ export function abortJob() {
             $('#playicon').addClass('fa-play');
             socket.emit('stop');
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -654,39 +648,39 @@ export function clearAlarm(method) {
     console.log('clearAlarm');
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Resetting alarm', CommandHistory.INFO);
+            CommandHistory.write('Resetting alarm', CommandHistory.INFO);
             socket.emit('clearAlarm', method);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
 export function setZero(axis) {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Set ' + axis + ' Axis zero', CommandHistory.INFO);
+            CommandHistory.write('Set ' + axis + ' Axis zero', CommandHistory.INFO);
             socket.emit('setZero', axis);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
 export function gotoZero(axis) {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Goto ' + axis + ' zero', CommandHistory.INFO);
+            CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
             socket.emit('gotoZero', axis);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -696,10 +690,10 @@ export function laserTest(power, duration, maxS) {
             console.log('laserTest(' + power + ', ' + duration + ', ' + maxS + ')');
             socket.emit('laserTest', power + ',' + duration + ',' + maxS);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -709,10 +703,10 @@ export function jog(axis, dist, feed) {
             //console.log('jog(' + axis + ',' + dist + ',' + feed + ')');
             socket.emit('jog', axis + ',' + dist + ',' + feed);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -722,10 +716,10 @@ export function feedOverride(step) {
             console.log('feedOverride ' + step);
             socket.emit('feedOverride', step);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -735,23 +729,23 @@ export function spindleOverride(step) {
             console.log('spindleOverride ' + step);
             socket.emit('spindleOverride', step);
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
 export function resetMachine() {
     if (serverConnected) {
         if (machineConnected){
-            CommandHistory.log('Resetting Machine', CommandHistory.DANGER);
+            CommandHistory.error('Resetting Machine')
             socket.emit('resetMachine');
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 
@@ -789,10 +783,10 @@ export function playpauseMachine() {
             }
             // end isConnected
         } else {
-            CommandHistory.log('Machine is not connected!', CommandHistory.DANGER);
+            CommandHistory.error('Machine is not connected!')
         }
     } else {
-        CommandHistory.log('Server is not connected!', CommandHistory.DANGER);
+        CommandHistory.error('Server is not connected!')
     }
 }
 

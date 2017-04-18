@@ -157,8 +157,7 @@ class MaterialDatabaseEditor extends React.Component {
                 header="Material Database"
                 footer={<ButtonToolbar>
                     <Button bsStyle="info" onClick={(e) => this.handleExport(e, 'json')}><Icon name="download" /> .json</Button>
-                    <Button bsStyle="info" disabled={true} title="Soon :P" onClick={(e) => this.handleExport(e, 'csv')}><Icon name="download" /> .csv</Button>
-                    <FileField label="" dispatch={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)} buttonClass="btn btn-danger" />
+                    <FileField onChange={(e) => this.props.handleUpload(e.target.files[0], uploadMaterialDatabase)}><Button bsStyle="danger"><Icon name="upload" /></Button></FileField>
                 </ButtonToolbar>}
             >
                 <MaterialMachineProfile profiles={this.props.profiles} selected={this.state.selected} onChange={(value) => { this.handleProfileSelect(value) }} />
@@ -205,7 +204,7 @@ class GroupsPane extends React.Component {
                     <div className="listing">
                         {this.props.items.map((item, i) => {
                             return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
-                                <h5>{item.name}</h5>
+                                <h5 title={item._locked? "This grouping is locked. Will be reset on next application start.":undefined} >{item.name} {item._locked? <Icon name="lock"/>:undefined} </h5>
                                 <small>{item.notes}</small>
                             </heading>
                         })}

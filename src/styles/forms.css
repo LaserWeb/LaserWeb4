@@ -9,4 +9,7 @@
 
 .checkboxListField { max-height: 400px; overflow-y:auto; overflow-x:hidden; margin-bottom: 0.5em; border: 1px solid #eee; border-radius: 5px; padding: 0.5em }
 
-.input-group .Select-menu-outer {z-index: 10}
+.Select-menu-outer {z-index: 1000}
+
+.toggleField .react-toggle {float:right}
+.toggleField label {text-transform: uppercase; font-size: smaller}

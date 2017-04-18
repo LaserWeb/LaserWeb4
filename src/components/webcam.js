@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
+import Rnd from 'react-rnd';
 import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
@@ -338,6 +339,7 @@ export class VideoResolutionField extends React.Component {
 
     handleChange(v) {
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        if (v.value) window.videoCapture.refreshStream({ resolution: v.value }, (s) => { console.log('Resolution change: ' + v.value + ' [' + s.id + ']') })
     }
 
     render() {
@@ -356,6 +358,71 @@ VideoResolutionField.defaultProps = {
 }
 
 
+export class VideoPort extends React.Component {
+
+    componentDidMount() {
+        this.enableVideo()
+    }
+    componentDidUpdate(prevProps) {
+        this.enableVideo();
+    }
+
+    enableVideo() {
+        const selfNode = ReactDOM.findDOMNode(this);
+        selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
+
+        let enable = () => {
+            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
+                requestAnimationFrame(enable);
+
+            const myvideo = selfNode.querySelector('video')
+
+            if (this.props.enabled && myvideo) {
+                const stream = window.videoCapture.getStream();
+                if (myvideo.srcObject !== stream)
+                    myvideo.srcObject = stream
+                selfNode.style.display = 'block'
+            } else {
+                selfNode.style.display = 'none'
+            }
+
+        }
+        try {
+            enable();
+        } catch (e) {
+
+        }
+    }
+
+    render() {
+
+        let video = <video ref="videoport" style={{ width: '100%' }} autoPlay />;
+
+        if (this.props.draggable) {
+            return <Rnd
+                ref={c => { this.rnd = c; }}
+                initial={{
+                    width: this.props.width || 320,
+                    height: this.props.height || 240,
+                }}
+                minWidth={160}
+                minHeight={120}
+                maxWidth={800}
+                maxHeight={600}
+                lockAspectRatio={true}
+                bounds={this.props.draggable}
+                zIndex={10000}
+            >{video}</Rnd>
+        } else {
+            return <div>{video}</div>;
+        }
+    }
+}
+
+VideoPort.defaultProps = {
+    draggable: false
+}
+
 export class VideoControls extends React.Component {
 
     constructor(props) {
@@ -363,7 +430,7 @@ export class VideoControls extends React.Component {
         this.handleChange.bind(this)
         this.handlePerspectiveCoord.bind(this)
         this.handlePerspectiveReset.bind(this)
-        this.handlePerspectiveToggle.bind(this)
+        //this.handlePerspectiveToggle.bind(this)
 
         let { width, height } = getSizeByVideoResolution(this.props.videoHeight, this.props.resolution)
 
@@ -403,13 +470,13 @@ export class VideoControls extends React.Component {
             this.props.onChange(state);
     }
 
-    handlePerspectiveToggle() {
-        let state = Object.assign({}, this.state);
-        state.perspective.enabled = !state.perspective.enabled
-        this.setState(state)
-        if (this.props.onChange)
-            this.props.onChange(state);
-    }
+    // handlePerspectiveToggle() {
+    //     let state = Object.assign({}, this.state);
+    //     state.perspective.enabled = !state.perspective.enabled
+    //     this.setState(state)
+    //     if (this.props.onChange)
+    //         this.props.onChange(state);
+    // }
 
     componentWillReceiveProps(nextProps) {
         let { width, height } = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
@@ -427,9 +494,11 @@ export class VideoControls extends React.Component {
             <table width="100%" className="table table-compact">
                 <caption>Perspective</caption>
                 <tbody>
+                    {/*
                     <tr>
                         <th>Enable</th><td colSpan="2"><Toggle checked={enabled} onChange={e => this.handlePerspectiveToggle(e)} /></td><td colSpan="6"><Button bsStyle="warning" onClick={e => this.handlePerspectiveReset()}>Reset</Button></td>
                     </tr>
+                    */}
                     <tr><th>Before</th>
                         {before.map((value, i) => {
                             return <td key={i}>{(i % 2 === 0) ? "X" : "Y"}{Math.floor(i / 2)}<input type="number" size="4" value={value} onChange={e => { this.handlePerspectiveCoord('before', i, e.target.value) }} step="any" /></td>

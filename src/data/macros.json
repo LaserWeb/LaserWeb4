@@ -1,16 +1,14 @@
 {
     
-   "f1": {
-        "label": "SET ZERO",
-        "gcode": "G92 X0Y0Z0"
+   "*GotoXY0": {
+        "label": "Goto XY zero",
+        "gcode": "G0 X0Y0",
+        "keybinding": "f1"
    },
-   "f2": {
-        "label": "LASER TRACER",
-        "gcode": "M3 S5"
-   },
-   "f3": {
+   "*LaserOff": {
         "label": "LASER OFF",
-        "gcode": "M5"
+        "gcode": "M5",
+        "keybinding": "f2"
    }
     
 }

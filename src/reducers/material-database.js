@@ -4,7 +4,11 @@ import { deepMerge } from "../lib/helpers"
 import generateName from 'sillyname'
 import uuid from 'node-uuid';
 
-const initialState = require("../data/material-database.json");
+import { actionTypes } from 'redux-localstorage'
+
+import { OPERATION_INITIALSTATE } from './operation'
+
+export const MATERIALDB_INITIALSTATE = require("../data/lw.materials/material-database.json");
 
 function generateInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -27,7 +31,7 @@ const PRESET_TEMPLATE = (type, machineProfile = null) => {
         notes: "",
         type: type,
         machine_profile: machineProfile,
-        params: {}
+        params: OPERATION_INITIALSTATE
     }
 }
 
@@ -74,7 +78,7 @@ const toggleGroupAttribute = (state, id, attribute, processGroup = null) => {
 }
 
 
-export const materialDatabase = (state = initialState, action) => {
+export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
 
     switch (action.type) {
@@ -164,6 +168,13 @@ export const materialDatabase = (state = initialState, action) => {
 
         case "MATERIALDB_PRESET_TOGGLE_EDIT":
             return togglePresetAttribute(state, action.payload, 'isEditable')
+
+        case actionTypes.INIT:
+            if (action.payload) {
+                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { return { ...vendor, _locked: true } });
+                return Object.assign(action.payload.materialDatabase, lockedState);
+            }
+            return state;
 
         default:
             return state;
