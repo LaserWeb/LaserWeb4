@@ -12,7 +12,7 @@ import { isObject } from '../lib/helpers';
 
 import stringify from 'json-stringify-safe'
 
-const keystrokes = ["shift+up", "shift+down", "shift+enter"]
+const keystrokes = ["up", "down", "enter"]
 
 // level STD, INFO, WARN, DANGER, SUCCESS
 const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle', 'check-circle'];
@@ -151,7 +151,7 @@ export default class CommandHistory extends React.Component {
                 <div ref="code" className="code"></div>
                 <div className="form">
                     <Icon name="terminal" fw={true} />
-                    <input ref="input" type="text" placeholder="Use SHIFT+UP and DOWN on keyboard to cycle by commands, SHIFT+ENTER to execute." onChange={(e) => { this.handleChange(e) } } onKeyDown={this.handleKey} value={this.state.currentLine} />
+                    <input ref="input" type="text" placeholder="Use UP and DOWN on keyboard to cycle by commands, ENTER to execute." onChange={(e) => { this.handleChange(e) } } onKeyDown={this.handleKey} value={this.state.currentLine} />
                     <div className="toolbar">
                         <Button bsSize="xsmall" onClick={(e) => { this.handleCommandUp() } }><Icon name="arrow-up" fw={true} /></Button>
                         <Button bsSize="xsmall" onClick={(e) => { this.handleCommandDown() } }><Icon name="arrow-down" fw={true} /></Button>
