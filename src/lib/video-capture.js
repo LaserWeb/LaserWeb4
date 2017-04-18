@@ -81,10 +81,12 @@ export class VideoCapture {
         constraints = Object.assign({ video: true, audio: false }, constraints)
 
         if (device) {
-            constraints = Object.assign(constraints, {
-                deviceId: { exact: device },
-                width: { exact: resolution.width },
-                height: { exact: resolution.height }
+            constraints = Object.assign(constraints, { 
+                video: {
+                    deviceId: { exact: device },
+                    width: { exact: resolution.width },
+                    height: { exact: resolution.height }
+                }
             });
             console.log("requesting video: " + JSON.stringify(constraints))
 
