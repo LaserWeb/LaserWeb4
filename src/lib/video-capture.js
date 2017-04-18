@@ -5,7 +5,7 @@ import queue from 'queue';
 export const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";
 export const VIDEO_RESOLUTIONS = {
     "4K(UHD)": { "width": 3840, "height": 2160, "ratio": "16:9" },
-    "*Emblaser2" : {"width": 2592, "height": 1944, "ratio": "4:3"},
+    "*Emblaser2": { "width": 2592, "height": 1944, "ratio": "4:3" },
     "1080p(FHD)": { "width": 1920, "height": 1080, "ratio": "16:9" },
     "UXGA": { "width": 1600, "height": 1200, "ratio": "4:3" },
     "720p(HD)": { "width": 1280, "height": 720, "ratio": "16:9" },
@@ -33,10 +33,10 @@ export const videoResolutionPromise = (deviceId, candidate) => {
     return new Promise(
         (resolve) => {
             navigator.getUserMedia(constraints,
-            (stream)=>{
-                stream.getTracks().forEach((track) => { track.stop(); });
-                resolve(candidate)
-            },console.warning);
+                (stream) => {
+                    stream.getTracks().forEach((track) => { track.stop(); });
+                    resolve(candidate)
+                }, console.warning);
         }
     )
 }
@@ -67,38 +67,38 @@ export class VideoCapture {
         this.stream = undefined
         this.isReady = false;
         this.props = {}
-        this.data={stream:undefined, deviceId: null, resolutionId: DEFAULT_VIDEO_RESOLUTION, resolutions:[], devices:[]}
+        this.data = { stream: undefined, deviceId: null, resolutionId: DEFAULT_VIDEO_RESOLUTION, resolutions: [], devices: [] }
     }
 
-    createStream(props, callback=(stream)=>{console.log(stream)}) {
+    createStream(props, callback = (stream) => { console.log(stream) }) {
         this.isReady = false;
-        this.props=props
-        let { device, resolution, constraints = {}} = props;
+        this.props = props
+        let { device, resolution, constraints = {} } = props;
         resolution = getVideoResolution(resolution);
 
         this.stopStream(this.stream)
 
         constraints = Object.assign({ video: true, audio: false }, constraints)
-        
+
         if (device) {
             constraints = Object.assign(constraints, {
                 deviceId: { exact: device },
                 width: { exact: resolution.width },
                 height: { exact: resolution.height }
             });
-            console.log("requesting video: "+JSON.stringify(constraints))
+            console.log("requesting video: " + JSON.stringify(constraints))
 
-            let that=this;
+            let that = this;
 
-            navigator.getUserMedia(constraints, (stream)=>{
+            navigator.getUserMedia(constraints, (stream) => {
                 that.stream = stream;
                 that.isReady = true;
                 callback(stream)
-            },(err)=> {
+            }, (err) => {
                 console.error(err)
             })
         }
-        
+
 
     }
 
@@ -107,14 +107,13 @@ export class VideoCapture {
             this.isReady = false;
             this.stream.getTracks().forEach((track) => { track.stop(); this.stream.removeTrack(track) });
             window.URL.revokeObjectURL(this.stream);
-            this.stream=undefined;
+            this.stream = undefined;
         }
     }
 
-    refreshStream(props, callback)
-    {
-        props=Object.assign(this.props,props);
-        this.createStream(props ,callback)
+    refreshStream(props, callback) {
+        props = Object.assign(this.props, props);
+        this.createStream(props, callback)
     }
 
     getStream() {
@@ -127,53 +126,53 @@ export class VideoCapture {
         let { width, height } = getSizeByVideoResolution(props.height, props.resolution);
 
         let video = document.createElement('video');
-            video.width = width;
-            video.height = height;
-            video.addEventListener('canplaythrough', (e) => {
-                if (video && video.readyState === 4) {
-                    callback.apply(null, [video])
-                }
-            }, false)
-        if (this.stream){
+        video.width = width;
+        video.height = height;
+        video.addEventListener('canplaythrough', (e) => {
+            if (video && video.readyState === 4) {
+                callback.apply(null, [video])
+            }
+        }, false)
+        if (this.stream) {
             video.srcObject = this.stream;
             video.play();
         }
     };
 
-    getResolutions(deviceId, callback, useCache=true) {
-        let cache=this.getCache();
-        if (deviceId && typeof(cache[deviceId])!=='undefined'){
+    getResolutions(deviceId, callback, useCache = true) {
+        let cache = this.getCache();
+        if (deviceId && typeof (cache[deviceId]) !== 'undefined') {
             callback(cache[deviceId])
             return;
         }
 
-        const resolutions=[];
-        const QE=new queue();
-              QE.concurrency = 1;
-              QE.timeout = 2000
+        const resolutions = [];
+        const QE = new queue();
+        QE.concurrency = 1;
+        QE.timeout = 2000
 
-        Object.entries(VIDEO_RESOLUTIONS).forEach((entry)=>{
-            QE.push((cb)=>{
+        Object.entries(VIDEO_RESOLUTIONS).forEach((entry) => {
+            QE.push((cb) => {
                 let candidate = entry[1];
-                
+
                 let constraints = {
                     audio: false,
                     video: {
                         deviceId: deviceId ? { exact: deviceId } : undefined,
-                        width: { exact: candidate.width },    
-                        height: { exact: candidate.height }   
+                        width: { exact: candidate.width },
+                        height: { exact: candidate.height }
                     }
                 }
 
-                navigator.getUserMedia(constraints, (stream)=>{
+                navigator.getUserMedia(constraints, (stream) => {
                     stream.getTracks().forEach((track) => { track.stop(); stream.removeTrack(track) });
                     resolutions.push({ label: entry[0], ...entry[1] })
                     cb()
-                }, (err)=>{ 
+                }, (err) => {
                     cb()
                 })
             })
-        }) 
+        })
 
         QE.start((err) => {
             cache[deviceId] = resolutions;
@@ -182,14 +181,14 @@ export class VideoCapture {
         })
     }
 
-    getDevices(callback){
+    getDevices(callback) {
         let promise = navigator.mediaDevices.enumerateDevices();
         let that = this;
         promise.then((devices) => {
             let cameras = [];
             devices.forEach((device) => {
                 if (device.kind == 'videoinput')
-                    cameras.push({ label: device.label, value: device.deviceId })
+                    cameras.push({ label: device.label.length ? device.label : device.deviceId, value: device.deviceId })
             })
             cameras.unshift({ label: "None", value: null })
             callback(cameras)
@@ -198,29 +197,28 @@ export class VideoCapture {
         });
     }
 
-    scan(deviceId, resolutionId, callback)
-    {
+    scan(deviceId, resolutionId, callback) {
         console.log("scanning media devices")
-        this.isReady=false;
-        this.getDevices((devices)=>{
-            console.log("devices found:"+ JSON.stringify(devices) )
+        this.isReady = false;
+        this.getDevices((devices) => {
+            console.log("devices found:" + JSON.stringify(devices))
             if (!deviceId) {
                 console.log("video disabled")
-                this.data={stream:undefined, deviceId: null, resolutionId: resolutionId || DEFAULT_VIDEO_RESOLUTION, resolutions:[], devices}
+                this.data = { stream: undefined, deviceId: null, resolutionId: resolutionId || DEFAULT_VIDEO_RESOLUTION, resolutions: [], devices }
                 callback(this.data)
-            } else if (deviceId && devices.map((device)=>{return device.value}).includes(deviceId)){
-                console.log("selected device: "+deviceId)
-                window.videoCapture.getResolutions(deviceId, (resolutions)=>{
-                    console.log("resolutions found: "+JSON.stringify(resolutions))
-                    if (!resolutions.map((resolution)=>{return resolution.label}).includes(resolutionId))
+            } else if (deviceId && devices.map((device) => { return device.value }).includes(deviceId)) {
+                console.log("selected device: " + deviceId)
+                window.videoCapture.getResolutions(deviceId, (resolutions) => {
+                    console.log("resolutions found: " + JSON.stringify(resolutions))
+                    if (!resolutions.map((resolution) => { return resolution.label }).includes(resolutionId))
                         resolutionId = resolutions[0].label;
-                    console.log("selected resolution: "+resolutionId)
+                    console.log("selected resolution: " + resolutionId)
                     window.videoCapture.createStream({
                         device: deviceId, //device id
                         resolution: resolutionId || DEFAULT_VIDEO_RESOLUTION,   //named target resolution
-                    }, (stream)=>{
-                        console.log("stream: "+stream.id)
-                        this.data = {stream, deviceId, resolutionId, resolutions, devices}
+                    }, (stream) => {
+                        console.log("stream: " + stream.id)
+                        this.data = { stream, deviceId, resolutionId, resolutions, devices }
                         callback(this.data)
                     })
                 })
@@ -231,14 +229,12 @@ export class VideoCapture {
         })
     }
 
-    getCache()
-    {
+    getCache() {
         return JSON.parse(window.localStorage.getItem(VIDEO_CAPTURE_CACHE_KEY)) || {}
     }
 
-    setCache(data, replace=false)
-    {
-        if (!replace) data=Object.assign(this.getCache(), data)
+    setCache(data, replace = false) {
+        if (!replace) data = Object.assign(this.getCache(), data)
         window.localStorage.setItem(VIDEO_CAPTURE_CACHE_KEY, JSON.stringify(data))
     }
 
