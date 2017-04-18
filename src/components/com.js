@@ -132,6 +132,9 @@ class Com extends React.Component {
                 //console.log('ports: ' + ports);
                 CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
             } else {
+                let ports = new Array();
+                that.setState({comPorts: ports});
+                dispatch(setSettingsAttrs({comPorts: ports}));                
                 CommandHistory.error('No serial ports found on server!');
             }
         });

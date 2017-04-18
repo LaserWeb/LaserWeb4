@@ -43,7 +43,6 @@ $('body').on('keyup', function (ev) {
     }
 });
 
-let liveJoggingState = { hasHomed: false, active: false, disabled: true }
 
 /**
  * Jog component.
@@ -60,16 +59,9 @@ class Jog extends React.Component {
             jogStepsize: jogStepsize,
             jogFeedXY: jogFeedXY,
             jogFeedZ: jogFeedZ,
-
-            liveJogging: liveJoggingState,
-
             isPlaying: playing,
             isPaused: paused,
         };
-    }
-
-    componentWillUnmount() {
-        liveJoggingState = this.state.liveJogging;
     }
 
     @keydown('alt+right')
@@ -645,12 +637,6 @@ class Jog extends React.Component {
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td colSpan="5">
-                                            <LiveJogging {... this.state.liveJogging}
-                                            onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -699,25 +685,3 @@ export function runStatus(status) {
     }
 };
 
-export class LiveJogging extends React.Component {
-
-    static isEnabled() {
-        return liveJoggingState.active && !liveJoggingState.disabled;
-    }
-
-    componentWillReceiveProps(nextProps) {
-        liveJoggingState = { active: nextProps.active, hasHomed: nextProps.hasHomed, disabled: nextProps.disabled };
-    }
-
-    render() {
-        const toggleLiveJogging = (checked) => {
-            liveJoggingState.active = checked
-            if (this.props.onChange) this.props.onChange(checked);
-        }
-
-        return <div className="toggleField">
-            <Toggle disabled={!this.props.hasHomed || this.props.disabled} id="toggle_liveJogging" checked={this.props.active} onChange={e => toggleLiveJogging(e.target.checked)} /><label htmlFor="toggle_liveJogging" title="Live jogging allows to travel pressing (ALT or META)+Click in the workspace. Prior homing mandatory. Use carefully."> Live Jogging {this.props.hasHomed ? '': <Label bsStyle="danger" title="Home all first!"><Icon name="home"/>Disabled</Label>}</label>
-        </div>
-
-    }
-}

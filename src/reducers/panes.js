@@ -9,7 +9,7 @@ import React from 'react'
 // Actions
 import * as panesActions from '../actions/panes'
 
-export const PANES_INITIALSTATE='cam'
+export const PANES_INITIALSTATE='com'
 
 
 /**

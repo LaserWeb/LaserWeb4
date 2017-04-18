@@ -22,17 +22,13 @@ import { connect } from 'react-redux'
 
 // Main components
 import Sidebar from './sidebar'
-import Workspace from './workspace'
 
 // Inner components
 import Com from './com'
 import Jog from './jog'
-import Cam from './cam'
-import Quote from './quote'
 import Settings from './settings'
 import About from './about'
 
-import { AllowCapture } from './capture'
 import { DocumentCacheHolder } from './document-cache'
 
 import { keyboardUndoAction } from '../actions/laserweb';
@@ -44,15 +40,11 @@ import { fireMacroByKeyboard } from '../actions/macros'
 
 import { GlobalStore } from '../index'
 
-import { VideoCapture } from '../lib/video-capture'
-
 var vex = require('vex-js/src/vex.js')
-try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
-vex.defaultOptions.className = 'vex-theme-default'
+try{ vex.registerPlugin(require('vex-dialog/src/vex.dialog.js'))} catch(e){}
+        vex.defaultOptions.className = 'vex-theme-default'
 import 'vex-js/dist/css/vex.css';
 import 'vex-js/dist/css/vex-theme-default.css';
-
-import { version } from '../reducers/settings'
 
 /**
  * LaserWeb main component (layout).
@@ -63,48 +55,39 @@ import { version } from '../reducers/settings'
  */
 
 export const confirm = (message, callback) => {
-    vex.dialog.confirm({ message, callback })
+        vex.dialog.confirm({message,callback})
 }
 
 export const prompt = (message, placeholder, callback, skip) => {
-    if (skip) return callback(placeholder);
-    vex.dialog.open({
-        message,
-        input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,
-        buttons: [
-            $.extend({}, vex.dialog.buttons.YES, { text: 'Ok' }),
-            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel' })
-        ],
-        callback: function (data) {
-            if (!data) {
-                callback(null)
-            } else {
-                callback(data.prompt)
+        if (skip) return callback(placeholder);
+        vex.dialog.open({
+            message,
+            input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,
+            buttons: [
+                $.extend({}, vex.dialog.buttons.YES, { text: 'Ok' }),
+                $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel' })
+            ],
+            callback: function (data) {
+                if (!data) {
+                    callback(null)
+                } else {
+                   callback(data.prompt)
+                }
             }
-        }
-    })
+        })
 }
 
 export const alert = (unsafeMessage) => {
-    vex.dialog.alert({ unsafeMessage })
-}
-
-const updateTitle=()=>{
-    document.title = `Laserweb ${version}`;
+        vex.dialog.alert({unsafeMessage})
 }
 
 class LaserWeb extends React.Component {
-
-    componentWillReceiveProps(nextProps) {
-        updateTitle();
-    }
 
     shouldComponentUpdate(nextProps, nextState) {
         return nextProps.documents !== this.props.documents;
     }
 
     componentDidMount() {
-        updateTitle();
 
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
@@ -118,38 +101,21 @@ class LaserWeb extends React.Component {
             })
         }
 
-        if (!window.videoCapture) {
-            const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
-            onNextFrame(() => {
-                window.videoCapture = new VideoCapture()
-                window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(this.props.settings.toolVideoDevice, obj) })
-            })
-        }
     }
 
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock
         // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
         // <Quote id="quote" title="Quote" icon="money" />
-
-
-
         return (
-            <AllowCapture style={{ height: '100%' }}>
-                <DocumentCacheHolder style={{ width: '100%' }} documents={this.props.documents}>
-                    <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                        <Sidebar ref="sidebar" style={{ flexGrow: 0, flexShrink: 0 }}>
-                            <Cam id="cam" title="Files" icon="pencil-square-o" />
-                            <Com id="com" title="Comms" icon="plug" />
-                            <Jog id="jog" title="Control" icon="arrows-alt" />
-                            <Settings id="settings" title="Settings" icon="cogs" />
-                            <About id="about" title="About" icon="question" />
-                        </Sidebar>
-                        <Workspace style={{ flexGrow: 1, position: "relative" }} />
-                    </div>
-                </DocumentCacheHolder>
-            </AllowCapture>
-        )
+            <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                <Sidebar ref="sidebar" style={{ flexGrow: 0, flexShrink: 0 }}>
+                    <Com id="com" title="Comms" icon="plug" />
+                    <Jog id="jog" title="Control" icon="arrows-alt" />
+                    <About id="about" title="About" icon="question" />
+                </Sidebar>
+            </div>
+        );
     }
 }
 
@@ -176,7 +142,7 @@ const mapDispatchToProps = (dispatch) => {
             }
         },
         handleVideoStream: (deviceId, props) => {
-            if (props === false) dispatch({ type: "SETTINGS_SET_ATTRS", payload: { attrs: { toolVideoDevice: null } } })
+            if (props===false) dispatch({type: "SETTINGS_SET_ATTRS", payload:{ attrs: {toolVideoDevice:null} }})
         }
 
     }
