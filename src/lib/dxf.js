@@ -44,6 +44,7 @@ export function processDXF(state, docFile, dxfTree) {
         if (entity.layer) {
             if (!LayerLookup.has(entity.layer)) {
                 // Does layer exist?, if not then proceed
+                docLayer = {};
                 LayerLookup.set(entity.layer, uuid.v4())
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
@@ -64,8 +65,9 @@ export function processDXF(state, docFile, dxfTree) {
                 state = documents(state, addDocumentChild(docFile.id, docLayer));
                 state = drawEntity(state, entity, docLayer, i);
             } else {
-                // Layer already listed
-                state = drawEntity(state, entity, docLayer, i);
+                // Layer already listed, set docLayer and add entity
+                docLayer = state.find((element) => (element.id === LayerLookup.get(entity.layer)))
+                state = drawEntity(state, entity, docLayer, i)
             }
         } else {
             // Entity in not in any layer, child of docFile

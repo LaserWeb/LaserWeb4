@@ -36,7 +36,7 @@ body, html, .full-height {
     overflow-x: hidden;
 }
 
-#sidebar .dock .notification {display:block; position:absolute; right:-3px; top:-5px; color: white; background: red; height: 20px; width: 20px; border-radius: 10px; font-size: 7px; line-height: 22px}
+#sidebar .dock .notification {display:block; position:absolute; right:-5px; top:-7px; color: white; background: red; height: 20px; width: 20px; border-radius: 10px; font-size: 7px; line-height: 22px}
 
 #sidebar .dock {
     min-width: 60px;
@@ -625,3 +625,6 @@ button:hover,
 .details.operationGroup {margin-left: 0; }
 
 .dot > span {background: rgb(130, 200, 255)}
+
+.vex-dialog-input label {display:block; font-weight: normal}
+.vex-dialog-input select {width:100%}
