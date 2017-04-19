@@ -757,7 +757,7 @@ export class MaterialPickerButton extends React.Component {
     handleApplyPreset(operationId) {
 
         let operation = getMaterialDbPreset(this.props.groups, operationId)
-            operation.params = omit(operation.params, (val, key) => { return key!=='id' && val !== undefined && val !== null; })
+            operation.params = omit(omit(operation.params, (val, key) => { return val !== undefined && val !== null; }),['id','documents'])
 
         this.props.onApplyPreset(operation.type, operation.params)
         this.setState({ showModal: false });

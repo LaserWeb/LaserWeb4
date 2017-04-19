@@ -188,7 +188,7 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
                 
                 let attrs = Object.assign(
                                 PRESET_TEMPLATE(action.payload.preset.type), 
-                                { name:  preset_name, params: omit(action.payload.preset,['id'])}
+                                { name:  preset_name, params: omit(action.payload.preset,['id','documents'])}
                              );
                 CommandHistory.write(`Creating preset "${preset_name}" into grouping "${grouping.name}"`,CommandHistory.SUCCESS)
                 return materialDatabase(groupings, { type: 'MATERIALDB_PRESET_ADD', payload: { groupId: grouping.id, attrs } })
