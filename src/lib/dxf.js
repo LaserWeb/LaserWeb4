@@ -44,6 +44,7 @@ export function processDXF(state, docFile, dxfTree) {
         if (entity.layer) {
             if (!LayerLookup.has(entity.layer)) {
                 // Does layer exist?, if not then proceed
+                docLayer = {};
                 LayerLookup.set(entity.layer, uuid.v4())
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
