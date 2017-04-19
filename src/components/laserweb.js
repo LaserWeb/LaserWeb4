@@ -46,7 +46,7 @@ import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
 
-var vex = require('vex-js/src/vex.js')
+export const vex = require('vex-js/src/vex.js')
 try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
 vex.defaultOptions.className = 'vex-theme-default'
 import 'vex-js/dist/css/vex.css';
@@ -70,16 +70,16 @@ export const prompt = (message, placeholder, callback, skip) => {
     if (skip) return callback(placeholder);
     vex.dialog.open({
         message,
-        input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,
+        input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"  />`,
         buttons: [
             $.extend({}, vex.dialog.buttons.YES, { text: 'Ok' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel' })
         ],
         callback: function (data) {
-            if (!data) {
+            if (data===false) {
                 callback(null)
             } else {
-                callback(data.prompt)
+                callback(data.prompt || "")
             }
         }
     })

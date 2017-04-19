@@ -625,3 +625,6 @@ button:hover,
 .details.operationGroup {margin-left: 0; }
 
 .dot > span {background: rgb(130, 200, 255)}
+
+.vex-dialog-input label {display:block; font-weight: normal}
+.vex-dialog-input select {width:100%}

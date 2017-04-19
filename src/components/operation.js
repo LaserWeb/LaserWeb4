@@ -553,7 +553,7 @@ class Operation extends React.Component {
 
                         <div style={{ whiteSpace: 'nowrap' }}>
                             <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
-                            <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} ><i className="fa fa-magic"></i></MaterialPickerButton>
+                            <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
                             <button className={"btn btn-warning btn-xs " + (op.enabled ? '' : 'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>
