@@ -40,7 +40,7 @@ import { keyboardUndoAction } from '../actions/laserweb';
 import keydown, { Keys } from 'react-keydown';
 import keyboardJS from 'keyboardjs'
 
-import { fireMacroByKeyboard } from '../actions/macros'
+import { fireMacroById } from '../actions/macros'
 
 import { GlobalStore } from '../index'
 
@@ -108,14 +108,15 @@ class LaserWeb extends React.Component {
 
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
-            let that = this
+            
             window.keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
-                that.props.handleUndo(e);
-            });
+                this.props.handleUndo(e);
+            }.bind(this));
 
-            window.keyboardLogger.bind(Object.keys(that.props.macros), function (e) {
-                that.props.handleMacro(e, that.props.macros)
-            })
+            Object.entries(this.props.macros).map(entry=>entry[1].keybinding).forEach((key)=>{
+                window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
+            });
+            
         }
 
         if (!window.videoCapture) {
@@ -168,8 +169,8 @@ const mapDispatchToProps = (dispatch) => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))
         },
-        handleMacro: (evt, macros) => {
-            let macroAction = fireMacroByKeyboard(evt, macros)
+        handleMacro: (evt, key, macros) => {
+            let macroAction = fireMacroById(key, macros)
             if (macroAction) {
                 evt.preventDefault();
                 dispatch(macroAction)
