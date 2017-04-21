@@ -248,7 +248,7 @@ class Jog extends React.Component {
         let dist = this.props.settings.jogStepsize;
         let units = this.props.settings.toolFeedUnits;
         let feed, mult = 1, mode = 1;
-        let x = null, y = null, z = null;
+        let x, y, z;
         if (dir === '+') {
             dir = '';
         }
