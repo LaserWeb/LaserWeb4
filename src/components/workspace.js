@@ -21,7 +21,7 @@ import ReactDOM from 'react-dom';
 import { resetCamera, setCameraAttrs } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
-import { runCommand } from './com.js';
+import { runCommand, jogTo } from './com.js';
 
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -621,7 +621,7 @@ class WorkspaceContent extends React.Component {
             jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
             let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
             CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
-            return runCommand(`G0 X${jogX} Y${jogY} F${jogF}`)
+            return jogTo(jogX, jogY, undefined, 0, jogF)
         }
 
         let cachedDocument = this.hitTest(e.pageX, e.pageY);
