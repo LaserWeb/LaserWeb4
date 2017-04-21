@@ -726,6 +726,19 @@ export function jog(axis, dist, feed) {
     }
 }
 
+export function jogTo(x, y, z, mode, feed) {
+    if (serverConnected) {
+        if (machineConnected){
+            //console.log('jog(' + axis + ',' + dist + ',' + feed + ')');
+            socket.emit('jogTo', {x: x, y: y, z: z, mode: mode, feed: feed});
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
 export function feedOverride(step) {
     if (serverConnected) {
         if (machineConnected){
