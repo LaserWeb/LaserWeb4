@@ -11,8 +11,18 @@ export const MACRO_VALIDATION_RULES = {
     gcode: 'required'
 }
 
+/* unsets all "_locked" and then reapplies. vendor state overwrites user's */
+export const lockVendor = (state={}) =>{
+    let lockedState = {}
+    let storedState = {}
+    Object.entries(MACROS_INITIALSTATE).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
+    Object.entries(state).forEach((stored) => { let [key,value] = stored; storedState[key] = { ...value, _locked: false } });
+    return Object.assign(storedState,lockedState);
+}
 
-export const macros = (state = MACROS_INITIALSTATE, action) => {
+const __INITIAL = lockVendor()
+
+export const macros = (state = __INITIAL, action) => {
     switch (action.type) {
         case "MACROS_SET_ATTRS":
             return Object.assign({}, state, action.payload.attrs);
@@ -22,9 +32,7 @@ export const macros = (state = MACROS_INITIALSTATE, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = {}
-                Object.entries(MACROS_INITIALSTATE).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
-                return Object.assign(action.payload.macros, lockedState);
+                return lockVendor(action.payload.macros || action.payload.settings.macros)  //recover legacy macros data
             }
             return state;
 

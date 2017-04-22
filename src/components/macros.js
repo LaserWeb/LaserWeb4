@@ -19,7 +19,7 @@ export class Macros extends React.Component {
     constructor(props) {
         super(props)
 
-        this.state = { selected: [], label: "", keybinding: "", gcode: "", meta: [] }
+        this.state = { selected: [], label: "", keybinding: "", gcode: "", meta: [], _locked: false }
 
         this.handleSelection.bind(this)
         this.handleAppend.bind(this)
@@ -34,9 +34,9 @@ export class Macros extends React.Component {
         let opts = [].slice.call(e.target.selectedOptions).map(o => { return o.value; });
         this.setState({ selected: opts })
         if (e.target.value) {
-            this.setState(this.props.macros[e.target.value])
+            this.setState(Object.assign({ _locked: this.props.macros[e.target.value]._locked || false }, this.props.macros[e.target.value]))
         } else {
-            this.setState({ keybinding: "", label: "", gcode: "" })
+            this.setState({ keybinding: "", label: "", gcode: "", _locked: false })
         }
 
     }
@@ -45,8 +45,9 @@ export class Macros extends React.Component {
         let macro = this.getForm();
         let errors = this.getErrors(macro);
 
-        if (!errors) {
-            this.props.handleSet({ [uuid.v4()]: macro })
+        if (!errors && this.state.selected.length < 2) {
+            let id = (this.state.selected.length) ? this.state.selected[0] : uuid.v4();
+            this.props.handleSet({ [id]: macro })
         } else {
             console.error(JSON.stringify(errors))
         }
@@ -56,7 +57,7 @@ export class Macros extends React.Component {
 
     handleRemove(e) {
         this.props.handleRemove(this.state.selected)
-        this.setState({ selected: [], keybinding: "", label: "", gcode: "" })
+        this.setState({ selected: [], keybinding: "", label: "", gcode: "", _locked: false })
     }
 
     handleFormChange(e, fieldid) {
@@ -96,9 +97,9 @@ export class Macros extends React.Component {
 
         return (
             <div className="macros">
-                <small className="help-block">Append new key binding to Gcode. Page must be reloaded to take effect</small>
+                <small className="help-block">Append new key binding to Gcode. App must be reloaded to take effect</small>
                 <FormControl componentClass="select" size="10" multiple onChange={(e) => this.handleSelection(e)} value={this.state.selected}>
-                    {Object.entries(this.props.macros).map((opt, i) => { let [key, value] = opt; return <option key={i} value={key}>{ (value.keybinding) ? `[${value.keybinding}] `:''}{value.label}</option> })}
+                    {Object.entries(this.props.macros).map((opt, i) => { let [key, value] = opt; return <option key={i} value={key}>{(value.keybinding) ? `[${value.keybinding}] ` : ''}{value.label}</option> })}
                 </FormControl>
 
                 <FormControl type="text" ref="label" placeholder="Label" value={this.state.label} onChange={(e) => this.handleFormChange(e, 'label')} />
@@ -107,8 +108,8 @@ export class Macros extends React.Component {
                     {this.metakeys.map((meta, i) => { return <Button key={i} bsSize="xsmall" bsStyle={(this.state.keybinding.indexOf(meta) !== -1) ? 'primary' : 'default'} onClick={(e) => this.handleMeta(e, meta)}>{meta}</Button> })}
                 </ButtonGroup>
                 <FormControl componentClass="textarea" ref="gcode" placeholder="Gcode" value={this.state.gcode} onChange={(e) => this.handleFormChange(e, 'gcode')} />
-                <Button bsStyle="primary" onClick={(e) => this.handleAppend(e)} style={{ float: "left" }} disabled={errors !== undefined} title={JSON.stringify(errors)}><Icon name="share" /> Set</Button>
-                <Button bsStyle="danger" disabled={this.state._locked} title={this.state._locked ? 'This is a locked macro':undefined} onClick={(e) => this.handleRemove(e)} style={{ float: "right" }}><Icon name="trash" /> Remove</Button>
+                <Button bsStyle="primary" disabled={(errors !== undefined) || this.state._locked} onClick={(e) => this.handleAppend(e)} style={{ float: "left" }} title={JSON.stringify(errors)}><Icon name="share" /> Set</Button>
+                <Button bsStyle="danger" disabled={this.state._locked} title={this.state._locked ? 'This is a locked macro' : undefined} onClick={(e) => this.handleRemove(e)} style={{ float: "right" }}><Icon name="trash" /> Remove</Button>
             </div>
 
         )
@@ -129,7 +130,7 @@ export class MacrosBar extends React.Component {
                 {Object.entries(this.props.macros).map((macro, i) => {
                     let [id, data] = macro;
                     return <Button key={i} bsSize="small" onClick={(e) => this.handleRunMacro(id, this.props.macros)} title={"[" + data.keybinding + "]"}>{data.label}</Button>
-                    })
+                })
                 }
             </ButtonToolbar>
 
@@ -139,7 +140,7 @@ export class MacrosBar extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        macros: state.macros
+        macros: state.settings.macros
     }
 };
 
