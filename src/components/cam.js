@@ -271,7 +271,8 @@ Cam = connect(
                             .catch((e) => {
                                     release(true);
                                     CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
-                                    CommandHistory.error(e)
+                                    CommandHistory.error(String(e))
+                                    console.log(e)
                             })
 
                     }
