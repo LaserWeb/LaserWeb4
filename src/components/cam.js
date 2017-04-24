@@ -135,7 +135,7 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
                                     </td>
                                 </tr>
                             </tbody>
