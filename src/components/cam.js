@@ -135,7 +135,7 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
                                     </td>
                                 </tr>
                             </tbody>
@@ -271,7 +271,8 @@ Cam = connect(
                             .catch((e) => {
                                     release(true);
                                     CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
-                                    CommandHistory.error(e)
+                                    CommandHistory.error(String(e))
+                                    console.log(e)
                             })
 
                     }

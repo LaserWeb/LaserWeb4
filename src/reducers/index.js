@@ -14,6 +14,7 @@ import { materialDatabase } from './material-database'
 import { com } from './com'
 
 import omit from 'object.omit';
+import { deepMerge } from '../lib/helpers'
 
 const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, com }, {}, shouldSaveUndo);
 
@@ -31,9 +32,10 @@ export default function reducer(state, action) {
             return { ...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         case "SNAPSHOT_UPLOAD":
             let newState = omit(action.payload.snapshot, ["history"]);
-            if (action.keys) newState = omit(newState, (val, key) => { return action.keys.includes(key) })
+            //if (action.payload.keys) newState = omit(newState, (val, key) => { return action.payload.keys.includes(key) })
             newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
-            return reducer(Object.assign({}, state, newState), { type: 'LOADED' });
+
+            return reducer(Object.assign({}, state, deepMerge(action.getState(), newState)), { type: 'LOADED' });
         default:
             return combined(state, action);
     }
