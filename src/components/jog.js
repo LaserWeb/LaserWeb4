@@ -267,10 +267,10 @@ class Jog extends React.Component {
                 feed = jQuery('#jogfeedz').val() * mult;
                 break;
         }
-        //CommandHistory.log('jog(' + axis + ',' + dir + dist + ',' + feed + ')');
-        //jog(axis, dir + dist, feed);
-        CommandHistory.log('jogTo(' + x + ',' + y + ',' + z + ',' + mode + ',' + feed + ')');
-        jogTo(x, y, z, mode, feed);
+        CommandHistory.log('jog(' + axis + ',' + dir + dist + ',' + feed + ')');
+        jog(axis, dir + dist, feed);
+        //CommandHistory.log('jogTo(' + x + ',' + y + ',' + z + ',' + mode + ',' + feed + ')');
+        //jogTo(x, y, z, mode, feed);
     }
 
     changeJogFeedXY(e) {
