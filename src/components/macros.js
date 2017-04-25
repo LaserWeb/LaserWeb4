@@ -140,7 +140,7 @@ export class MacrosBar extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        macros: state.macros
+        macros: state.settings.macros
     }
 };
 

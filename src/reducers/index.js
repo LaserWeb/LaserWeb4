@@ -11,13 +11,12 @@ import { workspace } from './workspace'
 
 import { machineProfiles } from './machine-profiles'
 import { materialDatabase } from './material-database'
-import { macros } from './macros'
 import { com } from './com'
 
 import omit from 'object.omit';
 import { deepMerge } from '../lib/helpers'
 
-const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, macros, com }, {}, shouldSaveUndo);
+const combined = undoCombineReducers({ camera, documents, operations, currentOperation, gcode, panes, settings, splitters, workspace, machineProfiles, materialDatabase, com }, {}, shouldSaveUndo);
 
 export default function reducer(state, action) {
     switch (action.type) {
