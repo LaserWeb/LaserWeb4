@@ -2,7 +2,7 @@ import { objectNoId } from '../reducers/object'
 import Validator from 'validatorjs';
 import { GlobalStore } from '../index';
 import { actionTypes } from 'redux-localstorage'
-import { macros, MACROS_INITIALSTATE, lockVendor } from './macros'
+import { macros, MACROS_INITIALSTATE } from './macros'
 
 export const version = require("../../package.json").version;
 
@@ -104,7 +104,7 @@ export const SETTINGS_INITIALSTATE = {
     jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
 
-    macros: lockVendor(MACROS_INITIALSTATE)
+    macros: MACROS_INITIALSTATE
 }
 
 export const settings = (state, action) => {

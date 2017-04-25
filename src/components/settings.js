@@ -271,11 +271,18 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
-                        <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
-                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr /></td></tr></tbody></table>
-                        <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Machine Profiles</strong></td>
-                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr /></td></tr></tbody></table>
-                        <h5 >Application Snapshot  <Label bsStyle="warning">Experimental!</Label></h5>
+                        <table style={{ width: 100 + '%' }}><tbody>
+                            <tr><td><strong>Settings</strong></td>
+                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr/></td></tr>
+                            <tr><td><strong>Machine Profiles</strong></td>
+                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr/></td></tr>
+                            <tr><td><strong>Macros</strong></td>
+                            <td><Button bsSize="xsmall" onClick={e=>this.props.handleResetMacros()} bsStyle="warning">Reset</Button></td></tr>
+                        </tbody></table>
+                        
+                        <h5 >Application Snapshot  <Label bsStyle="warning">Caution!</Label></h5>
+                        
+
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
                         <ButtonToolbar>
@@ -301,6 +308,10 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        handleResetMacros:() => {
+            confirm("Are you sure?",(data)=>{ if (data!==null) dispatch({type:"MACROS_RESET"}) })
+            
+        },
         handleSettingChange: (attrs) => {
             dispatch(setSettingsAttrs(attrs, 'settings'))
         },

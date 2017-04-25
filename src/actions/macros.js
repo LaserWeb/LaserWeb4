@@ -1,4 +1,4 @@
-import { setAttrs, add, remove } from '../actions/object'
+import { setAttrs, add, remove, reset } from '../actions/object'
 
 
 export const setMacro = setAttrs('macros');
