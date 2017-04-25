@@ -16,7 +16,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import CommandHistory from './command-history';
 
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, feedOverride, spindleOverride, resetMachine } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, jogTo, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -247,24 +247,30 @@ class Jog extends React.Component {
     jog(axis, dir) {
         let dist = this.props.settings.jogStepsize;
         let units = this.props.settings.toolFeedUnits;
-        let feed, mult = 1;
-        if (units == 'mm/s') mult = 60;
-        switch (axis) {
-            case 'X':
-                feed = jQuery('#jogfeedxy').val() * mult;
-                break;
-            case 'Y':
-                feed = jQuery('#jogfeedxy').val() * mult;
-                break;
-            case 'Z':
-                feed = jQuery('#jogfeedz').val() * mult;
-                break;
-        }
+        let feed, mult = 1, mode = 1;
+        let x, y, z;
         if (dir === '+') {
             dir = '';
         }
-        CommandHistory.log('jog(' + axis + ',' + dir + dist + ',' + feed + ')');
-        jog(axis, dir + dist, feed);
+        if (units == 'mm/s') mult = 60;
+        switch (axis) {
+            case 'X':
+                x = dir + dist;
+                feed = jQuery('#jogfeedxy').val() * mult;
+                break;
+            case 'Y':
+                y = dir + dist;
+                feed = jQuery('#jogfeedxy').val() * mult;
+                break;
+            case 'Z':
+                z = dir + dist;
+                feed = jQuery('#jogfeedz').val() * mult;
+                break;
+        }
+        //CommandHistory.log('jog(' + axis + ',' + dir + dist + ',' + feed + ')');
+        //jog(axis, dir + dist, feed);
+        CommandHistory.log('jogTo(' + x + ',' + y + ',' + z + ',' + mode + ',' + feed + ')');
+        jogTo(x, y, z, mode, feed);
     }
 
     changeJogFeedXY(e) {

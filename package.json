@@ -1,6 +1,6 @@
 {
   "name": "laserweb",
-  "version": "4.0.723",
+  "version": "4.0.725",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
