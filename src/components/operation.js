@@ -26,7 +26,7 @@ import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 import { selectedDocuments } from './document'
 
 import Toggle from 'react-toggle';
-import { isObject } from '../lib/helpers';
+import { isObject, getDescendantProp } from '../lib/helpers';
 
 import { MaterialPickerButton } from './material-database'
 
@@ -116,8 +116,7 @@ function RangeInput(minValue, maxValue) {
 }
 
 function TagInput(statekey, opts = { multi: true, simpleValue:true, delimiter:',', clearable:true }, connector) {
-
-    if (!connector) connector = (state) => { return { options: Object.entries(state[statekey]).map(i => { return { label: i[1].label, value: i[0] } }) } }
+    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state,statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
     return connect(connector)(React.createClass({
         render: function() {
             return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{...opts}} />
@@ -384,10 +383,10 @@ export const OPERATION_FIELDS = {
     dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
 
-    hookOperationStart: { name: 'hookOperationStart', label: 'Pre Op', units: '', input: TagInput('macros') },
-    hookOperationEnd: { name: 'hookOperationEnd', label: 'Post Op', units: '', input: TagInput('macros') },
-    hookPassStart: { name: 'hookPassStart', label: 'Pre Pass', units: '', input: TagInput('macros') },
-    hookPassEnd: { name: 'hookPassEnd', label: 'Post Pass', units: '', input: TagInput('macros') },
+    hookOperationStart: { name: 'hookOperationStart', label: 'Pre Op', units: '', input: TagInput('settings.macros') },
+    hookOperationEnd: { name: 'hookOperationEnd', label: 'Post Op', units: '', input: TagInput('settings.macros') },
+    hookPassStart: { name: 'hookPassStart', label: 'Pre Pass', units: '', input: TagInput('settings.macros') },
+    hookPassEnd: { name: 'hookPassEnd', label: 'Post Pass', units: '', input: TagInput('settings.macros') },
 };
 
 export const OPERATION_GROUPS = {
