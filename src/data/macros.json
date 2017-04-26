@@ -3,12 +3,14 @@
    "*GotoXY0": {
         "label": "Goto XY zero",
         "gcode": "G0 X0Y0",
-        "keybinding": "f1"
+        "keybinding": "ctrl+f1",
+        "_locked":false
    },
    "*LaserOff": {
         "label": "LASER OFF",
         "gcode": "M5",
-        "keybinding": "f2"
+        "keybinding": "ctrl+f2",
+        "_locked":false
    }
     
 }

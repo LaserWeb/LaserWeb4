@@ -40,13 +40,13 @@ import { keyboardUndoAction } from '../actions/laserweb';
 import keydown, { Keys } from 'react-keydown';
 import keyboardJS from 'keyboardjs'
 
-import { fireMacroByKeyboard } from '../actions/macros'
+import { fireMacroById } from '../actions/macros'
 
 import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
 
-var vex = require('vex-js/src/vex.js')
+export const vex = require('vex-js/src/vex.js')
 try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
 vex.defaultOptions.className = 'vex-theme-default'
 import 'vex-js/dist/css/vex.css';
@@ -70,16 +70,16 @@ export const prompt = (message, placeholder, callback, skip) => {
     if (skip) return callback(placeholder);
     vex.dialog.open({
         message,
-        input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"required />`,
+        input: `<input name="prompt" type="text" placeholder="${placeholder}" value="${placeholder}"  />`,
         buttons: [
             $.extend({}, vex.dialog.buttons.YES, { text: 'Ok' }),
             $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel' })
         ],
         callback: function (data) {
-            if (!data) {
+            if (data===false) {
                 callback(null)
             } else {
-                callback(data.prompt)
+                callback(data.prompt || "")
             }
         }
     })
@@ -108,14 +108,15 @@ class LaserWeb extends React.Component {
 
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
-            let that = this
+            
             window.keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
-                that.props.handleUndo(e);
-            });
+                this.props.handleUndo(e);
+            }.bind(this));
 
-            window.keyboardLogger.bind(Object.keys(that.props.macros), function (e) {
-                that.props.handleMacro(e, that.props.macros)
-            })
+            Object.entries(this.props.macros).filter(entry=>entry[1].keybinding!=="").map(entry=>entry[1].keybinding).forEach((key)=>{
+                window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
+            });
+            
         }
 
         if (!window.videoCapture) {
@@ -155,7 +156,7 @@ class LaserWeb extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        macros: state.macros,
+        macros: state.settings.macros,
         visible: state.panes.visible,
         documents: state.documents,
         settings: state.settings,
@@ -168,8 +169,8 @@ const mapDispatchToProps = (dispatch) => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))
         },
-        handleMacro: (evt, macros) => {
-            let macroAction = fireMacroByKeyboard(evt, macros)
+        handleMacro: (evt, key, macros) => {
+            let macroAction = fireMacroById(key, macros)
             if (macroAction) {
                 evt.preventDefault();
                 dispatch(macroAction)

@@ -26,7 +26,7 @@ export const OPERATION_INITIALSTATE={
     margin: 0,
     passes: 1,
     cutWidth: 0,
-    stepOver: 0.4,
+    stepOver: 40,
     passDepth: 0,
     startHeight: '',
     cutDepth: 0,
@@ -60,7 +60,7 @@ export const OPERATION_INITIALSTATE={
     hookOperationEnd: '',
     hookPassStart: '',
     hookPassEnd: ''
-    
+
 }
 
 const operationBase = object('operation', OPERATION_INITIALSTATE);

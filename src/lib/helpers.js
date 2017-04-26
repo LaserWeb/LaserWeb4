@@ -40,6 +40,12 @@ export function deepMerge(target, source) {
   return output;
 }
 
+export function getDescendantProp(obj, desc) {
+    var arr = desc.split(".");
+    while(arr.length && (obj = obj[arr.shift()]));
+    return obj;
+}
+
 export function cast(value, def = '') {
     if (value === undefined) return def;
     if (value === false) return "No";

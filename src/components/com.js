@@ -5,6 +5,7 @@ import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, Co
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
 import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
+import { setComAttrs } from '../actions/com';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { setGcode } from '../actions/gcode';
 import CommandHistory from './command-history';
@@ -52,7 +53,7 @@ class Com extends React.Component {
             }
         }
     }
-    
+
     handleConnectServer() {
         let that = this;
         let {settings, dispatch} = this.props;
@@ -206,6 +207,7 @@ class Com extends React.Component {
             firmware = data.firmware;
             fVersion = data.version;
             fDate = data.date;
+            dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (fVersion < '1.1e') {
                 CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
@@ -419,7 +421,7 @@ class Com extends React.Component {
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
-                } 
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
@@ -427,7 +429,7 @@ class Com extends React.Component {
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
-                } 
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
@@ -726,6 +728,19 @@ export function jog(axis, dist, feed) {
     }
 }
 
+export function jogTo(x, y, z, mode, feed) {
+    if (serverConnected) {
+        if (machineConnected){
+            //console.log('jog(' + axis + ',' + dist + ',' + feed + ')');
+            socket.emit('jogTo', {x: x, y: y, z: z, mode: mode, feed: feed});
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
 export function feedOverride(step) {
     if (serverConnected) {
         if (machineConnected){
@@ -807,7 +822,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
+    state => ({ com: state.com, settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
 )(Com);
 
 export default Com

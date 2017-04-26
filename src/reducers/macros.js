@@ -11,9 +11,11 @@ export const MACRO_VALIDATION_RULES = {
     gcode: 'required'
 }
 
-
 export const macros = (state = MACROS_INITIALSTATE, action) => {
     switch (action.type) {
+        case "MACROS_RESET":
+            return MACROS_INITIALSTATE;
+
         case "MACROS_SET_ATTRS":
             return Object.assign({}, state, action.payload.attrs);
 
@@ -22,9 +24,7 @@ export const macros = (state = MACROS_INITIALSTATE, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = {}
-                Object.entries(MACROS_INITIALSTATE).forEach((vendor) => { let [key,value] = vendor; lockedState[key] = { ...value, _locked: true } });
-                return Object.assign(action.payload.macros, lockedState);
+                return Object.assign(action.payload.macros || action.payload.settings.macros)  //recover legacy macros data
             }
             return state;
 

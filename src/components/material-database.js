@@ -5,7 +5,7 @@ import {
     addGroup, setGroupAttrs, deleteGroup, toggleGroupView, toggleGroupEdit,
     addPreset, deletePreset, setPresetAttrs, togglePresetEdit,
     uploadMaterialDatabase, downloadMaterialDatabase,
-    applyPreset
+    applyPreset, newPreset
 } from '../actions/material-database.js'
 
 
@@ -32,10 +32,11 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
-import { alert, prompt, confirm } from './laserweb';
+import { alert, prompt, confirm, vex } from './laserweb';
 
 import '../styles/material-database.css'
 
+import { DEFAULT_GROUPING_NAME } from '../reducers/material-database';
 
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
@@ -204,7 +205,7 @@ class GroupsPane extends React.Component {
                     <div className="listing">
                         {this.props.items.map((item, i) => {
                             return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
-                                <h5 title={item._locked? "This grouping is locked. Will be reset on next application start.":undefined} >{item.name} {item._locked? <Icon name="lock"/>:undefined} </h5>
+                                <h5 title={item._locked ? "This grouping is locked. Will be reset on next application start." : undefined} >{item.name} {item._locked ? <Icon name="lock" /> : undefined} </h5>
                                 <small>{item.notes}</small>
                             </heading>
                         })}
@@ -679,36 +680,110 @@ const getMaterialDbPreset = (state, id) => {
     return found;
 }
 
+
+export const choose = (message, options, value, callback=console.log) => {
+    const opts=options.map(opt=>{
+        let selected = (value == opt.value)?'selected':'';
+        return `<option value="${opt.value}" ${selected}>${opt.label}</option>`
+    }).join('')
+    vex.dialog.open({
+        message,
+        input: [
+            `<label>Select <input type="radio" name="opt" value="select"/><select name="select" placeholder="Select">${opts}</select></label>`,
+            `<label>or Type <input type="radio" name="opt" value="create" checked /><input name="create" type="text" placeholder="${value}" value="${value}" /></label>`
+        ].join(''),
+        buttons: [
+            $.extend({}, vex.dialog.buttons.YES, { text: 'Ok' }),
+            $.extend({}, vex.dialog.buttons.NO, { text: 'Cancel' })
+        ],
+        callback: function (data) {
+            if (data===false) {
+                callback(null)
+            } else if (data.opt && String(data[data.opt]).trim().length) {
+                callback(data[data.opt])
+            } else {
+                callback(value)
+            }
+        }
+    })
+}
+
+
 export class MaterialPickerButton extends React.Component {
     constructor(props) {
         super(props);
         this.state = { showModal: false }
         this.handleApplyPreset.bind(this);
+        this.handleClick.bind(this)
+        this.onModKey.bind(this)
+        this.offModKey.bind(this)
+        this.state = {}
+        this.__mounted=false;
+    }
+
+    onModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    offModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    componentDidMount() {
+        this.__mounted=true;
+        document.addEventListener('keydown', this.onModKey.bind(this))
+        document.addEventListener('keyup', this.offModKey.bind(this))
+    }
+
+    componentWillUnmount() {
+        this.__mounted=false;
+        document.removeEventListener('keydown', this.onModKey.bind(this))
+        document.removeEventListener('keyup', this.offModKey.bind(this))
+    }
+
+
+
+    handleClick(e) {
+        if (e.shiftKey) {
+            e.preventDefault();
+            this.handleNewPreset(this.props.operation)
+        } else {
+            this.setState({ showModal: true })
+        }
     }
 
     handleApplyPreset(operationId) {
 
         let operation = getMaterialDbPreset(this.props.groups, operationId)
+            operation.params = omit(omit(operation.params, (val, key) => { return val !== undefined && val !== null; }),['id','documents'])
 
-        this.props.onApplyPreset(operation.type, omit(operation.params, (val, key) => {
-            return val !== undefined && val !== null;
-        }))
+        this.props.onApplyPreset(operation.type, operation.params)
         this.setState({ showModal: false });
+    }
+
+    handleNewPreset(operation) {
+        let opts = this.props.groups.filter(group=>(!group._locked)).map((group)=>{ return {label: group.name, value: group.name}})
+        choose("Operation grouping?", opts, DEFAULT_GROUPING_NAME, (grouping) => {
+            if (grouping === null) return;
+            prompt("Operation Name? Blank is random", operation.name, (name) => {
+                if (name === null) return;
+                this.props.dispatch(newPreset(operation, grouping, name))
+            })
+        })
     }
 
     render() {
         let closeModal = () => this.setState({ showModal: false });
-
+        let className = this.props.className;
+        if (this.state.shiftKey) className += ' btn-warning'
         return (
-            <Button bsStyle="primary" className={this.props.className} onClick={() => this.setState({ showModal: true })}>{this.props.children}
+            <Button bsStyle="primary" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
                 <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
             </Button>
         )
     }
 }
 
-MaterialPickerButton = connect((state) => {
-    return {
-        groups: state.materialDatabase
-    }
-})(MaterialPickerButton)
+MaterialPickerButton = connect((state) => ({ groups: state.materialDatabase }), (dispatch) => ({ dispatch }))(MaterialPickerButton)

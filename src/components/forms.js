@@ -247,8 +247,10 @@ export class FileField extends React.Component {
         if (this.props.disabled) return;
         
         if (!this.nativeClick){
+             console.log("FileField: set nativeClick");
              this.nativeClick = ce;
              let nullify = (e)=>{
+               console.log("FileField: clear nativeClick");
                 e.target.removeEventListener(e.type, nullify);
                 setTimeout(()=>{this.nativeClick = null},200);
              }
@@ -260,11 +262,13 @@ export class FileField extends React.Component {
 
     handleChange(e) {
         e.persist()
-        if (this.nativeClick) {
+         if (this.nativeClick) {
+            console.log("FileField: use nativeClick");
             this.props.onChange(e, { ctrl: this.nativeClick.ctrlKey, shift: this.nativeClick.shiftKey, meta: this.nativeClick.metaKey })
             this.nativeClick = null
             this.input.value = null;
-        }
+        } else
+            console.log("FileField: oops! need nativeClick");
     }
 
     render() {
