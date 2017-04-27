@@ -78,6 +78,7 @@
     "marked": "^0.3.6",
     "node-uuid": "^1.4.7",
     "npm-run-all": "^4.0.1",
+    "object-to-string": "^1.0.0",
     "object.omit": "^2.0.1",
     "poly2tri": "^1.3.5",
     "prefix-keys": "^1.0.0",

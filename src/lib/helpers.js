@@ -1,4 +1,5 @@
 
+import objectToString from 'object-to-string';
 
 export function sendAsFile(filename, data, mimetype) {
         let blob = new Blob([data], {type: mimetype});
@@ -50,6 +51,7 @@ export function cast(value, def = '') {
     if (value === undefined) return def;
     if (value === false) return "No";
     if (value === true) return "Yes";
+    if (isObject(value)) return objectToString(value);
     return String(value);
 }
 

@@ -37,7 +37,8 @@ import { Details } from './material-database'
 
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
-    return <Input value={op[field.name]}  {...rest } />;
+    let value=op[field.name];
+    return <Input value={value!==undefined? value:''}  {...rest } />;
 }
 
 function NumberInput(props) {
