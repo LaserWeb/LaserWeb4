@@ -23,7 +23,8 @@ import { GlobalStore } from '../index'
 import queue from 'queue';
 
 export const expandHookGCode = (operation) =>{
-    let macros = GlobalStore().getState().macros;
+    let state = GlobalStore().getState(); 
+    let macros = state.settings.macros || {};
     let op=Object.assign({},operation)
     let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
         hooks.forEach(hook => {
