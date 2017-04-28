@@ -21,7 +21,7 @@ import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDoc
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
-import { Input } from './forms.js';
+import { Input, InputRangeField } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 import { selectedDocuments } from './document'
 
@@ -83,36 +83,11 @@ function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, class
 }
 
 
-class InputRange extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.handleChange.bind(this)
-        this.state = Object.assign({ min: this.props.minValue, max: this.props.maxValue }, this.props.value);
-    }
-
-    handleChange(key, v) {
-        let state = Object.assign(this.state, { [key]: parseFloat(v) })
-        state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
-        state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
-
-
-        this.setState(state)
-        this.props.onChangeValue(state);
-    }
-
-    render() {
-        let { min, max } = this.state;
-        return <div>
-            <label style={{ whiteSpace: "nowrap" }} >Min <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
-            <label style={{ whiteSpace: "nowrap" }} >Max <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
-        </div>
-    }
-}
 
 function RangeInput(minValue, maxValue) {
     return ({ op, field, onChangeValue, ...rest }) => {
-        return <InputRange maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
+        return <InputRangeField maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
     }
 }
 
@@ -304,6 +279,23 @@ function checkRange(min, max) {
     }
 }
 
+function checkFeedRateRange(axis) {
+    return {
+        check: (v,settings) => {
+            let {min,max} = settings.machineFeedRange[axis];
+            if (isFinite(v)) {
+                return v >= min && v <= max;
+            } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
+                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max)
+            }
+        },
+        error: (v, settings) => {
+            let {min,max} = settings.machineFeedRange[axis];
+            return 'Must be in range [' + min + ' , ' + max + ']'
+        }
+    }
+}
+
 const ifUseA = {
     condition: op => op.useA
 };
@@ -360,8 +352,8 @@ export const OPERATION_FIELDS = {
     clearance: { name: 'clearance', label: 'ZClearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
 
-    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
-    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
+    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
+    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
     aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },

@@ -628,3 +628,7 @@ button:hover,
 
 .vex-dialog-input label {display:block; font-weight: normal}
 .vex-dialog-input select {width:100%}
+
+.pane-settings .details {
+    margin-left:0;
+}

@@ -310,8 +310,43 @@ export class CheckBoxListField extends React.Component {
 
 
     }
+}
 
+export class InputRangeField extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.handleChange.bind(this)
+        this.handleNormalize.bind(this)
+        this.state = Object.assign({ min: this.props.minValue, max: this.props.maxValue }, this.props.value);
+    }
+
+    handleChange(key, v) {
+        let state = Object.assign(this.state, { [key]: parseFloat(v) })
+            state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
+            state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
+       
+        this.props.onChangeValue(state);
+        this.setState(state)
+    }
+
+    handleNormalize()
+    {
+        if (this.props.normalize) {
+            let state = Object.assign(this.state, {min: Math.min(this.state.min, this.state.max), max: Math.max(this.state.min, this.state.max)})
+                this.props.onChangeValue(state);
+                this.setState(state)
+        }
+            
+    }
+
+    render() {
+        let { min, max } = this.state;
+        return <div>
+            <label style={{ whiteSpace: "nowrap" }} >Min <input size="3" onBlur={e=>this.handleNormalize(e)} style={{ display: "inline-block" }} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
+            <label style={{ whiteSpace: "nowrap" }} >Max <input size="3" onBlur={e=>this.handleNormalize(e)} style={{ display: "inline-block" }} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
+        </div>
+    }
 }
 
 
@@ -321,3 +356,4 @@ ToggleField = connect()(ToggleField);
 QuadrantField = connect()(QuadrantField);
 CheckBoxListField = connect()(CheckBoxListField);
 SelectField = connect()(SelectField);
+InputRangeField = connect()(InputRangeField);
