@@ -17,7 +17,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
 
-import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations } from '../actions/operation';
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
@@ -34,6 +34,8 @@ import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
 import Icon from './font-awesome'
 
 import { Details } from './material-database'
+
+import { confirm } from './laserweb'
 
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
@@ -702,9 +704,10 @@ class Operations extends React.Component {
         return (
             <div style={this.props.style}>
                 <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
-                    <b>Drag document(s) here</b> or<br /><OperationToolbar />
+                    <b>Drag document(s) here to add</b>
                     <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
+                <OperationToolbar />
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation
@@ -730,6 +733,7 @@ class OperationToolbar extends React.Component {
         super(props);
         this.handleAddSingle.bind(this)
         this.handleAddMultiple.bind(this)
+        this.handleClearAll.bind(this)
     }
 
     handleAddSingle() {
@@ -740,21 +744,31 @@ class OperationToolbar extends React.Component {
         this.props.createMultiple(selectedDocuments(this.props.documents));
     }
 
+    handleClearAll() {
+        this.props.clearAll();
+    }
+
     render() {
         let hasSelected = this.props.documents.some((item) => item.selected)
-        return <ButtonToolbar>
+        return <ButtonToolbar style={{paddingBottom:"5px", marginBottom: "5px", borderBottom: "1px solid #eee"}}>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button disabled={!this.props.operations.length} onClick={e=>this.handleClearAll()} bsStyle="danger" bsSize="xsmall" title="Clear all operations" >Clear All</Button>
         </ButtonToolbar>
     }
 }
 
 OperationToolbar = connect(
-    (state) => { return { documents: state.documents } },
+    (state) => { return { documents: state.documents, operations:state.operations } },
     (dispatch) => {
         return {
             createSingle: (documents) => { dispatch(addOperation({ documents })) },
-            createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) }
+            createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) },
+            clearAll:()=>{
+                confirm("Are you sure?",(data)=>{
+                    if (data) dispatch(clearOperations());
+                })
+            }
         }
     }
 )(OperationToolbar);

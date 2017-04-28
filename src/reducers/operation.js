@@ -105,6 +105,8 @@ export const operations = (state, action) => {
         case 'OPERATION_ADD':
             state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
             break;
+        case 'OPERATION_CLEAR_ALL':
+            state = [];
     }
     return state;
 }
