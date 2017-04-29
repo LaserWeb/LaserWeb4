@@ -237,43 +237,31 @@ export class FileField extends React.Component {
 
     constructor(props) {
         super(props);
-        this.handleClick.bind(this)
-        this.handleChange.bind(this)
-        this.nativeClick = null;
+        this._domclick = function(ce) {
+            ce.preventDefault();
+            let modifiers={ ctrl: ce.ctrlKey, shift: ce.shiftKey, meta: ce.metaKey };
+            if (this.input.__changeHandler) this.input.removeEventListener('change',this.input.__changeHandler)
+            this.input.value="";
+            this.input.__changeHandler = (e)=> {
+               e.preventDefault();
+               this.props.onChange(e,modifiers)
+            }
+            this.input.addEventListener('change',this.input.__changeHandler)
+            this.input.click();
+        }.bind(this)
     }
 
-    handleClick(ce) {
-        ce.persist();
-        if (this.props.disabled) return;
-        
-        if (!this.nativeClick){
-             console.log("FileField: set nativeClick");
-             this.nativeClick = ce;
-             let nullify = (e)=>{
-               console.log("FileField: clear nativeClick");
-                e.target.removeEventListener(e.type, nullify);
-                setTimeout(()=>{this.nativeClick = null},200);
-             }
-             window.addEventListener('focus', nullify)
-             this.input.click()
-        }
-        
+    componentDidMount() {
+        this.clicker.addEventListener('click', this._domclick)
     }
 
-    handleChange(e) {
-        e.persist()
-         if (this.nativeClick) {
-            console.log("FileField: use nativeClick");
-            this.props.onChange(e, { ctrl: this.nativeClick.ctrlKey, shift: this.nativeClick.shiftKey, meta: this.nativeClick.metaKey })
-            this.nativeClick = null
-            this.input.value = null;
-        } else
-            console.log("FileField: oops! need nativeClick");
+    componentWillUnMount() {
+        this.clicker.removeEventListener('click', this._domclick)
     }
 
     render() {
-        return <span style={this.props.style} onClick={e => this.handleClick(e)}>{this.props.children}
-            <input type="file" ref={(input) => { this.input = input }} multiple onChange={e => this.handleChange(e)} style={{display:"none"}} accept={this.props.accept} />
+        return <span style={this.props.style} >
+            <span ref={(input)=>this.clicker = input}>{this.props.children}</span><input type="file" ref={(input) => { this.input = input }} multiple style={{display:"none"}} accept={this.props.accept} />
         </span>
     }
 }
