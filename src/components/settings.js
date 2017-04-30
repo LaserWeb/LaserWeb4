@@ -155,7 +155,7 @@ class MachineFeedRanges extends React.Component {
 
     handleChangeValue(ax, v) {
         let state = this.props.object[this.props.field];
-        state = Object.assign(state, { [ax]: Object.assign({ min: this.props.minValue || 1, max: this.props.maxValue || 10000 }, v || {}) });
+        state = Object.assign(state, { [ax]: Object.assign({ min: this.props.minValue || 1, max: this.props.maxValue || Infinity }, v || {}) });
         this.props.dispatch(this.props.setAttrs({ [this.props.field]: state }, this.props.object.id))
     }
 
@@ -166,7 +166,7 @@ class MachineFeedRanges extends React.Component {
             <div className="well">{this.props.description ? <small className="help-block">{this.props.description}</small> : undefined}
                 <table width="100%" >
                     <tbody>
-                        {axis.map((ax, i) => { return <tr key={i}><th width="15%">{ax}</th><td><InputRangeField normalize key={ax} minValue={this.props.minValue || 0} maxValue={this.props.maxValue || 10000} value={value[ax]} onChangeValue={value => this.handleChangeValue(ax, value)} /></td></tr> })}
+                        {axis.map((ax, i) => { return <tr key={i}><th width="15%">{ax}</th><td><InputRangeField normalize key={ax} minValue={this.props.minValue || 0} maxValue={this.props.maxValue || Infinity} value={value[ax]} onChangeValue={value => this.handleChangeValue(ax, value)} /></td></tr> })}
                     </tbody>
                 </table>
             </div>
@@ -227,7 +227,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
                         <hr />
-                        <MachineFeedRanges minValue={1} maxValue={20000} axis={['XY','Z', 'A']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
+                        <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY','Z', 'A']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
                         <hr />
                         <NumberField {...{ object: this.props.settings, field: 'machineOriginX', setAttrs: setSettingsAttrs, description: 'Machine Origin X', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineOriginY', setAttrs: setSettingsAttrs, description: 'Machine Origin Y', units: 'mm' }} />

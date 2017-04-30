@@ -52,9 +52,9 @@ export const SETTINGS_INITIALSTATE = {
     machineOriginY: 0,
 
     machineFeedRange: {
-        XY: {min: 1, max:10000},
-        Z: {min: 1, max:10000},
-        A: {min: 1, max:10000},
+        XY: {min: 1, max:50000},
+        Z: {min: 1, max:50000},
+        A: {min: 1, max:50000},
     },
 
     machineZEnabled: false,
