@@ -22,6 +22,8 @@ export const macros = (state = MACROS_INITIALSTATE, action) => {
         case "MACROS_REMOVE":
             return omit(state, action.payload);
 
+        // both receives full redux state;
+        case "LOADED":
         case actionTypes.INIT:
             if (action.payload) {
                 return Object.assign(action.payload.macros || action.payload.settings.macros)  //recover legacy macros data

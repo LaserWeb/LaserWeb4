@@ -32,10 +32,9 @@ export default function reducer(state, action) {
             return { ...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         case "SNAPSHOT_UPLOAD":
             let newState = omit(action.payload.snapshot, ["history"]);
-            //if (action.payload.keys) newState = omit(newState, (val, key) => { return action.payload.keys.includes(key) })
-            newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
-
-            return reducer(Object.assign({}, state, deepMerge(action.getState(), newState)), { type: 'LOADED' });
+                newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
+                newState = Object.assign({}, state, deepMerge(action.getState(), newState));
+            return reducer(newState, { type: 'LOADED', payload: newState });
         default:
             return combined(state, action);
     }

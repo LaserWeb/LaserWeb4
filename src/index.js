@@ -8,6 +8,8 @@ import persistState, {mergePersistedState} from 'redux-localstorage'
 import adapter from 'redux-localstorage/lib/adapters/localStorage';
 import filter from 'redux-localstorage-filter';
 
+export const LOCALSTORAGE_KEY = 'LaserWeb';
+
 const hot = (state, action) => {
     return require('./reducers').default(state, action);
 };
@@ -36,7 +38,7 @@ const middleware = compose(
       logger({ collapsed: true }),
       globalstoreMiddleWare
   ),
-  persistState(storage, 'LaserWeb'),
+  persistState(storage, LOCALSTORAGE_KEY),
 );
 
 const store = createStore(reducer, middleware);
