@@ -105,6 +105,7 @@ export const operations = (state, action) => {
         case 'OPERATION_ADD':
             state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
             break;
+        case 'WORKSPACE_RESET':
         case 'OPERATION_CLEAR_ALL':
             state = [];
     }
@@ -118,6 +119,8 @@ export function currentOperation(state = '', action) {
         return action.payload.attrs.id;
     else if (action.type === 'OPERATION_SET_ATTRS' || action.type === 'OPERATION_ADD_DOCUMENTS')
         return action.payload.id;
+    else if (action.type === 'WORKSPACE_RESET')
+        return '';
     else
         return state;
 }

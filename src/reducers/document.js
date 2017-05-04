@@ -278,6 +278,8 @@ export function documents(state, action) {
                 state = reduceParents(state, action.payload.id, true, o => Object.assign({}, o, { visible: true }));
             return state;
         }
+        case 'WORKSPACE_RESET':
+            return [];
         default:
             return state;
     }
