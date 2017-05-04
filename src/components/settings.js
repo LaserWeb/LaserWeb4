@@ -116,7 +116,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
         }
 
         return <div>
-            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</div>
+            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}{this.props.children}</div>
         </div>
     }
 }

@@ -35,6 +35,8 @@ export default function reducer(state, action) {
                 newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
                 newState = Object.assign({}, state, deepMerge(action.getState(), newState));
             return reducer(newState, { type: 'LOADED', payload: newState });
+        case "WORKSPACE_RESET":
+            return {...state, operations:[], documents:[], gcode:{...state.gcode, content:''}}
         default:
             return combined(state, action);
     }

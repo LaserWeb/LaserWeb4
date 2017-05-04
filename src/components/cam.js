@@ -21,6 +21,7 @@ import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { setGcode, generatingGcode } from '../actions/gcode';
+import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
 import { GetBounds, withGetBounds } from './get-bounds.js';
@@ -135,7 +136,9 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm">
+                                          <Button bsSize="xsmall" bsStyle="warning" onClick={e=>this.props.resetWorkspace(e)}>Reset <Icon name="trash"/></Button>
+                                      </ApplicationSnapshotToolbar>
                                     </td>
                                 </tr>
                             </tbody>
@@ -246,6 +249,9 @@ Cam = connect(
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         clearGcode: () => {
             dispatch(setGcode(""))
+        },
+        resetWorkspace: () => {
+            confirm("Are you sure?",()=>{dispatch(resetWorkspace());})
         },
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
