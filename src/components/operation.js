@@ -37,10 +37,12 @@ import { Details } from './material-database'
 
 import { confirm } from './laserweb'
 
+import { SETTINGS_INITIALSTATE } from '../reducers/settings'
+
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
-    let value=op[field.name];
-    return <Input value={value!==undefined? value:''}  {...rest } />;
+    let value = op[field.name];
+    return <Input value={value !== undefined ? value : ''}  {...rest } />;
 }
 
 function NumberInput(props) {
@@ -93,11 +95,11 @@ function RangeInput(minValue, maxValue) {
     }
 }
 
-function TagInput(statekey, opts = { multi: true, simpleValue:true, delimiter:',', clearable:true }, connector) {
-    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state,statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
+function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: ',', clearable: true }, connector) {
+    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
     return connect(connector)(React.createClass({
-        render: function() {
-            return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{...opts}} />
+        render: function () {
+            return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{ ...opts }} />
         }
     }))
 
@@ -283,8 +285,9 @@ function checkRange(min, max) {
 
 function checkFeedRateRange(axis) {
     return {
-        check: (v,settings) => {
-            let {min,max} = settings.machineFeedRange[axis];
+        check: (v, settings) => {
+            
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
             if (isFinite(v)) {
                 return v >= min && v <= max;
             } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
@@ -292,7 +295,7 @@ function checkFeedRateRange(axis) {
             }
         },
         error: (v, settings) => {
-            let {min,max} = settings.machineFeedRange[axis];
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
             return 'Must be in range [' + min + ' , ' + max + ']'
         }
     }
@@ -304,7 +307,8 @@ const ifUseA = {
 
 const checkZHeight = {
     check: (v, settings) => settings.machineZEnabled && v && !isNaN(v),
-    error: (v, settings) => {
+    error: (v, settings, op) => {
+        if (!op.type.match(/^Laser/)) return false;
         if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
         return 'Has to be a number'
     }
@@ -356,6 +360,7 @@ export const OPERATION_FIELDS = {
 
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
+    toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
     aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
@@ -401,25 +406,26 @@ const tabFields = [
 
 export const OPERATION_TYPES = {
     'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength',...OPERATION_GROUPS.Macros.fields] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength',...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Raster': {
-            allowTabs: false, tabFields: false, fields: [
-                'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-                'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA',
-                 ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
-            ] },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'passDepth', 'clearance',  'segmentLength', 'plungeRate', 'cutRate',  'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth',  'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate',  'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate',  'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+        allowTabs: false, tabFields: false, fields: [
+            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA',
+            ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
+        ]
+    },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
 const groupFields = (ofields) => {
     let groups = { '_default': { visible: true, collapsible: false, fields: [] } };
-    let fields=ofields.slice();
+    let fields = ofields.slice();
 
     Object.entries(OPERATION_GROUPS).forEach(entry => {
         let [key, group] = entry;
@@ -428,9 +434,9 @@ const groupFields = (ofields) => {
             groups[key].fields = []
         }
         group.fields.forEach(field => {
-            let index=fields.indexOf(field);
-            if (index>-1)
-                groups[key].fields.push(fields.splice(index,1).pop())
+            let index = fields.indexOf(field);
+            if (index > -1)
+                groups[key].fields.push(fields.splice(index, 1).pop())
 
         })
     })
@@ -590,10 +596,10 @@ class Operation extends React.Component {
                                 {Object.entries(this.operationGroups || {}).map((entry) => {
                                     let [key, group] = entry;
                                     let fields = group.fields
-                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return f && (!f.condition || f.condition(op, settings)); })
+                                        .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return f && (!f.condition || f.condition(op, settings)); })
                                         .map(fieldName => {
                                             return <Field
-                                                        key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
+                                                key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
                                                 fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                                                 operationsBounds={bounds} dispatch={dispatch} />
                                         })
@@ -750,22 +756,22 @@ class OperationToolbar extends React.Component {
 
     render() {
         let hasSelected = this.props.documents.some((item) => item.selected)
-        return <ButtonToolbar style={{paddingBottom:"5px", marginBottom: "5px", borderBottom: "1px solid #eee"}}>
+        return <ButtonToolbar style={{ paddingBottom: "5px", marginBottom: "5px", borderBottom: "1px solid #eee" }}>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
-            <Button disabled={!this.props.operations.length} onClick={e=>this.handleClearAll()} bsStyle="danger" bsSize="xsmall" title="Clear all operations" >Clear All</Button>
+            <Button disabled={!this.props.operations.length} onClick={e => this.handleClearAll()} bsStyle="danger" bsSize="xsmall" title="Clear all operations" >Clear All</Button>
         </ButtonToolbar>
     }
 }
 
 OperationToolbar = connect(
-    (state) => { return { documents: state.documents, operations:state.operations } },
+    (state) => { return { documents: state.documents, operations: state.operations } },
     (dispatch) => {
         return {
             createSingle: (documents) => { dispatch(addOperation({ documents })) },
             createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) },
-            clearAll:()=>{
-                confirm("Are you sure?",(data)=>{
+            clearAll: () => {
+                confirm("Are you sure?", (data) => {
                     if (data) dispatch(clearOperations());
                 })
             }
