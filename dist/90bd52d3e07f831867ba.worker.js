@@ -527,7 +527,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -566,9 +566,9 @@
 	    rasterToGcode.abort();
 	}
 
-/***/ }),
+/***/ },
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -1533,9 +1533,9 @@
 	exports.RasterToGcode = RasterToGcode;
 	exports.default = RasterToGcode;
 
-/***/ }),
+/***/ },
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -1802,9 +1802,9 @@
 	exports.CanvasGrid = CanvasGrid;
 	exports.default = CanvasGrid;
 
-/***/ }),
+/***/ },
 /* 3 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -2015,9 +2015,9 @@
 	exports.canvasFilters = canvasFilters;
 	exports.default = canvasFilters;
 
-/***/ }),
+/***/ },
 /* 4 */
-/***/ (function(module, exports) {
+/***/ function(module, exports) {
 
 	/*
 	 * floyd-steinberg
@@ -2072,6 +2072,6 @@
 	  return image;
 	}
 
-/***/ })
+/***/ }
 /******/ ]);
 //# sourceMappingURL=90bd52d3e07f831867ba.worker.js.map
