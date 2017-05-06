@@ -10,6 +10,8 @@ import { ButtonToolbar, Button } from 'react-bootstrap'
 import Icon from './font-awesome'
 import marked from 'marked';
 import { version } from '../reducers/settings'
+import { confirm } from './laserweb'
+import { LOCALSTORAGE_KEY } from '../index'
 
 /**
  * About component.
@@ -68,6 +70,12 @@ class About extends React.Component {
                   </dl>
                 <div><i>LaserWeb and CNCWeb is <kbd>free software</kbd>. The team of developers have spent countless hours coding, testing and supporting this application. If you enjoy using this application, consider donating a coffee or a beer towards the developers to show your appreciation, by clicking the <Icon name="paypal"/> icon next to the developers you want to support</i></div>
 
+                <hr/>
+                <div className="well">
+                  <h5>Application reset and debug</h5>
+                  <Lifesaver/>
+                </div>
+
             </div>
         )
     }
@@ -79,3 +87,54 @@ About = connect(
 
 // Exports
 export default About
+
+
+class Lifesaver extends React.Component
+{
+    render()
+    {
+        let button;
+        if (window.require) button = <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleDevTools(e) }}><Icon name="gear" /> Toggle Dev tools</Button>
+
+        return <ButtonToolbar>
+          {button}
+          <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleRefresh(e) }}><Icon name="refresh" /> Refresh window</Button>
+          <Button bsSize="xs" bsStyle="danger" onClick={(e) => { this.props.handleReset(e) }}><Icon name="bolt" /> Reset to factory defaults</Button>
+        </ButtonToolbar>
+    }
+}
+
+Lifesaver = connect((store)=>({}),(dispatch) =>{
+    return {
+        handleDevTools: () => {
+            if (window.require) { // Are we in Electron?
+                const electron = window.require('electron');
+                const app = electron.remote;
+                var focusedWindow = app.BrowserWindow.getFocusedWindow()
+                // focusedWindow.openDevTools();
+                if (app.BrowserWindow.getFocusedWindow) {
+                    // var focusedWindow = app.BrowserWindow.getFocusedWindow()
+                    if (focusedWindow.isDevToolsOpened()) {
+                        focusedWindow.closeDevTools();
+                    } else {
+                        focusedWindow.openDevTools();
+                    }
+                }
+            } else {
+                console.warn("Can't do that, pal")
+            }
+        },
+        handleReset: () => {
+            confirm("All data will be zapped!", (b) => { 
+              if (b) {
+                window.localStorage.removeItem(LOCALSTORAGE_KEY)
+                location.reload(); 
+              }
+            })
+        },
+        handleRefresh: () => {
+            confirm("Are you sure? This will destroy unsaved work", (b) => { if (b) location.reload(); })
+        }
+    }
+  }
+)(Lifesaver)

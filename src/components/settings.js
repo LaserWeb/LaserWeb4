@@ -15,7 +15,7 @@ import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField } from './forms';
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
@@ -24,6 +24,8 @@ import { VideoDeviceField, VideoPort, VideoResolutionField } from './webcam';
 import { alert, prompt, confirm } from './laserweb';
 
 import { getSubset } from 'redux-localstorage-filter';
+
+import { Details } from './material-database'
 
 export class ApplicationSnapshot extends React.Component {
 
@@ -114,7 +116,7 @@ export class ApplicationSnapshotToolbar extends React.Component {
         }
 
         return <div>
-            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}</div>
+            <div style={{ float: "right", clear: "right" }}>{buttons.map((button, i) => React.cloneElement(button, { key: i }))}{this.props.children}</div>
         </div>
     }
 }
@@ -148,6 +150,31 @@ export function SettingsValidator({ style, className = 'badge', noneOnSuccess = 
     if (noneOnSuccess && !errors) return null;
     return <span className={className} title={errors ? errors : "Good to go!"} style={style}><Icon name={errors ? 'warning' : 'check'} /></span>
 }
+
+class MachineFeedRanges extends React.Component {
+
+    handleChangeValue(ax, v) {
+        let state = this.props.object[this.props.field];
+        state = Object.assign(state, { [ax]: Object.assign({ min: Number(this.props.minValue || 0), max: Number(this.props.maxValue || 1e100) }, v || {}) });
+        this.props.dispatch(this.props.setAttrs({ [this.props.field]: state }, this.props.object.id))
+    }
+
+    render() {
+        let axis = this.props.axis || ['X', 'Y'];
+        let value = this.props.object[this.props.field];
+        return <div className="form-group"><Details handler={<label>Machine feed ranges</label>}>
+            <div className="well">{this.props.description ? <small className="help-block">{this.props.description}</small> : undefined}
+                <table width="100%" >
+                    <tbody>
+                        {axis.map((ax, i) => { return <tr key={i}><th width="15%">{ax}</th><td><InputRangeField normalize key={ax} minValue={this.props.minValue || 0} maxValue={this.props.maxValue || 1e100} value={value[ax]} onChangeValue={value => this.handleChangeValue(ax, value)} /></td></tr> })}
+                    </tbody>
+                </table>
+            </div>
+        </Details>
+        </div>
+    }
+}
+MachineFeedRanges = connect()(MachineFeedRanges)
 
 class Settings extends React.Component {
 
@@ -186,12 +213,6 @@ class Settings extends React.Component {
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
 
-        let button = null;
-        if (window.require) {
-            button = <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleDevTools(e) }}><Icon name="gear" /> Toggle Dev tools</Button>
-        } else {
-            button = null
-        }
 
         return (
             <div className="form">
@@ -204,9 +225,9 @@ class Settings extends React.Component {
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
-
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
-
+                        <hr />
+                        <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
                         <hr />
                         <NumberField {...{ object: this.props.settings, field: 'machineOriginX', setAttrs: setSettingsAttrs, description: 'Machine Origin X', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineOriginY', setAttrs: setSettingsAttrs, description: 'Machine Origin Y', units: 'mm' }} />
@@ -273,22 +294,18 @@ class Settings extends React.Component {
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
                         <table style={{ width: 100 + '%' }}><tbody>
                             <tr><td><strong>Settings</strong></td>
-                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr/></td></tr>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr /></td></tr>
                             <tr><td><strong>Machine Profiles</strong></td>
-                            <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr/></td></tr>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr /></td></tr>
                             <tr><td><strong>Macros</strong></td>
-                            <td><Button bsSize="xsmall" onClick={e=>this.props.handleResetMacros()} bsStyle="warning">Reset</Button></td></tr>
+                                <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning">Reset</Button></td></tr>
                         </tbody></table>
-                        
+
                         <h5 >Application Snapshot  <Label bsStyle="warning">Caution!</Label></h5>
-                        
+
 
                         <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
                         <ApplicationSnapshot />
-                        <ButtonToolbar>
-                            {button}
-                            <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleRefresh(e) }}><Icon name="refresh" /> Refresh window</Button>
-                        </ButtonToolbar>
                     </Panel>
                 </PanelGroup>
             </div>
@@ -308,9 +325,9 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        handleResetMacros:() => {
-            confirm("Are you sure?",(data)=>{ if (data!==null) dispatch({type:"MACROS_RESET"}) })
-            
+        handleResetMacros: () => {
+            confirm("Are you sure?", (data) => { if (data !== null) dispatch({ type: "MACROS_RESET" }) })
+
         },
         handleSettingChange: (attrs) => {
             dispatch(setSettingsAttrs(attrs, 'settings'))
@@ -339,30 +356,8 @@ const mapDispatchToProps = (dispatch) => {
         },
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
-        },
-        handleDevTools: () => {
-            if (window.require) { // Are we in Electron?
-                const electron = window.require('electron');
-                const app = electron.remote;
-                var focusedWindow = app.BrowserWindow.getFocusedWindow()
-                // focusedWindow.openDevTools();
-                if (app.BrowserWindow.getFocusedWindow) {
-                    // var focusedWindow = app.BrowserWindow.getFocusedWindow()
-                    if (focusedWindow.isDevToolsOpened()) {
-                        focusedWindow.closeDevTools();
-                    } else {
-                        focusedWindow.openDevTools();
-                    }
-                }
-            } else {
-                console.warn("Can't do that, pal")
-            }
-        },
-        handleRefresh: () => {
-
-            confirm("Are you sure? This will destroy unsaved work", (b) => { if (b) location.reload(); })
-
         }
+
     };
 };
 

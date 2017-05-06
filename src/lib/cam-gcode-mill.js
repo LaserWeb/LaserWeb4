@@ -36,7 +36,7 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      tabZ:           Z position over tabs (required if tabGeometry is not empty) (gcode units)
 export function getMillGcode(props) {
     let {paths, ramp, scale, useZ, offsetX, offsetY, decimal, topZ, botZ, safeZ, passDepth,
-        plungeFeed, cutFeed, tabGeometry, tabZ} = props;
+        plungeFeed, cutFeed, tabGeometry, tabZ, toolSpeed} = props;
 
     let plungeFeedGcode = ' F' + plungeFeed;
     let cutFeedGcode = ' F' + cutFeed;
@@ -142,17 +142,20 @@ export function getMillGcode(props) {
                                     distTravelled += dist(getX(rampPath[i - 1]), getY(rampPath[i - 1]), getX(rampPath[i]), getY(rampPath[i]));
                                     let newZ = currentZ + distTravelled / totalDist * (selectedZ - currentZ);
                                     gcode += 'G1' + convertPoint(rampPath[i], false) + ' Z' + newZ.toFixed(decimal);
-                                    if (i === 1)
-                                        gcode += ' F' + Math.min(totalDist / minPlungeTime, cutFeed).toFixed(decimal) + '\r\n';
-                                    else
-                                        gcode += '\r\n';
+                                    if (i === 1){
+                                        gcode += ' F' + Math.min(totalDist / minPlungeTime, cutFeed).toFixed(decimal) 
+                                        if (toolSpeed) gcode+= ' S'+toolSpeed;
+                                    } 
+                                    gcode += '\r\n';
                                 }
                             }
                         }
                         if (!executedRamp)
                             gcode +=
                                 '; plunge\r\n' +
-                                'G1 Z' + selectedZ.toFixed(decimal) + plungeFeedGcode + '\r\n';
+                                'G1 Z' + selectedZ.toFixed(decimal) + plungeFeedGcode 
+                            if (toolSpeed) gcode+= ' S'+toolSpeed;
+                            gcode += '\r\n';
                     } else if (selectedZ > currentZ) {
                         gcode += retractForTabGcode;
                     }
@@ -163,10 +166,11 @@ export function getMillGcode(props) {
 
                 for (let i = 1; i < selectedPath.length; ++i) {
                     gcode += 'G1' + convertPoint(selectedPath[i], useZ);
-                    if (i === 1)
-                        gcode += cutFeedGcode + '\r\n';
-                    else
-                        gcode += '\r\n';
+                    if (i === 1){
+                        gcode += cutFeedGcode
+                        if (toolSpeed) gcode+= ' S'+toolSpeed;
+                    } 
+                    gcode += '\r\n';
                 }
             } // selectedIndex
             finishedZ = nextZ;
@@ -279,6 +283,7 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         cutFeed: op.cutRate * feedScale,
         tabGeometry: op.type === 'Mill V Carve' ? [] : tabGeometry,
         tabZ: -op.tabDepth,
+        toolSpeed: op.toolSpeed
     });
 
     if (op.hookOperationEnd.length) gcode+=op.hookOperationEnd;

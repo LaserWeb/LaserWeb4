@@ -33,7 +33,7 @@ class Sidebar extends React.Component {
             <div id="sidebar" className={"full-height"} style={this.props.style} >
                 <Dock>{this.props.children}</Dock>
                 <Splitter
-                    split="vertical" initialSize={300} splitterId="sidebar" resizerStyle={{ marginLeft: 2, marginRight: 2 }}
+                    split="vertical" initialSize={300} minSize={300} splitterId="sidebar" resizerStyle={{ marginLeft: 2, marginRight: 2 }}
                     style={{ width: this.props.visible ? "inherit" : 0 }}
                     >
                     <Panes ref="panes">{this.props.children}</Panes>

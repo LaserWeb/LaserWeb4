@@ -51,6 +51,13 @@ export const SETTINGS_INITIALSTATE = {
     machineOriginX: 0,
     machineOriginY: 0,
 
+    machineFeedRange: {
+        XY: {min: 1, max:50000},
+        Z: {min: 1, max:50000},
+        A: {min: 1, max:50000},
+        S: {min: 0, max:30000},
+    },
+
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
