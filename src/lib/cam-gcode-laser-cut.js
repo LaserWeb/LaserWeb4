@@ -92,12 +92,8 @@ export function getLaserCutGcode(props) {
                 gcode += `\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
             }
         }
-        if (useZ) {
-            let zHeight = useZ.startZ + useZ.offsetZ - (useZ.passDepth * pass);
-            gcode += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
-            gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n';
-        }
-
+        
+        let usedZposition=false;
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
             let path = paths[pathIndex].path;
             if (path.length === 0)
@@ -114,6 +110,14 @@ export function getLaserCutGcode(props) {
                     continue;
                 }
                 gcode += convertPoint(selectedPath[0], true) + '\r\n';
+
+                if (useZ && !usedZposition) {
+                    usedZposition = true;
+                    let zHeight = useZ.startZ + useZ.offsetZ - (useZ.passDepth * pass);
+                    gcode += `; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
+                    gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n\r\n';
+                }
+
                 gcode += gcodeToolOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
                     gcode += convertPoint(selectedPath[i], false);
