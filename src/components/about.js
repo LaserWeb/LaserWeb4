@@ -61,7 +61,7 @@ class About extends React.Component {
                     <dd><small>- G-Code Generation, 3D viewer, Simulator</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/+S%C3%A9bastienMischler-Skarab">Sebastien Mischler</a> <a target="_blank" href="https://paypal.me/skarab"><Icon name="paypal"/></a></dt>
                     <dd><small>- Backend + Dev environment</small></dd><p/>
-                    <dt><Icon name="user"/> <a href="https://plus.google.com/113562432484049167641">Jorge Robles</a> <a target="_blank" href="https://paypal.me/JorgeDiegoRobles"><Icon name="paypal"/></a></dt>
+                    <dt><Icon name="user"/> <a href="https://plus.google.com/113562432484049167641">Jorge Robles</a> <a target="_blank" href="https://paypal.me/JorgeDredd"><Icon name="paypal"/></a></dt>
                     <dd><small>- Settings modules, UI tweaks, Workspace Export</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/+ClaudioPrezzi">Claudio Prezzi</a> <a target="_blank" href="https://paypal.me/cprezzi"><Icon name="paypal"/></a></dt>
                     <dd><small>- Communications</small></dd><p/>
