@@ -22,7 +22,7 @@ import { GlobalStore } from '../index'
 
 import queue from 'queue';
 
-import TimeFormat from 'hh-mm-ss';
+import hhmmss from 'hhmmss';
 
 export const expandHookGCode = (operation) =>{
     let state = GlobalStore().getState(); 
@@ -172,7 +172,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
-        showAlert("Ellapsed: "+TimeFormat.fromMs(new Date().getTime()-starttime),"info");
+        let ellapsed=(new Date().getTime()-starttime)/1000;
+        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(ellapsed-Math.floor(ellapsed)).substr(1),"info");
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 
