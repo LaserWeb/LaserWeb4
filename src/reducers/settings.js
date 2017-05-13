@@ -19,6 +19,8 @@ export const SETTINGS_VALIDATION_RULES = {
     machineBlowerEnabled: 'boolean',
     machineZToolOffset: 'numeric',
 
+    machineAEnabled: 'boolean',
+
     toolImagePosition: 'in:TL,TR,C,BL,BR',
 
     jogFeedXY: 'numeric|min:0',
@@ -62,6 +64,8 @@ export const SETTINGS_INITIALSTATE = {
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+
+    machineAEnabled: false,
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',

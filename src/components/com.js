@@ -24,7 +24,7 @@ var paused = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
-var xpos, ypos, zpos;
+var xpos, ypos, zpos, apos;
 
 class Com extends React.Component {
 
@@ -270,7 +270,7 @@ class Com extends React.Component {
         socket.on('wPos', function (wpos) {
             serverConnected = true;
             machineConnected = true;
-            let {x, y, z} = wpos; //var pos = wpos.split(',');
+            let {x, y, z, a} = wpos; //var pos = wpos.split(',');
             let posChanged = false;
             if (xpos !== x) {
                 xpos = x;
@@ -284,12 +284,17 @@ class Com extends React.Component {
                 zpos = z;
                 posChanged = true;
             }
+            if (apos !== a) {
+                apos = a;
+                posChanged = true;
+            }
             if (posChanged) {
                 //CommandHistory.write('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 $('#mX').html(xpos);
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
+                $('#mA').html(apos);
                 dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
             }
         });
