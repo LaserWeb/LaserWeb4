@@ -55,7 +55,7 @@ class Jog extends React.Component {
 
     constructor(props) {
         super(props);
-        let { jogStepsize, jogFeedXY, jogFeedZ } = this.props.settings;
+        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled } = this.props.settings;
         this.state = {
             jogStepsize: jogStepsize,
             jogFeedXY: jogFeedXY,
@@ -65,6 +65,9 @@ class Jog extends React.Component {
 
             isPlaying: playing,
             isPaused: paused,
+            
+            machineZEnabled: machineZEnabled,
+            machineAEnabled: machineAEnabled,
         };
     }
 
@@ -106,6 +109,18 @@ class Jog extends React.Component {
     jogZDown(event) {
         event.preventDefault();
         this.jog('Z', '-')
+    }
+
+    @keydown('ctrl+alt+right')
+    jogAplus(event) {
+        event.preventDefault();
+        this.jog('A', '+')
+    }
+
+    @keydown('ctrl+alt+left')
+    jogAminus(event) {
+        event.preventDefault();
+        this.jog('A', '-')
     }
 
     @keydown('ctrl+x')
@@ -248,7 +263,7 @@ class Jog extends React.Component {
         let dist = this.props.settings.jogStepsize;
         let units = this.props.settings.toolFeedUnits;
         let feed, mult = 1, mode = 1;
-        let x, y, z;
+        let x, y, z, a;
         if (dir === '+') {
             dir = '';
         }
@@ -265,6 +280,10 @@ class Jog extends React.Component {
             case 'Z':
                 z = dir + dist;
                 feed = jQuery('#jogfeedz').val() * mult;
+                break;
+            case 'A':
+                a = dir + dist;
+                feed = jQuery('#jogfeedxy').val() * mult;
                 break;
         }
         CommandHistory.log('jog(' + axis + ',' + dir + dist + ',' + feed + ')');
@@ -336,6 +355,9 @@ class Jog extends React.Component {
      */
     render() {
         let { settings, dispatch } = this.props;
+        const machineZEnabled = this.state.machineZEnabled;
+        const machineAEnabled = this.state.machineAEnabled;
+
         return (
             <div style={{ paddingTop: 6 }} >
                         <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
@@ -387,27 +409,58 @@ class Jog extends React.Component {
                             <div id="mY" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbffdf' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbffdf' }}> mm</div>
                             <br />
 
-                            <div id="rZ" className="drolabel">Z:</div>
-                            <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbe8ff' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span className="fa-stack fa-1x">
-                                        <i className="fa fa-caret-down fa-stack-1x"></i>
-                                    </span>
-                                </button>
-                                <ul className="dropdown-menu">
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                    <li id="ZProbeMin"><a href="#" ><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Z Min</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                    <li id="homeZ"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
-                                    <li id="zeroZ"><a href="#" onClick={(e) => { this.setZero('z') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoZZero"><a href="#" onClick={(e) => { this.gotoZero('z') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
-                                </ul>
-                            </div>
-                            <div id="mZ" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbe8ff' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbe8ff' }}> mm</div>
-                            <br />
+                            {machineZEnabled && (
+                                <div>
+                                    <div id="rZ" className="drolabel">Z:</div>
+                                    <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
+                                        <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbe8ff' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span className="fa-stack fa-1x">
+                                                <i className="fa fa-caret-down fa-stack-1x"></i>
+                                            </span>
+                                        </button>
+                                        <ul className="dropdown-menu">
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
+                                            <li id="ZProbeMin"><a href="#" ><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Z Min</a></li>
+                                            <li role="separator" className="divider"></li>
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
+                                            <li id="homeZ"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
+                                            <li id="zeroZ"><a href="#" onClick={(e) => { this.setZero('z') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
+                                            <li role="separator" className="divider"></li>
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
+                                            <li id="gotoZZero"><a href="#" onClick={(e) => { this.gotoZero('z') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
+                                        </ul>
+                                    </div>
+                                    <div id="mZ" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbe8ff' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbe8ff' }}> mm</div>
+                                    <br />
+                                </div>
+                            )}
+
+                            {machineAEnabled && (
+                                <div>
+                                    <div id="rA" className="drolabel">A:</div>
+                                    <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
+                                        <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#fffbcf' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span className="fa-stack fa-1x">
+                                                <i className="fa fa-caret-down fa-stack-1x"></i>
+                                            </span>
+                                        </button>
+                                        <ul className="dropdown-menu">
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
+                                            <li id="AProbeMin"><a href="#"><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe A Min</a></li>
+                                            <li id="AProbeMax"><a href="#"><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe A Max</a></li>
+                                            <li role="separator" className="divider"></li>
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
+                                            <li id="homeA"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home A Axis</a></li>
+                                            <li id="zeroA"><a href="#" onClick={(e) => { this.setZero('y') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set A Axis Zero</a></li>
+                                            <li role="separator" className="divider"></li>
+                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
+                                            <li id="gotoAZero"><a href="#" onClick={(e) => { this.gotoZero('a') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to A0</a></li>
+                                        </ul>
+                                    </div>
+                                    <div id="mA" className="droPos" style={{ marginRight: 0, backgroundColor: '#fffbcf' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#fffbcf' }}> mm</div>
+                                    <br />
+                                </div>
+                            )}
 
                             <div id="overrides">
                                 <div className="drolabel">F:</div>
@@ -543,14 +596,29 @@ class Jog extends React.Component {
                                             </button>
                                         </td>
                                         <td></td>
-                                        <td>
-                                            <button style={{ backgroundColor: '#dbe8ff' }} id="zP" type="button" data-title="Jog Z+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '+') }}>
-                                                <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
-                                                    <strong className="fa-stack-1x icon-top-text">Z+</strong>
-                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                                </span>
-                                            </button>
-                                        </td>
+                                        {machineAEnabled && (
+                                            <td>
+                                                <button style={{ backgroundColor: '#fffbcf' }} id="aP" type="button" data-title="Jog A+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('A', '+') }}>
+                                                    <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
+                                                        <strong className="fa-stack-1x icon-top-text">A+</strong>
+                                                        <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {machineZEnabled && (
+                                            <td>
+                                                <button style={{ backgroundColor: '#dbe8ff' }} id="zP" type="button" data-title="Jog Z+" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '+') }}>
+                                                    <span className="fa-stack fa-1x"><i className="fa fa-arrow-up fa-stack-1x"></i>
+                                                        <strong className="fa-stack-1x icon-top-text">Z+</strong>
+                                                        <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {!machineZEnabled && (
+                                            <td></td>
+                                        )}
                                     </tr>
                                     <tr>
                                         <td>
@@ -583,15 +651,31 @@ class Jog extends React.Component {
                                         <td>
                                             <div style={{ width: '8px' }}></div>
                                         </td>
-                                        <td>
-                                            <button style={{ backgroundColor: '#dbe8ff' }} id="zM" type="button" data-title="Jog Z-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '-') }}>
-                                                <span className="fa-stack fa-1x">
-                                                    <i className="fa fa-arrow-down fa-stack-1x"></i>
-                                                    <strong className="fa-stack-1x icon-top-text">Z-</strong>
-                                                    <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
-                                                </span>
-                                            </button>
-                                        </td>
+                                        {machineAEnabled && (
+                                            <td>
+                                                <button style={{ backgroundColor: '#fffbcf' }} id="aM" type="button" data-title="Jog A-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('A', '-') }}>
+                                                    <span className="fa-stack fa-1x">
+                                                        <i className="fa fa-arrow-down fa-stack-1x"></i>
+                                                        <strong className="fa-stack-1x icon-top-text">A-</strong>
+                                                        <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {machineZEnabled && (
+                                            <td>
+                                                <button style={{ backgroundColor: '#dbe8ff' }} id="zM" type="button" data-title="Jog Z-" className="btn btn-ctl btn-default" onClick={(e) => { this.jog('Z', '-') }}>
+                                                    <span className="fa-stack fa-1x">
+                                                        <i className="fa fa-arrow-down fa-stack-1x"></i>
+                                                        <strong className="fa-stack-1x icon-top-text">Z-</strong>
+                                                        <strong className="fa-stack-1x stepsizeval icon-bot-text">{this.state.jogStepsize}mm</strong>
+                                                    </span>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {!machineZEnabled && (
+                                            <td></td>
+                                        )}
                                     </tr>
                                     <tr>
                                         <td colSpan="5">

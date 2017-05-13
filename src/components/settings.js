@@ -241,6 +241,8 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
                         <hr />
+                        <ToggleField {... { object: this.props.settings, field: 'machineAEnabled', setAttrs: setSettingsAttrs, description: 'Machine A stage' }} />
+                        <hr />
                         <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist' }} />
                         <Collapse in={this.props.settings.machineBlowerEnabled}>
                             <div>
