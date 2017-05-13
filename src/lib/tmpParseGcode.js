@@ -1,4 +1,4 @@
-// Copyright 2014, 2016 Todd Fleming
+// Copyright 2014, 2016, 2017 Todd Fleming
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,7 @@
 
 export function parseGcode(gcode) {
     let path = [];
-    let lastG = NaN, lastX = NaN, lastY = NaN, lastZ = NaN, lastF = NaN, lastS = 0, lastT = 0;
+    let lastG = NaN, lastX = NaN, lastY = NaN, lastZ = NaN, lastA = NaN, lastF = NaN, lastS = 0, lastT = 0;
     let stride = 9;
     let i = 0;
     while (i < gcode.length) {
@@ -30,7 +30,7 @@ export function parseGcode(gcode) {
                 ++i;
             return Number(gcode.substr(begin, i - begin));
         }
-        let g = NaN, x = NaN, y = NaN, z = NaN, f = NaN;
+        let g = NaN, x = NaN, y = NaN, z = NaN, a = NaN, f = NaN;
         while (i < gcode.length && gcode[i] != ';' && gcode[i] != '\r' && gcode[i] != '\n') {
             if (gcode[i] == 'G' || gcode[i] == 'g')
                 g = parse();
@@ -40,6 +40,8 @@ export function parseGcode(gcode) {
                 y = parse();
             else if (gcode[i] == 'Z' || gcode[i] == 'z')
                 z = parse();
+            else if (gcode[i] == 'A' || gcode[i] == 'a')
+                a = parse();
             else if (gcode[i] == 'F' || gcode[i] == 'f')
                 f = parse();
             else if (gcode[i] == 'S' || gcode[i] == 's')
@@ -49,7 +51,7 @@ export function parseGcode(gcode) {
             else
                 ++i;
         }
-        if (g === 0 || g === 1 || !isNaN(x) || !isNaN(y) || !isNaN(z)) {
+        if (g === 0 || g === 1 || !isNaN(x) || !isNaN(y) || !isNaN(z) || !isNaN(a)) {
             if (g === 0 || g === 1)
                 lastG = g;
             if (!isNaN(x)) {
@@ -70,6 +72,12 @@ export function parseGcode(gcode) {
                         path[j] = z;
                 lastZ = z;
             }
+            if (!isNaN(a)) {
+                if (isNaN(lastA))
+                    for (let j = 6; j < path.length; j += stride)
+                        path[j] = a;
+                lastA = a;
+            }
             if (!isNaN(f)) {
                 if (isNaN(lastF))
                     for (let j = 4; j < path.length; j += stride)
@@ -83,7 +91,7 @@ export function parseGcode(gcode) {
                 path.push(lastZ);
                 path.push(0); // E
                 path.push(lastF);
-                path.push(0); // A
+                path.push(lastA);
                 path.push(lastS);
                 path.push(lastT);
             }
@@ -106,6 +114,9 @@ export function parseGcode(gcode) {
     if (isNaN(lastF))
         for (let j = 4; j < path.length; j += stride)
             path[j] = 1000;
+    if (isNaN(lastA))
+        for (let j = 6; j < path.length; j += stride)
+            path[j] = 0;
 
     return path;
 }
