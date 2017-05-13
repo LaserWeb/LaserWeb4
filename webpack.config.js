@@ -23,15 +23,13 @@ module.exports = {
                 exclude: /node_modules/,
                 loader: 'babel',
                 query: {
-                    presets: ['react','es2015'],
+                    presets: ['react',["env", { "targets": { "browsers": ["last 2 versions"]}}]],
                     plugins: [
+                        'transform-object-rest-spread',
                         "transform-decorators-legacy", 
                         "transform-decorators",
-                        'transform-es2015-destructuring',
-                        'transform-es2015-parameters',
-                        'transform-object-rest-spread',
-                        'transform-es2015-modules-commonjs',
-                        'react-hot-loader/babel']
+                        'react-hot-loader/babel'
+                    ]
                 }
             },
             {
