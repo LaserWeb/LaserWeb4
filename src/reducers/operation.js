@@ -39,7 +39,6 @@ export const OPERATION_INITIALSTATE={
     overScan: 0,
     toolAngle: 0,
     useA: false,
-    aAxisStepsPerTurn: 0,
     aAxisDiameter: 0,
     useBlower: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
