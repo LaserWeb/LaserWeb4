@@ -80,7 +80,7 @@ export function getLaserCutGcode(props) {
     let gcode = '';
     if (useA)
         gcode += 'M92 A' + (aAxisStepsPerTurn / Math.PI / aAxisDiameter).toFixed(decimal) + '; ' + aAxisStepsPerTurn + ' steps per turn, ' + aAxisDiameter + 'mm diameter';
-    
+
     for (let pass = 0; pass < passes; ++pass) {
 
         if (hookPassStart) gcode += hookPassStart;
@@ -92,8 +92,8 @@ export function getLaserCutGcode(props) {
                 gcode += `\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
             }
         }
-        
-        let usedZposition=false;
+
+        let usedZposition = false;
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
             let path = paths[pathIndex].path;
             if (path.length === 0)
@@ -229,7 +229,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
 
-    if (op.hookOperationStart.length) gcode+=op.hookOperationStart;
+    if (op.hookOperationStart.length) gcode += op.hookOperationStart;
 
     gcode += getLaserCutGcode({
         paths: camPaths,
@@ -261,7 +261,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         hookPassEnd: op.hookPassEnd,
     });
 
-    if (op.hookOperationEnd.length) gcode+=op.hookOperationEnd;
+    if (op.hookOperationEnd.length) gcode += op.hookOperationEnd;
 
     done(gcode)
 
