@@ -1,9 +1,9 @@
-# LaserWeb (0.4.0-alpha)
+# LaserWeb (4.0.x)
 
 This repository is a "development environment" - and no regular user would have to touch this at all (dont download the repo from here, use the Download links below)
 
 ## Download
-BETA testing releases are made available daily on https://github.com/LaserWeb/LaserWeb4-Binaries/
+Releases are made available (almost) daily on https://github.com/LaserWeb/LaserWeb4-Binaries/
 
 ## Documentation
 For more documentation, go to [CNCpro.co](http://cncpro.co)
@@ -13,49 +13,30 @@ Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/commun
 
 Other than that, this version is early, so check the [Issues tab](https://github.com/openhardwarecoza/LaserWeb4/issues) for "details".
 
+## Supported firmwares
+
+Note: Ever changing. See the Issues tab above for details.
+
+| Firmware      | Supported  | Raster Performance  | CNC Support  |Pull Requests Accepted             |
+| ------------- |------------| :------------------:|:------------:|:---------------------------------:|
+| Grbl (>1.1d)  | Yes        | Great               |   Great      | Yes - improvements                |
+| Smoothieware  | Yes *      | Okayish             |   Okayish    | Yes - improvements to performance |
+| TinyG         | Yes        | Unknown (help test) |   Good       | Yes - improvements                |
+| Marlin        | Not yet    | Unknown             |   No         | Yes - please                      | 
+| Repetier      | Not yet    | Unknown             |   No         | Yes - please                      |
+
+* If you have a Smoothieware based controller, but performance on Raster is choking you with stuttering moves:  This is a known issue.  We recommend switching to https://github.com/gnea/grbl-LPC which runs on the LPC1769 based boards for now, as this performs much faster for laser applications. Want to help fix the Smoothieware stuttering issue: Contact @openhardwarecoza and I'll give you details on the testing regiment we need to provide to the Smoothieware team to prove the point
+
+## Wishlist
+
+If you want to contribute, the below are long standing community-requested enhancements, that a) we don't have time to code or b) need extra skills
+
+* GCODE Optimiser - to cut down on G0 moves (something like http://parano.github.io/GeneticAlgorithm-TSP/)
+* More Controllers! Help us implement more firmwares (improve Tiny, add Marlin/Repetier, etc)
+* WebGL Transformation Filters to use Webcam to setup stock
+* Automate Electron Builds for all platforms
 
 ## How to contribute ?
-Same as Smoothieware [github guidline](http://smoothieware.org/github) :
 
-1. Fork the original repositiory.
-2. Clone the forked repository.
-3. Create a new branch for your bugfix/feature.
-4. Commit your changes and push it back on Github.
-5. Submit your pull request (Only one feature per pull request).
+Details on [https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute](https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute)
 
-# Developer Resources of interest:
-
-The package list changes frequently; expect to do an **npm install** every time you do a git pull until things settle down.
-
-## LaserWeb Development Environment
-
-```
--------------------------------------------------------------
- * npm install          -  Install the development environment.
- * npm start            -  Start the live development server.
- * npm run bundle-dev   -  Bundle the project for development.
- * npm run bundle-prod  -  Bundle the project for production.
- * npm run build-docs   -  Build the sources documentations.
- * npm run installdev   -  Resolve git submodules and install.
- 
--------------------------------------------------------------
-```
-
-## ssh keypair
-
-You need an ssh keypair tied to your GitHub account to build. Your keypair is missing if you see this error:
-
-```
-Permission denied (publickey).
-fatal: Could not read from remote repository.
-```
-
-See https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
-
-## Push update to live gh-pages version
-
-Once tested, push updates to Github Pages
-
-```
-git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6
-```

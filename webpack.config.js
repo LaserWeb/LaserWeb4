@@ -7,6 +7,8 @@ var dist_path = path.resolve('./dist');
 module.exports = {
     context: src_path,
     entry: [
+        'webpack-dev-server/client?http://0.0.0.0:8080',
+        'webpack/hot/only-dev-server',
         'babel-polyfill',
         './index.js'
     ],
@@ -19,14 +21,15 @@ module.exports = {
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                loader: 'babel-loader',
+                loader: 'babel',
                 query: {
-                    presets: ['react'],
+                    presets: ['react',["env", { "targets": { "browsers": ["last 2 versions"]}}]],
                     plugins: [
-                        'transform-es2015-destructuring',
-                        'transform-es2015-parameters',
                         'transform-object-rest-spread',
-                        'transform-es2015-modules-commonjs']
+                        "transform-decorators-legacy", 
+                        "transform-decorators",
+                        'react-hot-loader/babel'
+                    ]
                 }
             },
             {

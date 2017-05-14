@@ -121,7 +121,7 @@ export class LaserPreview {
                 let z1 = parsed[i * parsedStride + 3];
                 // e
                 // f
-                // a
+                let a1 = parsed[i * parsedStride + 6];
                 // s
                 // t
 
@@ -131,9 +131,12 @@ export class LaserPreview {
                 let z2 = parsed[i * parsedStride + 12];
                 // e
                 let f = parsed[i * parsedStride + 14];
-                // a
+                let a2 = parsed[i * parsedStride + 15];
                 let s = parsed[i * parsedStride + 16];
                 // t
+
+                y1 += a1;
+                y2 += a2;
 
                 let g0Dist0 = g0Dist;
                 let g1Time0 = g1Time;
