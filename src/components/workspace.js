@@ -68,6 +68,25 @@ const MAJOR_GRID_SPACING = 50;
 const MINOR_GRID_SPACING = 10;
 const CROSSHAIR = 5
 
+class LightenMachineBounds {
+    draw(drawCommands, { perspective, view, x, y, width, height }) {
+        if (!this.triangles || this.x !== x || this.y !== y || this.width !== width || this.height !== height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            let x2 = x + width;
+            let y2 = y + height;
+            let a = [
+                x, y, x2, y2, x, y2,
+                x, y, x2, y, x2, y2,
+            ];
+            this.triangles = new Float32Array(a);
+        }
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+    }
+};
+
 class Grid {
     draw(drawCommands, { perspective, view, width, height, spacing = MAJOR_GRID_SPACING }) {
         if (!this.maingrid || !this.origin || this.width !== width || this.height !== height) {
@@ -495,6 +514,7 @@ function drawWorkPos(perspective, view, drawCommands, workPos) {
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.pointers = [];
+        this.lightenMachineBounds = new LightenMachineBounds();
         this.grid = new Grid();
         this.machineBounds = new MachineBounds();
         this.setCanvas = this.setCanvas.bind(this);
@@ -531,12 +551,15 @@ class WorkspaceContent extends React.Component {
             if (!this.canvas)
                 return;
             gl.viewport(0, 0, this.props.width, this.props.height);
-            gl.clearColor(1, 1, 1, 1);
-            gl.clearDepth(1);
+            gl.clearColor(.8, .8, .8, 1);
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
+            this.lightenMachineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: this.props.settings.machineOriginX, y: this.props.settings.machineOriginY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+            });
+            gl.clearDepth(1);
 
             this.grid.draw(this.drawCommands, {
                 perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
