@@ -556,6 +556,7 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
+            gl.clearDepth(1);
             this.lightenMachineBounds.draw(this.drawCommands, {
                 perspective: this.camera.perspective, view: this.camera.view, x: this.props.settings.machineOriginX, y: this.props.settings.machineOriginY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
