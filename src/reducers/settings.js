@@ -21,6 +21,8 @@ export const SETTINGS_VALIDATION_RULES = {
 
     machineAEnabled: 'boolean',
 
+    toolGridWidth: 'numeric|min:100',
+    toolGridHeight: 'numeric|min:100',
     toolImagePosition: 'in:TL,TR,C,BL,BR',
 
     jogFeedXY: 'numeric|min:0',
@@ -74,6 +76,8 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     dpiBitmap: 300,
 
+    toolGridWidth: 500,
+    toolGridHeight: 500,
     toolSafetyLockDisabled: true,
     toolCncMode: false,
     toolImagePosition: "BL",
