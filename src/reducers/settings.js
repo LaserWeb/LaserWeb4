@@ -52,8 +52,8 @@ export const SETTINGS_INITIALSTATE = {
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
-    machineOriginX: 0,
-    machineOriginY: 0,
+    machineBottomLeftX: 0,
+    machineBottomLeftY: 0,
 
     machineFeedRange: {
         XY: {min: 1, max:50000},

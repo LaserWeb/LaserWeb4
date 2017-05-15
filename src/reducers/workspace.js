@@ -10,7 +10,9 @@ export const WORKSPACE_INITIALSTATE = {
     showLaser: true,
     showDocuments: true,
     showWorkPos: true,
-    showWebcam: false
+    showWebcam: false,
+    workOffsetX: 0,
+    workOffsetY: 0,
 }
 
 export const workspace = objectNoId('workspace', WORKSPACE_INITIALSTATE);

@@ -556,9 +556,12 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
+            let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+            let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+
             gl.clearDepth(1);
             this.lightenMachineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: this.props.settings.machineOriginX, y: this.props.settings.machineOriginY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
             gl.clearDepth(1);
 
@@ -566,7 +569,7 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
             });
             this.machineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: this.props.settings.machineOriginX, y: this.props.settings.machineOriginY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
@@ -830,7 +833,6 @@ class WorkspaceContent extends React.Component {
             nextProps.width !== this.props.width ||
             nextProps.height !== this.props.height ||
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
-            nextProps.settings.machineOriginX !== this.props.settings.machineOriginX || nextProps.settings.machineOriginY !== this.props.settings.machineOriginY ||
             nextProps.settings.toolGridWidth !== this.props.settings.toolGridWidth || nextProps.settings.toolGridHeight !== this.props.settings.toolGridHeight ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||

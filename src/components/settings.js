@@ -229,8 +229,8 @@ class Settings extends React.Component {
                         <hr />
                         <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
                         <hr />
-                        <NumberField {...{ object: this.props.settings, field: 'machineOriginX', setAttrs: setSettingsAttrs, description: 'Machine Origin X', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'machineOriginY', setAttrs: setSettingsAttrs, description: 'Machine Origin Y', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
 
                         <hr />
                         <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage' }} />
