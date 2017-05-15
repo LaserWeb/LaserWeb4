@@ -5,6 +5,7 @@ import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, Co
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
 import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
+import { setComAttrs } from '../actions/com';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { setGcode } from '../actions/gcode';
 import CommandHistory from './command-history';
@@ -23,7 +24,7 @@ var paused = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
-var xpos, ypos, zpos;
+var xpos, ypos, zpos, apos;
 
 class Com extends React.Component {
 
@@ -52,7 +53,7 @@ class Com extends React.Component {
             }
         }
     }
-    
+
     handleConnectServer() {
         let that = this;
         let {settings, dispatch} = this.props;
@@ -206,6 +207,7 @@ class Com extends React.Component {
             firmware = data.firmware;
             fVersion = data.version;
             fDate = data.date;
+            dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (fVersion < '1.1e') {
                 CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
@@ -268,7 +270,7 @@ class Com extends React.Component {
         socket.on('wPos', function (wpos) {
             serverConnected = true;
             machineConnected = true;
-            let {x, y, z} = wpos; //var pos = wpos.split(',');
+            let {x, y, z, a} = wpos; //var pos = wpos.split(',');
             let posChanged = false;
             if (xpos !== x) {
                 xpos = x;
@@ -282,12 +284,17 @@ class Com extends React.Component {
                 zpos = z;
                 posChanged = true;
             }
+            if (apos !== a) {
+                apos = a;
+                posChanged = true;
+            }
             if (posChanged) {
                 //CommandHistory.write('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 $('#mX').html(xpos);
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
+                $('#mA').html(apos);
                 dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
             }
         });
@@ -419,7 +426,7 @@ class Com extends React.Component {
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
-                } 
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
@@ -427,7 +434,7 @@ class Com extends React.Component {
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
-                } 
+                }
                 CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP);
                 break;
@@ -820,7 +827,7 @@ export function playpauseMachine() {
 }
 
 Com = connect(
-    state => ({ settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
+    state => ({ com: state.com, settings: state.settings, comInterfaces: state.comInterfaces, comPorts: state.comPorts, documents: state.documents, gcode: state.gcode.content })
 )(Com);
 
 export default Com

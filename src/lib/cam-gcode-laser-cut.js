@@ -33,7 +33,7 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      gcodeSMaxValue: Max S value
 export function getLaserCutGcode(props) {
     let { paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
-        useA, aAxisStepsPerTurn, aAxisDiameter,
+        useA, aAxisDiameter,
         tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue,
         useZ, useBlower,
         hookPassStart, hookPassEnd
@@ -45,29 +45,34 @@ export function getLaserCutGcode(props) {
         gcodeToolOff += '\r\n';
     let laserOnS = 'S' + (gcodeSMaxValue * laserPower / 100).toFixed(decimal);
 
-    let lastX = 0, lastY = 0;
+    let lastX = 0, lastY = 0, lastA = 0;
     function convertPoint(p, rapid) {
         let x = p.X * scale + offsetX;
         let y = p.Y * scale + offsetY;
         if (useA) {
-            let roundedX = Number(x.toFixed(decimal)), roundedY = Number(y.toFixed(decimal));
+            let a = y * 360 / aAxisDiameter / Math.PI;
+            let roundedX = Number(x.toFixed(decimal));
+            let roundedA = Number(a.toFixed(decimal));
+            let adjustedY = roundedA * aAxisDiameter * Math.PI / 360;
             if (rapid) {
                 lastX = roundedX;
-                lastY = roundedY;
-                return 'G0 X' + x.toFixed(decimal) + ' A' + y.toFixed(decimal);
+                lastY = adjustedY;
+                lastA = roundedA;
+                return 'G0 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal);
             } else {
-                let dx = roundedX - lastX, dy = roundedY - lastY;
+                let dx = roundedX - lastX, dy = adjustedY - lastY, da = roundedA - lastA;
                 let travelTime = Math.sqrt(dx * dx + dy * dy) / cutFeed;
                 let f = 0;
                 if (dx)
                     f = Math.abs(dx) / travelTime;
-                else if (dy)
-                    f = Math.abs(dy) / travelTime;
+                else if (da)
+                    f = Math.abs(da) / travelTime;
                 else
                     return '';
                 lastX = roundedX;
-                lastY = roundedY;
-                return 'G1 X' + x.toFixed(decimal) + ' A' + y.toFixed(decimal) + ' F' + f.toFixed(decimal);
+                lastY = adjustedY;
+                lastA = roundedA;
+                return 'G1 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal) + ' F' + f.toFixed(decimal);
             }
         } else {
             if (rapid)
@@ -78,9 +83,7 @@ export function getLaserCutGcode(props) {
     }
 
     let gcode = '';
-    if (useA)
-        gcode += 'M92 A' + (aAxisStepsPerTurn / Math.PI / aAxisDiameter).toFixed(decimal) + '; ' + aAxisStepsPerTurn + ' steps per turn, ' + aAxisDiameter + 'mm diameter';
-    
+
     for (let pass = 0; pass < passes; ++pass) {
 
         if (hookPassStart) gcode += hookPassStart;
@@ -92,12 +95,8 @@ export function getLaserCutGcode(props) {
                 gcode += `\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
             }
         }
-        if (useZ) {
-            let zHeight = useZ.startZ + useZ.offsetZ - (useZ.passDepth * pass);
-            gcode += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
-            gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n';
-        }
 
+        let usedZposition = false;
         for (let pathIndex = 0; pathIndex < paths.length; ++pathIndex) {
             let path = paths[pathIndex].path;
             if (path.length === 0)
@@ -114,6 +113,14 @@ export function getLaserCutGcode(props) {
                     continue;
                 }
                 gcode += convertPoint(selectedPath[0], true) + '\r\n';
+
+                if (useZ && !usedZposition) {
+                    usedZposition = true;
+                    let zHeight = useZ.startZ + useZ.offsetZ - (useZ.passDepth * pass);
+                    gcode += `; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
+                    gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n\r\n';
+                }
+
                 gcode += gcodeToolOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
                     gcode += convertPoint(selectedPath[i], false);
@@ -172,10 +179,6 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         ok = false;
     }
     if (op.useA) {
-        if (op.aAxisStepsPerTurn <= 0) {
-            showAlert("A axis resolution must be greater than 0", "danger");
-            ok = false;
-        }
         if (op.aAxisDiameter <= 0) {
             showAlert("A axis diameter must be greater than 0", "danger");
             ok = false;
@@ -225,7 +228,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
 
-    if (op.hookOperationStart.length) gcode+=op.hookOperationStart;
+    if (op.hookOperationStart.length) gcode += op.hookOperationStart;
 
     gcode += getLaserCutGcode({
         paths: camPaths,
@@ -246,7 +249,6 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
             blowerOn: settings.machineBlowerGcodeOn,
             blowerOff: settings.machineBlowerGcodeOff,
         } : false,
-        aAxisStepsPerTurn: op.aAxisStepsPerTurn,
         aAxisDiameter: op.aAxisDiameter,
         tabGeometry: tabGeometry,
         gcodeToolOn: settings.gcodeToolOn,
@@ -257,7 +259,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         hookPassEnd: op.hookPassEnd,
     });
 
-    if (op.hookOperationEnd.length) gcode+=op.hookOperationEnd;
+    if (op.hookOperationEnd.length) gcode += op.hookOperationEnd;
 
     done(gcode)
 

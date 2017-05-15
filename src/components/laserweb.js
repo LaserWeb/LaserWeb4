@@ -113,9 +113,15 @@ class LaserWeb extends React.Component {
                 this.props.handleUndo(e);
             }.bind(this));
 
-            Object.entries(this.props.macros).map(entry=>entry[1].keybinding).forEach((key)=>{
-                window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
-            });
+            Object.entries(this.props.macros).filter(entry=>{
+                    let [label, macro] = entry;
+                    return macro.keybinding && macro.keybinding.length
+                }).map(entry=>{
+                    let [label, macro] = entry;
+                    return macro.keybinding
+                }).forEach((key)=>{
+                    window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
+                });
             
         }
 
@@ -156,7 +162,7 @@ class LaserWeb extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        macros: state.macros,
+        macros: state.settings.macros,
         visible: state.panes.visible,
         documents: state.documents,
         settings: state.settings,

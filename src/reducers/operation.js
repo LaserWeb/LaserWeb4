@@ -26,6 +26,7 @@ export const OPERATION_INITIALSTATE={
     margin: 0,
     passes: 1,
     cutWidth: 0,
+    toolSpeed: 0,
     stepOver: 40,
     passDepth: 0,
     startHeight: '',
@@ -38,7 +39,6 @@ export const OPERATION_INITIALSTATE={
     overScan: 0,
     toolAngle: 0,
     useA: false,
-    aAxisStepsPerTurn: 0,
     aAxisDiameter: 0,
     useBlower: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
@@ -105,6 +105,9 @@ export const operations = (state, action) => {
         case 'OPERATION_ADD':
             state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
             break;
+        case 'WORKSPACE_RESET':
+        case 'OPERATION_CLEAR_ALL':
+            state = [];
     }
     return state;
 }
@@ -116,6 +119,8 @@ export function currentOperation(state = '', action) {
         return action.payload.attrs.id;
     else if (action.type === 'OPERATION_SET_ATTRS' || action.type === 'OPERATION_ADD_DOCUMENTS')
         return action.payload.id;
+    else if (action.type === 'WORKSPACE_RESET')
+        return '';
     else
         return state;
 }

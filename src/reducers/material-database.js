@@ -200,7 +200,7 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
         case actionTypes.INIT:
             if (action.payload) {
                 let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { return { ...vendor, _locked: true } });
-                return Object.assign(action.payload.materialDatabase, lockedState);
+                return Object.assign(action.payload.materialDatabase || {}, lockedState);
             }
             return state;
 

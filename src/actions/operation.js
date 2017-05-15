@@ -21,3 +21,8 @@ export function setCurrentOperation(id) {
 export function moveOperation(id, step) {
     return { type: 'OPERATION_MOVE_CURRENT', payload: { id, step } };
 }
+
+export function clearOperations()
+{
+    return { type: 'OPERATION_CLEAR_ALL' };
+}

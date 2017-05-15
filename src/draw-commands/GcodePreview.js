@@ -104,7 +104,7 @@ export class GcodePreview {
                 let z1 = parsed[i * parsedStride + 3];
                 // e
                 // f
-                // a
+                let a1 = parsed[i * parsedStride + 6];
                 // s
                 // t
 
@@ -114,9 +114,12 @@ export class GcodePreview {
                 let z2 = parsed[i * parsedStride + 12];
                 // e
                 let f = parsed[i * parsedStride + 14];
-                // a
+                let a2 = parsed[i * parsedStride + 15];
                 // s
                 let t = parsed[i * parsedStride + 8];
+
+                y1 += a1;
+                y2 += a2;
 
                 array[i * drawStride * 2 + 0] = g;
                 array[i * drawStride * 2 + 1] = x1;

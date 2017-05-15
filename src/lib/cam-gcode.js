@@ -22,8 +22,11 @@ import { GlobalStore } from '../index'
 
 import queue from 'queue';
 
+import hhmmss from 'hhmmss';
+
 export const expandHookGCode = (operation) =>{
-    let macros = GlobalStore().getState().macros;
+    let state = GlobalStore().getState(); 
+    let macros = state.settings.macros || {};
     let op=Object.assign({},operation)
     let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
         hooks.forEach(hook => {
@@ -43,11 +46,13 @@ export const expandHookGCode = (operation) =>{
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert, done, progress) {
     "use strict";
 
+    let starttime=new Date().getTime()
+
     const QE = new queue();
     QE.timeout = 3600 * 1000;
-    QE.concurrency = 1;
+    QE.concurrency = 5;
 
-    const gcode = [];
+    const gcode = Array(operations.length+1);
     const workers = [];
     let jobIndex = 0;
 
@@ -55,7 +60,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         let op = expandHookGCode(operations[opIndex]);
 
         const jobDone = (g, cb) => { 
-            if (g !== false) { gcode.push(g); cb(); } 
+            if (g !== false) { gcode[opIndex]=g; cb(); } 
         }
 
         let invokeWebWorker = (ww, props, cb, jobIndex) => {
@@ -167,6 +172,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
+        let ellapsed=(new Date().getTime()-starttime)/1000;
+        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(ellapsed-Math.floor(ellapsed)).substr(1),"info");
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 

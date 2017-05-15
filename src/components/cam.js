@@ -21,6 +21,7 @@ import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { setGcode, generatingGcode } from '../actions/gcode';
+import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
 import { GetBounds, withGetBounds } from './get-bounds.js';
@@ -135,7 +136,9 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm">
+                                          <Button bsSize="xsmall" bsStyle="warning" onClick={e=>this.props.resetWorkspace(e)}>Reset <Icon name="trash"/></Button>
+                                      </ApplicationSnapshotToolbar>
                                     </td>
                                 </tr>
                             </tbody>
@@ -247,6 +250,9 @@ Cam = connect(
         clearGcode: () => {
             dispatch(setGcode(""))
         },
+        resetWorkspace: () => {
+            confirm("Are you sure?",()=>{dispatch(resetWorkspace());})
+        },
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
             for (let file of e.target.files) {
@@ -255,6 +261,7 @@ Cam = connect(
                     reader.onload = () => {
                         const release = captureConsole()
 
+                        console.log('loadDocument: construct Parser');
                         let parser = new Parser({});
                             parser.parse(reader.result)
                                 .then((tags) => {
@@ -264,11 +271,14 @@ Cam = connect(
                                     if (captures.filter(i => i.method=='error').length)
                                         CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
 
+                                    console.log('loadDocument: imageTagPromise');
                                     imageTagPromise(tags).then((tags)=>{
+                                        console.log('loadDocument: dispatch');
                                         dispatch(loadDocument(file, { parser, tags }, modifiers));
                                     })
                                 })
                             .catch((e) => {
+                                    console.log('loadDocument: catch:', e);
                                     release(true);
                                     CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
                                     CommandHistory.error(String(e))
@@ -276,6 +286,7 @@ Cam = connect(
                             })
 
                     }
+                    console.log('loadDocument: readAsText');
                     reader.readAsText(file);
                 }
                 else if (file.name.substr(-4).toLowerCase() === '.dxf') {

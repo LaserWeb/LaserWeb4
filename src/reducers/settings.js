@@ -2,6 +2,7 @@ import { objectNoId } from '../reducers/object'
 import Validator from 'validatorjs';
 import { GlobalStore } from '../index';
 import { actionTypes } from 'redux-localstorage'
+import { macros, MACROS_INITIALSTATE } from './macros'
 
 export const version = require("../../package.json").version;
 
@@ -18,6 +19,10 @@ export const SETTINGS_VALIDATION_RULES = {
     machineBlowerEnabled: 'boolean',
     machineZToolOffset: 'numeric',
 
+    machineAEnabled: 'boolean',
+
+    toolGridWidth: 'numeric|min:100',
+    toolGridHeight: 'numeric|min:100',
     toolImagePosition: 'in:TL,TR,C,BL,BR',
 
     jogFeedXY: 'numeric|min:0',
@@ -50,10 +55,19 @@ export const SETTINGS_INITIALSTATE = {
     machineOriginX: 0,
     machineOriginY: 0,
 
+    machineFeedRange: {
+        XY: {min: 1, max:50000},
+        Z: {min: 1, max:50000},
+        A: {min: 1, max:50000},
+        S: {min: 0, max:30000},
+    },
+
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+
+    machineAEnabled: false,
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',
@@ -62,6 +76,8 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     dpiBitmap: 300,
 
+    toolGridWidth: 500,
+    toolGridHeight: 500,
     toolSafetyLockDisabled: true,
     toolCncMode: false,
     toolImagePosition: "BL",
@@ -102,10 +118,13 @@ export const SETTINGS_INITIALSTATE = {
     jogFeedXY: 1800,
     jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
+
+    macros: MACROS_INITIALSTATE
 }
 
 export const settings = (state, action) => {
     state = objectNoId('settings', SETTINGS_INITIALSTATE)(state, action);
+    Object.assign(state, { macros: macros(state.macros||{}, action)});
     switch (action.type) {
         case actionTypes.INIT:
             state = Object.assign({}, state, { __version: version })
