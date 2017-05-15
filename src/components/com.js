@@ -25,6 +25,7 @@ var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
 var xpos, ypos, zpos, apos;
+var xOffset, yOffset, zOffset, aOffset;
 
 class Com extends React.Component {
 
@@ -296,6 +297,35 @@ class Com extends React.Component {
                 $('#mZ').html(zpos);
                 $('#mA').html(apos);
                 dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+            }
+        });
+
+        socket.on('wOffset', function (wOffset) {
+            serverConnected = true;
+            machineConnected = true;
+            let {x, y, z, a} = wOffset;
+            let posChanged = false;
+            if (xOffset !== x) {
+                xOffset = x;
+                posChanged = true;
+            }
+            if (yOffset !== y) {
+                yOffset = y;
+                posChanged = true;
+            }
+            if (zOffset !== z) {
+                zOffset = z;
+                posChanged = true;
+            }
+            if (aOffset !== a) {
+                aOffset = a;
+                posChanged = true;
+            }
+            if (posChanged) {
+                CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
+                //console.log('WOffset: ' + xpos + ' / ' + ypos + ' / ' + zpos);
+                dispatch(setSettingsAttrs({ machineOriginX: -xOffset, machineOriginY: -yOffset }));
+                //dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
             }
         });
 
