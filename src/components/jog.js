@@ -216,10 +216,10 @@ class Jog extends React.Component {
         let feedrate = $('#jogfeedxy').val() * 60;
         let gcode = this.props.gcode;
         
-        let linemoves = gcode.split(/g[13]/i);
+        //let linemoves = gcode.split(/g[13]/i);
         
         let xArray = gcode.split(/x/i);
-        alert(xArray.toString());
+        //alert(xArray.toString());
         let xMin = 0;
         let xMax = 0;
         for (let i = 0; i < xArray.length; i++) {
