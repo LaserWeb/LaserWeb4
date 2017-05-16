@@ -47,9 +47,10 @@ import { VideoPort } from './webcam'
 
 import { LiveJogging } from './jog'
 
-function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
+function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
+    view = mat4.translate([], view, [-machineX, -machineY, 0]);
     if (showPerspective)
         perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
     else {
@@ -610,6 +611,8 @@ class WorkspaceContent extends React.Component {
                 center: props.camera.center,
                 up: props.camera.up,
                 showPerspective: props.camera.showPerspective,
+                machineX: props.settings.machineBottomLeftX - props.workspace.workOffsetX,
+                machineY: props.settings.machineBottomLeftY - props.workspace.workOffsetY,
             });
     }
 
@@ -800,6 +803,8 @@ class WorkspaceContent extends React.Component {
                         center: [0, 0, 0],
                         up: [0, 1, 0],
                         showPerspective: false,
+                        machineX: this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX,
+                        machineY: this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY,
                     }).view;
                     let scale = 2 * window.devicePixelRatio / this.props.width / view[0];
                     dx *= scale;
@@ -833,7 +838,9 @@ class WorkspaceContent extends React.Component {
             nextProps.width !== this.props.width ||
             nextProps.height !== this.props.height ||
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
+            nextProps.settings.machineBottomLeftX !== this.props.settings.machineBottomLeftX || nextProps.settings.machineBottomLeftY !== this.props.settings.machineBottomLeftY ||
             nextProps.settings.toolGridWidth !== this.props.settings.toolGridWidth || nextProps.settings.toolGridHeight !== this.props.settings.toolGridHeight ||
+            nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
             nextProps.mode !== this.props.mode
