@@ -296,7 +296,7 @@ class Com extends React.Component {
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
                 $('#mA').html(apos);
-                dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+                dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
             }
         });
 
@@ -325,7 +325,7 @@ class Com extends React.Component {
                 CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
                 //console.log('WOffset: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 dispatch(setWorkspaceAttrs({ workOffsetX: xOffset, workOffsetY: yOffset }));
-                //dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+                //dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
             }
         });
 

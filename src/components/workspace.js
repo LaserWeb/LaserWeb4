@@ -478,7 +478,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
     }
 }
 
-function initWorkPosMarker() {
+function initCursor() {
     let numSides = 10;
     let a = [];
     for (let i = 0; i < numSides; ++i)
@@ -493,21 +493,21 @@ function initWorkPosMarker() {
         );
     return new Float32Array(a);
 }
-const workPosMarker = initWorkPosMarker();
+const cursor = initCursor();
 
-function drawWorkPos(perspective, view, drawCommands, workPos) {
+function drawCursor(perspective, view, drawCommands, cursorPos) {
     let height = 40;
     let diameter = 20;
     drawCommands.basic({
         perspective,
         view,
         scale: new Float32Array([diameter, diameter, height]),
-        translate: new Float32Array(workPos),
+        translate: new Float32Array(cursorPos),
         color: new Float32Array([0, 0, 1, .5]),
         primitive: drawCommands.gl.TRIANGLES,
-        position: workPosMarker,
+        position: cursor,
         offset: 0,
-        count: workPosMarker.length / 3,
+        count: cursor.length / 3,
     });
 }
 
@@ -586,8 +586,8 @@ class WorkspaceContent extends React.Component {
                     this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
             if (this.props.workspace.showDocuments)
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
-            if (this.props.workspace.showWorkPos)
-                drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
+            if (this.props.workspace.showCursor)
+                drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
 
             requestAnimationFrame(draw);
         };
