@@ -684,8 +684,10 @@ class WorkspaceContent extends React.Component {
 
         if (LiveJogging.isEnabled() && this.liveJoggingKey && this.jogMode) {
             let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
-            jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
-            jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+            let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+            jogX = Math.floor(clamp(jogX, machineX, this.props.settings.machineWidth))
+            jogY = Math.floor(clamp(jogY, machineY, this.props.settings.machineHeight))
             let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
             CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
             return jogTo(jogX, jogY, undefined, 0, jogF)

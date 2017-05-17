@@ -426,6 +426,7 @@ class Com extends React.Component {
     }
 
     handleDisconnectServer() {
+        let { dispatch } = this.props;
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();
