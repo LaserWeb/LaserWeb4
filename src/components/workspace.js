@@ -586,7 +586,7 @@ class WorkspaceContent extends React.Component {
             gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
-            let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
+            let y = Math.round(this.props.height - pageY * window.devicePixelRatio + r.top);
             if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
                 drawDocumentsHitTest(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
                 let pixel = new Uint8Array(4);
