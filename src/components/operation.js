@@ -345,7 +345,7 @@ const checkPassDepth = {
 const FieldContextMenu=(id=uuid.v4())=>{
     return ({children, dispatch, op, field, settings})=>{
         let ctx=<ContextMenu id={id}>
-            <MenuItem onClick={e=>dispatch(spreadOperationField(op.id, field.name))}>Spread to all Ops</MenuItem>
+            <MenuItem onClick={e=>dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
         return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
