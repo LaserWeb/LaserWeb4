@@ -51,6 +51,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     const QE = new queue();
     QE.timeout = 3600 * 1000;
     QE.concurrency = 5;
+    QE.concurrency = settings.gcodeConcurrency || 1;
 
     const gcode = Array(operations.length+1);
     const workers = [];

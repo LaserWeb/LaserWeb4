@@ -268,6 +268,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', units: '' }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
                         <NumberField {...{ object: this.props.settings, field: 'toolGridWidth', setAttrs: setSettingsAttrs, description: 'Grid Width', units: 'mm' }} />

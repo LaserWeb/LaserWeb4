@@ -14,6 +14,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeMoveUnits: 'in:mm/s,mm/min',
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
+    gcodeConcurrency: 'required|numeric|min:1|max:5',
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
@@ -103,6 +104,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCheckSizePower: 0,
     gcodeToolTestPower: 0,
     gcodeToolTestDuration: 0,
+    gcodeConcurrency: 2,
 
     comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',
