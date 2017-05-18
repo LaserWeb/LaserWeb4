@@ -38,6 +38,7 @@ export const OPERATION_INITIALSTATE={
     cutRate: 0,
     overScan: 0,
     toolAngle: 0,
+    ramp: false,
     useA: false,
     aAxisDiameter: 0,
     useBlower: false,
