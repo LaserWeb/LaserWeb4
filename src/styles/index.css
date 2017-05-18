@@ -70,10 +70,10 @@ body, html, .full-height {
 }
 
 .workspace-overlay.jog {
-   border: 5px dashed #ccc;
+   border: 5px solid #66F;
     opacity: 0.5
 }
-.workspace-overlay.jog:after { color: #bbb; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px}
+.workspace-overlay.jog:after { color: #66F; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px; font-weight: bold}
 
 #workspace-controls {
     flex-grow: 0;
