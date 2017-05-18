@@ -269,7 +269,7 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
 
     gcode += getMillGcode({
         paths: camPaths,
-        ramp: false,
+        ramp: op.ramp,
         scale: 1 / mmToClipperScale,
         useZ: op.type === 'Mill V Carve',
         offsetX: 0,
