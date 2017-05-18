@@ -80,14 +80,16 @@ class Cam extends React.Component {
         window.generateGcode = e => {
 
             let { settings, documents, operations } = that.props;
-
+            let oldpercent=0;
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
                     that.props.dispatch(generatingGcode(false))
                     that.props.dispatch(setGcode(gcode));
                 },
-                (percent) => {
+                (threads) => {
+                    //console.log(threads)
+                    let percent = (Array.isArray(threads))? (threads.reduce((a, b) => a + b, 0)/threads.length) : threads;
                     that.props.dispatch(generatingGcode(true, percent))
                 }
             );
