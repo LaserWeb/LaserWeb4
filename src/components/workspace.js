@@ -89,7 +89,7 @@ class LightenMachineBounds {
 };
 
 class Grid {
-    draw(drawCommands, { perspective, view, width, height, spacing = MAJOR_GRID_SPACING }) {
+    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING }) {
         if (!this.maingrid || !this.origin || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
@@ -97,19 +97,19 @@ class Grid {
             let b = [];
             a.push(-this.width, -this.height, 0, this.width, -this.height, 0);
             a.push(-this.width, -this.height, 0, -this.width, this.height, 0);
-            for (let x = MINOR_GRID_SPACING; x < this.width; x += MINOR_GRID_SPACING) {
+            for (let x = minor; x < this.width; x += minor) {
                 a.push(x, -this.height, 0, x, this.height, 0);
                 a.push(-x, -this.height, 0, -x, this.height, 0);
-                if (x % spacing === 0) {
+                if (x % major === 0) {
                     b.push(x, -this.height, 0, x, this.height, 0);
                     b.push(-x, -this.height, 0, -x, this.height, 0);
                 }
             }
             a.push(this.width, -this.height, 0, this.width, this.height, 0);
-            for (let y = MINOR_GRID_SPACING; y < this.height; y += MINOR_GRID_SPACING) {
+            for (let y = minor; y < this.height; y += minor) {
                 a.push(-this.width, y, 0, this.width, y, 0);
                 a.push(-this.width, -y, 0, this.width, -y, 0);
-                if (y % spacing === 0) {
+                if (y % major === 0) {
                     b.push(-this.width, y, 0, this.width, y, 0);
                     b.push(-this.width, -y, 0, this.width, -y, 0);
                 }
@@ -136,18 +136,19 @@ class Grid {
 };
 
 function GridText(props) {
-    let { spacing = MAJOR_GRID_SPACING, width, height } = props;
+    let {minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
+    let size = Math.min(major/3,10)
     let a = [];
-    for (let x = spacing; x <= width; x += spacing) {
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x)} />);
-        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(-x)} />);
+    for (let x = major; x <= width; x += major) {
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(x)} />);
+        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(-x)} />);
     }
-    a.push(<Text3d key="x-label" x={width + 15} y={0} size={10} style={{ color: '#CC0000' }}>X</Text3d>);
-    for (let y = spacing; y <= height; y += spacing) {
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y)} />);
-        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={10} style={{ color: '#00CC00' }} label={String(-y)} />);
+    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: '#CC0000' }}>X</Text3d>);
+    for (let y = major; y <= height; y += major) {
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: '#00CC00' }} label={String(y)} />);
+        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: '#00CC00' }} label={String(-y)} />);
     }
-    a.push(<Text3d key="y-label" x={0} y={height + 15} size={10} style={{ color: '#00CC00' }}>Y</Text3d>);
+    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: '#00CC00' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
 
@@ -567,7 +568,10 @@ class WorkspaceContent extends React.Component {
             gl.clearDepth(1);
 
             this.grid.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
+                perspective: this.camera.perspective, view: this.camera.view, 
+                width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, 
+                minor: this.props.settings.toolGridMinorSpacing,
+                major: this.props.settings.toolGridMajorSpacing,
             });
             this.machineBounds.draw(this.drawCommands, {
                 perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
@@ -864,7 +868,7 @@ class WorkspaceContent extends React.Component {
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
-                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight }} />
+                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
                     </Dom3d>
                 </Pointable>
                 <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
