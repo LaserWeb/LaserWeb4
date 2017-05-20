@@ -136,8 +136,8 @@ class Grid {
 };
 
 function GridText(props) {
-    let {minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
-    let size = Math.min(major/3,10)
+    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
+    let size = Math.min(major / 3, 10)
     let a = [];
     for (let x = major; x <= width; x += major) {
         a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(x)} />);
@@ -568,8 +568,8 @@ class WorkspaceContent extends React.Component {
             gl.clearDepth(1);
 
             this.grid.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, 
-                width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, 
+                perspective: this.camera.perspective, view: this.camera.view,
+                width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
                 minor: this.props.settings.toolGridMinorSpacing,
                 major: this.props.settings.toolGridMajorSpacing,
             });
