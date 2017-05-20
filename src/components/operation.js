@@ -200,8 +200,8 @@ class Field extends React.Component {
         if (field.check && !field.check(op[field.name], settings, op))
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
 
-        let Ctx= field.contextMenu;
-        let label = (Ctx) ? (<Ctx {...{dispatch, op, field, settings}}><span style={{borderBottom: "2px dashed blue",cursor:"context-menu"}}>{field.label}</span></Ctx>):field.label;
+        let Ctx = field.contextMenu;
+        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dashed blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
 
         return (
             <GetBounds Type="tr">
@@ -294,8 +294,8 @@ function checkRange(min, max) {
 function checkFeedRateRange(axis) {
     return {
         check: (v, settings) => {
-            
-            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
+
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
             if (isFinite(v)) {
                 return v >= min && v <= max;
             } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
@@ -303,7 +303,7 @@ function checkFeedRateRange(axis) {
             }
         },
         error: (v, settings) => {
-            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
             return 'Must be in range [' + min + ' , ' + max + ']'
         }
     }
@@ -342,10 +342,10 @@ const checkPassDepth = {
 }
 
 
-const FieldContextMenu=(id=uuid.v4())=>{
-    return ({children, dispatch, op, field, settings})=>{
-        let ctx=<ContextMenu id={id}>
-            <MenuItem onClick={e=>dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
+const FieldContextMenu = (id = uuid.v4()) => {
+    return ({ children, dispatch, op, field, settings }) => {
+        let ctx = <ContextMenu id={id}>
+            <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
         return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
