@@ -81,7 +81,7 @@ class Cam extends React.Component {
 
             let { settings, documents, operations } = that.props;
 
-            let frameready = true;
+            
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
@@ -90,14 +90,8 @@ class Cam extends React.Component {
                     that.props.dispatch(generatingGcode(false))
                 },
                 (threads) => {
-                    if (frameready) {
-                        frameready = false;
-                        requestAnimationFrame(() => { 
-                            let percent = (Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads;
-                            that.props.dispatch(generatingGcode(percent !== 100, percent)); 
-                            frameready = true 
-                        })
-                    }
+                    let percent = (Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads;
+                    that.props.dispatch(generatingGcode(percent !== 100, percent)); 
                 }
             );
             return QE;
