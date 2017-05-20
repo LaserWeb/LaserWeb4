@@ -219,6 +219,8 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
     if (!ok)
         done(false);
 
+    if (tabGeometry && op.toolDiameter > 0)
+        tabGeometry = offset(tabGeometry, op.toolDiameter / 2 * mmToClipperScale);
 
     let camPaths = [];
     if (op.type === 'Mill Pocket') {
