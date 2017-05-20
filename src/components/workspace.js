@@ -671,12 +671,30 @@ class WorkspaceContent extends React.Component {
         return result;
     }
 
+    zoom(pageX, pageY, amount) {
+        let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
+        let camera = this.props.camera;
+        let newFovy = Math.max(.1, Math.min(Math.PI - .1, camera.fovy * amount));
+        let oldScale = vec3.distance(camera.eye, camera.center) * Math.tan(camera.fovy / 2) / (r.height / 2);
+        let newScale = vec3.distance(camera.eye, camera.center) * Math.tan(newFovy / 2) / (r.height / 2);
+        let dx = Math.round(pageX * window.devicePixelRatio - (r.left + r.right) / 2) * (newScale - oldScale);
+        let dy = Math.round(-pageY * window.devicePixelRatio + (r.top + r.bottom) / 2) * (newScale - oldScale);
+        let adjX = vec3.scale([], vec3.cross([], vec3.normalize([], vec3.sub([], camera.center, camera.eye)), camera.up), -dx);
+        let adjY = vec3.scale([], camera.up, -dy);
+        let adj = vec3.add([], adjX, adjY);
+        this.props.dispatch(setCameraAttrs({
+            eye: vec3.add([], camera.eye, adj),
+            center: vec3.add([], camera.center, adj),
+            fovy: newFovy,
+        }));
+    }
+
     onPointerDown(e) {
         e.preventDefault();
         e.target.setPointerCapture(e.pointerId);
         if (this.pointers.length && e.pointerType !== this.pointers[0].pointerType)
             this.pointers = [];
-        this.pointers.push({ pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, pageX: e.pageX, pageY: e.pageY });
+        this.pointers.push({ pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, pageX: e.pageX, pageY: e.pageY, origPageX: e.pageX, origPageY: e.pageY });
         this.movingObjects = false;
         this.adjustingCamera = false;
         this.needToSelect = null;
@@ -768,9 +786,9 @@ class WorkspaceContent extends React.Component {
                 if (this.fingers && this.fingers.num == this.pointers.length) {
                     if (this.pointers.length === 2) {
                         let d = distance - this.fingers.distance;
-                        this.props.dispatch(setCameraAttrs({
-                            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-d / 200))),
-                        }));
+                        let origCenterX = this.pointers.reduce((acc, o) => acc + o.origPageX, 0) / this.pointers.length;
+                        let origCenterY = this.pointers.reduce((acc, o) => acc + o.origPageY, 0) / this.pointers.length;
+                        this.zoom(origCenterX, origCenterY, Math.exp(-d / 200));
                     } else if (this.pointers.length === 3) {
                         let dx = centerX - this.fingers.centerX;
                         let dy = centerY - this.fingers.centerY;
@@ -795,9 +813,7 @@ class WorkspaceContent extends React.Component {
                         up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
                     }));
                 } else if (pointer.button === 1) {
-                    this.props.dispatch(setCameraAttrs({
-                        fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
-                    }));
+                    this.zoom(pointer.origPageX, pointer.origPageY, Math.exp(-dy / 200));
                 } else if (pointer.button === 0) {
                     let view = calcCamera({
                         viewportWidth: this.props.width,
@@ -829,10 +845,7 @@ class WorkspaceContent extends React.Component {
 
     wheel(e) {
         e.preventDefault();
-        let camera = this.props.camera;
-        this.props.dispatch(setCameraAttrs({
-            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(e.deltaY / 2000))),
-        }));
+        this.zoom(e.pageX, e.pageY, Math.exp(e.deltaY / 2000));
     }
 
     contextMenu(e) {
