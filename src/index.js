@@ -32,12 +32,12 @@ const globalstoreMiddleWare =  store => next => action => {
   next({ ...action, getState: store.getState });
 };
 
+const middlewares=[];
+if (!window.require || window.localStorage.getItem("LaserwebDebug")) middlewares.push(logger({ collapsed: true }))
+middlewares.push(globalstoreMiddleWare)
 
 const middleware = compose(
-  applyMiddleware(
-      logger({ collapsed: true }),
-      globalstoreMiddleWare
-  ),
+  applyMiddleware(...middlewares),
   persistState(storage, LOCALSTORAGE_KEY),
 );
 
