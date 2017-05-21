@@ -18,7 +18,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
-import { resetCamera, setCameraAttrs } from '../actions/camera'
+import { setCameraAttrs, zoomArea } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
@@ -426,7 +426,6 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
                 });
-            break;
         }
     }
 } // drawSelectedDocuments
@@ -552,6 +551,19 @@ class WorkspaceContent extends React.Component {
         let draw = () => {
             if (!this.canvas)
                 return;
+            if (this.props.width > 1 && this.props.height > 1 && (this.props.workspace.width !== this.props.width || this.props.workspace.height !== this.props.height)) {
+                this.props.dispatch(setWorkspaceAttrs({ width: this.props.width, height: this.props.height }));
+                if (!this.props.workspace.initialZoom) {
+                    this.props.dispatch(setWorkspaceAttrs({ initialZoom: true }));
+                    this.props.dispatch(zoomArea(
+                        this.props.settings.machineBottomLeftX - 10,
+                        this.props.settings.machineBottomLeftY - 10,
+                        this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10,
+                        this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10
+                    ));
+                }
+            }
+
             gl.viewport(0, 0, this.props.width, this.props.height);
             gl.clearColor(.8, .8, .8, 1);
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
@@ -914,6 +926,48 @@ class Workspace extends React.Component {
             else
                 this.props.dispatch(setWorkspaceAttrs({ simTime: +e.target.value }));
         };
+        this.zoomMachine = this.zoomMachine.bind(this);
+        this.zoomDoc = this.zoomDoc.bind(this);
+    }
+
+    zoomMachine() {
+        this.props.dispatch(zoomArea(
+            this.props.settings.machineBottomLeftX - 10,
+            this.props.settings.machineBottomLeftY - 10,
+            this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10,
+            this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10
+        ));
+    }
+
+    zoomDoc() {
+        let found = false;
+        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+        for (let cache of this.props.documentCacheHolder.cache.values()) {
+            let doc = cache.document;
+            if (doc.selected && doc.translate && cache.bounds) {
+                found = true;
+                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
+                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
+                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
+                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+            }
+        }
+
+        if (!found) {
+            for (let cache of this.props.documentCacheHolder.cache.values()) {
+                let doc = cache.document;
+                if (doc.translate && cache.bounds) {
+                    found = true;
+                    bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
+                    bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
+                    bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
+                    bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                }
+            }
+        }
+
+        if (found)
+            this.props.dispatch(zoomArea(bounds.x1, bounds.y1, bounds.x2, bounds.y2));
     }
 
     render() {
@@ -934,7 +988,10 @@ class Workspace extends React.Component {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td colSpan='2'><button className='btn btn-default btn-block' style={{ width: '150px' }} onClick={this.props.reset}><i className="fa fa-fw fa-search"></i>Reset View</button></td>
+                                    <td colSpan='2'>
+                                        <button className='btn btn-default' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Perspective</td>
@@ -986,10 +1043,9 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, enableVideo: (state.settings.toolVideoDevice !== null) }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: (state.settings.toolVideoDevice !== null) }),
     dispatch => ({
         dispatch,
-        reset: () => dispatch(resetCamera()),
         setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
@@ -998,5 +1054,5 @@ Workspace = connect(
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })
-)(Workspace);
+)(withDocumentCache(Workspace));
 export default Workspace;
