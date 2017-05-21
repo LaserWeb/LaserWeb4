@@ -29,8 +29,3 @@ function start(data) {
     rasterToGcode.run();
 
 }
-
-// Abort job
-function abort() {
-    rasterToGcode.abort();
-}
