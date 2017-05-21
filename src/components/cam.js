@@ -71,6 +71,7 @@ export class CAMValidator extends React.Component {
 CAMValidator = connect((state) => { return { documents: state.documents.length } })(CAMValidator)
 
 
+let __interval;
 
 class Cam extends React.Component {
 
@@ -81,17 +82,18 @@ class Cam extends React.Component {
 
             let { settings, documents, operations } = that.props;
 
+            let percent = 0;
+            __interval= setInterval(()=>{that.props.dispatch(generatingGcode(true, percent)); },100)
             
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
-
+                    clearInterval(__interval)
                     that.props.dispatch(setGcode(gcode));
                     that.props.dispatch(generatingGcode(false))
                 },
                 (threads) => {
-                    let percent = (Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads;
-                    that.props.dispatch(generatingGcode(percent !== 100, percent)); 
+                    percent = ((Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads).toFixed(2);
                 }
             );
             return QE;
@@ -106,9 +108,7 @@ class Cam extends React.Component {
     }
 
     stopGcode(e) {
-        if (this.QE) {
-            this.QE.end();
-        }
+        if (this.QE) { this.QE.end(); }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
