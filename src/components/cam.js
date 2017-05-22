@@ -83,7 +83,9 @@ class Cam extends React.Component {
             let { settings, documents, operations } = that.props;
 
             let percent = 0;
-            __interval= setInterval(()=>{that.props.dispatch(generatingGcode(true, percent)); },100)
+            __interval= setInterval(()=>{
+                that.props.dispatch(generatingGcode(true, isNaN(percent)? 0:Number(percent))); 
+            },100)
             
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
