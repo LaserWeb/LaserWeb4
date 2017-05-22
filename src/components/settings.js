@@ -342,7 +342,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(setSettingsAttrs(attrs, 'settings'))
         },
         handleDownload: (file, settings, action) => {
-            FileStorage.save(file, stringify(settings), "application/json")
+            FileStorage.save(file, stringify(settings), "application/json",".json")
             dispatch(action(settings));
         },
         handleUpload: (file, action, onlyKeys) => {
