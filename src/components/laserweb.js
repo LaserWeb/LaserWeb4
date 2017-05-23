@@ -119,7 +119,11 @@ class LaserWeb extends React.Component {
 
     componentDidMount() {
         updateTitle();
+        setupKeybindings();
+        setupVideoCapture();
+    }
 
+    setupKeybindings(){
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
             
@@ -138,7 +142,10 @@ class LaserWeb extends React.Component {
                 });
             
         }
+    }
 
+    setupVideoCapture()
+    {
         if (!window.videoCapture) {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
@@ -147,6 +154,7 @@ class LaserWeb extends React.Component {
             })
         }
     }
+
 
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock
