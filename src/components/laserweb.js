@@ -93,6 +93,20 @@ const updateTitle=()=>{
     document.title = `Laserweb ${version}`;
 }
 
+export const bindKeys=(keys)=>{
+    keys.forEach((entry)=>{
+        let [keybinding,method] = entry;
+        window.keyboardLogger.bind(keybinding.filter((i)=>(i!==undefined)),method)
+    })
+}
+
+export const unbindKeys=(keys)=>{
+    keys.forEach((entry)=>{
+        let [keybinding,method] = entry;
+        window.keyboardLogger.unbind(keybinding.filter((i)=>(i!==undefined)),method)
+    })
+}
+
 class LaserWeb extends React.Component {
 
     componentWillReceiveProps(nextProps) {
