@@ -932,10 +932,10 @@ class Workspace extends React.Component {
 
     zoomMachine() {
         this.props.dispatch(zoomArea(
-            this.props.settings.machineBottomLeftX - 10,
-            this.props.settings.machineBottomLeftY - 10,
-            this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10,
-            this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10
+            this.props.settings.machineBottomLeftX - 10 - this.props.workspace.workOffsetX,
+            this.props.settings.machineBottomLeftY - 10 - this.props.workspace.workOffsetY,
+            this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10 - this.props.workspace.workOffsetX,
+            this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10 - this.props.workspace.workOffsetY
         ));
     }
 
