@@ -37,7 +37,6 @@ import { DocumentCacheHolder } from './document-cache'
 
 import { keyboardUndoAction } from '../actions/laserweb';
 
-import keydown, { Keys } from 'react-keydown';
 import keyboardJS from 'keyboardjs'
 
 import { fireMacroById } from '../actions/macros'
@@ -119,8 +118,8 @@ class LaserWeb extends React.Component {
 
     componentDidMount() {
         updateTitle();
-        setupKeybindings();
-        setupVideoCapture();
+        this.setupKeybindings();
+        this.setupVideoCapture();
     }
 
     setupKeybindings(){

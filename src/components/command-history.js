@@ -6,13 +6,9 @@ import Splitter from './splitter'
 import { Button, Label } from 'react-bootstrap'
 import { dispatch, connect } from 'react-redux';
 
-import keydown, { Keys } from 'react-keydown';
-
 import { isObject } from '../lib/helpers';
 
 import stringify from 'json-stringify-safe'
-
-const keystrokes = ["up", "down", "enter"]
 
 // level STD, INFO, WARN, DANGER, SUCCESS
 const CommandHistory_ICON = ['terminal', 'info-circle', 'exclamation-triangle', 'exclamation-circle', 'check-circle'];
@@ -39,10 +35,9 @@ export default class CommandHistory extends React.Component {
         }
 
         this.handleChange.bind(this);
+        this.handleKey.bind(this)
     }
-
-
-    @keydown(keystrokes)
+    
     handleKey(e) {
         if (e.which == 38) {
             this.handleCommandUp(e)
@@ -58,6 +53,7 @@ export default class CommandHistory extends React.Component {
     }
 
     handleCommandUp(e) {
+        e.preventDefault();
         let cursor = this.state.cursor - 1;
         if (cursor < 0) cursor = 0;
         this.setState({ cursor, currentLine: this.state.lines[cursor] });
@@ -68,6 +64,7 @@ export default class CommandHistory extends React.Component {
     }
 
     handleCommandDown(e) {
+        e.preventDefault();
         let cursor = this.state.cursor + 1;
 
         if (cursor > this.state.lines.length - 1) {
@@ -86,6 +83,7 @@ export default class CommandHistory extends React.Component {
     }
 
     handleCommandExec(e) {
+        e.preventDefault();
         let value = e.target.value;
         if (value.length) {
             let lines = [...this.state.lines, value]
@@ -151,7 +149,7 @@ export default class CommandHistory extends React.Component {
                 <div ref="code" className="code"></div>
                 <div className="form">
                     <Icon name="terminal" fw={true} />
-                    <input ref="input" type="text" placeholder="Use UP and DOWN on keyboard to cycle by commands, ENTER to execute." onChange={(e) => { this.handleChange(e) } } onKeyDown={this.handleKey} value={this.state.currentLine} />
+                    <input ref="input" type="text" placeholder="Use UP and DOWN on keyboard to cycle by commands, ENTER to execute." onChange={(e) => { this.handleChange(e) } } onKeyDown={e=>(this.handleKey(e))} value={this.state.currentLine} />
                     <div className="toolbar">
                         <Button bsSize="xsmall" onClick={(e) => { this.handleCommandUp() } }><Icon name="arrow-up" fw={true} /></Button>
                         <Button bsSize="xsmall" onClick={(e) => { this.handleCommandDown() } }><Icon name="arrow-down" fw={true} /></Button>
