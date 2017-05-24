@@ -324,7 +324,7 @@ class Com extends React.Component {
             if (posChanged) {
                 CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
                 //console.log('WOffset: ' + xpos + ' / ' + ypos + ' / ' + zpos);
-                dispatch(setWorkspaceAttrs({ workOffsetX: xOffset, workOffsetY: yOffset }));
+                dispatch(setWorkspaceAttrs({ workOffsetX: +xOffset, workOffsetY: +yOffset }));
                 //dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
             }
         });

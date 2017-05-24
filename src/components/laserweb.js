@@ -37,7 +37,6 @@ import { DocumentCacheHolder } from './document-cache'
 
 import { keyboardUndoAction } from '../actions/laserweb';
 
-import keydown, { Keys } from 'react-keydown';
 import keyboardJS from 'keyboardjs'
 
 import { fireMacroById } from '../actions/macros'
@@ -93,6 +92,20 @@ const updateTitle=()=>{
     document.title = `Laserweb ${version}`;
 }
 
+export const bindKeys=(keys)=>{
+    keys.forEach((entry)=>{
+        let [keybinding,method] = entry;
+        window.keyboardLogger.bind(keybinding.filter((i)=>(i!==undefined)),method)
+    })
+}
+
+export const unbindKeys=(keys)=>{
+    keys.forEach((entry)=>{
+        let [keybinding,method] = entry;
+        window.keyboardLogger.unbind(keybinding.filter((i)=>(i!==undefined)),method)
+    })
+}
+
 class LaserWeb extends React.Component {
 
     componentWillReceiveProps(nextProps) {
@@ -105,7 +118,11 @@ class LaserWeb extends React.Component {
 
     componentDidMount() {
         updateTitle();
+        this.setupKeybindings();
+        this.setupVideoCapture();
+    }
 
+    setupKeybindings(){
         if (!window.keyboardLogger) {
             window.keyboardLogger = keyboardJS;
             
@@ -124,7 +141,10 @@ class LaserWeb extends React.Component {
                 });
             
         }
+    }
 
+    setupVideoCapture()
+    {
         if (!window.videoCapture) {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
@@ -133,6 +153,7 @@ class LaserWeb extends React.Component {
             })
         }
     }
+
 
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock

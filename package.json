@@ -1,6 +1,6 @@
 {
   "name": "laserweb",
-  "version": "4.0.731",
+  "version": "4.0.732",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
@@ -80,6 +80,7 @@
     "lw.svg-curves": "^0.1.0",
     "lw.svg-path": "^0.1.0",
     "marked": "^0.3.6",
+    "merge-jsons-webpack-plugin": "^1.0.6",
     "node-uuid": "^1.4.7",
     "npm-run-all": "^4.0.1",
     "object-to-string": "^1.0.0",
@@ -97,7 +98,6 @@
     "react-dom": "^15.3.1",
     "react-draggable": "^2.2.3",
     "react-hot-loader": "^3.0.0-beta.4",
-    "react-keydown": "^1.6.3",
     "react-redux": "^4.4.5",
     "react-rnd": "^4.2.2",
     "react-select": "^1.0.0-rc.2",
