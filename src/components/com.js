@@ -210,7 +210,7 @@ class Com extends React.Component {
             fDate = data.date;
             dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
-            if (fVersion < '1.1e') {
+            if (firmware === 'grbl' && fVersion < '1.1e') {
                 CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
                 socket.emit('closePort', 1);
                 machineConnected = false;
