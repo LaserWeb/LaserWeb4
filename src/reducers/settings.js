@@ -14,6 +14,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeMoveUnits: 'in:mm/s,mm/min',
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
+    gcodeConcurrency: 'required|numeric|min:1|max:5',
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
@@ -21,7 +22,12 @@ export const SETTINGS_VALIDATION_RULES = {
 
     machineAEnabled: 'boolean',
 
+    toolGridWidth: 'numeric|min:100',
+    toolGridHeight: 'numeric|min:100',
     toolImagePosition: 'in:TL,TR,C,BL,BR',
+
+    toolGridMinorSpacing: 'numeric|min:0.1',
+    toolGridMajorSpacing: 'numeric|min:1',
 
     jogFeedXY: 'numeric|min:0',
     jogFeedZ: 'numeric|min:0',
@@ -50,8 +56,8 @@ export const SETTINGS_INITIALSTATE = {
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
-    machineOriginX: 0,
-    machineOriginY: 0,
+    machineBottomLeftX: 0,
+    machineBottomLeftY: 0,
 
     machineFeedRange: {
         XY: {min: 1, max:50000},
@@ -74,6 +80,10 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     dpiBitmap: 300,
 
+    toolGridWidth: 500,
+    toolGridHeight: 500,
+    toolGridMinorSpacing: 10,
+    toolGridMajorSpacing: 50,
     toolSafetyLockDisabled: true,
     toolCncMode: false,
     toolImagePosition: "BL",
@@ -99,6 +109,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCheckSizePower: 0,
     gcodeToolTestPower: 0,
     gcodeToolTestDuration: 0,
+    gcodeConcurrency: 2,
 
     comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',

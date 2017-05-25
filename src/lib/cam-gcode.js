@@ -22,7 +22,7 @@ import { GlobalStore } from '../index'
 
 import queue from 'queue';
 
-import TimeFormat from 'hh-mm-ss';
+import hhmmss from 'hhmmss';
 
 export const expandHookGCode = (operation) =>{
     let state = GlobalStore().getState(); 
@@ -50,9 +50,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     const QE = new queue();
     QE.timeout = 3600 * 1000;
-    QE.concurrency = 5;
+    QE.concurrency = settings.gcodeConcurrency || 1;
 
-    const gcode = Array(operations.length+1);
+    const gcode = Array(operations.length);
+    const gauge = Array(operations.length*2).fill(0)
     const workers = [];
     let jobIndex = 0;
 
@@ -68,10 +69,12 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             peasant.onmessage = (e) => {
                 let data = JSON.parse(e.data)
                 if (data.event == 'onDone') {
+                    gauge[props.opIndex*2+1]=100;
+                    progress(gauge)
                     jobDone(data.gcode, cb)
                 } else if (data.event == 'onProgress') {
-                    let p = parseInt((jobIndex * QE.chunk) + (data.progress * QE.chunk / 100))
-                    progress(p)
+                    gauge[props.opIndex*2+1]=data.progress;
+                    progress(gauge)
                 } else {
                     data.errors.forEach((item) => {
                         showAlert(item.message, item.level)
@@ -80,7 +83,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
             }
             workers.push(peasant)
-            progress(jobIndex * QE.chunk);
+            
             peasant.postMessage(props)
 
         }
@@ -105,10 +108,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                             if (cache && cache.imageLoaded)
                                 docsWithImages.push(Object.assign([], _doc, { image: cache.image }));
                         })
+                        gauge[opIndex*2]=100;
                         resolve({ geometry, openGeometry, tabGeometry, docsWithImages })
                     } else if (data.event == 'onProgress') {
-                        let p = parseInt((data.percent / 100) * QE.chunk);
-                        progress(p)
+                        gauge[opIndex*2]=data.percent;
+                        progress(gauge)
                     } else if (data.event == 'onError') {
                         reject(data)
                     }
@@ -161,18 +165,15 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
-            if (ww.abort) {
-                ww.abort()
-            } else {
                 ww.terminate();
-            }
         })
 
     })
 
     QE.start((err) => {
         progress(100)
-        showAlert("Ellapsed: "+TimeFormat.fromMs(new Date().getTime()-starttime),"info");
+        let ellapsed=(new Date().getTime()-starttime)/1000;
+        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 

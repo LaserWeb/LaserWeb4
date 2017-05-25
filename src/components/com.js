@@ -25,6 +25,7 @@ var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
 var xpos, ypos, zpos, apos;
+var xOffset, yOffset, zOffset, aOffset;
 
 class Com extends React.Component {
 
@@ -209,7 +210,7 @@ class Com extends React.Component {
             fDate = data.date;
             dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
-            if (fVersion < '1.1e') {
+            if (firmware === 'grbl' && fVersion < '1.1e') {
                 CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
                 socket.emit('closePort', 1);
                 machineConnected = false;
@@ -295,7 +296,34 @@ class Com extends React.Component {
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
                 $('#mA').html(apos);
-                dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+                dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
+            }
+        });
+
+        socket.on('wOffset', function (wOffset) {
+            serverConnected = true;
+            machineConnected = true;
+            let {x, y, z, a} = wOffset;
+            let posChanged = false;
+            if ((xOffset !== x) && (xOffset || x)) {
+                xOffset = x;
+                posChanged = true;
+            }
+            if ((yOffset !== y) && (yOffset || y)) {
+                yOffset = y;
+                posChanged = true;
+            }
+            if ((zOffset !== z) && (zOffset || z)) {
+                zOffset = z;
+                posChanged = true;
+            }
+            if ((aOffset !== a) && (aOffset || a)) {
+                aOffset = a;
+                posChanged = true;
+            }
+            if (posChanged) {
+                CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
+                dispatch(setWorkspaceAttrs({ workOffsetX: +xOffset, workOffsetY: +yOffset }));
             }
         });
 
@@ -396,6 +424,7 @@ class Com extends React.Component {
     }
 
     handleDisconnectServer() {
+        let { dispatch } = this.props;
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();

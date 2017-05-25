@@ -9,6 +9,7 @@ import adapter from 'redux-localstorage/lib/adapters/localStorage';
 import filter from 'redux-localstorage-filter';
 
 export const LOCALSTORAGE_KEY = 'LaserWeb';
+export const DEBUG_KEY = "LaserwebDebug";
 
 const hot = (state, action) => {
     return require('./reducers').default(state, action);
@@ -32,12 +33,20 @@ const globalstoreMiddleWare =  store => next => action => {
   next({ ...action, getState: store.getState });
 };
 
+export const getDebug = () =>{
+    return window.localStorage.getItem(DEBUG_KEY)==='true';
+}
+
+export const setDebug=(b) => {
+    window.localStorage.setItem(DEBUG_KEY,String(b))
+}
+
+const middlewares=[];
+if (getDebug()) middlewares.push(logger({ collapsed: true }))
+middlewares.push(globalstoreMiddleWare)
 
 const middleware = compose(
-  applyMiddleware(
-      logger({ collapsed: true }),
-      globalstoreMiddleWare
-  ),
+  applyMiddleware(...middlewares),
   persistState(storage, LOCALSTORAGE_KEY),
 );
 

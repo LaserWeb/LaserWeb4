@@ -11,7 +11,8 @@ import Icon from './font-awesome'
 import marked from 'marked';
 import { version } from '../reducers/settings'
 import { confirm } from './laserweb'
-import { LOCALSTORAGE_KEY } from '../index'
+import { LOCALSTORAGE_KEY, getDebug, setDebug } from '../index'
+import Toggle from 'react-toggle'
 
 /**
  * About component.
@@ -30,7 +31,7 @@ class About extends React.Component {
         if (this.props.settings.__selectedProfile && this.props.profiles.hasOwnProperty(this.props.settings.__selectedProfile)){
           let aboutFile=this.props.profiles[this.props.settings.__selectedProfile].machineAbout
           if (aboutFile) {
-            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!../data/lw.machines/'+aboutFile))}}></div>
+            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!../data/lw.machines/machines/'+aboutFile))}}></div>
           }
         }
 
@@ -98,6 +99,7 @@ class Lifesaver extends React.Component
 
         return <ButtonToolbar>
           {button}
+           <div><Toggle defaultChecked={getDebug()} onChange={this.props.handleDebug} />Enable debug logger</div>
           <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleRefresh(e) }}><Icon name="refresh" /> Refresh window</Button>
           <Button bsSize="xs" bsStyle="danger" onClick={(e) => { this.props.handleReset(e) }}><Icon name="bolt" /> Reset to factory defaults</Button>
         </ButtonToolbar>
@@ -106,6 +108,9 @@ class Lifesaver extends React.Component
 
 Lifesaver = connect((store)=>({}),(dispatch) =>{
     return {
+        handleDebug:(e)=>{
+            setDebug(e.target.checked)
+        },
         handleDevTools: () => {
             if (window.require) { // Are we in Electron?
                 const electron = window.require('electron');

@@ -10,6 +10,10 @@ export function sendAsFile(filename, data, mimetype) {
             tempLink.click();
 }
 
+export function appendExt(filename, ext) {
+    return (!filename.match(new RegExp(ext.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')+"$",'gi'))) ? (filename+ext):filename;
+}
+
 export function openDataWindow(data, mimetype='text/plain;charset=utf-8', target="data")
 {
         let blob = new Blob([data], {type: mimetype});
