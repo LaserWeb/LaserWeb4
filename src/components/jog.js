@@ -6,8 +6,6 @@
 // React
 import React from 'react'
 import { connect } from 'react-redux';
-import keydown, { Keys } from 'react-keydown';
-
 import { PanelGroup, Panel, ProgressBar} from 'react-bootstrap';
 
 import { setSettingsAttrs } from '../actions/settings';
@@ -23,6 +21,7 @@ import '../styles/index.css'
 import Icon from './font-awesome'
 import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
+import { bindKeys, unbindKeys } from './laserweb'
 
 var ovStep = 1;
 var ovLoop;
@@ -55,7 +54,7 @@ class Jog extends React.Component {
 
     constructor(props) {
         super(props);
-        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled } = this.props.settings;
+        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled, toolUseNumpad } = this.props.settings;
         this.state = {
             jogStepsize: jogStepsize,
             jogFeedXY: jogFeedXY,
@@ -69,62 +68,84 @@ class Jog extends React.Component {
             machineZEnabled: machineZEnabled,
             machineAEnabled: machineAEnabled,
         };
+        this.bindings=[
+            [['ctrl+x'],this.escapeX.bind(this)],
+            [['alt+right',toolUseNumpad?'num6':undefined],this.jogRight.bind(this)],
+            [['alt+left',toolUseNumpad?'num4':undefined],this.jogLeft.bind(this)],
+            [['alt+up',toolUseNumpad?'num8':undefined],this.jogUp.bind(this)],
+            [['alt+down',toolUseNumpad?'num2':undefined],this.jogDown.bind(this)]
+        ]
+        if (machineZEnabled){
+            this.bindings=[
+                ...this.bindings,    
+                [['ctrl+alt+up',toolUseNumpad?'numadd':undefined],this.jogZUp.bind(this)],
+                [['ctrl+alt+down',toolUseNumpad?'numsubtract':undefined],this.jogZDown.bind(this)]
+            ]
+        }
+        if (machineAEnabled){
+            this.bindings=[
+                ...this.bindings,   
+                [['ctrl+alt+left',toolUseNumpad?'nummultiply':undefined],this.jogAplus.bind(this)],
+                [['ctrl+alt+right',toolUseNumpad?'numdivide':undefined],this.jogAminus.bind(this)]
+            ]
+        }
+    }
+
+    componentDidMount()
+    {
+        bindKeys(this.bindings)
     }
 
     componentWillUnmount() {
         liveJoggingState = this.state.liveJogging;
+        //
+        unbindKeys(this.bindings)
     }
 
-    @keydown('alt+right')
     jogRight(event) {
         event.preventDefault();
         this.jog('X', '+')
     }
 
-    @keydown('alt+left')
+
     jogLeft(event) {
         event.preventDefault();
         this.jog('X', '-')
     }
 
-    @keydown('alt+up')
+
     jogUp(event) {
         event.preventDefault();
         this.jog('Y', '+')
     }
 
-    @keydown('alt+down')
+
     jogDown(event) {
         event.preventDefault();
         this.jog('Y', '-')
     }
 
-    @keydown('ctrl+alt+up')
     jogZUp(event) {
         event.preventDefault();
         this.jog('Z', '+')
     }
 
-    @keydown('ctrl+alt+down')
     jogZDown(event) {
         event.preventDefault();
         this.jog('Z', '-')
     }
 
-    @keydown('ctrl+alt+right')
     jogAplus(event) {
         event.preventDefault();
         this.jog('A', '+')
     }
 
-    @keydown('ctrl+alt+left')
     jogAminus(event) {
         event.preventDefault();
         this.jog('A', '-')
     }
 
-    @keydown('ctrl+x')
-    keylogger( event ) {
+    escapeX( event ) {
         event.preventDefault();
         resetMachine();
     }
@@ -215,7 +236,11 @@ class Jog extends React.Component {
         console.log('checkSize');
         let feedrate = $('#jogfeedxy').val() * 60;
         let gcode = this.props.gcode;
+        
+        //let linemoves = gcode.split(/g[13]/i);
+        
         let xArray = gcode.split(/x/i);
+        //alert(xArray.toString());
         let xMin = 0;
         let xMax = 0;
         for (let i = 0; i < xArray.length; i++) {

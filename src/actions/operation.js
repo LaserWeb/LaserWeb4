@@ -26,3 +26,8 @@ export function clearOperations()
 {
     return { type: 'OPERATION_CLEAR_ALL' };
 }
+
+export function spreadOperationField(id, field)
+{
+    return { type: 'OPERATION_SPREAD_FIELD', payload: {id, field} }
+}

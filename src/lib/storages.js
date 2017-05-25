@@ -1,4 +1,4 @@
-import { sendAsFile } from './helpers';
+import { sendAsFile, appendExt } from './helpers';
 
 
 /* Yes, I know, got to switch to promises but I can't promise that.*/
@@ -10,7 +10,8 @@ class FileStorageAdapter {
         reader.readAsText(file);
     }
 
-    save(name, data, mime, ...rest) {
+    save(name, data, mime, extension, ...rest) {
+        if (extension) name=appendExt(name, extension);
         sendAsFile(name, data, mime);
     }
 }

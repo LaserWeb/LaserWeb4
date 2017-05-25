@@ -6,7 +6,7 @@ import arrayMove from 'array-move'
 
 import { GlobalStore } from '../index';
 
-export const OPERATION_INITIALSTATE={
+export const OPERATION_INITIALSTATE = {
     id: '',
     name: '',
     enabled: true,
@@ -18,7 +18,7 @@ export const OPERATION_INITIALSTATE={
     filterStrokeColor: null,
     direction: 'Conventional',
     laserPower: 100,
-    laserPowerRange: {min:0, max:100},
+    laserPowerRange: { min: 0, max: 100 },
     laserDiameter: 0,
     toolDiameter: 0,
     lineDistance: 0,
@@ -38,6 +38,7 @@ export const OPERATION_INITIALSTATE={
     cutRate: 0,
     overScan: 0,
     toolAngle: 0,
+    ramp: false,
     useA: false,
     aAxisDiameter: 0,
     useBlower: false,
@@ -66,7 +67,7 @@ export const OPERATION_INITIALSTATE={
 const operationBase = object('operation', OPERATION_INITIALSTATE);
 
 export const OPERATION_DEFAULTS = (state) => {
-    if (!state) state=GlobalStore().getState()
+    if (!state) state = GlobalStore().getState()
     return {
         laserDiameter: state.settings.machineBeamDiameter,
         useBlower: state.settings.machineBlowerEnabled,
@@ -104,6 +105,10 @@ export const operations = (state, action) => {
             break;
         case 'OPERATION_ADD':
             state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
+            break;
+        case "OPERATION_SPREAD_FIELD":
+            let op = state.find(o => o.id === action.payload.id)
+            if (op) state = state.map(o => { return { ...o, [action.payload.field]: op[action.payload.field] } })
             break;
         case 'WORKSPACE_RESET':
         case 'OPERATION_CLEAR_ALL':

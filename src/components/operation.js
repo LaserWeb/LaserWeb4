@@ -16,8 +16,9 @@
 import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import uuid from 'node-uuid';
 
-import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField } from '../actions/operation';
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
@@ -38,6 +39,9 @@ import { Details } from './material-database'
 import { confirm } from './laserweb'
 
 import { SETTINGS_INITIALSTATE } from '../reducers/settings'
+
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import "../styles/context-menu.css";
 
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
@@ -187,7 +191,7 @@ class Field extends React.Component {
     }
 
     render() {
-        let { op, field, operationsBounds, fillColors, strokeColors, settings } = this.props;
+        let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch } = this.props;
         let Input = field.input;
         let { units } = field;
         let error;
@@ -195,9 +199,13 @@ class Field extends React.Component {
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
+
+        let Ctx = field.contextMenu;
+        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dashed blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
+
         return (
             <GetBounds Type="tr">
-                <th width="30%">{field.label}</th>
+                <th width="30%">{label}</th>
                 <td>
                     <Input
                         op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
@@ -270,6 +278,11 @@ const checkToolAngle = {
     error: 'Must be in range (0, 180)',
 };
 
+const checkToolDiameter = {
+    check: (v, settings, op) => v > 0 || op.type === 'Mill Cut' && v >= 0,
+    error: (v, settings, op) => op.type === 'Mill Cut' ? 'Must be >= 0' : 'Must be > 0',
+};
+
 function checkRange(min, max) {
     return {
         check: (v) => {
@@ -286,8 +299,8 @@ function checkRange(min, max) {
 function checkFeedRateRange(axis) {
     return {
         check: (v, settings) => {
-            
-            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
+
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
             if (isFinite(v)) {
                 return v >= min && v <= max;
             } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
@@ -295,7 +308,7 @@ function checkFeedRateRange(axis) {
             }
         },
         error: (v, settings) => {
-            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange,settings.machineFeedRange)[axis];
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
             return 'Must be in range [' + min + ' , ' + max + ']'
         }
     }
@@ -333,6 +346,16 @@ const checkPassDepth = {
     error: (v, settings, op) => { return (op.type.match(/^Laser/)) ? checkGE0.error : checkPositive.error },
 }
 
+
+const FieldContextMenu = (id = uuid.v4()) => {
+    return ({ children, dispatch, op, field, settings }) => {
+        let ctx = <ContextMenu id={id}>
+            <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
+        </ContextMenu>
+        return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+    }
+}
+
 export const OPERATION_FIELDS = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
 
@@ -345,7 +368,7 @@ export const OPERATION_FIELDS = {
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
     lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
-    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkToolDiameter },
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
@@ -354,12 +377,13 @@ export const OPERATION_FIELDS = {
     stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
-    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, ...checkZHeight, ...ifUseZ },
+    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
     clearance: { name: 'clearance', label: 'ZClearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
+    ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput },
 
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
-    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
+    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY'), contextMenu: FieldContextMenu() },
     toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
@@ -415,10 +439,10 @@ export const OPERATION_TYPES = {
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
 };
 

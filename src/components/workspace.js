@@ -18,7 +18,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
-import { resetCamera, setCameraAttrs } from '../actions/camera'
+import { setCameraAttrs, zoomArea } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
@@ -47,9 +47,10 @@ import { VideoPort } from './webcam'
 
 import { LiveJogging } from './jog'
 
-function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective }) {
+function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
+    view = mat4.translate([], view, [-machineX, -machineY, 0]);
     if (showPerspective)
         perspective = mat4.perspective([], fovy, viewportWidth / viewportHeight, near, far);
     else {
@@ -68,37 +69,60 @@ const MAJOR_GRID_SPACING = 50;
 const MINOR_GRID_SPACING = 10;
 const CROSSHAIR = 5
 
+class LightenMachineBounds {
+    draw(drawCommands, { perspective, view, x, y, width, height }) {
+        if (!this.triangles || this.x !== x || this.y !== y || this.width !== width || this.height !== height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            let x2 = x + width;
+            let y2 = y + height;
+            let a = [
+                x, y, x2, y2, x, y2,
+                x, y, x2, y, x2, y2,
+            ];
+            this.triangles = new Float32Array(a);
+        }
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+    }
+};
+
 class Grid {
-    draw(drawCommands, { perspective, view, width, height, spacing = MAJOR_GRID_SPACING, offsetX = 0, offsetY = 0 }) {
-        if (!this.maingrid || this.width !== width || this.height !== height) {
+    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING }) {
+        if (!this.maingrid || !this.origin || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
             let a = [];
             let b = [];
-            a.push(0, 0, 0, this.width, 0, 0);
-            a.push(0, 0, 0, 0, this.height, 0);
-            for (let x = MINOR_GRID_SPACING; x < this.width; x += MINOR_GRID_SPACING) {
-                a.push(x, 0, 0, x, this.height, 0);
-                if (x % spacing === 0) b.push(x, 0, 0, x, this.height, 0);
+            a.push(-this.width, -this.height, 0, this.width, -this.height, 0);
+            a.push(-this.width, -this.height, 0, -this.width, this.height, 0);
+            for (let x = minor; x < this.width; x += minor) {
+                a.push(x, -this.height, 0, x, this.height, 0);
+                a.push(-x, -this.height, 0, -x, this.height, 0);
+                if (x % major === 0) {
+                    b.push(x, -this.height, 0, x, this.height, 0);
+                    b.push(-x, -this.height, 0, -x, this.height, 0);
+                }
             }
-            a.push(this.width, 0, 0, this.width, this.height, 0);
-            for (let y = MINOR_GRID_SPACING; y < this.height; y += MINOR_GRID_SPACING) {
-                a.push(0, y, 0, this.width, y, 0);
-                if (y % spacing === 0) b.push(0, y, 0, this.width, y, 0);
+            a.push(this.width, -this.height, 0, this.width, this.height, 0);
+            for (let y = minor; y < this.height; y += minor) {
+                a.push(-this.width, y, 0, this.width, y, 0);
+                a.push(-this.width, -y, 0, this.width, -y, 0);
+                if (y % major === 0) {
+                    b.push(-this.width, y, 0, this.width, y, 0);
+                    b.push(-this.width, -y, 0, this.width, -y, 0);
+                }
             }
-            a.push(0, this.height, 0, this.width, this.height, 0);
+            a.push(-this.width, this.height, 0, this.width, this.height, 0);
             this.maingrid = new Float32Array(a);
             this.darkgrid = new Float32Array(b)
             this.maincount = a.length / 3;
             this.darkcount = b.length / 3;
-        }
 
-        if (!this.offsetX || (this.offsetX !== offsetX) || !this.offsetY || this.offsetY !== offsetY) {
             let c = [];
-            this.offsetX = offsetX || 0
-            this.offsetY = offsetY || 0
-            c.push(0, this.offsetY, 0, this.width, this.offsetY, 0);
-            c.push(this.offsetX, 0, 0, this.offsetX, this.height, 0);
+            c.push(-this.width, 0, 0, this.width, 0, 0);
+            c.push(0, -this.height, 0, 0, this.height, 0);
             this.origin = new Float32Array(c)
             this.origincount = c.length / 3
         }
@@ -108,23 +132,54 @@ class Grid {
 
         drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
         drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
-
     }
 };
 
 function GridText(props) {
-    let { spacing = MAJOR_GRID_SPACING, offsetX = 0, offsetY = 0, width, height } = props;
-    offsetX = offsetX || 0
-    offsetY = offsetY || 0
+    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
+    let size = Math.min(major / 3, 10)
     let a = [];
-    for (let x = spacing; x <= width; x += spacing)
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={10} style={{ color: '#CC0000' }} label={String(x + offsetX)} />);
-    a.push(<Text3d key="x-label" x={width + 15} y={0} size={10} style={{ color: '#CC0000' }}>X</Text3d>);
-    for (let y = spacing; y <= height; y += spacing)
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={10} style={{ color: '#00CC00' }} label={String(y + offsetY)} />);
-    a.push(<Text3d key="y-label" x={0} y={height + 15} size={10} style={{ color: '#00CC00' }}>Y</Text3d>);
+    for (let x = major; x <= width; x += major) {
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(x)} />);
+        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(-x)} />);
+    }
+    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: '#CC0000' }}>X</Text3d>);
+    for (let y = major; y <= height; y += major) {
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: '#00CC00' }} label={String(y)} />);
+        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: '#00CC00' }} label={String(-y)} />);
+    }
+    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: '#00CC00' }}>Y</Text3d>);
     return <div>{a}</div>;
 }
+
+const markerOrthSize = 10;
+const markerPointSize = 6;
+
+class MachineBounds {
+    draw(drawCommands, { perspective, view, x, y, width, height }) {
+        if (!this.markers || this.x !== x || this.y !== y || this.width !== width || this.height !== height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            let x2 = x + width;
+            let y2 = y + height;
+            let a = [
+                x, y, x, y + markerOrthSize, x - markerPointSize, y - markerPointSize,
+                x, y, x - markerPointSize, y - markerPointSize, x + markerOrthSize, y,
+                x2, y, x2 + markerPointSize, y - markerPointSize, x2, y + markerOrthSize,
+                x2, y, x2 - markerOrthSize, y, x2 + markerPointSize, y - markerPointSize,
+                x2, y2, x2, y2 - markerOrthSize, x2 + markerPointSize, y2 + markerPointSize,
+                x2, y2, x2 + markerPointSize, y2 + markerPointSize, x2 - markerOrthSize, y2,
+                x, y2, x + markerOrthSize, y2, x - markerPointSize, y2 + markerPointSize,
+                x, y2, x - markerPointSize, y2 + markerPointSize, x, y2 - markerOrthSize,
+            ];
+            this.markers = new Float32Array(a);
+        }
+
+        drawCommands.basic2d({ perspective, view, position: this.markers, offset: 0, count: this.markers.length / 2, color: [0, 0, 0, 0.8], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+    }
+};
 
 class FloatingControls extends React.Component {
     componentWillMount() {
@@ -371,7 +426,6 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
                 });
-            break;
         }
     }
 } // drawSelectedDocuments
@@ -425,7 +479,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
     }
 }
 
-function initWorkPosMarker() {
+function initCursor() {
     let numSides = 10;
     let a = [];
     for (let i = 0; i < numSides; ++i)
@@ -440,28 +494,30 @@ function initWorkPosMarker() {
         );
     return new Float32Array(a);
 }
-const workPosMarker = initWorkPosMarker();
+const cursor = initCursor();
 
-function drawWorkPos(perspective, view, drawCommands, workPos) {
+function drawCursor(perspective, view, drawCommands, cursorPos) {
     let height = 40;
     let diameter = 20;
     drawCommands.basic({
         perspective,
         view,
         scale: new Float32Array([diameter, diameter, height]),
-        translate: new Float32Array(workPos),
+        translate: new Float32Array(cursorPos),
         color: new Float32Array([0, 0, 1, .5]),
         primitive: drawCommands.gl.TRIANGLES,
-        position: workPosMarker,
+        position: cursor,
         offset: 0,
-        count: workPosMarker.length / 3,
+        count: cursor.length / 3,
     });
 }
 
 class WorkspaceContent extends React.Component {
     componentWillMount() {
         this.pointers = [];
+        this.lightenMachineBounds = new LightenMachineBounds();
         this.grid = new Grid();
+        this.machineBounds = new MachineBounds();
         this.setCanvas = this.setCanvas.bind(this);
         this.documentCache = [];
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -495,17 +551,42 @@ class WorkspaceContent extends React.Component {
         let draw = () => {
             if (!this.canvas)
                 return;
+            if (this.props.width > 1 && this.props.height > 1 && (this.props.workspace.width !== this.props.width || this.props.workspace.height !== this.props.height)) {
+                this.props.dispatch(setWorkspaceAttrs({ width: this.props.width, height: this.props.height }));
+                if (!this.props.workspace.initialZoom) {
+                    this.props.dispatch(setWorkspaceAttrs({ initialZoom: true }));
+                    this.props.dispatch(zoomArea(
+                        this.props.settings.machineBottomLeftX - 10,
+                        this.props.settings.machineBottomLeftY - 10,
+                        this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10,
+                        this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10
+                    ));
+                }
+            }
+
             gl.viewport(0, 0, this.props.width, this.props.height);
-            gl.clearColor(1, 1, 1, 1);
-            gl.clearDepth(1);
+            gl.clearColor(.8, .8, .8, 1);
             gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
+            let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+            let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+
+            gl.clearDepth(1);
+            this.lightenMachineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+            });
+            gl.clearDepth(1);
 
             this.grid.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-                offsetX: this.props.settings.machineOriginX, offsetY: this.props.settings.machineOriginY
+                perspective: this.camera.perspective, view: this.camera.view,
+                width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
+                minor: this.props.settings.toolGridMinorSpacing,
+                major: this.props.settings.toolGridMajorSpacing,
+            });
+            this.machineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
             if (this.props.workspace.showDocuments)
                 drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
@@ -522,8 +603,8 @@ class WorkspaceContent extends React.Component {
                     this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
             if (this.props.workspace.showDocuments)
                 drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
-            if (this.props.workspace.showWorkPos)
-                drawWorkPos(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.workPos);
+            if (this.props.workspace.showCursor)
+                drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
 
             requestAnimationFrame(draw);
         };
@@ -546,6 +627,8 @@ class WorkspaceContent extends React.Component {
                 center: props.camera.center,
                 up: props.camera.up,
                 showPerspective: props.camera.showPerspective,
+                machineX: props.settings.machineBottomLeftX - props.workspace.workOffsetX,
+                machineY: props.settings.machineBottomLeftY - props.workspace.workOffsetY,
             });
     }
 
@@ -586,7 +669,7 @@ class WorkspaceContent extends React.Component {
             gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
             let x = Math.round(pageX * window.devicePixelRatio - r.left);
-            let y = Math.round(this.props.height - pageY * window.devicePixelRatio - r.top);
+            let y = Math.round(this.props.height - pageY * window.devicePixelRatio + r.top);
             if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
                 drawDocumentsHitTest(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
                 let pixel = new Uint8Array(4);
@@ -600,12 +683,30 @@ class WorkspaceContent extends React.Component {
         return result;
     }
 
+    zoom(pageX, pageY, amount) {
+        let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
+        let camera = this.props.camera;
+        let newFovy = Math.max(.1, Math.min(Math.PI - .1, camera.fovy * amount));
+        let oldScale = vec3.distance(camera.eye, camera.center) * Math.tan(camera.fovy / 2) / (r.height / 2);
+        let newScale = vec3.distance(camera.eye, camera.center) * Math.tan(newFovy / 2) / (r.height / 2);
+        let dx = Math.round(pageX * window.devicePixelRatio - (r.left + r.right) / 2) * (newScale - oldScale);
+        let dy = Math.round(-pageY * window.devicePixelRatio + (r.top + r.bottom) / 2) * (newScale - oldScale);
+        let adjX = vec3.scale([], vec3.cross([], vec3.normalize([], vec3.sub([], camera.center, camera.eye)), camera.up), -dx);
+        let adjY = vec3.scale([], camera.up, -dy);
+        let adj = vec3.add([], adjX, adjY);
+        this.props.dispatch(setCameraAttrs({
+            eye: vec3.add([], camera.eye, adj),
+            center: vec3.add([], camera.center, adj),
+            fovy: newFovy,
+        }));
+    }
+
     onPointerDown(e) {
         e.preventDefault();
         e.target.setPointerCapture(e.pointerId);
         if (this.pointers.length && e.pointerType !== this.pointers[0].pointerType)
             this.pointers = [];
-        this.pointers.push({ pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, pageX: e.pageX, pageY: e.pageY });
+        this.pointers.push({ pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, pageX: e.pageX, pageY: e.pageY, origPageX: e.pageX, origPageY: e.pageY });
         this.movingObjects = false;
         this.adjustingCamera = false;
         this.needToSelect = null;
@@ -617,8 +718,10 @@ class WorkspaceContent extends React.Component {
 
         if (LiveJogging.isEnabled() && this.liveJoggingKey && this.jogMode) {
             let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
-            jogX = Math.floor(clamp(jogX, 0, this.props.settings.machineWidth))
-            jogY = Math.floor(clamp(jogY, 0, this.props.settings.machineHeight))
+            let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+            let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+            jogX = Math.floor(clamp(jogX, machineX, this.props.settings.machineWidth))
+            jogY = Math.floor(clamp(jogY, machineY, this.props.settings.machineHeight))
             let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
             CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
             return jogTo(jogX, jogY, undefined, 0, jogF)
@@ -695,9 +798,9 @@ class WorkspaceContent extends React.Component {
                 if (this.fingers && this.fingers.num == this.pointers.length) {
                     if (this.pointers.length === 2) {
                         let d = distance - this.fingers.distance;
-                        this.props.dispatch(setCameraAttrs({
-                            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-d / 200))),
-                        }));
+                        let origCenterX = this.pointers.reduce((acc, o) => acc + o.origPageX, 0) / this.pointers.length;
+                        let origCenterY = this.pointers.reduce((acc, o) => acc + o.origPageY, 0) / this.pointers.length;
+                        this.zoom(origCenterX, origCenterY, Math.exp(-d / 200));
                     } else if (this.pointers.length === 3) {
                         let dx = centerX - this.fingers.centerX;
                         let dy = centerY - this.fingers.centerY;
@@ -722,9 +825,7 @@ class WorkspaceContent extends React.Component {
                         up: vec3.normalize([], vec3.transformMat4([], camera.up, rot)),
                     }));
                 } else if (pointer.button === 1) {
-                    this.props.dispatch(setCameraAttrs({
-                        fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(-dy / 200))),
-                    }));
+                    this.zoom(pointer.origPageX, pointer.origPageY, Math.exp(-dy / 200));
                 } else if (pointer.button === 0) {
                     let view = calcCamera({
                         viewportWidth: this.props.width,
@@ -736,6 +837,8 @@ class WorkspaceContent extends React.Component {
                         center: [0, 0, 0],
                         up: [0, 1, 0],
                         showPerspective: false,
+                        machineX: this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX,
+                        machineY: this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY,
                     }).view;
                     let scale = 2 * window.devicePixelRatio / this.props.width / view[0];
                     dx *= scale;
@@ -754,10 +857,7 @@ class WorkspaceContent extends React.Component {
 
     wheel(e) {
         e.preventDefault();
-        let camera = this.props.camera;
-        this.props.dispatch(setCameraAttrs({
-            fovy: Math.max(.1, Math.min(Math.PI - .1, camera.fovy * Math.exp(e.deltaY / 2000))),
-        }));
+        this.zoom(e.pageX, e.pageY, Math.exp(e.deltaY / 2000));
     }
 
     contextMenu(e) {
@@ -769,7 +869,9 @@ class WorkspaceContent extends React.Component {
             nextProps.width !== this.props.width ||
             nextProps.height !== this.props.height ||
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
-            nextProps.settings.machineOriginX !== this.props.settings.machineOriginX || nextProps.settings.machineOriginY !== this.props.settings.machineOriginY ||
+            nextProps.settings.machineBottomLeftX !== this.props.settings.machineBottomLeftX || nextProps.settings.machineBottomLeftY !== this.props.settings.machineBottomLeftY ||
+            nextProps.settings.toolGridWidth !== this.props.settings.toolGridWidth || nextProps.settings.toolGridHeight !== this.props.settings.toolGridHeight ||
+            nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
             nextProps.mode !== this.props.mode
@@ -791,7 +893,7 @@ class WorkspaceContent extends React.Component {
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
-                        <GridText {...{ width: this.props.settings.machineWidth, height: this.props.settings.machineHeight, offsetX: -this.props.settings.machineOriginX, offsetY: -this.props.settings.machineOriginY }} />
+                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
                     </Dom3d>
                 </Pointable>
                 <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
@@ -824,6 +926,48 @@ class Workspace extends React.Component {
             else
                 this.props.dispatch(setWorkspaceAttrs({ simTime: +e.target.value }));
         };
+        this.zoomMachine = this.zoomMachine.bind(this);
+        this.zoomDoc = this.zoomDoc.bind(this);
+    }
+
+    zoomMachine() {
+        this.props.dispatch(zoomArea(
+            this.props.settings.machineBottomLeftX - 10 - this.props.workspace.workOffsetX,
+            this.props.settings.machineBottomLeftY - 10 - this.props.workspace.workOffsetY,
+            this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10 - this.props.workspace.workOffsetX,
+            this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10 - this.props.workspace.workOffsetY
+        ));
+    }
+
+    zoomDoc() {
+        let found = false;
+        let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+        for (let cache of this.props.documentCacheHolder.cache.values()) {
+            let doc = cache.document;
+            if (doc.selected && doc.translate && cache.bounds) {
+                found = true;
+                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
+                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
+                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
+                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+            }
+        }
+
+        if (!found) {
+            for (let cache of this.props.documentCacheHolder.cache.values()) {
+                let doc = cache.document;
+                if (doc.translate && cache.bounds) {
+                    found = true;
+                    bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
+                    bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
+                    bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
+                    bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                }
+            }
+        }
+
+        if (found)
+            this.props.dispatch(zoomArea(bounds.x1, bounds.y1, bounds.x2, bounds.y2));
     }
 
     render() {
@@ -844,7 +988,10 @@ class Workspace extends React.Component {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td colSpan='2'><button className='btn btn-default btn-block' style={{ width: '150px' }} onClick={this.props.reset}><i className="fa fa-fw fa-search"></i>Reset View</button></td>
+                                    <td colSpan='2'>
+                                        <button className='btn btn-default' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Perspective</td>
@@ -896,10 +1043,9 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, enableVideo: (state.settings.toolVideoDevice !== null) }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: (state.settings.toolVideoDevice !== null) }),
     dispatch => ({
         dispatch,
-        reset: () => dispatch(resetCamera()),
         setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
@@ -908,5 +1054,5 @@ Workspace = connect(
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })
-)(Workspace);
+)(withDocumentCache(Workspace));
 export default Workspace;

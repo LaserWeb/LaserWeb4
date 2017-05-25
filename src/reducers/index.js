@@ -1,6 +1,6 @@
 import { undoCombineReducers, shouldSaveUndo } from './undo'
 
-import { camera, resetCamera } from './camera'
+import { camera, zoomArea } from './camera'
 import { documents, documentsLoad } from './document'
 import { gcode } from './gcode'
 import { operations, currentOperation, operationsAddDocuments, fixupOperations } from './operation'
@@ -20,8 +20,8 @@ const combined = undoCombineReducers({ camera, documents, operations, currentOpe
 
 export default function reducer(state, action) {
     switch (action.type) {
-        case 'CAMERA_RESET':
-            return { ...state, camera: resetCamera(state.camera, state.settings) };
+        case 'CAMERA_ZOOM_AREA':
+            return { ...state, camera: zoomArea(state.camera, state.settings, state.workspace, action) };
         case 'DOCUMENT_REMOVE':
             state = combined(state, action);
             return { ...state, operations: fixupOperations(state.operations, state.documents) };
