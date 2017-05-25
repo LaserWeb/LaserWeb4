@@ -443,8 +443,8 @@ function initWorkPosMarker() {
 const workPosMarker = initWorkPosMarker();
 
 function drawWorkPos(perspective, view, drawCommands, workPos) {
-    let height = 40;
-    let diameter = 20;
+    let height = 30;
+    let diameter = 10;
     drawCommands.basic({
         perspective,
         view,
