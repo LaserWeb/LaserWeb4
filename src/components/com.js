@@ -305,27 +305,25 @@ class Com extends React.Component {
             machineConnected = true;
             let {x, y, z, a} = wOffset;
             let posChanged = false;
-            if (xOffset !== x) {
+            if ((xOffset !== x) && (xOffset || x)) {
                 xOffset = x;
                 posChanged = true;
             }
-            if (yOffset !== y) {
+            if ((yOffset !== y) && (yOffset || y)) {
                 yOffset = y;
                 posChanged = true;
             }
-            if (zOffset !== z) {
+            if ((zOffset !== z) && (zOffset || z)) {
                 zOffset = z;
                 posChanged = true;
             }
-            if (aOffset !== a) {
+            if ((aOffset !== a) && (aOffset || a)) {
                 aOffset = a;
                 posChanged = true;
             }
             if (posChanged) {
                 CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
-                //console.log('WOffset: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 dispatch(setWorkspaceAttrs({ workOffsetX: +xOffset, workOffsetY: +yOffset }));
-                //dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
             }
         });
 
