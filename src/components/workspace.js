@@ -19,7 +19,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { setCameraAttrs, zoomArea } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
+import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments, removeDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
 
@@ -46,6 +46,8 @@ import Draggable from 'react-draggable';
 import { VideoPort } from './webcam'
 
 import { LiveJogging } from './jog'
+
+import { keyboardLogger } from './keyboard'
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -524,9 +526,24 @@ class WorkspaceContent extends React.Component {
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerCancel = this.onPointerCancel.bind(this);
+
+        this.handleMouseEnter = this.handleMouseEnter.bind(this)
+        this.handleMouseLeave = this.handleMouseLeave.bind(this)
+
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
+
+        this.setupBindings()
+    }
+
+    setupBindings(){
+         keyboardLogger.withContext('workspace',()=>{
+            keyboardLogger.bind('del',function(e){
+                if (this.props.mode === 'jog') return;
+                this.props.dispatch(removeDocumentSelected());
+            }.bind(this))
+        })
     }
 
     setCanvas(canvas) {
@@ -855,6 +872,14 @@ class WorkspaceContent extends React.Component {
         }
     }
 
+    handleMouseEnter(e){
+        keyboardLogger.setContext('workspace')
+    }
+
+    handleMouseLeave(e){
+        keyboardLogger.setContext('global')
+    }
+
     wheel(e) {
         e.preventDefault();
         this.zoom(e.pageX, e.pageY, Math.exp(e.deltaY / 2000));
@@ -880,7 +905,7 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <div style={{ touchAction: 'none', userSelect: 'none' }}>
+            <div style={{ touchAction: 'none', userSelect: 'none' }} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
                 <Pointable tagName='div' touchAction="none"
                     onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove}
                     onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}

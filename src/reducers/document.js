@@ -278,6 +278,8 @@ export function documents(state, action) {
                 state = reduceParents(state, action.payload.id, true, o => Object.assign({}, o, { visible: true }));
             return state;
         }
+        case "DOCUMENT_REMOVE_SELECTED":
+            return state.filter(d=>!d.selected);
         case 'WORKSPACE_RESET':
             return [];
         default:

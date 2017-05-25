@@ -21,7 +21,7 @@ import '../styles/index.css'
 import Icon from './font-awesome'
 import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
-import { bindKeys, unbindKeys } from './laserweb'
+import { bindKeys, unbindKeys } from './keyboard'
 
 var ovStep = 1;
 var ovLoop;
