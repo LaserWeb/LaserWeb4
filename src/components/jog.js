@@ -113,14 +113,15 @@ class Jog extends React.Component {
                         time = now;
                         let [x,y] = e.value;
                         let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
-                        
-                        if (Math.abs(x)>0.05) jog('X',x>0 ? +1:-1,Math.floor(jogF * Math.abs(x)));
-                        if (Math.abs(y)>0.05) jog('Y',y>0 ? -1:+1,Math.floor(jogF * Math.abs(y)));
+                        let jogX = (Math.abs(x)>0.05) ?  ((x>0) ? +1:-1) : 0;
+                        let jogY = (Math.abs(y)>0.05) ?  ((y>0) ? -1:+1) : 0;
+                        let jogS =  Math.floor(Math.max(Math.abs(x), Math.abs(y))*jogF);
+                        jogTo(jogX, jogY, undefined, true, jogS);
                     }
                     
                 }.bind(this));
             } else {
-                this.gamepad.resume();
+                this.gamepad.resume(); 
             }
         } else {
             if (this.gamepad) {
