@@ -568,6 +568,15 @@ class WorkspaceContent extends React.Component {
         let draw = () => {
             if (!this.canvas)
                 return;
+
+            if( this.props.settings.toolDisplayCache) {
+                if (this.__updating) {
+                    this.__updating=false;
+                } else {
+                    return requestAnimationFrame(draw);
+                }
+            }
+
             if (this.props.width > 1 && this.props.height > 1 && (this.props.workspace.width !== this.props.width || this.props.workspace.height !== this.props.height)) {
                 this.props.dispatch(setWorkspaceAttrs({ width: this.props.width, height: this.props.height }));
                 if (!this.props.workspace.initialZoom) {
@@ -626,6 +635,10 @@ class WorkspaceContent extends React.Component {
             requestAnimationFrame(draw);
         };
         draw();
+    }
+
+    componentDidUpdate(){
+        this.__updating=true;
     }
 
     componentWillReceiveProps(nextProps) {
