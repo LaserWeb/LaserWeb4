@@ -108,6 +108,8 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 overscan: op.overScan,
                 nonBlocking: false,
                 milling: false,
+                toolOn: settings.gcodeToolOn,
+                toolOff: settings.gcodeToolOff,
                 filters: {
                     smoothing: op.smoothing,
                     brightness: op.brightness,
