@@ -17,10 +17,6 @@ class RasterToGcode extends CanvasGrid {
             beamPower: { min: 0, max: 100 }, // Beam power (S value) as percentage of beamRange
 
             milling  : false, // EXPERIMENTAL
-
-            toolOn: null,   //needed on some machines
-            toolOff:null,   //needed on some machines
-
             zSafe    : 5,     // Safe Z for fast move
             zSurface : 0,     // Usinable surface (white pixels)
             zDepth   : -10,   // Z depth (black pixels)
@@ -598,14 +594,8 @@ class RasterToGcode extends CanvasGrid {
         point = this._getPoint(index)
 
         // Move to start of the line
-        if (gcode.length && this.toolOff && this.toolOff.length) {
-            gcode.push(this.toolOff);
-        }
         addCommand(this.G0, ['X', point.X], ['Y', point.Y], ['S', 0])
-        
-        if (this.toolOn && this.toolOn.length) {
-            gcode.push(this.toolOn);
-        }
+
         // Get next point
         point = this._getPoint(++index)
 
@@ -618,9 +608,6 @@ class RasterToGcode extends CanvasGrid {
             point = this._getPoint(++index)
         }
 
-        if (this.toolOff && this.toolOff.length) {
-            gcode.push(this.toolOff);
-        }
         // Return gcode commands array
         if (gcode.length) {
             return gcode

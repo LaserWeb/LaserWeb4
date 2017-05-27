@@ -63,7 +63,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
+
+            if (settings.gcodeToolOn && settings.gcodeToolOn.length)
+                g+=`${settings.gcodeToolOn} \r\n`;
+
             g += raster;
+
+            if (settings.gcodeToolOff && settings.gcodeToolOff.length)
+                g+=`${settings.gcodeToolOff} \r\n`;
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOff) {
@@ -108,8 +115,6 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 overscan: op.overScan,
                 nonBlocking: false,
                 milling: false,
-                toolOn: settings.gcodeToolOn,
-                toolOff: settings.gcodeToolOff,
                 filters: {
                     smoothing: op.smoothing,
                     brightness: op.brightness,
