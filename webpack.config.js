@@ -56,9 +56,6 @@ module.exports = {
         ]
     },
     plugins: [
-        new webpack.WatchIgnorePlugin([
-            path.resolve('./src/data/machine-profiles.json')
-        ]),
         new MergeJsonWebpackPlugin({
             "output": {
                 "groupBy": [
@@ -69,6 +66,9 @@ module.exports = {
                 ]
             }
         }),
+        new webpack.WatchIgnorePlugin([
+            path.resolve('./src/data/machine-profiles.json')
+        ]),
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
         
