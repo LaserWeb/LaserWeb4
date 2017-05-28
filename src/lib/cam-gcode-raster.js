@@ -22,6 +22,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         }
     }
 
+    if (op.useA && !op.aAxisDiameter){
+        showAlert("Axis Diameter must be > 0", "danger");
+        ok = false;
+    }
+
     if (!ok) {
         done(false);
         return [];
@@ -38,11 +43,17 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     const postProcessing = (gc) => {
         let g = '';
         let raster = '';
-        for (let line of gc)
-            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F')
+        for (let line of gc) {
+            if (op.useA) {
+                line=line.replace(/Y(\s*[0-9\.]{1,})/gi,"A$1");
+            }
+            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F') {
                 raster += line + '\r\n';
-            else
+            } else {
                 raster += '; stripped: ' + line + '\r\n';
+            }
+        }
+
         raster += '\r\n\r\n';
 
         if (op.hookOperationStart.length) g+=op.hookOperationStart;
@@ -97,7 +108,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
         QE.push((cb) => {
 
-            const doc = docsWithImages[index]
+            const doc = Object.assign({},docsWithImages[index])
+                  
+            if (op.useA && op.aAxisDiameter){
+                doc.scale[1]=Number((doc.scale[1] * 360 / op.aAxisDiameter / Math.PI).toFixed(3))
+            }
 
             let params = {
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
