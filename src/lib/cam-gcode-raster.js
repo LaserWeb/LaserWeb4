@@ -109,9 +109,12 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         QE.push((cb) => {
 
             const doc = Object.assign({},docsWithImages[index])
-                  
+            let feedRate = op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1);
+            
             if (op.useA && op.aAxisDiameter){
                 doc.scale[1]=Number((doc.scale[1] * 360 / op.aAxisDiameter / Math.PI).toFixed(3))
+                
+                if (op.diagonal) feedRate = feedRate/Math.SQRT2
             }
 
             let params = {
@@ -120,7 +123,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 beamRange: { min: 0, max: settings.gcodeSMaxValue },
                 beamPower: op.laserPowerRange, //Go go power rangeR!
                 rapidRate: false,
-                feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
+                feedRate,
                 offsets: { X: doc.translate[0], Y: doc.translate[1] },
                 trimLine: op.trimLine,
                 joinPixel: op.joinPixel,
