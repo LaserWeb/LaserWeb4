@@ -44,6 +44,7 @@ import Icon from './font-awesome'
 import Draggable from 'react-draggable';
 
 import { VideoPort } from './webcam'
+import { ImagePort } from './image-filters'
 
 import { LiveJogging } from './jog'
 
@@ -1009,7 +1010,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, enableVideo } = this.props;
+        let { camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1051,6 +1052,10 @@ class Workspace extends React.Component {
                                     <td>Show Webcam</td>
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
                                 </tr>
+                                <tr>
+                                    <td>Show Raster Preview</td>
+                                    <td><input checked={workspace.showRasterPreview} onChange={setRasterPreview} type="checkbox" /></td>
+                                </tr>
                             </tbody>
                         </table>
                         <table style={{ marginLeft: 10 }}>
@@ -1075,6 +1080,7 @@ class Workspace extends React.Component {
                 </div>
 
                 <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
+                <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent"/>
 
             </div>
         )
@@ -1090,6 +1096,7 @@ Workspace = connect(
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
+        setRasterPreview: e => dispatch(setWorkspaceAttrs({ showRasterPreview: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })
 )(withDocumentCache(Workspace));

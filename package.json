@@ -91,7 +91,7 @@
     "queue": "^4.2.1",
     "raw-loader": "^0.5.1",
     "react": "^15.3.1",
-    "react-addons-shallow-compare": "^15.0.0",
+    "react-addons-shallow-compare": "^15.4.1",
     "react-bootstrap": "^0.30.6",
     "react-bootstrap-table": "^2.5.8",
     "react-contextmenu": "^2.5.2",
@@ -128,7 +128,6 @@
     "bootstrap-range-input": "^1.0.0",
     "dxf-parser": "^0.4.6",
     "immutability-helper": "^2.0.0",
-    "react-addons-shallow-compare": "^15.4.1",
     "unicode": "^0.6.1",
     "vectorize-text": "^3.0.2"
   }
