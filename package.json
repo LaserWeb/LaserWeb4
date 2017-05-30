@@ -72,6 +72,7 @@
     "json-loader": "^0.5.4",
     "json-stringify-pretty-compact": "^1.0.2",
     "json-stringify-safe": "^5.0.1",
+    "jsonschema": "^1.1.1",
     "keyboardjs": "^2.3.3",
     "lw.canvas-filters": "git+https://github.com/LaserWeb/lw.canvas-filters.git",
     "lw.canvas-grid": "git+https://github.com/LaserWeb/lw.canvas-grid.git",
