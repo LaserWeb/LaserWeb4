@@ -37,7 +37,7 @@ import { DocumentCacheHolder } from './document-cache'
 
 import { keyboardUndoAction } from '../actions/laserweb';
 
-import keyboardJS from 'keyboardjs'
+import { keyboardLogger, bindKeys, unbindKeys } from './keyboard';
 
 import { fireMacroById } from '../actions/macros'
 
@@ -92,20 +92,6 @@ const updateTitle=()=>{
     document.title = `Laserweb ${version}`;
 }
 
-export const bindKeys=(keys)=>{
-    keys.forEach((entry)=>{
-        let [keybinding,method] = entry;
-        window.keyboardLogger.bind(keybinding.filter((i)=>(i!==undefined)),method)
-    })
-}
-
-export const unbindKeys=(keys)=>{
-    keys.forEach((entry)=>{
-        let [keybinding,method] = entry;
-        window.keyboardLogger.unbind(keybinding.filter((i)=>(i!==undefined)),method)
-    })
-}
-
 class LaserWeb extends React.Component {
 
     componentWillReceiveProps(nextProps) {
@@ -123,10 +109,7 @@ class LaserWeb extends React.Component {
     }
 
     setupKeybindings(){
-        if (!window.keyboardLogger) {
-            window.keyboardLogger = keyboardJS;
-            
-            window.keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
+            keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
                 this.props.handleUndo(e);
             }.bind(this));
 
@@ -137,10 +120,8 @@ class LaserWeb extends React.Component {
                     let [label, macro] = entry;
                     return macro.keybinding
                 }).forEach((key)=>{
-                    window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
+                    keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
                 });
-            
-        }
     }
 
     setupVideoCapture()

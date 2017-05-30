@@ -632,3 +632,5 @@ button:hover,
 .pane-settings .details {
     margin-left:0;
 }
+
+canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'none'; box-shadow: 10px 10px 10px rgba(0,0,0,0.5); border: 1px solid #666; padding: 10px}

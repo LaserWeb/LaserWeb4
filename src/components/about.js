@@ -68,6 +68,8 @@ class About extends React.Component {
                     <dd><small>- Communications</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/+PetervanderWalt">Peter van der Walt</a> <a target="_blank" href="https://paypal.me/openhardwarecoza"><Icon name="paypal"/></a></dt>
                     <dd><small>- Support + User Interface</small></dd><p/>
+                    <dt><Icon name="user"/> <a href="https://plus.google.com/+ArielYahni">Ariel Yahni</a></dt>
+                    <dd><small>- Beta testing</small></dd><p/>
                   </dl>
                 <div><i>LaserWeb and CNCWeb is <kbd>free software</kbd>. The team of developers have spent countless hours coding, testing and supporting this application. If you enjoy using this application, consider donating a coffee or a beer towards the developers to show your appreciation, by clicking the <Icon name="paypal"/> icon next to the developers you want to support</i></div>
 

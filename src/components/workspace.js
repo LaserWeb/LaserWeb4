@@ -19,7 +19,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
 import { setCameraAttrs, zoomArea } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments } from '../actions/document';
+import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments, removeDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
 
@@ -44,8 +44,11 @@ import Icon from './font-awesome'
 import Draggable from 'react-draggable';
 
 import { VideoPort } from './webcam'
+import { ImagePort } from './image-filters'
 
 import { LiveJogging } from './jog'
+
+import { keyboardLogger } from './keyboard'
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -524,9 +527,24 @@ class WorkspaceContent extends React.Component {
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerCancel = this.onPointerCancel.bind(this);
+
+        this.handleMouseEnter = this.handleMouseEnter.bind(this)
+        this.handleMouseLeave = this.handleMouseLeave.bind(this)
+
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
+
+        this.setupBindings()
+    }
+
+    setupBindings(){
+         keyboardLogger.withContext('workspace',()=>{
+            keyboardLogger.bind('del',function(e){
+                if (this.props.mode === 'jog') return;
+                this.props.dispatch(removeDocumentSelected());
+            }.bind(this))
+        })
     }
 
     setCanvas(canvas) {
@@ -551,6 +569,15 @@ class WorkspaceContent extends React.Component {
         let draw = () => {
             if (!this.canvas)
                 return;
+
+            if( this.props.settings.toolDisplayCache) {
+                if (this.__updating) {
+                    this.__updating=false;
+                } else {
+                    return requestAnimationFrame(draw);
+                }
+            }
+
             if (this.props.width > 1 && this.props.height > 1 && (this.props.workspace.width !== this.props.width || this.props.workspace.height !== this.props.height)) {
                 this.props.dispatch(setWorkspaceAttrs({ width: this.props.width, height: this.props.height }));
                 if (!this.props.workspace.initialZoom) {
@@ -609,6 +636,10 @@ class WorkspaceContent extends React.Component {
             requestAnimationFrame(draw);
         };
         draw();
+    }
+
+    componentDidUpdate(){
+        this.__updating=true;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -855,6 +886,14 @@ class WorkspaceContent extends React.Component {
         }
     }
 
+    handleMouseEnter(e){
+        keyboardLogger.setContext('workspace')
+    }
+
+    handleMouseLeave(e){
+        keyboardLogger.setContext('global')
+    }
+
     wheel(e) {
         e.preventDefault();
         this.zoom(e.pageX, e.pageY, Math.exp(e.deltaY / 2000));
@@ -880,7 +919,7 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <div style={{ touchAction: 'none', userSelect: 'none' }}>
+            <div style={{ touchAction: 'none', userSelect: 'none' }} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
                 <Pointable tagName='div' touchAction="none"
                     onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove}
                     onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}
@@ -971,7 +1010,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, enableVideo } = this.props;
+        let { camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1013,6 +1052,10 @@ class Workspace extends React.Component {
                                     <td>Show Webcam</td>
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
                                 </tr>
+                                <tr>
+                                    <td>Show Raster Preview</td>
+                                    <td><input checked={workspace.showRasterPreview} onChange={setRasterPreview} type="checkbox" /></td>
+                                </tr>
                             </tbody>
                         </table>
                         <table style={{ marginLeft: 10 }}>
@@ -1037,6 +1080,7 @@ class Workspace extends React.Component {
                 </div>
 
                 <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
+                <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent"/>
 
             </div>
         )
@@ -1052,6 +1096,7 @@ Workspace = connect(
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
+        setRasterPreview: e => dispatch(setWorkspaceAttrs({ showRasterPreview: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })
 )(withDocumentCache(Workspace));

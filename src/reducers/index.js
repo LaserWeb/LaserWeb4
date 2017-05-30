@@ -23,6 +23,7 @@ export default function reducer(state, action) {
         case 'CAMERA_ZOOM_AREA':
             return { ...state, camera: zoomArea(state.camera, state.settings, state.workspace, action) };
         case 'DOCUMENT_REMOVE':
+        case "DOCUMENT_REMOVE_SELECTED":
             state = combined(state, action);
             return { ...state, operations: fixupOperations(state.operations, state.documents) };
         case 'DOCUMENT_LOAD':

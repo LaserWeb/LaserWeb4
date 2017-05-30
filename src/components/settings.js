@@ -282,6 +282,9 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'toolCncMode', setAttrs: setSettingsAttrs, description: 'Enable CNC Mode' }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
+                        <hr/>
+                        <p className="help-block">Enable Display cache. Disable animations.</p>
+                        <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache' }} />
                     </SettingsPanel>
 
                     <Panel collapsible header="Camera" bsStyle="info" eventKey="6">

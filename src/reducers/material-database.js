@@ -10,7 +10,10 @@ import { OPERATION_INITIALSTATE } from './operation'
 
 import CommandHistory from '../components/command-history'
 
+import { Validator } from 'jsonschema';
+
 export const MATERIALDB_INITIALSTATE = require("../data/lw.materials/material-database.json");
+export const MATERIALDB_SCHEMA = require("../data/lw.materials/material-database.spec.json");
 
 function generateInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -200,7 +203,16 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
         case actionTypes.INIT:
             if (action.payload) {
                 let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { return { ...vendor, _locked: true } });
-                return Object.assign(action.payload.materialDatabase || {}, lockedState);
+                let v = new Validator();
+                let result =  v.validate(action.payload.materialDatabase || {},MATERIALDB_SCHEMA);
+
+                if (result.valid) {
+                    return Object.assign(action.payload.materialDatabase || {}, lockedState);
+                } else {
+                    CommandHistory.error("Material Database corrupt/obsolete. Restoring.")
+                    console.error(result);
+                    return lockedState;
+                }
             }
             return state;
 
