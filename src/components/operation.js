@@ -526,11 +526,9 @@ class Operation extends React.Component {
                     this.setTypeString(this.availableOps[0])
             }
         }
-    }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.op.type != this.props.op.type) {
-            this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+        if (nextProps.op.type != this.props.op.type) {
+            this.operationGroups = groupFields(OPERATION_TYPES[nextProps.op.type].fields)
         }
     }
 
