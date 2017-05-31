@@ -538,9 +538,9 @@ class WorkspaceContent extends React.Component {
         this.setupBindings()
     }
 
-    setupBindings(){
-         keyboardLogger.withContext('workspace',()=>{
-            keyboardLogger.bind('del',function(e){
+    setupBindings() {
+        keyboardLogger.withContext('workspace', () => {
+            keyboardLogger.bind('del', function (e) {
                 if (this.props.mode === 'jog') return;
                 this.props.dispatch(removeDocumentSelected());
             }.bind(this))
@@ -570,9 +570,9 @@ class WorkspaceContent extends React.Component {
             if (!this.canvas)
                 return;
 
-            if( this.props.settings.toolDisplayCache) {
+            if (this.props.settings.toolDisplayCache) {
                 if (this.__updating) {
-                    this.__updating=false;
+                    this.__updating = false;
                 } else {
                     return requestAnimationFrame(draw);
                 }
@@ -638,8 +638,8 @@ class WorkspaceContent extends React.Component {
         draw();
     }
 
-    componentDidUpdate(){
-        this.__updating=true;
+    componentDidUpdate() {
+        this.__updating = true;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -886,11 +886,11 @@ class WorkspaceContent extends React.Component {
         }
     }
 
-    handleMouseEnter(e){
+    handleMouseEnter(e) {
         keyboardLogger.setContext('workspace')
     }
 
-    handleMouseLeave(e){
+    handleMouseLeave(e) {
         keyboardLogger.setContext('global')
     }
 
@@ -1080,7 +1080,7 @@ class Workspace extends React.Component {
                 </div>
 
                 <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
-                <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent"/>
+                <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent" />
 
             </div>
         )

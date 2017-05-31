@@ -83,7 +83,7 @@ export function thickLines(drawCommands) {
         },
     });
     let startTime = Date.now();
-    return ({perspective, view, scale, translate, thickness, color1, color2, buffer}) => {
+    return ({ perspective, view, scale, translate, thickness, color1, color2, buffer }) => {
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.TRIANGLES,
