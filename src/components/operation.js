@@ -551,10 +551,6 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
-
-
-        let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
-
         let header;
 
         if (op.name && op.name.length)
@@ -573,7 +569,7 @@ class Operation extends React.Component {
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
 
                         <div style={{ whiteSpace: 'nowrap' }}>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
