@@ -280,13 +280,13 @@ class Parser {
 
     // Log skip tag warning message
     _skipTag(tag, message) {
-        console.warn('Skip tag :', message + ':', tag)
+        //console.warn('Skip tag :', message + ':', tag)
         return false
     }
 
     // Log skip tag attribute warning message
     _skipTagAttr(tag, attr, message) {
-        console.warn('Skip tag attribute :', message + ':', attr, tag)
+        //console.warn('Skip tag attribute :', message + ':', attr, tag)
         return false
     }
 
