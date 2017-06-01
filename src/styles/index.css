@@ -184,7 +184,8 @@ body, html, .full-height {
 }
 
 .form-group .input-group-addon ,
-.form-group label { text-transform: uppercase; font-size: smaller}
+.form-group label, h5.header { text-transform: uppercase; font-size: smaller; }
+h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
 
