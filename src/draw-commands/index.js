@@ -212,6 +212,12 @@ export class DrawCommands {
                 case this.gl.FLOAT_VEC4:
                     set = 'gl.uniform4fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
                     break;
+                case this.gl.FLOAT_MAT2:
+                    set = 'gl.uniformMatrix2fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_MAT3:
+                    set = 'gl.uniformMatrix3fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
+                    break;
                 case this.gl.FLOAT_MAT4:
                     set = 'gl.uniformMatrix4fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
                     break;

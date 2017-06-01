@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { mat4 } from 'gl-matrix';
+
 export function basic(drawCommands) {
     let program = drawCommands.compile({
         vert: `
@@ -54,13 +56,10 @@ export function basic2d(drawCommands) {
     let program = drawCommands.compile({
         vert: `
             precision mediump float;
-            uniform mat4 perspective; 
-            uniform mat4 view; 
-            uniform vec3 scale; 
-            uniform vec3 translate; 
+            uniform mat4 transform; 
             attribute vec2 position;
             void main() {
-                gl_Position = perspective * view * vec4(scale * vec3(position, 0.0) + translate, 1);
+                gl_Position = transform * vec4(position, 0.0, 1.0);
             }`,
         frag: `
             precision mediump float;
@@ -72,11 +71,19 @@ export function basic2d(drawCommands) {
             position: { offset: 0 },
         },
     });
-    return ({ perspective, view, scale, translate, color, primitive, position, offset, count }) => {
+    return ({ perspective, view, transform2d, color, primitive, position, offset, count }) => {
+        let t = transform2d;
+        let transform =
+            mat4.multiply([], perspective,
+                mat4.multiply([], view, [
+                    t[0], t[1], 0, 0,
+                    t[2], t[3], 0, 0,
+                    0, 0, 1, 0,
+                    t[4], t[5], 0, 1]));
         drawCommands.execute({
             program,
             primitive,
-            uniforms: { perspective, view, scale, translate, color },
+            uniforms: { transform, color },
             buffer: {
                 data: position,
                 stride: 8,

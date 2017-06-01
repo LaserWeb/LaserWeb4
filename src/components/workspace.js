@@ -13,13 +13,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { mat4, vec3, vec4 } from 'gl-matrix';
+import { mat2d, mat4, vec3, vec4 } from 'gl-matrix';
 import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
+import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments, removeDocumentSelected } from '../actions/document';
+import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
 
@@ -87,7 +88,7 @@ class LightenMachineBounds {
             ];
             this.triangles = new Float32Array(a);
         }
-        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
@@ -180,7 +181,7 @@ class MachineBounds {
             this.markers = new Float32Array(a);
         }
 
-        drawCommands.basic2d({ perspective, view, position: this.markers, offset: 0, count: this.markers.length / 2, color: [0, 0, 0, 0.8], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.markers, offset: 0, count: this.markers.length / 2, color: [0, 0, 0, 0.8], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
@@ -214,20 +215,31 @@ class FloatingControls extends React.Component {
                     cy = (this.bounds.y1 + this.bounds.y2) / 2;
                     break;
             }
-
-            this.props.dispatch(scaleTranslateSelectedDocuments(
-                [sx, sy, 1],
-                [cx - sx * cx, cy - sy * cy, 0]
+            this.props.dispatch(transform2dSelectedDocuments([sx, 0, 0, sy, cx - sx * cx, cy - sy * cy]));
+        }
+        this.rotate = v => {
+            let rotate = v - this.baseRotate;
+            this.props.dispatch(transform2dSelectedDocuments(
+                mat2d.translate([],
+                    mat2d.rotate(
+                        [],
+                        mat2d.fromTranslation([], [this.rotateCenter[0], this.rotateCenter[1]]),
+                        rotate * Math.PI / 180),
+                    [-this.rotateCenter[0], -this.rotateCenter[1]]
+                )
             ));
+            this.rotateDocs = GlobalStore().getState().documents;
+            this.baseRotate = v;
+            this.forceUpdate();
         }
         this.setMinX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x1, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - this.bounds.x1, 0]));
         }
         this.setCenterX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - (this.bounds.x1 + this.bounds.x2) / 2, 0]));
         }
         this.setMaxX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x2, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - this.bounds.x2, 0]));
         }
         this.setSizeX = v => {
             if (v > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
@@ -239,13 +251,13 @@ class FloatingControls extends React.Component {
             }
         }
         this.setMinY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y1, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - this.bounds.y1]));
         }
         this.setCenterY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - (this.bounds.y1 + this.bounds.y2) / 2]));
         }
         this.setMaxY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y2, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - this.bounds.y2]));
         }
         this.setSizeY = v => {
             if (v > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
@@ -275,12 +287,12 @@ class FloatingControls extends React.Component {
         let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
             let doc = cache.document;
-            if (doc.selected && doc.translate && cache.bounds) {
+            if (doc.selected && doc.transform2d && cache.bounds) {
                 found = true;
-                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
 
                 if (doc.type == 'image' && doc.originalPixels) {
                     tools = <tfoot>
@@ -298,6 +310,12 @@ class FloatingControls extends React.Component {
         }
         if (!found || !this.props.camera)
             return <div />
+
+        if (this.rotateDocs !== this.props.documents) {
+            this.baseRotate = 0;
+            this.rotateCenter = [(bounds.x1 + bounds.x2) / 2, (bounds.y1 + bounds.y2) / 2, 0];
+            this.rotateDocs = this.props.documents;
+        }
 
         let p =
             vec4.transformMat4([],
@@ -323,6 +341,7 @@ class FloatingControls extends React.Component {
                         <td>Max</td>
                         <td>Size</td>
                         <td></td>
+                        <td>Rot</td>
                     </tr>
                     <tr>
                         <td><span className="label label-danger">X</span></td>
@@ -331,8 +350,9 @@ class FloatingControls extends React.Component {
                         <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
                         <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
                         <td rowSpan={2}>
-                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
-                    </td>
+                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
+                        </td>
+                        <td rowSpan={2}><Input value={round(this.baseRotate)} onChangeValue={this.rotate} type="number" step="any" tabIndex="10" /></td>
                     </tr>
                     <tr>
                         <td><span className="label label-success">Y</span></td>
@@ -359,8 +379,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                     drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         color: document.fillColor,
                         primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
@@ -371,8 +390,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         drawCommands.basic2d({
                             perspective, view,
                             position: o,
-                            scale: document.scale,
-                            translate: document.translate,
+                            transform2d: document.transform2d,
                             color: document.strokeColor[3] ? document.strokeColor : [1, 0, 0, 1],
                             primitive: drawCommands.gl.LINE_STRIP,
                             offset: 0,
@@ -397,7 +415,6 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-
 function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
@@ -408,8 +425,7 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 drawCommands.thickLines({
                     perspective, view,
                     buffer: outline,
-                    scale: document.scale,
-                    translate: document.translate,
+                    transform2d: document.transform2d,
                     thickness: 5,
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
@@ -420,6 +436,7 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 drawCommands.thickLines({
                     perspective, view,
                     buffer: thickSquare,
+                    rotate: document.rotate * Math.PI / 180,
                     scale: [
                         cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
                         cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
@@ -433,8 +450,6 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
     }
 } // drawSelectedDocuments
 
-
-
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document, hitTestId } = cachedDocument;
@@ -445,8 +460,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                     drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         color,
                         primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
@@ -456,8 +470,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                     drawCommands.thickLines({
                         perspective, view,
                         buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         thickness: 10,
                         color1: color,
                         color2: color,
@@ -470,8 +483,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                 drawCommands.basic2d({
                     perspective, view,
                     position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
-                    scale: document.scale,
-                    translate: document.translate,
+                    transform2d: document.transform2d,
                     color,
                     primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
@@ -813,7 +825,7 @@ class WorkspaceContent extends React.Component {
             let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
             let p2 = this.xyInterceptFromPoint(pointer.pageX, pointer.pageY);
             if (p1 && p2)
-                this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
+                this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, p1[0] - p2[0], p1[1] - p2[1]]));
             pointer.pageX = e.pageX;
             pointer.pageY = e.pageY;
         } else if (this.adjustingCamera) {
@@ -983,24 +995,24 @@ class Workspace extends React.Component {
         let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
             let doc = cache.document;
-            if (doc.selected && doc.translate && cache.bounds) {
+            if (doc.selected && doc.transform2d && cache.bounds) {
                 found = true;
-                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
             }
         }
 
         if (!found) {
             for (let cache of this.props.documentCacheHolder.cache.values()) {
                 let doc = cache.document;
-                if (doc.translate && cache.bounds) {
+                if (doc.transform2d && cache.bounds) {
                     found = true;
-                    bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                    bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                    bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                    bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                    bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                    bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                    bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                    bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
                 }
             }
         }

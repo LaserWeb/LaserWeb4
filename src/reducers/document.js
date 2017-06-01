@@ -1,6 +1,6 @@
 "use strict";
 
-import { vec3 } from 'gl-matrix';
+import { mat2d, mat3, vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
 import Snap from 'snapsvg-cjs';
 
@@ -22,8 +22,7 @@ export const DOCUMENT_INITIALSTATE = {
     children: [],
     selected: false,
     visible: true,
-    translate: null,
-    scale: null,
+    transform2d: null,
     rawPaths: null,
     strokeColor: null,
     fillColor: null,
@@ -35,19 +34,10 @@ const documentBase = object('document', DOCUMENT_INITIALSTATE);
 
 export function document(state, action) {
     switch (action.type) {
-        case 'DOCUMENT_TRANSLATE_SELECTED':
-            if (state.selected && state.translate) {
-                return { ...state, translate: vec3.add([], state.translate, action.payload) };
-            } else
-                return state;
-        case 'DOCUMENT_SCALE_TRANSLATE_SELECTED':
-            if (state.selected && state.scale && state.translate) {
-                return {
-                    ...state,
-                    scale: vec3.mul([], state.scale, action.payload.scale),
-                    translate: vec3.add([], vec3.mul([], action.payload.scale, state.translate), action.payload.translate),
-                };
-            } else
+        case 'DOCUMENT_TRANSFORM2D_SELECTED':
+            if (state.selected && state.transform2d)
+                return { ...state, transform2d: mat2d.multiply([], action.payload, state.transform2d) };
+            else
                 return state;
         default:
             return documentBase(state, action)
@@ -92,8 +82,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             if (rawPaths.length) {
                 allPositions.push(rawPaths);
                 c.rawPaths = rawPaths;
-                c.translate = [0, 0, 0];
-                c.scale = [1, 1, 1];
+                c.transform2d = [1, 0, 0, 1, 0, 0];
                 c.strokeColor = getColor(child.attrs.stroke);
                 c.fillColor = getColor(child.attrs.fill);
                 if (hasClosedRawPaths(rawPaths)) {
@@ -193,8 +182,7 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
         isRoot: true,
         children: [],
         selected: false,
-        translate: [0, 0, 0],
-        scale: [1, 1, 1],
+        transform2d: [1, 0, 0, 1, 0, 0],
         mimeType: file.type,
         dataURL: content,
         dpi: (settings.dpiBitmap) ? +settings.dpiBitmap : 96, // TODO,
