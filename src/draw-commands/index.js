@@ -85,7 +85,7 @@ export class DrawCommands {
         let result = {
             texture,
             drawCommands: this,
-            set({image, width, height}) {
+            set({ image, width, height }) {
                 let gl = this.drawCommands.gl;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 if (image)
@@ -134,7 +134,7 @@ export class DrawCommands {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, old);
     }
 
-    compile({vert, frag, attrs}) {
+    compile({ vert, frag, attrs }) {
         let comp = (type, source) => {
             let shader = this.gl.createShader(type);
             this.shaders.push(shader);
@@ -161,13 +161,13 @@ export class DrawCommands {
         let numUniforms = this.gl.getProgramParameter(program, this.gl.ACTIVE_UNIFORMS);
         let uniforms = [];
         for (let i = 0; i < numUniforms; ++i) {
-            let {name, size, type} = this.gl.getActiveUniform(program, i);
+            let { name, size, type } = this.gl.getActiveUniform(program, i);
             uniforms.push({ name, size, type, location: this.gl.getUniformLocation(program, name) });
         }
         let numAttrs = this.gl.getProgramParameter(program, this.gl.ACTIVE_ATTRIBUTES);
         let result = { program, uniforms, attrs: [] };
         for (let i = 0; i < numAttrs; ++i) {
-            let {name, size, type} = this.gl.getActiveAttrib(program, i);
+            let { name, size, type } = this.gl.getActiveAttrib(program, i);
             if (type == this.gl.FLOAT_VEC2) {
                 type = this.gl.FLOAT;
                 size = 2;
@@ -189,7 +189,7 @@ export class DrawCommands {
     }
 
     generateUseUniforms(program) {
-        let {uniforms} = program;
+        let { uniforms } = program;
         let body = 'let {' + uniforms.map(u => u.name) + '} = props;\n';
         body += 'let gl = drawCommands.gl;\n';
         let numTextures = 0;
@@ -243,7 +243,7 @@ export class DrawCommands {
     }
 
     generateUseAttrs(program) {
-        let {attrs} = program;
+        let { attrs } = program;
         let setup = '';
         let teardown = '';
         for (let i = 0; i < attrs.length; ++i) {
@@ -257,7 +257,7 @@ export class DrawCommands {
         program.useAttrs = new Function('drawCommands', 'stride', 'offset', 'next', body);
     }
 
-    execute({program, primitive, uniforms, buffer, attributes}) {
+    execute({ program, primitive, uniforms, buffer, attributes }) {
         let useBuffer = next => {
             if (buffer.data.isBuffer) {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.data.buffer);
