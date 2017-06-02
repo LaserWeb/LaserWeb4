@@ -318,13 +318,14 @@ h5.header {font-weight: bold}
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #f6f6f6}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
-.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre}
+.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre; vertical-align: top}
 .commandHistory code.danger {background: #fee}
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
 .commandHistory code.success {background: #efe}
 .commandHistory code.success i {color: #0a0}
+.commandHistory details {display:inline-block}
 
 /*FullSizeModal*/
 
