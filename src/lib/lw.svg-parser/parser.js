@@ -280,14 +280,27 @@ class Parser {
 
     // Log skip tag warning message
     _skipTag(tag, message) {
-        //console.warn('Skip tag :', message + ':', tag)
+        if (this._isVendor(tag)) 
+            return false;
+        
+        console.warn('Skip tag :', message + ':', tag)
         return false
     }
 
     // Log skip tag attribute warning message
     _skipTagAttr(tag, attr, message) {
-        //console.warn('Skip tag attribute :', message + ':', attr, tag)
+        if (this._isVendor(tag,attr)) 
+            return false;
+        console.warn('Skip tag attribute :', message + ':', attr, tag)
         return false
+    }
+
+    _isVendor(tag,attr) {
+        if (tag && tag.element.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
+            return true;
+        if (attr && attr.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
+            return true;
+        return false;
     }
 
 }
