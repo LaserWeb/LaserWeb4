@@ -61,8 +61,17 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
     }
 
-    function addChildren(parent, tag) {
+    function mat2dFromSnap(m) {
+        return [m.a, m.b, m.c, m.d, m.e / pxPerInch * 25.4, m.f / pxPerInch * 25.4];
+    }
+
+    let viewBoxDeltaX = -parser.document.viewBox.x / pxPerInch * 25.4;
+    let viewBoxDeltaY = (parser.document.viewBox.y + parser.document.viewBox.height) / pxPerInch * 25.4;
+
+    function addChildren(parent, tag, parentMat) {
         for (let child of tag.children) {
+            let localMat = mat2dFromSnap(Snap(child.element).transform().localMatrix);
+            let combinedMat = mat2d.mul([], parentMat, localMat);
             let c = {
                 ...DOCUMENT_INITIALSTATE,
                 id: uuid.v4(),
@@ -76,7 +85,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             for (let path of child.getPaths()) {
                 let p = [];
                 for (let point of path.points)
-                    p.push(point.x / pxPerInch * 25.4, point.y / pxPerInch * 25.4);
+                    p.push(viewBoxDeltaX + point.x / pxPerInch * 25.4, viewBoxDeltaY - point.y / pxPerInch * 25.4);
                 if (p.length)
                     rawPaths.push(p);
             }
@@ -93,32 +102,30 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                     c.strokeColor[3] = .3;
             } else if (child.name === 'image') {
                 let element = child.element;
-                let mat = Snap(element).transform().localMatrix;
                 let dataURL = element.getAttribute('xlink:href');
                 if (dataURL.substring(0, 5) !== 'data:')
                     continue;
-
                 let rawX = element.x.baseVal.value;
                 let rawY = element.y.baseVal.value;
                 let rawW = element.width.baseVal.value;
                 let rawH = element.height.baseVal.value;
-                let x = (mat.x(rawX, rawY) + parser.document.viewBox.x) / pxPerInch * 25.4;
-                let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
-                let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
-                let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
-
+                let x = rawX / pxPerInch * 25.4;
+                let y = rawY / pxPerInch * 25.4;
+                let w = (rawX + rawW) / pxPerInch * 25.4 - x;
+                let h = (rawY + rawH) / pxPerInch * 25.4 - y;
+                let t = [w / child.naturalWidth, 0, 0, -h / child.naturalHeight, x, y + h];
+                t = mat2d.mul([], combinedMat, t);
+                t = mat2d.mul([], [1, 0, 0, -1, viewBoxDeltaX, viewBoxDeltaY], t);
                 c = {
                     ...c,
-                    translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
-                    scale: [w / child.naturalWidth, h / child.naturalHeight, 1],
+                    transform2d: t,
                     mimeType: file.type,
                     dataURL: dataURL,
-                    dpi: 25.4,
                 };
             }
             state.push(c);
             parent.children.push(c.id);
-            addChildren(c, child)
+            addChildren(c, child, combinedMat)
         }
     }
 
@@ -132,8 +139,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, tags);
-    flipY(allPositions, parser.document.viewBox.height / pxPerInch * 25.4);
+    addChildren(doc, tags, [1, 0, 0, 1, 0, 0]);
     return state;
 }
 
