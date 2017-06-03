@@ -84,8 +84,11 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             let rawPaths = [];
             for (let path of child.getPaths()) {
                 let p = [];
-                for (let point of path.points)
-                    p.push(viewBoxDeltaX + point.x / pxPerInch * 25.4, viewBoxDeltaY - point.y / pxPerInch * 25.4);
+                for (let point of path.points) {
+                    let x = (combinedMat[0] * point.x + combinedMat[2] * point.y) / pxPerInch * 25.4 + combinedMat[4];
+                    let y = (combinedMat[1] * point.x + combinedMat[3] * point.y) / pxPerInch * 25.4 + combinedMat[5];
+                    p.push(viewBoxDeltaX + x, viewBoxDeltaY - y);
+                }
                 if (p.length)
                     rawPaths.push(p);
             }
