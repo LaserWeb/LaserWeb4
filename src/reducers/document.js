@@ -27,7 +27,8 @@ export const DOCUMENT_INITIALSTATE = {
     strokeColor: null,
     fillColor: null,
     dataURL: '',
-    dpi: 1,
+    originalPixels: null,
+    originalSize: null,
 };
 
 const documentBase = object('document', DOCUMENT_INITIALSTATE);
@@ -137,7 +138,6 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
 }
 
 function processImage(doc, settings, context) {
-
     if (!context) {
         CommandHistory.warn('Cannot process image ' + doc.name)
         return doc;
@@ -152,28 +152,33 @@ function processImage(doc, settings, context) {
 
     switch (settings.toolImagePosition) {
         case 'TL':
-            doc.translate = [0, settings.machineHeight - imageHeight, 0]
+            doc.transform2d[4] = 0;
+            doc.transform2d[5] = settings.machineHeight - imageHeight;
             break;
         case 'TR':
-            doc.translate = [settings.machineWidth - imageWidth, settings.machineHeight - imageHeight, 0]
+            doc.transform2d[4] = settings.machineWidth - imageWidth;
+            doc.transform2d[5] = settings.machineHeight - imageHeight;
             break;
         case 'BL':
-            doc.translate = [0, 0, 0]
+            doc.transform2d[4] = 0;
+            doc.transform2d[5] = 0;
             break;
         case 'BR':
-            doc.translate = [settings.machineWidth - imageWidth, 0, 0]
+            doc.transform2d[4] = settings.machineWidth - imageWidth;
+            doc.transform2d[5] = 0;
             break;
         case 'C':
-            doc.translate = [(settings.machineWidth - imageWidth) / 2, (settings.machineHeight - imageHeight) / 2, 0]
+            doc.transform2d[4] = (settings.machineWidth - imageWidth) / 2;
+            doc.transform2d[5] = (settings.machineHeight - imageHeight) / 2;
             break;
     }
 
     return doc;
-
 }
 
 function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
     state = state.slice();
+    let scale = 25.4 / settings.dpiBitmap;
     let doc = {
         ...DOCUMENT_INITIALSTATE,
         id: id,
@@ -182,10 +187,9 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
         isRoot: true,
         children: [],
         selected: false,
-        transform2d: [1, 0, 0, 1, 0, 0],
+        transform2d: [scale, 0, 0, scale, 0, 0],
         mimeType: file.type,
         dataURL: content,
-        dpi: (settings.dpiBitmap) ? +settings.dpiBitmap : 96, // TODO,
     };
 
     doc = processImage(doc, settings, context);

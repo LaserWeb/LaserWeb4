@@ -88,10 +88,15 @@ export class DrawCommands {
             set({ image, width, height }) {
                 let gl = this.drawCommands.gl;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-                if (image)
+                if (image) {
+                    this.width = image.width;
+                    this.height = image.height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                else
+                } else {
+                    this.width = width;
+                    this.height = height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                }
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);

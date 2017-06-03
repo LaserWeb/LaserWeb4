@@ -402,10 +402,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                 if (document.visible !== false) {
                     drawCommands.image({
                         perspective, view,
-                        location: document.translate,
-                        size: [
-                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        transform2d: document.transform2d,
                         texture: cachedDocument.texture,
                         selected: false,
                     });
@@ -436,12 +433,7 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 drawCommands.thickLines({
                     perspective, view,
                     buffer: thickSquare,
-                    rotate: document.rotate * Math.PI / 180,
-                    scale: [
-                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                        1],
-                    translate: document.translate,
+                    transform2d: mat2d.mul([], document.transform2d, [cachedDocument.image.width, 0, 0, cachedDocument.image.height, 0, 0]),
                     thickness: 5,
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
@@ -478,8 +470,8 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
             }
         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
             if (document.visible !== false) {
-                let w = cachedDocument.image.width / document.dpi * 25.4;
-                let h = cachedDocument.image.height / document.dpi * 25.4;
+                let w = cachedDocument.image.width;
+                let h = cachedDocument.image.height;
                 drawCommands.basic2d({
                     perspective, view,
                     position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),

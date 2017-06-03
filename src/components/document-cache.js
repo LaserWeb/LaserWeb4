@@ -113,11 +113,18 @@ export class DocumentCacheHolder extends React.Component {
                         cachedDocument.texture.destroy();
                     cachedDocument.drawCommands = this.drawCommands;
                     cachedDocument.texture = this.drawCommands.createTexture({ image: cachedDocument.image });
+                }
+                if (cachedDocument.texture) {
+                    let t = document.transform2d;
+                    let w = cachedDocument.image.width;
+                    let h = cachedDocument.image.height;
+                    let tx = (x, y) => t[0] * x + t[2] * y;
+                    let ty = (x, y) => t[1] * x + t[3] * y;
                     cachedDocument.bounds = {
-                        x1: 0,
-                        y1: 0,
-                        x2: cachedDocument.image.width / document.dpi * 25.4,
-                        y2: cachedDocument.image.height / document.dpi * 25.4
+                        x1: Math.min(tx(0, 0), tx(w, 0), tx(w, h), tx(0, h)),
+                        y1: Math.min(ty(0, 0), ty(w, 0), ty(w, h), ty(0, h)),
+                        x2: Math.max(tx(0, 0), tx(w, 0), tx(w, h), tx(0, h)),
+                        y2: Math.max(ty(0, 0), ty(w, 0), ty(w, h), ty(0, h)),
                     };
                 }
             }
