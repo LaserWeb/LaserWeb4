@@ -178,8 +178,7 @@ function drawLine(state, entity, docLayer, index) {
     if (rawPaths.length) {
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
-        docEntity.translate = [0, 0, 0];
-        docEntity.scale = [1, 1, 1];
+        docEntity.transform2d = [1, 0, 0, 1, 0, 0];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
@@ -241,8 +240,7 @@ function drawCircle(state, entity, docLayer, index) {
     if (rawPaths.length) {
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
-        docEntity.translate = [0, 0, 0];
-        docEntity.scale = [1, 1, 1];
+        docEntity.transform2d = [1, 0, 0, 1, 0, 0];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
@@ -336,8 +334,7 @@ function drawText(state, entity, docLayer, index) {
 
     if (coords.length) {
         docEntity.rawPaths = coords;
-        docEntity.translate = [entity.startPoint.x, entity.startPoint.y - ppmmTrans, 0];
-        docEntity.scale = [1, 1, 1]; //14
+        docEntity.transform2d = [1, 0, 0, 1, entity.startPoint.x, entity.startPoint.y - ppmmTrans];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
