@@ -3,4 +3,4 @@
 cd /laserweb
 
 http-server dist &
-npm run start-server
+nice -n -20 npm run start-server
