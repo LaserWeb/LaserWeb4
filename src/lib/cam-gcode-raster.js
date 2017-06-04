@@ -130,18 +130,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             const doc = Object.assign({}, docsWithImages[index])
             let feedRate = op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1);
-
-            /*
-            if (op.useA && op.aAxisDiameter){
-                doc.scale[1]=Number((doc.scale[1] * 360 / op.aAxisDiameter / Math.PI).toFixed(3))
-                
-                if (op.diagonal) feedRate = feedRate/Math.SQRT2
-            }
-            */
-
-
-
+            let axisAFactor = 1
             promisedImage(doc.dataURL).then((img) => {
+
+                
+                if (op.useA && op.aAxisDiameter){
+                    axisAFactor=Number( 360 / op.aAxisDiameter / Math.PI).toFixed(3)
+                    if (op.diagonal) feedRate = feedRate/Math.SQRT2
+                }
                
                 let scale = 1/(25.4/settings.dpiBitmap)
                 let docBounds = getImageBounds(doc.transform2d, img.width, img.height);
@@ -152,12 +148,13 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
                 let canvas = document.createElement('canvas')
                     canvas.width = w
-                    canvas.height = h
+                    canvas.height = h*axisAFactor
 
                 let ctx = canvas.getContext('2d')
                     /* Centering Transform */
                     ctx.translate(w/2,h/2) 
                     /* WCS correction */
+                    ctx.transform(1,0,0,axisAFactor,0,0)
                     ctx.transform( -doc.transform2d[0]*scale, doc.transform2d[1]*scale, 
                                     doc.transform2d[2]*scale, -doc.transform2d[3]*scale,
                                     0, 0)
@@ -203,9 +200,6 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 }
                 let r2g = new RasterToGcode(params)
                     r2g.load(canvas.toDataURL()).then((rtg) => {
-
-                        console.log(rtg)
-
                         let properties = {
                             cellSize: rtg.cellSize,
                             scaleRatio: rtg.scaleRatio,
