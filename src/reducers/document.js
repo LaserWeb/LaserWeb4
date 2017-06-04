@@ -68,6 +68,14 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
 
+    if (tags.element.width && parser.document.viewBox.width) {
+        let v = tags.element.width.baseVal;
+        v.convertToSpecifiedUnits(v.SVG_LENGTHTYPE_IN);
+        let w = v.valueInSpecifiedUnits;
+        if (w)
+            pxPerInch = parser.document.viewBox.width / w;
+    }
+
     function getColor(c) {
         let sc = Snap.color(c);
         if (sc.r === -1 || sc.g === -1 || sc.b === -1)
