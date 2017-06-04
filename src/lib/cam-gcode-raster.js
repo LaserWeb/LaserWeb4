@@ -143,7 +143,6 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             promisedImage(doc.dataURL).then((img) => {
                
-                let scale = doc.originalPixels[0]/doc.originalSize[0];
                 let scale = 1/(25.4/settings.dpiBitmap)
                 let docBounds = getImageBounds(doc.transform2d, img.width, img.height);
                 let imgBounds= getImageBounds(doc.transform2d, img.width*scale, img.height*scale);
