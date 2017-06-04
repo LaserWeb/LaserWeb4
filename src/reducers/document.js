@@ -41,19 +41,19 @@ export function document(state, action) {
             else
                 return state;
         case 'LOADED':
+            state = { ...state };
             if (state.translate && state.scale && !state.transform2d) {
-                state = { ...state };
                 if (state.dataURL && state.dpi)
                     state.transform2d = [state.scale[0] / state.dpi * 25.4, 0, 0, state.scale[1] / state.dpi * 25.4, state.translate[0], state.translate[1]];
                 else
                     state.transform2d = [state.scale[0], 0, 0, state.scale[1], state.translate[0], state.translate[1]];
-                delete state.scale;
-                delete state.translate;
-                delete state.dpi;
-                state.transform2d = state.transform2d || null;
-                state.originalPixels = state.originalPixels || null;
-                state.originalSize = state.originalSize || null;
             }
+            delete state.scale;
+            delete state.translate;
+            delete state.dpi;
+            state.transform2d = state.transform2d || null;
+            state.originalPixels = state.originalPixels || null;
+            state.originalSize = state.originalSize || null;
             return documentBase(state, action);
         default:
             return documentBase(state, action);
