@@ -19,8 +19,8 @@ const createCommandLogLine = (message, level = 0, icon = undefined) => {
     level = isNaN(level) ? level : CommandHistory_CLASS[level]
     icon = isNaN(icon) ? icon : CommandHistory_ICON[icon]
     let line = document.createElement('code')
-    line.className = level;
-    line.innerHTML = `<i class="fa fa-${icon}"></i> ${message}`
+        line.className = level;
+        line.innerHTML = `<i class="fa fa-${icon}"></i> ${message}`
     return line;
 }
 
@@ -121,7 +121,7 @@ export default class CommandHistory extends React.Component {
     static write(message, level, icon) {
         if (!window.commandLog)
             window.commandLog = document.createElement('div')
-
+        
         window.commandLog.appendChild(createCommandLogLine(message, level, icon));
 
         if (window.commandLog.parentNode){
@@ -141,6 +141,10 @@ export default class CommandHistory extends React.Component {
 
     static error(...args) {
         CommandHistory.write(args.map(arg => isObject(arg)? stringify(arg) : String(arg)).join(' '), 3)
+    }
+
+    static dir(message, items, level) {
+        CommandHistory.write(`<details><summary>${message}</summary><p>${stringify(items)}</p></details>`, level)
     }
 
     render() {

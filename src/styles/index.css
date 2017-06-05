@@ -184,7 +184,8 @@ body, html, .full-height {
 }
 
 .form-group .input-group-addon ,
-.form-group label { text-transform: uppercase; font-size: smaller}
+.form-group label, h5.header { text-transform: uppercase; font-size: smaller; }
+h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
 
@@ -317,13 +318,14 @@ body, html, .full-height {
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #f6f6f6}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
-.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre}
+.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre; vertical-align: top}
 .commandHistory code.danger {background: #fee}
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
 .commandHistory code.success {background: #efe}
 .commandHistory code.success i {color: #0a0}
+.commandHistory details {display:inline-block}
 
 /*FullSizeModal*/
 
@@ -632,3 +634,5 @@ button:hover,
 .pane-settings .details {
     margin-left:0;
 }
+
+canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'none'; box-shadow: 10px 10px 10px rgba(0,0,0,0.5); border: 1px solid #666; padding: 10px}

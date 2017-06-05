@@ -38,7 +38,6 @@ import Icon from './font-awesome'
 import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
-
 import { FileField } from './forms'
 
 export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
@@ -266,32 +265,33 @@ Cam = connect(
                     reader.onload = () => {
                         const release = captureConsole()
 
-                        console.log('loadDocument: construct Parser');
+                        //console.log('loadDocument: construct Parser');
                         let parser = new Parser({});
                         parser.parse(reader.result)
                             .then((tags) => {
                                 let captures = release(true);
-                                if (captures.filter(i => i.method == 'warn').length)
-                                    CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
-                                if (captures.filter(i => i.method == 'error').length)
-                                    CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+                                let warns = captures.filter(i => i.method == 'warn') 
+                                let errors = captures.filter(i => i.method == 'errors') 
+                                if (warns.length)
+                                    CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!",warns, 2)
+                                if (errors.length)
+                                    CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",errors, 3)
 
-                                console.log('loadDocument: imageTagPromise');
+                                //onsole.log('loadDocument: imageTagPromise');
                                 imageTagPromise(tags).then((tags) => {
                                     console.log('loadDocument: dispatch');
                                     dispatch(loadDocument(file, { parser, tags }, modifiers));
                                 })
                             })
                             .catch((e) => {
-                                console.log('loadDocument: catch:', e);
+                                //console.log('loadDocument: catch:', e);
                                 release(true);
-                                CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
-                                CommandHistory.error(String(e))
-                                console.log(e)
+                                CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",String(e), 3)
+                                console.error(e)
                             })
 
                     }
-                    console.log('loadDocument: readAsText');
+                    //console.log('loadDocument: readAsText');
                     reader.readAsText(file);
                 }
                 else if (file.name.substr(-4).toLowerCase() === '.dxf') {

@@ -44,7 +44,7 @@ var LAST_ACTION = {};
 var LAST_ACTION_TIMEOUT = null;
 const LAST_ACTION_TTL = 2000;
 
-const BLACKLIST = [/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO', 'LOADED', /^SPLITTER|^MATERIALDB_|^SELECT_PANE|^GCODE_GENERATION|^COM/gi];
+const BLACKLIST = [/^(@@|redux)/gi, 'REDUX_STORAGE_SAVE', 'REDUX_STORAGE_LOAD', 'UNDO', 'LOADED', /^SPLITTER|^MATERIALDB_|^SELECT_PANE|^GCODE_|^COM/gi];
 
 
 export const shouldSaveUndo = (action) => {

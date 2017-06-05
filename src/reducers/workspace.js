@@ -13,6 +13,7 @@ export const WORKSPACE_INITIALSTATE = {
     showDocuments: true,
     showCursor: true,
     showWebcam: false,
+    showRasterPreview: false,
     workOffsetX: 0,
     workOffsetY: 0,
     initialZoom: false,

@@ -88,6 +88,7 @@ export const SETTINGS_INITIALSTATE = {
     toolCncMode: false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
+    toolDisplayCache: false,
 
     toolVideoDevice: null,
     toolVideoPerspective: { enabled: false },

@@ -2,3 +2,4 @@ node_modules
 dist
 *.log
 .vscode
+machine-profiles.json

@@ -22,6 +22,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         }
     }
 
+    if (op.useA && !op.aAxisDiameter){
+        showAlert("Axis Diameter must be > 0", "danger");
+        ok = false;
+    }
+
     if (!ok) {
         done(false);
         return [];
@@ -38,11 +43,17 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     const postProcessing = (gc) => {
         let g = '';
         let raster = '';
-        for (let line of gc)
-            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F')
+        for (let line of gc) {
+            if (op.useA) {
+                line=line.replace(/Y(\s*[0-9\.]{1,})/gi,"A$1");
+            }
+            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F') {
                 raster += line + '\r\n';
-            else
+            } else {
                 raster += '; stripped: ' + line + '\r\n';
+            }
+        }
+
         raster += '\r\n\r\n';
 
         if (op.hookOperationStart.length) g+=op.hookOperationStart;
@@ -63,7 +74,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 g += `\r\n; Pass Z Height ${zHeight}mm (Offset: ${settings.machineZToolOffset}mm)\r\n`;
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
+
+            if (settings.gcodeToolOn && settings.gcodeToolOn.length)
+                g+=`${settings.gcodeToolOn} \r\n`;
+
             g += raster;
+
+            if (settings.gcodeToolOff && settings.gcodeToolOff.length)
+                g+=`${settings.gcodeToolOff} \r\n`;
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOff) {
@@ -90,7 +108,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
         QE.push((cb) => {
 
-            const doc = docsWithImages[index]
+            const doc = Object.assign({},docsWithImages[index])
+            let feedRate = op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1);
+            
+            if (op.useA && op.aAxisDiameter){
+                doc.scale[1]=Number((doc.scale[1] * 360 / op.aAxisDiameter / Math.PI).toFixed(3))
+                
+                if (op.diagonal) feedRate = feedRate/Math.SQRT2
+            }
 
             let params = {
                 ppi: { x: doc.dpi / doc.scale[0], y: doc.dpi / doc.scale[1] },
@@ -98,7 +123,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 beamRange: { min: 0, max: settings.gcodeSMaxValue },
                 beamPower: op.laserPowerRange, //Go go power rangeR!
                 rapidRate: false,
-                feedRate: op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1),
+                feedRate,
                 offsets: { X: doc.translate[0], Y: doc.translate[1] },
                 trimLine: op.trimLine,
                 joinPixel: op.joinPixel,

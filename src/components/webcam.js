@@ -5,7 +5,6 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
 import Rnd from 'react-rnd';
-import Draggable from 'react-draggable';
 import Icon from './font-awesome'
 import Select from 'react-select'
 import Toggle from 'react-toggle'

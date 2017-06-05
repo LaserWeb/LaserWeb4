@@ -116,7 +116,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 let y = (mat.y(rawX, rawY) + parser.document.viewBox.y) / pxPerInch * 25.4;
                 let w = (mat.x(rawX + rawW, rawY + rawH) + parser.document.viewBox.x) / pxPerInch * 25.4 - x;
                 let h = (mat.y(rawX + rawW, rawY + rawH) + parser.document.viewBox.y) / pxPerInch * 25.4 - y;
-              
+
                 c = {
                     ...c,
                     translate: [x, parser.document.viewBox.height / pxPerInch * 25.4 - y - h, 0],
@@ -150,7 +150,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
 function processImage(doc, settings, context) {
 
     if (!context) {
-        CommandHistory.warn('Cannot process image '+doc.name)
+        CommandHistory.warn('Cannot process image ' + doc.name)
         return doc;
     }
 
@@ -224,14 +224,14 @@ function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
 export function documentsLoad(state, settings, action) {
     state = state.slice();
     let docId;
-    
+
     if (action.payload.modifiers.shift) {
-        console.warn('Replacing occurrences of '+action.payload.file.name)
-        let doc = state.find((doc,index,docs) => doc.name === action.payload.file.name)
+        console.warn('Replacing occurrences of ' + action.payload.file.name)
+        let doc = state.find((doc, index, docs) => doc.name === action.payload.file.name)
         if (doc) {
-             docId = doc.id;
-             let ids = getSubtreeIds(state, docId);
-             state = state.filter(o => !ids.includes(o.id))
+            docId = doc.id;
+            let ids = getSubtreeIds(state, docId);
+            state = state.filter(o => !ids.includes(o.id))
                 .map(parent => Object.assign({}, parent, {
                     children: parent.children.filter(childId => childId !== docId)
                 }));
@@ -278,6 +278,8 @@ export function documents(state, action) {
                 state = reduceParents(state, action.payload.id, true, o => Object.assign({}, o, { visible: true }));
             return state;
         }
+        case "DOCUMENT_REMOVE_SELECTED":
+            return state.filter(d => !d.selected);
         case 'WORKSPACE_RESET':
             return [];
         default:

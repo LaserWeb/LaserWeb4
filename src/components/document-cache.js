@@ -70,7 +70,7 @@ export class DocumentCacheHolder extends React.Component {
     }
 
     update(cachedDocument) {
-        let {document} = cachedDocument;
+        let { document } = cachedDocument;
         if (document.rawPaths) {
             if (cachedDocument.rawPaths !== document.rawPaths) {
                 cachedDocument.rawPaths = document.rawPaths;
