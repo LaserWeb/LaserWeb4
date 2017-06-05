@@ -913,7 +913,8 @@ class WorkspaceContent extends React.Component {
             nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
-            nextProps.mode !== this.props.mode
+            nextProps.mode !== this.props.mode ||
+            nextProps.workspace.cursorPos !== this.props.workspace.cursorPos
         );
     }
 
