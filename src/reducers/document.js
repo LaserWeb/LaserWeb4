@@ -205,6 +205,14 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
     return state;
 }
 
+function replaceImage(state, settings, { file, content, context}, id=uuid.v4()) {
+    return state.map((doc, index, docs)=>{
+        if (doc.name === file.name) 
+            return Object.assign(doc, {dataURL: content});
+        return doc;
+    })
+}
+
 function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
     state = state.slice();
     let docFile = {
@@ -226,7 +234,7 @@ export function documentsLoad(state, settings, action) {
     let docId;
 
     if (action.payload.modifiers.shift) {
-        console.warn('Replacing occurrences of ' + action.payload.file.name)
+        CommandHistory.warn('Replacing occurrences of ' + action.payload.file.name)
         let doc = state.find((doc, index, docs) => doc.name === action.payload.file.name)
         if (doc) {
             docId = doc.id;
@@ -243,7 +251,12 @@ export function documentsLoad(state, settings, action) {
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload, docId);
     else if (action.payload.file.type.substring(0, 6) === 'image/') {
-        return loadImage(state, settings, action.payload, docId);
+        if (action.payload.modifiers.ctrl || action.payload.modifiers.meta ) {
+            CommandHistory.warn('Replacing content of ' + action.payload.file.name)
+            return replaceImage(state, settings, action.payload, docId);
+        } else {
+            return loadImage(state, settings, action.payload, docId);
+        }
     } else {
         alert('Unsupported file type:' + action.payload.file.type)
         console.error('Unsupported file type:', action.payload.file.type)
