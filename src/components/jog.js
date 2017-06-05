@@ -223,6 +223,10 @@ class Jog extends React.Component {
     }
 
     setZero(axis) {
+
+        if (!this.state.isPlaying)
+            this.setState({ liveJogging: { ... this.state.liveJogging, hasHomed: true, disabled: false } })
+
         console.log('setZero(' + axis + ')');
         setZero(axis);
     }
