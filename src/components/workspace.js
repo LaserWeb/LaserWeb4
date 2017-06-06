@@ -48,7 +48,7 @@ import { ImagePort } from './image-filters'
 
 import { LiveJogging } from './jog'
 
-import { keyboardLogger } from './keyboard'
+import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -516,6 +516,15 @@ function drawCursor(perspective, view, drawCommands, cursorPos) {
 }
 
 class WorkspaceContent extends React.Component {
+
+    constructor(props)
+    {
+        super(props);
+        this.bindings=[
+            [['del'],this.removeSelected.bind(this)],
+        ]
+    }
+
     componentWillMount() {
         this.pointers = [];
         this.lightenMachineBounds = new LightenMachineBounds();
@@ -535,16 +544,19 @@ class WorkspaceContent extends React.Component {
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
 
-        this.setupBindings()
+        bindKeys(this.bindings,'workspace')
     }
 
-    setupBindings() {
-        keyboardLogger.withContext('workspace', () => {
-            keyboardLogger.bind('del', function (e) {
-                if (this.props.mode === 'jog') return;
-                this.props.dispatch(removeDocumentSelected());
-            }.bind(this))
-        })
+    componentWillUnmount()
+    {
+        unbindKeys(this.bindings,'workspace')
+    }
+
+    removeSelected()
+    {
+        if (this.props.mode === 'jog') return;
+        if (this.props.documents.find((d)=>(d.selected)))
+            this.props.dispatch(removeDocumentSelected());
     }
 
     setCanvas(canvas) {
