@@ -144,11 +144,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 let imgBounds= getImageBounds(doc.transform2d, img.width*scale, img.height*scale);
 
                 let w = imgBounds.x2-imgBounds.x1
-                let h = imgBounds.y2-imgBounds.y1
+                let h = (imgBounds.y2-imgBounds.y1)*axisAFactor
 
                 let canvas = document.createElement('canvas')
                     canvas.width = w
-                    canvas.height = h*axisAFactor
+                    canvas.height = h
 
                 let ctx = canvas.getContext('2d')
                     /* Centering Transform */
@@ -166,7 +166,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     ctx.translate((w-img.width)/2,(h-img.height)/2)
                     ctx.drawImage(img, 0, 0)
                     ctx.save();
-                    
+
 
                 let params = {
                     ppi: { x: settings.dpiBitmap, y: settings.dpiBitmap },
@@ -177,7 +177,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     feedRate,
                     offsets: { 
                         X: (docBounds.x1 + docBounds.x2 - w / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[4],
-                        Y: (docBounds.y1 + docBounds.y2 - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5],
+                        Y: (((docBounds.y1 + docBounds.y2)*axisAFactor - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5]),
                     },
                     trimLine: op.trimLine,
                     joinPixel: op.joinPixel,
