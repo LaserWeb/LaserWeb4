@@ -144,7 +144,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 let imgBounds= getImageBounds(doc.transform2d, img.width*scale, img.height*scale);
 
                 let w = imgBounds.x2-imgBounds.x1
-                let h = (imgBounds.y2-imgBounds.y1)*axisAFactor
+                let h = imgBounds.y2-imgBounds.y1
 
                 let canvas = document.createElement('canvas')
                     canvas.width = w
@@ -154,7 +154,6 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     /* Centering Transform */
                     ctx.translate(w/2,h/2) 
                     /* WCS correction */
-                    ctx.transform(1,0,0,axisAFactor,0,0)
                     ctx.transform( -doc.transform2d[0]*scale, doc.transform2d[1]*scale, 
                                     doc.transform2d[2]*scale, -doc.transform2d[3]*scale,
                                     0, 0)
@@ -169,7 +168,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
 
                 let params = {
-                    ppi: { x: settings.dpiBitmap, y: settings.dpiBitmap },
+                    ppi: { x: settings.dpiBitmap, y: settings.dpiBitmap / axisAFactor },
                     toolDiameter: op.laserDiameter,
                     beamRange: { min: 0, max: settings.gcodeSMaxValue },
                     beamPower: op.laserPowerRange, //Go go power rangeR!
@@ -177,7 +176,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     feedRate,
                     offsets: { 
                         X: (docBounds.x1 + docBounds.x2 - w / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[4],
-                        Y: (((docBounds.y1 + docBounds.y2)*axisAFactor - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5]),
+                        Y: ((docBounds.y1 + docBounds.y2 - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5]) * axisAFactor,
                     },
                     trimLine: op.trimLine,
                     joinPixel: op.joinPixel,
