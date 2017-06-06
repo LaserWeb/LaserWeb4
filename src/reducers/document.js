@@ -303,7 +303,10 @@ export function documents(state, action) {
             return state;
         }
         case "DOCUMENT_REMOVE_SELECTED":
-            return state.filter(d => !d.selected);
+            let ids = [];
+            state.filter(d => d.selected).forEach((sel)=>{ ids = [...ids,...getSubtreeIds(state, sel.id)];})
+            return state.filter(d => (!ids.includes(d.id)));
+
         case 'WORKSPACE_RESET':
             return [];
         default:
