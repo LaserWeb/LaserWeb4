@@ -39,7 +39,7 @@ import { clamp } from '../lib/helpers'
 
 import CommandHistory from './command-history'
 
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';
@@ -189,7 +189,7 @@ class FloatingControls extends React.Component {
     componentWillMount() {
         this.state = { linkScale: true };
         this.linkScaleChanged = e => {
-            this.setState({ linkScale: e.target.checked });
+            this.setState({ linkScale: e.target.checked, degrees: 45 });
         }
         this.scale = (sx, sy, anchor = 'C') => {
             let cx, cy
@@ -217,8 +217,13 @@ class FloatingControls extends React.Component {
             }
             this.props.dispatch(transform2dSelectedDocuments([sx, 0, 0, sy, cx - sx * cx, cy - sy * cy]));
         }
-        this.rotate = v => {
-            let rotate = v - this.baseRotate;
+
+        this.setDegrees = degrees => {
+            this.setState({ degrees })
+        }
+
+        this.rotate = (e,clockwise) => {
+            let rotate = this.state.degrees * ((clockwise) ? -1 : 1);
             this.props.dispatch(transform2dSelectedDocuments(
                 mat2d.translate([],
                     mat2d.rotate(
@@ -229,7 +234,6 @@ class FloatingControls extends React.Component {
                 )
             ));
             this.rotateDocs = GlobalStore().getState().documents;
-            this.baseRotate = v;
             this.forceUpdate();
         }
         this.setMinX = v => {
@@ -298,10 +302,10 @@ class FloatingControls extends React.Component {
                     tools = <tfoot>
                         <tr>
                             <td><Icon name="gear" /></td><td colSpan="6" >
-                                <ButtonToolbar>
+                                <ButtonGroup>
                                     <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
                                     <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
-                                </ButtonToolbar>
+                                </ButtonGroup>
                             </td>
                         </tr>
                     </tfoot>
@@ -352,7 +356,12 @@ class FloatingControls extends React.Component {
                         <td rowSpan={2}>
                             &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
                         </td>
-                        <td rowSpan={2}><Input value={round(this.baseRotate)} onChangeValue={this.rotate} type="number" step="any" tabIndex="10" /></td>
+                        <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
+                            <ButtonToolbar>
+                                <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon name="rotate-left" /></Button>
+                                <Button bsSize="xsmall" onClick={e => this.rotate(e, true)} bsStyle="info"><Icon name="rotate-right" /></Button>
+                            </ButtonToolbar>
+                        </td>
                     </tr>
                     <tr>
                         <td><span className="label label-success">Y</span></td>
@@ -521,11 +530,10 @@ function drawCursor(perspective, view, drawCommands, cursorPos) {
 
 class WorkspaceContent extends React.Component {
 
-    constructor(props)
-    {
+    constructor(props) {
         super(props);
-        this.bindings=[
-            [['del'],this.removeSelected.bind(this)],
+        this.bindings = [
+            [['del'], this.removeSelected.bind(this)],
         ]
     }
 
@@ -548,18 +556,16 @@ class WorkspaceContent extends React.Component {
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
 
-        bindKeys(this.bindings,'workspace')
+        bindKeys(this.bindings, 'workspace')
     }
 
-    componentWillUnmount()
-    {
-        unbindKeys(this.bindings,'workspace')
+    componentWillUnmount() {
+        unbindKeys(this.bindings, 'workspace')
     }
 
-    removeSelected()
-    {
+    removeSelected() {
         if (this.props.mode === 'jog') return;
-        if (this.props.documents.find((d)=>(d.selected)))
+        if (this.props.documents.find((d) => (d.selected)))
             this.props.dispatch(removeDocumentSelected());
     }
 
