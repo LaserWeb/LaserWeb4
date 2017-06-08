@@ -190,11 +190,15 @@ export function filterClosedRawPaths(rawPaths) {
     return result;
 }
 
-export function rawPathsToClipperPaths(rawPaths, scaleX, scaleY, translateX, translateY) {
+export function rawPathsToClipperPaths(rawPaths, transform) {
     let result = rawPaths.map(p => {
         let result = [];
-        for (let i = 0; i < p.length; i += 2)
-            result.push({ X: (p[i] * scaleX + translateX) * mmToClipperScale, Y: (p[i + 1] * scaleY + translateY) * mmToClipperScale });
+        for (let i = 0; i < p.length; i += 2) {
+            result.push({
+                X: (transform[0] * p[i] + transform[2] * p[i + 1] + transform[4]) * mmToClipperScale,
+                Y: (transform[1] * p[i] + transform[3] * p[i + 1] + transform[5]) * mmToClipperScale,
+            });
+        }
         return result;
     });
     if (hasClosedRawPaths(rawPaths)) {
@@ -244,7 +248,7 @@ function triangulatePolyTree(polyTree) {
 }
 
 export function triangulateRawPaths(rawPaths) {
-    return triangulatePolyTree(clipperPathsToPolyTree(rawPathsToClipperPaths(rawPaths, 1, 1, 0, 0)));
+    return triangulatePolyTree(clipperPathsToPolyTree(rawPathsToClipperPaths(rawPaths, [1, 0, 0, 1, 0, 0])));
 }
 
 // Convert Clipper paths to C. Returns [double** cPaths, int cNumPaths, int* cPathSizes].

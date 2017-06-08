@@ -61,11 +61,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         let op = expandHookGCode(operations[opIndex]);
 
         const jobDone = (g, cb) => { 
-            if (g !== false) {
-                gcode[opIndex]=g; cb()
-            } else {
-                cb();
-            }
+            if (g !== false) { gcode[opIndex]=g; };  cb();
         }
 
         let invokeWebWorker = (ww, props, cb, jobIndex) => {
