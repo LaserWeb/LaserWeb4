@@ -533,7 +533,7 @@ class WorkspaceContent extends React.Component {
     constructor(props) {
         super(props);
         this.bindings = [
-            [['del'], this.removeSelected.bind(this)],
+            [['alt+del','meta+backspace'], this.removeSelected.bind(this)],
         ]
     }
 
@@ -563,7 +563,8 @@ class WorkspaceContent extends React.Component {
         unbindKeys(this.bindings, 'workspace')
     }
 
-    removeSelected() {
+    removeSelected(e) {
+        e.preventDefault();
         if (this.props.mode === 'jog') return;
         if (this.props.documents.find((d) => (d.selected)))
             this.props.dispatch(removeDocumentSelected());
