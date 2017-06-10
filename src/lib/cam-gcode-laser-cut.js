@@ -34,7 +34,8 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 export function getLaserCutGcode(props) {
     let { paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisDiameter,
-        tabGeometry, gcodeToolOn, gcodeToolOff, gcodeSMaxValue,
+        tabGeometry, gcodeToolOn, gcodeToolOff,
+        gcodeLaserIntensity, gcodeLaserIntensitySeparateLine, gcodeSMinValue, gcodeSMaxValue,
         useZ, useBlower,
         hookPassStart, hookPassEnd
     } = props;
@@ -43,7 +44,7 @@ export function getLaserCutGcode(props) {
         gcodeToolOn += '\r\n';
     if (gcodeToolOff)
         gcodeToolOff += '\r\n';
-    let laserOnS = 'S' + (gcodeSMaxValue * laserPower / 100).toFixed(decimal);
+    let laserOnS = gcodeLaserIntensity + (gcodeSMinValue + (gcodeSMaxValue - gcodeSMinValue) * laserPower / 100).toFixed(decimal);
 
     let lastX = 0, lastY = 0, lastA = 0;
     function convertPoint(p, rapid) {
@@ -123,8 +124,10 @@ export function getLaserCutGcode(props) {
 
                 gcode += gcodeToolOn;
                 for (let i = 1; i < selectedPath.length; ++i) {
+                    if (i == 1 && gcodeLaserIntensitySeparateLine)
+                        gcode += laserOnS + '\n';
                     gcode += convertPoint(selectedPath[i], false);
-                    if (i == 1)
+                    if (i == 1 && !gcodeLaserIntensitySeparateLine)
                         gcode += ' ' + laserOnS;
                     if (i == 1 && !useA)
                         gcode += ' F' + cutFeed;
@@ -150,10 +153,6 @@ export function getLaserCutGcode(props) {
 export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress) {
     let ok = true;
 
-    if (settings.gcodeSMaxValue <= 0) {
-        showAlert("PWM Max S Value (in Settings) must be greater than 0", "danger");
-        ok = false;
-    }
     if (op.type !== 'Laser Cut' && op.type !== 'Laser Fill Path') {
         if (op.laserDiameter <= 0) {
             showAlert("Laser Diameter must be greater than 0", "danger");
@@ -253,6 +252,9 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         tabGeometry: tabGeometry,
         gcodeToolOn: settings.gcodeToolOn,
         gcodeToolOff: settings.gcodeToolOff,
+        gcodeLaserIntensity: settings.gcodeLaserIntensity,
+        gcodeLaserIntensitySeparateLine: settings.gcodeLaserIntensitySeparateLine,
+        gcodeSMinValue: settings.gcodeSMinValue,
         gcodeSMaxValue: settings.gcodeSMaxValue,
 
         hookPassStart: op.hookPassStart,
