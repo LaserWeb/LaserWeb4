@@ -92,7 +92,7 @@ export class DrawCommands {
                     this.width = image.width;
                     this.height = image.height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                } else {
+                } else if (this.width !== width || this.height !== height) {
                     this.width = width;
                     this.height = height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);

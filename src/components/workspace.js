@@ -51,6 +51,10 @@ import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
+function sameArrayContent(a, b) {
+    return a.length === b.length && a.every((v, i) => v === b[i])
+}
+
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
@@ -378,8 +382,35 @@ class FloatingControls extends React.Component {
 } // FloatingControls
 
 const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
+const m4Identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
-function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
+function cacheDrawing(fn, state, args) {
+    let { drawCommands, width, height } = args;
+    let different = false;
+    for (let key in args)
+        if (args.hasOwnProperty(key) && state[key] !== args[key])
+            different = true;
+    if (different) {
+        for (let key in args)
+            if (args.hasOwnProperty(key))
+                state[key] = args[key];
+        if (!state.frameBuffer)
+            state.frameBuffer = drawCommands.createFrameBuffer(width, height);
+        else
+            state.frameBuffer.resize(width, height);
+        drawCommands.useFrameBuffer(state.frameBuffer, () => {
+            drawCommands.gl.clearColor(1, 1, 1, 0);
+            drawCommands.gl.clear(drawCommands.gl.COLOR_BUFFER_BIT, drawCommands.gl.DEPTH_BUFFER_BIT);
+            fn(args);
+        });
+    }
+    drawCommands.image({
+        perspective: m4Identity, view: m4Identity, texture: state.frameBuffer.texture, selected: false,
+        transform2d: [2 / width, 0, 0, -2 / height, -1, 1],
+    });
+}
+
+function drawDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
         if (document.rawPaths) {
@@ -421,7 +452,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
+function drawSelectedDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
         if (!document.selected)
@@ -535,6 +566,9 @@ class WorkspaceContent extends React.Component {
         this.bindings = [
             [['alt+del','meta+backspace'], this.removeSelected.bind(this)],
         ]
+        this.drawDocsState = {};
+        this.drawGcodeState = {};
+        this.drawSelDocsState = {};
     }
 
     componentWillMount() {
@@ -639,7 +673,13 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
             if (this.props.workspace.showDocuments)
-                drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                cacheDrawing(drawDocuments, this.drawDocsState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    documents: this.props.documents,
+                    documentCacheHolder: this.props.documentCacheHolder
+                });
             if (this.props.workspace.showLaser) {
                 gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
                 gl.blendFunc(gl.ONE, gl.ONE);
@@ -648,11 +688,28 @@ class WorkspaceContent extends React.Component {
                 gl.blendEquation(gl.FUNC_ADD);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             }
-            if (this.props.workspace.showGcode)
-                this.props.gcodePreview.draw(
-                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+            if (this.props.workspace.showGcode) {
+                let draw = () => {
+                    this.props.gcodePreview.draw(
+                        this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                };
+                cacheDrawing(draw, this.drawGcodeState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    g0Rate: this.props.workspace.g0Rate,
+                    simTime: this.props.workspace.simTime,
+                    arrayVersion: this.props.gcodePreview.arrayVersion,
+                });
+            }
             if (this.props.workspace.showDocuments)
-                drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                cacheDrawing(drawSelectedDocuments, this.drawSelDocsState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    documents: this.props.documents,
+                    documentCacheHolder: this.props.documentCacheHolder
+                });
             if (this.props.workspace.showCursor)
                 drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
 
@@ -670,7 +727,7 @@ class WorkspaceContent extends React.Component {
     }
 
     setCamera(props) {
-        this.camera =
+        let newCamera =
             calcCamera({
                 viewportWidth: props.width,
                 viewportHeight: props.height,
@@ -684,6 +741,13 @@ class WorkspaceContent extends React.Component {
                 machineX: props.settings.machineBottomLeftX - props.workspace.workOffsetX,
                 machineY: props.settings.machineBottomLeftY - props.workspace.workOffsetY,
             });
+        if (this.camera) {
+            if (sameArrayContent(this.camera.perspective, newCamera.perspective))
+                newCamera.perspective = this.camera.perspective;
+            if (sameArrayContent(this.camera.view, newCamera.view))
+                newCamera.view = this.camera.view;
+        }
+        this.camera = newCamera;
     }
 
     rayFromPoint(pageX, pageY) {

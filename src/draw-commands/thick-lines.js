@@ -98,7 +98,7 @@ export function thickLines(drawCommands) {
                 transform,
                 viewportWidth: drawCommands.gl.drawingBufferWidth,
                 viewportHeight: drawCommands.gl.drawingBufferHeight,
-                time: (Date.now() - startTime) / 1000,
+                time: 0, // (Date.now() - startTime) / 1000,
                 thickness,
                 color1,
                 color2,
