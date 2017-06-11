@@ -227,7 +227,7 @@ class FloatingControls extends React.Component {
         }
 
         this.rotate = (e,clockwise) => {
-            let rotate = this.state.degrees * ((clockwise) ? -1 : 1);
+            let rotate = (this.state.degrees||0) * ((clockwise) ? -1 : 1);
             this.props.dispatch(transform2dSelectedDocuments(
                 mat2d.translate([],
                     mat2d.rotate(
