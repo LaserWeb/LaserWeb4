@@ -89,6 +89,7 @@ export const SETTINGS_INITIALSTATE = {
     toolImagePosition: "BL",
     toolUseNumpad: false,
     toolDisplayCache: false,
+    toolUseGamepad: false,
 
     toolVideoDevice: null,
     toolVideoPerspective: { enabled: false },

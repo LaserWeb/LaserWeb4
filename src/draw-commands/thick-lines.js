@@ -15,15 +15,14 @@
 
 const drawStride = 7;
 
+import { mat4 } from 'gl-matrix';
+
 export function thickLines(drawCommands) {
     let program = drawCommands.compile({
         vert: `
             precision mediump float;
 
-            uniform mat4 perspective; 
-            uniform mat4 view;
-            uniform vec3 scale; 
-            uniform vec3 translate; 
+            uniform mat4 transform; 
             uniform float viewportWidth, viewportHeight, thickness;
 
             attribute vec3 p1, p2;
@@ -32,7 +31,7 @@ export function thickLines(drawCommands) {
             varying vec2 vp1, vp2, vp;
 
             vec2 viewportCoord(vec3 p) {
-                vec4 proj = perspective * view * vec4(scale * p + translate, 1.0);
+                vec4 proj = transform * vec4(p, 1.0);
                 float adj = fract(floor(thickness + 0.5) * 0.5);
                 return vec2(
                     floor((proj.x / proj.w + 1.0) * 0.5 * (viewportWidth - 1.0) + 0.5) + adj,
@@ -83,17 +82,23 @@ export function thickLines(drawCommands) {
         },
     });
     let startTime = Date.now();
-    return ({ perspective, view, scale, translate, thickness, color1, color2, buffer }) => {
+    return ({ perspective, view, transform2d, thickness, color1, color2, buffer }) => {
+        let t = transform2d;
+        let transform =
+            mat4.multiply([], perspective,
+                mat4.multiply([], view, [
+                    t[0], t[1], 0, 0,
+                    t[2], t[3], 0, 0,
+                    0, 0, 1, 0,
+                    t[4], t[5], 0, 1]));
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.TRIANGLES,
             uniforms: {
-                perspective, view,
+                transform,
                 viewportWidth: drawCommands.gl.drawingBufferWidth,
                 viewportHeight: drawCommands.gl.drawingBufferHeight,
-                time: (Date.now() - startTime) / 1000,
-                scale,
-                translate,
+                time: 0, // (Date.now() - startTime) / 1000,
                 thickness,
                 color1,
                 color2,

@@ -1,6 +1,6 @@
 {
   "name": "laserweb",
-  "version": "4.0.733",
+  "version": "4.0.734",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
@@ -61,6 +61,7 @@
     "flatnest": "^1.0.0",
     "floyd-steinberg": "^1.0.5",
     "font-awesome": "^4.6.3",
+    "gamepad.js": "github:neogeek/gamepad.js",
     "gl-matrix": "^2.3.2",
     "glfx": "0.0.4",
     "grunt": "^1.0.1",

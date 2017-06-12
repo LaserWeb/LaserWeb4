@@ -82,19 +82,29 @@ export class DocumentCacheHolder extends React.Component {
                 }
                 cachedDocument.outlines = [];
                 cachedDocument.thickOutlines = [];
-                let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+                cachedDocument.bounds = null;
                 for (let rawPath of document.rawPaths) {
-                    for (let i = 0; i < rawPath.length - 1; i += 2) {
-                        bounds.x1 = Math.min(bounds.x1, rawPath[i]);
-                        bounds.x2 = Math.max(bounds.x2, rawPath[i]);
-                        bounds.y1 = Math.min(bounds.y1, rawPath[i + 1]);
-                        bounds.y2 = Math.max(bounds.y2, rawPath[i + 1]);
-                    }
                     cachedDocument.outlines.push(new Float32Array(rawPath));
                     let thick = convertOutlineToThickLines(rawPath);
                     if (thick)
                         cachedDocument.thickOutlines.push(thick);
                 }
+            }
+            let t = document.transform2d;
+            let ct = cachedDocument.transform2d;
+            if (!cachedDocument.bounds || !ct || ct[0] != t[0] || ct[1] != t[1] || ct[2] != t[2] || ct[3] != t[3]) {
+                let bounds = cachedDocument.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+                for (let rawPath of document.rawPaths) {
+                    for (let i = 0; i < rawPath.length - 1; i += 2) {
+                        let x = t[0] * rawPath[i] + t[2] * rawPath[i + 1];
+                        let y = t[1] * rawPath[i] + t[3] * rawPath[i + 1];
+                        bounds.x1 = Math.min(bounds.x1, x);
+                        bounds.x2 = Math.max(bounds.x2, x);
+                        bounds.y1 = Math.min(bounds.y1, y);
+                        bounds.y2 = Math.max(bounds.y2, y);
+                    }
+                }
+                cachedDocument.transform2d = document.transform2d;
             }
         } else if (document.type === 'image') {
             let updateTexture = () => {
@@ -103,11 +113,18 @@ export class DocumentCacheHolder extends React.Component {
                         cachedDocument.texture.destroy();
                     cachedDocument.drawCommands = this.drawCommands;
                     cachedDocument.texture = this.drawCommands.createTexture({ image: cachedDocument.image });
+                }
+                if (cachedDocument.texture) {
+                    let t = document.transform2d;
+                    let w = cachedDocument.image.width;
+                    let h = cachedDocument.image.height;
+                    let tx = (x, y) => t[0] * x + t[2] * y;
+                    let ty = (x, y) => t[1] * x + t[3] * y;
                     cachedDocument.bounds = {
-                        x1: 0,
-                        y1: 0,
-                        x2: cachedDocument.image.width / document.dpi * 25.4,
-                        y2: cachedDocument.image.height / document.dpi * 25.4
+                        x1: Math.min(tx(0, 0), tx(w, 0), tx(w, h), tx(0, h)),
+                        y1: Math.min(ty(0, 0), ty(w, 0), ty(w, h), ty(0, h)),
+                        x2: Math.max(tx(0, 0), tx(w, 0), tx(w, h), tx(0, h)),
+                        y2: Math.max(ty(0, 0), ty(w, 0), ty(w, h), ty(0, h)),
                     };
                 }
             }

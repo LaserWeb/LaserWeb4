@@ -22,6 +22,7 @@ import Icon from './font-awesome'
 import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
 import { bindKeys, unbindKeys } from './keyboard'
+import Gamepad from 'gamepad.js';
 
 var ovStep = 1;
 var ovLoop;
@@ -54,7 +55,7 @@ class Jog extends React.Component {
 
     constructor(props) {
         super(props);
-        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled, toolUseNumpad } = this.props.settings;
+        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled, toolUseNumpad, toolUseGamepad } = this.props.settings;
         this.state = {
             jogStepsize: jogStepsize,
             jogFeedXY: jogFeedXY,
@@ -89,17 +90,54 @@ class Jog extends React.Component {
                 [['ctrl+alt+right',toolUseNumpad?'numdivide':undefined],this.jogAminus.bind(this)]
             ]
         }
+        
     }
 
     componentDidMount()
     {
-        bindKeys(this.bindings)
+        bindKeys(this.bindings);
+
+        if (this.props.settings.toolUseGamepad) {
+            if (!this.gamepad) {
+                this.gamepad= new Gamepad();
+                this.gamepad.on('connect', e => {
+                    CommandHistory.log(`Controller ${e.index} connected!`);
+                });
+                this.gamepad.on('disconnect', e => {
+                    CommandHistory.log(`controller ${e.index} disconnected!`);
+                });
+                let time=new Date()
+                this.gamepad.on('hold','stick_axis_left',function(e){
+                    let now=new Date();
+                    if ((now.getTime()-time.getTime())>200){
+                        time = now;
+                        let [x,y] = e.value;
+                        let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
+                        let jogX = (Math.abs(x)>0.05) ?  ((x>0) ? +1:-1) : 0;
+                        let jogY = (Math.abs(y)>0.05) ?  ((y>0) ? -1:+1) : 0;
+                        let jogS =  Math.floor(Math.max(Math.abs(x), Math.abs(y))*jogF);
+                        jogTo(jogX, jogY, undefined, true, jogS);
+                    }
+                    
+                }.bind(this));
+            } else {
+                this.gamepad.resume(); 
+            }
+        } else {
+            if (this.gamepad) {
+                this.gamepad.destroy();
+                this.gamepad=null;
+            }
+        }
+
     }
 
     componentWillUnmount() {
         liveJoggingState = this.state.liveJogging;
         //
         unbindKeys(this.bindings)
+
+        if (this.gamepad) this.gamepad.pause()
     }
 
     jogRight(event) {
@@ -223,6 +261,10 @@ class Jog extends React.Component {
     }
 
     setZero(axis) {
+
+        if (!this.state.isPlaying)
+            this.setState({ liveJogging: { ... this.state.liveJogging, hasHomed: true, disabled: false } })
+
         console.log('setZero(' + axis + ')');
         setZero(axis);
     }

@@ -13,13 +13,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import { mat4, vec3, vec4 } from 'gl-matrix';
+import { mat2d, mat4, vec3, vec4 } from 'gl-matrix';
 import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
+import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, scaleTranslateSelectedDocuments, translateSelectedDocuments, removeDocumentSelected } from '../actions/document';
+import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { runCommand, jogTo } from './com.js';
 
@@ -38,7 +39,7 @@ import { clamp } from '../lib/helpers'
 
 import CommandHistory from './command-history'
 
-import { Button, ButtonToolbar } from 'react-bootstrap'
+import { Button, ButtonToolbar, ButtonGroup } from 'react-bootstrap'
 import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';
@@ -48,7 +49,11 @@ import { ImagePort } from './image-filters'
 
 import { LiveJogging } from './jog'
 
-import { keyboardLogger } from './keyboard'
+import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
+
+function sameArrayContent(a, b) {
+    return a.length === b.length && a.every((v, i) => v === b[i])
+}
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -87,7 +92,7 @@ class LightenMachineBounds {
             ];
             this.triangles = new Float32Array(a);
         }
-        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
@@ -180,7 +185,7 @@ class MachineBounds {
             this.markers = new Float32Array(a);
         }
 
-        drawCommands.basic2d({ perspective, view, position: this.markers, offset: 0, count: this.markers.length / 2, color: [0, 0, 0, 0.8], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.markers, offset: 0, count: this.markers.length / 2, color: [0, 0, 0, 0.8], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
@@ -188,7 +193,7 @@ class FloatingControls extends React.Component {
     componentWillMount() {
         this.state = { linkScale: true };
         this.linkScaleChanged = e => {
-            this.setState({ linkScale: e.target.checked });
+            this.setState({ linkScale: e.target.checked, degrees: 45 });
         }
         this.scale = (sx, sy, anchor = 'C') => {
             let cx, cy
@@ -214,20 +219,35 @@ class FloatingControls extends React.Component {
                     cy = (this.bounds.y1 + this.bounds.y2) / 2;
                     break;
             }
+            this.props.dispatch(transform2dSelectedDocuments([sx, 0, 0, sy, cx - sx * cx, cy - sy * cy]));
+        }
 
-            this.props.dispatch(scaleTranslateSelectedDocuments(
-                [sx, sy, 1],
-                [cx - sx * cx, cy - sy * cy, 0]
+        this.setDegrees = degrees => {
+            this.setState({ degrees })
+        }
+
+        this.rotate = (e,clockwise) => {
+            let rotate = (this.state.degrees||0) * ((clockwise) ? -1 : 1);
+            this.props.dispatch(transform2dSelectedDocuments(
+                mat2d.translate([],
+                    mat2d.rotate(
+                        [],
+                        mat2d.fromTranslation([], [this.rotateCenter[0], this.rotateCenter[1]]),
+                        rotate * Math.PI / 180),
+                    [-this.rotateCenter[0], -this.rotateCenter[1]]
+                )
             ));
+            this.rotateDocs = GlobalStore().getState().documents;
+            this.forceUpdate();
         }
         this.setMinX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x1, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - this.bounds.x1, 0]));
         }
         this.setCenterX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - (this.bounds.x1 + this.bounds.x2) / 2, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - (this.bounds.x1 + this.bounds.x2) / 2, 0]));
         }
         this.setMaxX = v => {
-            this.props.dispatch(translateSelectedDocuments([v - this.bounds.x2, 0, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - this.bounds.x2, 0]));
         }
         this.setSizeX = v => {
             if (v > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
@@ -239,13 +259,13 @@ class FloatingControls extends React.Component {
             }
         }
         this.setMinY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y1, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - this.bounds.y1]));
         }
         this.setCenterY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - (this.bounds.y1 + this.bounds.y2) / 2, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - (this.bounds.y1 + this.bounds.y2) / 2]));
         }
         this.setMaxY = v => {
-            this.props.dispatch(translateSelectedDocuments([0, v - this.bounds.y2, 0]));
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - this.bounds.y2]));
         }
         this.setSizeY = v => {
             if (v > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
@@ -258,7 +278,7 @@ class FloatingControls extends React.Component {
         }
 
         this.toolOptimize = (doc, scale, anchor = 'C') => {
-            if (!scale) scale = 1 / doc.dpi * 25.4
+            if (!scale) scale = 25.4 / this.props.settings.dpiBitmap;
             if (doc.originalPixels) {
                 let targetwidth = doc.originalPixels[0] * scale;
                 let targetheight = doc.originalPixels[1] * scale;
@@ -275,21 +295,21 @@ class FloatingControls extends React.Component {
         let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
             let doc = cache.document;
-            if (doc.selected && doc.translate && cache.bounds) {
+            if (doc.selected && doc.transform2d && cache.bounds) {
                 found = true;
-                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
 
                 if (doc.type == 'image' && doc.originalPixels) {
                     tools = <tfoot>
                         <tr>
                             <td><Icon name="gear" /></td><td colSpan="6" >
-                                <ButtonToolbar>
+                                <ButtonGroup>
                                     <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
                                     <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
-                                </ButtonToolbar>
+                                </ButtonGroup>
                             </td>
                         </tr>
                     </tfoot>
@@ -298,6 +318,12 @@ class FloatingControls extends React.Component {
         }
         if (!found || !this.props.camera)
             return <div />
+
+        if (this.rotateDocs !== this.props.documents) {
+            this.baseRotate = 0;
+            this.rotateCenter = [(bounds.x1 + bounds.x2) / 2, (bounds.y1 + bounds.y2) / 2, 0];
+            this.rotateDocs = this.props.documents;
+        }
 
         let p =
             vec4.transformMat4([],
@@ -323,6 +349,7 @@ class FloatingControls extends React.Component {
                         <td>Max</td>
                         <td>Size</td>
                         <td></td>
+                        <td>Rot</td>
                     </tr>
                     <tr>
                         <td><span className="label label-danger">X</span></td>
@@ -331,8 +358,14 @@ class FloatingControls extends React.Component {
                         <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
                         <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
                         <td rowSpan={2}>
-                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} /><br />&#x2519;
-                    </td>
+                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
+                        </td>
+                        <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
+                            <ButtonToolbar>
+                                <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon name="rotate-left" /></Button>
+                                <Button bsSize="xsmall" onClick={e => this.rotate(e, true)} bsStyle="info"><Icon name="rotate-right" /></Button>
+                            </ButtonToolbar>
+                        </td>
                     </tr>
                     <tr>
                         <td><span className="label label-success">Y</span></td>
@@ -349,8 +382,35 @@ class FloatingControls extends React.Component {
 } // FloatingControls
 
 const thickSquare = convertOutlineToThickLines([0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
+const m4Identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
-function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
+function cacheDrawing(fn, state, args) {
+    let { drawCommands, width, height } = args;
+    let different = false;
+    for (let key in args)
+        if (args.hasOwnProperty(key) && state[key] !== args[key])
+            different = true;
+    if (different) {
+        for (let key in args)
+            if (args.hasOwnProperty(key))
+                state[key] = args[key];
+        if (!state.frameBuffer)
+            state.frameBuffer = drawCommands.createFrameBuffer(width, height);
+        else
+            state.frameBuffer.resize(width, height);
+        drawCommands.useFrameBuffer(state.frameBuffer, () => {
+            drawCommands.gl.clearColor(1, 1, 1, 0);
+            drawCommands.gl.clear(drawCommands.gl.COLOR_BUFFER_BIT, drawCommands.gl.DEPTH_BUFFER_BIT);
+            fn(args);
+        });
+    }
+    drawCommands.image({
+        perspective: m4Identity, view: m4Identity, texture: state.frameBuffer.texture, selected: false,
+        transform2d: [2 / width, 0, 0, -2 / height, -1, 1],
+    });
+}
+
+function drawDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
         if (document.rawPaths) {
@@ -359,8 +419,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                     drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         color: document.fillColor,
                         primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
@@ -371,8 +430,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                         drawCommands.basic2d({
                             perspective, view,
                             position: o,
-                            scale: document.scale,
-                            translate: document.translate,
+                            transform2d: document.transform2d,
                             color: document.strokeColor[3] ? document.strokeColor : [1, 0, 0, 1],
                             primitive: drawCommands.gl.LINE_STRIP,
                             offset: 0,
@@ -384,10 +442,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
                 if (document.visible !== false) {
                     drawCommands.image({
                         perspective, view,
-                        location: document.translate,
-                        size: [
-                            cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                            cachedDocument.image.height / document.dpi * 25.4 * document.scale[1]],
+                        transform2d: document.transform2d,
                         texture: cachedDocument.texture,
                         selected: false,
                     });
@@ -397,8 +452,7 @@ function drawDocuments(perspective, view, drawCommands, documentCacheHolder) {
     }
 } // drawDocuments
 
-
-function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHolder) {
+function drawSelectedDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
         let { document } = cachedDocument;
         if (!document.selected)
@@ -408,8 +462,7 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 drawCommands.thickLines({
                     perspective, view,
                     buffer: outline,
-                    scale: document.scale,
-                    translate: document.translate,
+                    transform2d: document.transform2d,
                     thickness: 5,
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
@@ -420,11 +473,7 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
                 drawCommands.thickLines({
                     perspective, view,
                     buffer: thickSquare,
-                    scale: [
-                        cachedDocument.image.width / document.dpi * 25.4 * document.scale[0],
-                        cachedDocument.image.height / document.dpi * 25.4 * document.scale[1],
-                        1],
-                    translate: document.translate,
+                    transform2d: mat2d.mul([], document.transform2d, [cachedDocument.image.width, 0, 0, cachedDocument.image.height, 0, 0]),
                     thickness: 5,
                     color1: [0, 0, 1, 1],
                     color2: [1, 1, 1, 1],
@@ -432,8 +481,6 @@ function drawSelectedDocuments(perspective, view, drawCommands, documentCacheHol
         }
     }
 } // drawSelectedDocuments
-
-
 
 function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHolder) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -445,8 +492,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                     drawCommands.basic2d({
                         perspective, view,
                         position: cachedDocument.triangles,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         color,
                         primitive: drawCommands.gl.TRIANGLES,
                         offset: 0,
@@ -456,8 +502,7 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
                     drawCommands.thickLines({
                         perspective, view,
                         buffer: o,
-                        scale: document.scale,
-                        translate: document.translate,
+                        transform2d: document.transform2d,
                         thickness: 10,
                         color1: color,
                         color2: color,
@@ -465,13 +510,12 @@ function drawDocumentsHitTest(perspective, view, drawCommands, documentCacheHold
             }
         } else if (document.type === 'image' && cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
             if (document.visible !== false) {
-                let w = cachedDocument.image.width / document.dpi * 25.4;
-                let h = cachedDocument.image.height / document.dpi * 25.4;
+                let w = cachedDocument.image.width;
+                let h = cachedDocument.image.height;
                 drawCommands.basic2d({
                     perspective, view,
                     position: new Float32Array([0, 0, w, 0, w, h, w, h, 0, h, 0, 0]),
-                    scale: document.scale,
-                    translate: document.translate,
+                    transform2d: document.transform2d,
                     color,
                     primitive: drawCommands.gl.TRIANGLES,
                     offset: 0,
@@ -516,6 +560,17 @@ function drawCursor(perspective, view, drawCommands, cursorPos) {
 }
 
 class WorkspaceContent extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.bindings = [
+            [['alt+del','meta+backspace'], this.removeSelected.bind(this)],
+        ]
+        this.drawDocsState = {};
+        this.drawGcodeState = {};
+        this.drawSelDocsState = {};
+    }
+
     componentWillMount() {
         this.pointers = [];
         this.lightenMachineBounds = new LightenMachineBounds();
@@ -535,16 +590,18 @@ class WorkspaceContent extends React.Component {
         this.wheel = this.wheel.bind(this);
         this.setCamera(this.props);
 
-        this.setupBindings()
+        bindKeys(this.bindings, 'workspace')
     }
 
-    setupBindings() {
-        keyboardLogger.withContext('workspace', () => {
-            keyboardLogger.bind('del', function (e) {
-                if (this.props.mode === 'jog') return;
-                this.props.dispatch(removeDocumentSelected());
-            }.bind(this))
-        })
+    componentWillUnmount() {
+        unbindKeys(this.bindings, 'workspace')
+    }
+
+    removeSelected(e) {
+        e.preventDefault();
+        if (this.props.mode === 'jog') return;
+        if (this.props.documents.find((d) => (d.selected)))
+            this.props.dispatch(removeDocumentSelected());
     }
 
     setCanvas(canvas) {
@@ -616,7 +673,13 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
             if (this.props.workspace.showDocuments)
-                drawDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                cacheDrawing(drawDocuments, this.drawDocsState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    documents: this.props.documents,
+                    documentCacheHolder: this.props.documentCacheHolder
+                });
             if (this.props.workspace.showLaser) {
                 gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
                 gl.blendFunc(gl.ONE, gl.ONE);
@@ -625,11 +688,28 @@ class WorkspaceContent extends React.Component {
                 gl.blendEquation(gl.FUNC_ADD);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             }
-            if (this.props.workspace.showGcode)
-                this.props.gcodePreview.draw(
-                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+            if (this.props.workspace.showGcode) {
+                let draw = () => {
+                    this.props.gcodePreview.draw(
+                        this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                };
+                cacheDrawing(draw, this.drawGcodeState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    g0Rate: this.props.workspace.g0Rate,
+                    simTime: this.props.workspace.simTime,
+                    arrayVersion: this.props.gcodePreview.arrayVersion,
+                });
+            }
             if (this.props.workspace.showDocuments)
-                drawSelectedDocuments(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
+                cacheDrawing(drawSelectedDocuments, this.drawSelDocsState, {
+                    drawCommands: this.drawCommands,
+                    width: this.props.width, height: this.props.height,
+                    perspective: this.camera.perspective, view: this.camera.view,
+                    documents: this.props.documents,
+                    documentCacheHolder: this.props.documentCacheHolder
+                });
             if (this.props.workspace.showCursor)
                 drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
 
@@ -647,7 +727,7 @@ class WorkspaceContent extends React.Component {
     }
 
     setCamera(props) {
-        this.camera =
+        let newCamera =
             calcCamera({
                 viewportWidth: props.width,
                 viewportHeight: props.height,
@@ -661,6 +741,13 @@ class WorkspaceContent extends React.Component {
                 machineX: props.settings.machineBottomLeftX - props.workspace.workOffsetX,
                 machineY: props.settings.machineBottomLeftY - props.workspace.workOffsetY,
             });
+        if (this.camera) {
+            if (sameArrayContent(this.camera.perspective, newCamera.perspective))
+                newCamera.perspective = this.camera.perspective;
+            if (sameArrayContent(this.camera.view, newCamera.view))
+                newCamera.view = this.camera.view;
+        }
+        this.camera = newCamera;
     }
 
     rayFromPoint(pageX, pageY) {
@@ -751,8 +838,8 @@ class WorkspaceContent extends React.Component {
             let [jogX, jogY] = this.xyInterceptFromPoint(e.pageX, e.pageY);
             let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
             let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
-            jogX = Math.floor(clamp(jogX, machineX, this.props.settings.machineWidth))
-            jogY = Math.floor(clamp(jogY, machineY, this.props.settings.machineHeight))
+            jogX = Math.floor(clamp(jogX, machineX, this.props.settings.machineWidth - this.props.workspace.workOffsetX))
+            jogY = Math.floor(clamp(jogY, machineY, this.props.settings.machineHeight - this.props.workspace.workOffsetY))
             let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
             CommandHistory.warn(`Live Jogging X${jogX} Y${jogY} F${jogF}`)
             return jogTo(jogX, jogY, undefined, 0, jogF)
@@ -813,7 +900,7 @@ class WorkspaceContent extends React.Component {
             let p1 = this.xyInterceptFromPoint(e.pageX, e.pageY);
             let p2 = this.xyInterceptFromPoint(pointer.pageX, pointer.pageY);
             if (p1 && p2)
-                this.props.dispatch(translateSelectedDocuments(vec3.sub([], p1, p2)));
+                this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, p1[0] - p2[0], p1[1] - p2[1]]));
             pointer.pageX = e.pageX;
             pointer.pageY = e.pageY;
         } else if (this.adjustingCamera) {
@@ -913,7 +1000,8 @@ class WorkspaceContent extends React.Component {
             nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
-            nextProps.mode !== this.props.mode
+            nextProps.mode !== this.props.mode ||
+            nextProps.workspace.cursorPos !== this.props.workspace.cursorPos
         );
     }
 
@@ -983,24 +1071,24 @@ class Workspace extends React.Component {
         let bounds = this.bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
         for (let cache of this.props.documentCacheHolder.cache.values()) {
             let doc = cache.document;
-            if (doc.selected && doc.translate && cache.bounds) {
+            if (doc.selected && doc.transform2d && cache.bounds) {
                 found = true;
-                bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
             }
         }
 
         if (!found) {
             for (let cache of this.props.documentCacheHolder.cache.values()) {
                 let doc = cache.document;
-                if (doc.translate && cache.bounds) {
+                if (doc.transform2d && cache.bounds) {
                     found = true;
-                    bounds.x1 = Math.min(bounds.x1, doc.scale[0] * cache.bounds.x1 + doc.translate[0]);
-                    bounds.y1 = Math.min(bounds.y1, doc.scale[1] * cache.bounds.y1 + doc.translate[1]);
-                    bounds.x2 = Math.max(bounds.x2, doc.scale[0] * cache.bounds.x2 + doc.translate[0]);
-                    bounds.y2 = Math.max(bounds.y2, doc.scale[1] * cache.bounds.y2 + doc.translate[1]);
+                    bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+                    bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+                    bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+                    bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
                 }
             }
         }

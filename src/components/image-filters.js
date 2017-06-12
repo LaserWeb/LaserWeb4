@@ -22,6 +22,7 @@ export class ImagePort extends React.Component {
     {
         super(props)
         this.filters = {}
+        this.timeout=0;
     }
 
     componentDidMount()
@@ -52,16 +53,18 @@ export class ImagePort extends React.Component {
         let filters = getSubset(ops, OPERATION_GROUPS.Filters.fields)
 
         if (JSON.stringify(filters) !== JSON.stringify(this.filters)) {
-            this.filters = filters;
-            if (documents.length) {
-                promisedImage(documents[0].dataURL).then((image) => {
-                    let [width,height] = documents[0].originalPixels;
-                    this.canvas.width = width;
-                    this.canvas.height = height;
-                    this.canvas.getContext("2d").drawImage(image, 0, 0, width, height)
-                    canvasFilters(this.canvas, filters)
-                })
-            }
+            clearTimeout(this.timeout)
+            this.timeout=setTimeout(function(){
+                this.filters = filters;
+                if (documents.length) {
+                    promisedImage(documents[0].dataURL).then((image) => {
+                        this.canvas.width = image.width;
+                        this.canvas.height = image.height;
+                        this.canvas.getContext("2d").drawImage(image, 0, 0)
+                        canvasFilters(this.canvas, filters)
+                    })
+                }
+            }.bind(this),200)
         }
 
         return documents.length;

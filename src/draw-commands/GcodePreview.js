@@ -87,8 +87,13 @@ export function gcode(drawCommands) {
 } // gcode
 
 export class GcodePreview {
+    constructor() {
+        this.arrayVersion = 0;
+    }
+
     setParsedGcode(parsed) {
         this.arrayChanged = true;
+        ++this.arrayVersion;
         if (parsed.length < 2 * parsedStride) {
             this.array = null;
             this.g0Dist = 0;

@@ -22,13 +22,13 @@ self.onmessage = (event) => {
         if (doc.rawPaths) {
             jobs.push((cb) => {
                 if (isTab) {
-                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
+                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.transform2d));
                 } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
                     let isClosed = false;
                     for (let rawPath of doc.rawPaths)
                         if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
                             isClosed = true;
-                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
+                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.transform2d);
                     if (isClosed)
                         geometry = xor(geometry, clipperPaths);
                     else if (!op.filterFillColor)
