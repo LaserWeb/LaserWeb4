@@ -251,10 +251,15 @@ class ImageEditor extends React.Component
     }
 
     handleTrace(e){
+        let [width, height] = this.currentDocument.originalSize;
+        let [wpx, hpx] = this.currentDocument.originalPixels;
         Potrace.loadImageFromUrl(this.image.src)
         Potrace.setParameter(this.state)
         Potrace.process(function(){
-            this.svg=Potrace.getSVG(1);
+
+            this.svg=Potrace.getSVG(1).replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{ 
+                return `width="${width.toFixed(3)}mm" height="${height.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `} 
+            )
             let blob = new Blob([this.svg], {type: 'image/svg+xml;charset=utf-8'});
             let url = window.URL.createObjectURL(blob)
             this.trace.onload=function(){
@@ -300,13 +305,13 @@ class ImageEditor extends React.Component
                 header="Image Editor"
             >
             <div>
-                <img ref={(i)=>{this.image=i}} src="" width="400"/>
-                <img ref={(i)=>{this.trace=i}} src="" width="400"/>
+                <img ref={(i)=>{this.image=i}} src="" style={{width:"50%"}}/>
+                <img ref={(i)=>{this.trace=i}} src="" style={{width:"50%", height:"auto"}} className="checker"/>
             </div>
             <div>
-                 <div>TurnPolicy <Input Component={FormControl} type="text" onChangeValue={v => this.handleStateChange({'turnpolicy':v}) } value={this.state['turnpolicy']} /></div>
-                 <div>TurdSize <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'turdsize':v}) } value={this.state['turdsize']} /></div>
-                 <div>Alphamax <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'alphamax':v}) } value={this.state['alphamax']} /></div>
+                 <div>Turn Policy <Input Component={FormControl} type="text" onChangeValue={v => this.handleStateChange({'turnpolicy':v}) } value={this.state['turnpolicy']} /></div>
+                 <div>Turd Size <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'turdsize':v}) } value={this.state['turdsize']} /></div>
+                 <div>Alpha Max <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'alphamax':v}) } value={this.state['alphamax']} /></div>
                  <div>Opt Curve <Toggle id={"toggle_optcurve"} defaultChecked={this.state['optcurve'] == true} onChange={e => this.handleStateChange({'optcurve':e.target.checked })} /></div>
                  <div>Opt Tolerance <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'opttolerance':v}) } value={this.state['opttolerance']} /></div>
                  <Button onClick={e=>this.handleTrace(e)}>Trace</Button>
@@ -319,5 +324,6 @@ class ImageEditor extends React.Component
 ImageEditor = connect(state => ({
     data: {
         documents: state.documents,
+        settings: state.settings
     }
 }))(ImageEditor)
