@@ -54,33 +54,20 @@ function NumberInput(props) {
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>Conventional</option>
-            <option>Climb</option>
+function EnumInput(opts, def) {
+    if (Array.isArray(opts))
+        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
+    
+    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        return <select value={op[field.name]}  {...rest} >
+            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
-    );
+    }
 }
 
-function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>none</option>
-            <option>average</option>
-            <option>luma</option>
-            <option>luma-601</option>
-            <option>luma-709</option>
-            <option>luma-240</option>
-            <option>desaturation</option>
-            <option>decomposition-min</option>
-            <option>decomposition-max</option>
-            <option>red-chanel</option>
-            <option>green-chanel</option>
-            <option>blue-chanel</option>
-        </select>
-    );
-}
+const DirectionInput = EnumInput(['Conventional','Climb']);
+const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
+
 
 function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
@@ -89,9 +76,6 @@ function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...
 function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
-
-
-
 
 function RangeInput(minValue, maxValue) {
     return ({ op, field, onChangeValue, ...rest }) => {
