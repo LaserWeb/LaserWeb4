@@ -678,7 +678,8 @@ class WorkspaceContent extends React.Component {
                     width: this.props.width, height: this.props.height,
                     perspective: this.camera.perspective, view: this.camera.view,
                     documents: this.props.documents,
-                    documentCacheHolder: this.props.documentCacheHolder
+                    documentCacheHolder: this.props.documentCacheHolder,
+                    numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
                 });
             if (this.props.workspace.showLaser) {
                 gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
