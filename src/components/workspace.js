@@ -226,8 +226,8 @@ class FloatingControls extends React.Component {
             this.setState({ degrees })
         }
 
-        this.rotate = (e,clockwise) => {
-            let rotate = (this.state.degrees||0) * ((clockwise) ? -1 : 1);
+        this.rotate = (e, clockwise) => {
+            let rotate = (this.state.degrees || 0) * ((clockwise) ? -1 : 1);
             this.props.dispatch(transform2dSelectedDocuments(
                 mat2d.translate([],
                     mat2d.rotate(
@@ -564,7 +564,7 @@ class WorkspaceContent extends React.Component {
     constructor(props) {
         super(props);
         this.bindings = [
-            [['alt+del','meta+backspace'], this.removeSelected.bind(this)],
+            [['alt+del', 'meta+backspace'], this.removeSelected.bind(this)],
         ]
         this.drawDocsState = {};
         this.drawGcodeState = {};
