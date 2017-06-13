@@ -583,8 +583,8 @@ class WorkspaceContent extends React.Component {
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerCancel = this.onPointerCancel.bind(this);
 
-        this.handleMouseEnter = this.handleMouseEnter.bind(this)
-        this.handleMouseLeave = this.handleMouseLeave.bind(this)
+        this.handleMouseOver = this.handleMouseOver.bind(this)
+        this.handleMouseOut = this.handleMouseOut.bind(this)
 
         this.contextMenu = this.contextMenu.bind(this);
         this.wheel = this.wheel.bind(this);
@@ -973,11 +973,11 @@ class WorkspaceContent extends React.Component {
         }
     }
 
-    handleMouseEnter(e) {
+    handleMouseOver(e) {
         keyboardLogger.setContext('workspace')
     }
 
-    handleMouseLeave(e) {
+    handleMouseOut(e) {
         keyboardLogger.setContext('global')
     }
 
@@ -1007,11 +1007,12 @@ class WorkspaceContent extends React.Component {
 
     render() {
         return (
-            <div style={{ touchAction: 'none', userSelect: 'none' }} onMouseEnter={this.handleMouseEnter} onMouseLeave={this.handleMouseLeave}>
+            <div style={{ touchAction: 'none', userSelect: 'none' }} >
                 <Pointable tagName='div' touchAction="none"
                     onPointerDown={this.onPointerDown} onPointerMove={this.onPointerMove}
                     onPointerUp={this.onPointerUp} onPointerCancel={this.onPointerCancel}
-                    onWheel={this.wheel} onContextMenu={this.contextMenu}>
+                    onWheel={this.wheel} onContextMenu={this.contextMenu}
+                    onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
                     <div className="workspace-content">
                         <canvas
                             style={{ width: this.props.width, height: this.props.height }}
