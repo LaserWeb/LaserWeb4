@@ -1,3 +1,6 @@
+import { drawDocument } from '../components/workspace'
+import { DrawCommands } from '../draw-commands'
+import { DOCUMENT_INITIALSTATE } from '../reducers/document'
 import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
 
@@ -233,4 +236,52 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     })
 
 
+}
+
+export function getLaserRasterMergeGcodeFromOp(settings, documentCacheHolder, opIndex, op, filteredDocIds, showAlert, done, progress, jobIndex, QE_chunk, workers) {
+    let bounds = { x1: Number.MAX_VALUE, y1: Number.MAX_VALUE, x2: -Number.MAX_VALUE, y2: -Number.MAX_VALUE };
+    let filteredCachedDocs = [];
+    for (let cache of documentCacheHolder.cache.values()) {
+        let doc = cache.document;
+        if (filteredDocIds.has(doc.id) && doc.transform2d && cache.bounds) {
+            filteredCachedDocs.push(cache);
+            bounds.x1 = Math.min(bounds.x1, cache.bounds.x1 + doc.transform2d[4]);
+            bounds.y1 = Math.min(bounds.y1, cache.bounds.y1 + doc.transform2d[5]);
+            bounds.x2 = Math.max(bounds.x2, cache.bounds.x2 + doc.transform2d[4]);
+            bounds.y2 = Math.max(bounds.y2, cache.bounds.y2 + doc.transform2d[5]);
+        }
+    }
+    if (filteredCachedDocs.length) {
+        bounds.x2 = Math.max(bounds.x2, bounds.x1 + 1);
+        bounds.y2 = Math.max(bounds.y2, bounds.y1 + 1);
+        let width = Math.ceil((bounds.x2 - bounds.x1) / op.laserDiameter);
+        let height = Math.ceil((bounds.y2 - bounds.y1) / op.laserDiameter);
+        let canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+        let drawCommands = new DrawCommands(gl);
+        let perspective = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+        let sx = 2 / (bounds.x2 - bounds.x1);
+        let sy = 2 / (bounds.y2 - bounds.y1);
+        let tx = -1 - sx * bounds.x1;
+        let ty = -1 - sy * bounds.y1;
+        let view = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1];
+        gl.viewport(0, 0, width, height);
+        gl.clearColor(1, 1, 1, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        for (let cachedDocument of filteredCachedDocs)
+            drawDocument(perspective, view, drawCommands, cachedDocument, true);
+        let docsWithImages = [{
+            ...DOCUMENT_INITIALSTATE,
+            transform2d: [(bounds.x2 - bounds.x1) / width, 0, 0, (bounds.y2 - bounds.y1) / height, bounds.x1, bounds.y1],
+            dataURL: canvas.toDataURL(),
+        }];
+        drawCommands.destroy();
+
+        getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers);
+    } else
+        done('');
 }
