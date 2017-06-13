@@ -1,5 +1,6 @@
 import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
+import { promisedImage } from '../components/image-filters.js';
 
 
 const getImageBounds=(t,w,h)=>{
@@ -13,13 +14,7 @@ const getImageBounds=(t,w,h)=>{
     };
 }
 
-const promisedImage = (path) => {
-    return new Promise(resolve => {
-        let img = new Image();
-        img.onload = () => { resolve(img) }
-        img.src = path;
-    })
-}
+
 
 export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, done, progress, jobIndex, QE_chunk, workers) {
 

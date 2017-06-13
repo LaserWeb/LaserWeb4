@@ -6,13 +6,52 @@ import { canvasFilters } from '../lib/lw.raster2gcode/canvas-filters';
 import { OPERATION_GROUPS } from './operation';
 import { getSubset } from 'redux-localstorage-filter';
 
-const promisedImage = (path) => {
+import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
+import Toggle from "react-toggle";
+import { Input } from './forms'
+import Potrace from '../lib/potrace/potrace'
+import { loadDocument, setDocumentAttrs } from '../actions/document';
+
+import Parser from '../lib/lw.svg-parser/parser';
+
+import { sendAsFile } from '../lib/helpers'
+
+export const promisedImage = (path) => {
     return new Promise(resolve => {
         let img = new Image();
         img.onload = () => {
             resolve(img)
         }
         img.src = path;
+    })
+}
+
+export const imageTagPromise = (tags) => {
+    return new Promise(resolve => {
+        let images = [];
+        const walker = (tag) => {
+            if (tag.name === 'image')
+                images.push(tag);
+            if (tag.children)
+                tag.children.forEach(t => walker(t))
+        }
+
+        const consumer = () => {
+            if (images.length) {
+                let tag = images.shift()
+                let dataURL = tag.element.getAttribute('xlink:href')
+                if (dataURL.substring(0, 5) !== 'data:')
+                    return consumer();
+                let image = new Image();
+                image.onload = () => { tag.naturalWidth = image.naturalWidth; tag.naturalHeight = image.naturalHeight; consumer() }
+                image.src = dataURL;
+            } else {
+                resolve(tags);
+            }
+        }
+
+        walker(tags);
+        consumer();
     })
 }
 
@@ -105,3 +144,180 @@ ImagePort = connect(state => ({
         currentOperation: state.currentOperation
     }
 }))(ImagePort)
+
+
+function ImageEditorModal({ modal, className, header, footer, children, ...rest }) {
+
+    return (
+        <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
+            <Modal.Header closeButton>
+                <Modal.Title id="contained-modal-title-lg">{header}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {children}
+            </Modal.Body>
+            {footer ? <Modal.Footer>{footer}</Modal.Footer> : undefined}
+
+        </Modal>
+    )
+
+}
+
+export class ImageEditorButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { showModal: false }
+        this.handleClick.bind(this)
+        this.onModKey.bind(this)
+        this.offModKey.bind(this)
+        this.state = {}
+        this.__mounted=false;
+    }
+
+    onModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    offModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    componentDidMount() {
+        this.__mounted=true;
+        document.addEventListener('keydown', this.onModKey.bind(this))
+        document.addEventListener('keyup', this.offModKey.bind(this))
+    }
+
+    componentWillUnmount() {
+        this.__mounted=false;
+        document.removeEventListener('keydown', this.onModKey.bind(this))
+        document.removeEventListener('keyup', this.offModKey.bind(this))
+    }
+
+
+
+    handleClick(e) {
+        if (e.shiftKey) {
+            e.preventDefault();
+        } else {
+            this.setState({ showModal: true })
+        }
+    }
+
+    render() {
+        let closeModal = () => this.setState({ showModal: false });
+        let className = this.props.className;
+        if (this.state.shiftKey) className += ' btn-warning'
+        return (
+            <Button bsStyle={this.props.bsStyle||'primary'} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
+                <ImageEditor show={this.state.showModal} onHide={closeModal}  />
+            </Button>
+        )
+    }
+}
+
+class ImageEditor extends React.Component
+{
+    constructor(props){
+        super(props)
+        this.state={
+                turnpolicy: 'minority', // potrace
+                turdsize: 2,            // potrace
+                optcurve: true,         // potrace
+                alphamax: 1,            // potrace
+                opttolerance: 0.2,      // potrace
+        }
+        this.handleStateChange.bind(this)
+        this.handleTrace.bind(this)
+        this.handleNew.bind(this)
+    }
+
+    componentDidMount()
+    {
+        this.processImage();
+    }
+
+    componentDidUpdate()
+    {
+        this.processImage();
+    }
+
+    handleStateChange(change)
+    {
+        let state= Object.assign(this.state, change)
+        this.setState(state)
+    }
+
+    handleTrace(e){
+        Potrace.loadImageFromUrl(this.image.src)
+        Potrace.setParameter(this.state)
+        Potrace.process(function(){
+            this.svg=Potrace.getSVG(1);
+            let blob = new Blob([this.svg], {type: 'image/svg+xml;charset=utf-8'});
+            let url = window.URL.createObjectURL(blob)
+            this.trace.onload=function(){
+                window.URL.revokeObjectURL(url);
+            }
+            this.trace.src=url;
+        }.bind(this))
+    }
+
+    handleNew(e){
+        let modifiers={};
+        let doc = this.currentDocument
+        let parser = new Parser({});
+            parser.parse(this.svg)
+                .then((tags) => {
+                    imageTagPromise(tags).then((tags) => {
+                        this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags }, modifiers));
+                    })
+                })
+                .catch((e) => {
+                    console.error(e)
+                })
+        
+    }
+
+    processImage()
+    {
+        if (!this.props.show) return false;
+
+        let documents = this.props.data.documents
+            .filter(d => (d.selected))
+
+        if (documents.length)
+        {
+            this.currentDocument = documents[0]
+            this.image.src=this.currentDocument.dataURL;
+        }
+    }
+
+    render()
+    {
+        return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
+                header="Image Editor"
+            >
+            <div>
+                <img ref={(i)=>{this.image=i}} src="" width="400"/>
+                <img ref={(i)=>{this.trace=i}} src="" width="400"/>
+            </div>
+            <div>
+                 <div>TurnPolicy <Input Component={FormControl} type="text" onChangeValue={v => this.handleStateChange({'turnpolicy':v}) } value={this.state['turnpolicy']} /></div>
+                 <div>TurdSize <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'turdsize':v}) } value={this.state['turdsize']} /></div>
+                 <div>Alphamax <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'alphamax':v}) } value={this.state['alphamax']} /></div>
+                 <div>Opt Curve <Toggle id={"toggle_optcurve"} defaultChecked={this.state['optcurve'] == true} onChange={e => this.handleStateChange({'optcurve':e.target.checked })} /></div>
+                 <div>Opt Tolerance <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'opttolerance':v}) } value={this.state['opttolerance']} /></div>
+                 <Button onClick={e=>this.handleTrace(e)}>Trace</Button>
+                 <Button onClick={e=>this.handleNew(e)}>New Doc</Button>
+            </div>
+            </ImageEditorModal>
+    }
+}
+
+ImageEditor = connect(state => ({
+    data: {
+        documents: state.documents,
+    }
+}))(ImageEditor)

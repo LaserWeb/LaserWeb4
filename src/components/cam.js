@@ -40,6 +40,8 @@ import { alert, prompt, confirm } from './laserweb'
 import CommandHistory from './command-history'
 import { FileField } from './forms'
 
+import { promisedImage, imageTagPromise } from './image-filters';
+
 export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
 
 
@@ -205,42 +207,9 @@ class Cam extends React.Component {
 };
 
 
-const promisedImage = (path) => {
-    return new Promise(resolve => {
-        let img = new Image();
-        img.onload = () => { resolve(img) }
-        img.src = path;
-    })
-}
 
-const imageTagPromise = (tags) => {
-    return new Promise(resolve => {
-        let images = [];
-        const walker = (tag) => {
-            if (tag.name === 'image')
-                images.push(tag);
-            if (tag.children)
-                tag.children.forEach(t => walker(t))
-        }
 
-        const consumer = () => {
-            if (images.length) {
-                let tag = images.shift()
-                let dataURL = tag.element.getAttribute('xlink:href')
-                if (dataURL.substring(0, 5) !== 'data:')
-                    return consumer();
-                let image = new Image();
-                image.onload = () => { tag.naturalWidth = image.naturalWidth; tag.naturalHeight = image.naturalHeight; consumer() }
-                image.src = dataURL;
-            } else {
-                resolve(tags);
-            }
-        }
 
-        walker(tags);
-        consumer();
-    })
-}
 
 Cam = connect(
     state => ({
