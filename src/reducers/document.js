@@ -318,7 +318,9 @@ export function documents(state, action) {
         case "DOCUMENT_REMOVE_SELECTED":
             let ids = [];
             state.filter(d => d.selected).forEach((sel)=>{ ids = [...ids,...getSubtreeIds(state, sel.id)];})
-            return state.filter(d => (!ids.includes(d.id)));
+            return state.filter(o => (!ids.includes(o.id))).map(parent=>{
+                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c)))})
+            });
 
         case 'WORKSPACE_RESET':
             return [];
