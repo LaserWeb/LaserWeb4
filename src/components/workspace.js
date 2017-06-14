@@ -226,8 +226,8 @@ class FloatingControls extends React.Component {
             this.setState({ degrees })
         }
 
-        this.rotate = (e,clockwise) => {
-            let rotate = (this.state.degrees||0) * ((clockwise) ? -1 : 1);
+        this.rotate = (e, clockwise) => {
+            let rotate = (this.state.degrees || 0) * ((clockwise) ? -1 : 1);
             this.props.dispatch(transform2dSelectedDocuments(
                 mat2d.translate([],
                     mat2d.rotate(
@@ -411,47 +411,53 @@ function cacheDrawing(fn, state, args) {
     });
 }
 
-function drawDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
-    for (let cachedDocument of documentCacheHolder.cache.values()) {
-        let { document } = cachedDocument;
-        if (document.rawPaths) {
-            if (document.visible) {
-                if (document.fillColor[3] && cachedDocument.triangles.length)
-                    drawCommands.basic2d({
-                        perspective, view,
-                        position: cachedDocument.triangles,
-                        transform2d: document.transform2d,
-                        color: document.fillColor,
-                        primitive: drawCommands.gl.TRIANGLES,
-                        offset: 0,
-                        count: cachedDocument.triangles.length / 2,
-                    });
-                if (document.strokeColor[3] || !cachedDocument.triangles.length)
-                    for (let o of cachedDocument.outlines)
-                        drawCommands.basic2d({
-                            perspective, view,
-                            position: o,
-                            transform2d: document.transform2d,
-                            color: document.strokeColor[3] ? document.strokeColor : [1, 0, 0, 1],
-                            primitive: drawCommands.gl.LINE_STRIP,
-                            offset: 0,
-                            count: o.length / 2,
-                        });
-            }
-        } else if (document.type === 'image') {
-            if (cachedDocument.image && cachedDocument.texture && cachedDocument.drawCommands === drawCommands) {
-                if (document.visible !== false) {
-                    drawCommands.image({
-                        perspective, view,
-                        transform2d: document.transform2d,
-                        texture: cachedDocument.texture,
-                        selected: false,
-                    });
-                }
-            }
+export function drawDocument(perspective, view, drawCommands, cachedDocument, createTextures) {
+    let { document } = cachedDocument;
+    if (document.rawPaths) {
+        if (document.fillColor[3] && cachedDocument.triangles.length)
+            drawCommands.basic2d({
+                perspective, view,
+                position: cachedDocument.triangles,
+                transform2d: document.transform2d,
+                color: document.fillColor,
+                primitive: drawCommands.gl.TRIANGLES,
+                offset: 0,
+                count: cachedDocument.triangles.length / 2,
+            });
+        if (document.strokeColor[3] || !cachedDocument.triangles.length)
+            for (let o of cachedDocument.outlines)
+                drawCommands.basic2d({
+                    perspective, view,
+                    position: o,
+                    transform2d: document.transform2d,
+                    color: document.strokeColor[3] ? document.strokeColor : [1, 0, 0, 1],
+                    primitive: drawCommands.gl.LINE_STRIP,
+                    offset: 0,
+                    count: o.length / 2,
+                });
+    } else if (document.type === 'image') {
+        if (cachedDocument.image) {
+            let texture;
+            if (createTextures)
+                texture = drawCommands.createTexture({ image: cachedDocument.image });
+            else if (cachedDocument.texture && cachedDocument.drawCommands === drawCommands)
+                texture = cachedDocument.texture;
+            if (texture)
+                drawCommands.image({
+                    perspective, view,
+                    transform2d: document.transform2d,
+                    texture,
+                    selected: false,
+                });
         }
     }
-} // drawDocuments
+} // drawDocument
+
+function drawDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
+    for (let cachedDocument of documentCacheHolder.cache.values())
+        if (cachedDocument.document.visible)
+            drawDocument(perspective, view, drawCommands, cachedDocument, false);
+}
 
 function drawSelectedDocuments({ perspective, view, drawCommands, documentCacheHolder }) {
     for (let cachedDocument of documentCacheHolder.cache.values()) {
@@ -565,7 +571,7 @@ class WorkspaceContent extends React.Component {
     constructor(props) {
         super(props);
         this.bindings = [
-            [['alt+del','meta+backspace'], this.removeSelected.bind(this)],
+            [['alt+del', 'meta+backspace'], this.removeSelected.bind(this)],
         ]
         this.drawDocsState = {};
         this.drawGcodeState = {};
@@ -679,7 +685,8 @@ class WorkspaceContent extends React.Component {
                     width: this.props.width, height: this.props.height,
                     perspective: this.camera.perspective, view: this.camera.view,
                     documents: this.props.documents,
-                    documentCacheHolder: this.props.documentCacheHolder
+                    documentCacheHolder: this.props.documentCacheHolder,
+                    numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
                 });
             if (this.props.workspace.showLaser) {
                 gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
@@ -709,7 +716,8 @@ class WorkspaceContent extends React.Component {
                     width: this.props.width, height: this.props.height,
                     perspective: this.camera.perspective, view: this.camera.view,
                     documents: this.props.documents,
-                    documentCacheHolder: this.props.documentCacheHolder
+                    documentCacheHolder: this.props.documentCacheHolder,
+                    numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
                 });
             if (this.props.workspace.showCursor)
                 drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
