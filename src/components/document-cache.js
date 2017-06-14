@@ -27,6 +27,7 @@ export class DocumentCacheHolder extends React.Component {
         super();
         this.cache = new Map();
         this.lastHitTestId = 0;
+        this.numImagesLoaded = 0;
     }
 
     getChildContext() {
@@ -137,6 +138,7 @@ export class DocumentCacheHolder extends React.Component {
                 cachedDocument.image.onload = () => {
                     if (cachedDocument.image === image) {
                         cachedDocument.imageLoaded = true;
+                        ++this.numImagesLoaded;
                         updateTexture();
                     }
                 }
