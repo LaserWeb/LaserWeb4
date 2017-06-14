@@ -310,7 +310,7 @@ class FloatingControls extends React.Component {
                                     <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
                                     <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
                                 </ButtonGroup>
-                                &nbsp;<ImageEditorButton bsSize="xs"><Icon name="code"/>Trace</ImageEditorButton>
+                                &nbsp;<ImageEditorButton bsSize="xs"><Icon name="code"/> Filters/Trace</ImageEditorButton>
                             </td>
                         </tr>
                     </tfoot>

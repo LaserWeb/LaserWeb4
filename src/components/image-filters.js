@@ -11,6 +11,7 @@ import Toggle from "react-toggle";
 import { Input } from './forms'
 import Potrace from '../lib/potrace/potrace'
 import { loadDocument, setDocumentAttrs } from '../actions/document';
+import Icon from './font-awesome';
 
 import Parser from '../lib/lw.svg-parser/parser';
 
@@ -331,6 +332,10 @@ class ImageEditor extends React.Component
         }.bind(this))
     }
 
+    handleFilters(e){
+        this.props.dispatch(setDocumentAttrs({dataURL:this.canvas.toDataURL()}, this.currentDocument.id))
+    }
+
     handleNew(e){
         let modifiers={};
         let doc = this.currentDocument
@@ -378,8 +383,10 @@ class ImageEditor extends React.Component
         
         return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Image Editor"
-                footer={<div><Button onClick={e=>this.handleTrace(e)}>Trace</Button>
-                <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}>New Doc</Button></div>}
+                footer={<div>
+                    <Button bsStyle="warning" onClick={e=>this.handleFilters(e)}><Icon name="warning"/> Modify source image</Button>
+                    <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button>
+                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button></div>}
             >
             <div className="trace-image">
                 <div className="showroom checker">
