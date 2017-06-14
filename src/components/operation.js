@@ -54,33 +54,20 @@ function NumberInput(props) {
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>Conventional</option>
-            <option>Climb</option>
+function EnumInput(opts, def) {
+    if (Array.isArray(opts))
+        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
+    
+    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        return <select value={op[field.name]}  {...rest} >
+            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
-    );
+    }
 }
 
-function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>none</option>
-            <option>average</option>
-            <option>luma</option>
-            <option>luma-601</option>
-            <option>luma-709</option>
-            <option>luma-240</option>
-            <option>desaturation</option>
-            <option>decomposition-min</option>
-            <option>decomposition-max</option>
-            <option>red-chanel</option>
-            <option>green-chanel</option>
-            <option>blue-chanel</option>
-        </select>
-    );
-}
+const DirectionInput = EnumInput(['Conventional','Climb']);
+const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
+
 
 function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
@@ -89,9 +76,6 @@ function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...
 function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
-
-
-
 
 function RangeInput(minValue, maxValue) {
     return ({ op, field, onChangeValue, ...rest }) => {
@@ -439,14 +423,6 @@ export const OPERATION_TYPES = {
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
-    'Laser Raster Merge': {
-        allowTabs: false, tabFields: false, fields: [
-            'name', 'filterFillColor', 'filterStrokeColor',
-            'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
-            ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
-        ]
-    },
     'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
@@ -528,7 +504,7 @@ class Operation extends React.Component {
             this.availableOps = Object.keys(OPERATION_TYPES);
             if (nextProps.op.documents.length) {
                 if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
-                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/^Laser Raster$/gi))
+                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
 
                 if (!this.availableOps.includes(nextProps.op.type))
                     this.setTypeString(this.availableOps[0])

@@ -48,7 +48,6 @@ const types = {
     'Laser Cut Outside': { show: ['LaserCutOutside', 'laserDia'] },
     'Laser Fill Path': { show: ['LaserFill', 'lineSpace'] },
     'Laser Raster': { show: ['LaserRaster', 'laserDia'] },
-    'Laser Raster Merge': { show: ['LaserRaster', 'laserDia'] },
     'Mill Pocket': { show: ['MillPocket', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
     'Mill Cut': { show: ['MillCut', 'zStep', 'zDepth'] },
     'Mill Cut Inside': { show: ['MillCutInside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },

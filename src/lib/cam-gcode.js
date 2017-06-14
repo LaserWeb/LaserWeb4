@@ -15,7 +15,7 @@
 
 'use strict';
 
-import { getLaserRasterGcodeFromOp, getLaserRasterMergeGcodeFromOp } from './cam-gcode-raster'
+import { getLaserRasterGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
 
 import { GlobalStore } from '../index'
@@ -93,7 +93,6 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 let geometry = [];
                 let openGeometry = [];
                 let tabGeometry = [];
-                let filteredDocIds = [];
                 let docsWithImages = [];
 
                 let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
@@ -104,14 +103,13 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (data.geometry) geometry = data.geometry
                         if (data.openGeometry) openGeometry = data.openGeometry
                         if (data.tabGeometry) tabGeometry = data.tabGeometry
-                        if (data.filteredDocIds) filteredDocIds = data.filteredDocIds
                         data.docsWithImages.forEach(_doc => {
                             let cache = documentCacheHolder.cache.get(_doc.id);
                             if (cache && cache.imageLoaded)
                                 docsWithImages.push(Object.assign([], _doc, { image: cache.image }));
                         })
                         gauge[opIndex*2]=100;
-                        resolve({ geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages })
+                        resolve({ geometry, openGeometry, tabGeometry, docsWithImages })
                     } else if (data.event == 'onProgress') {
                         gauge[opIndex*2]=data.percent;
                         progress(gauge)
@@ -129,7 +127,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             console.log(op.type + "->" + jobIndex)
             preflightPromise(settings, documents, opIndex, op, workers)
                 .then((preflight) => {
-                    let { geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages } = preflight;
+                    let { geometry, openGeometry, tabGeometry, docsWithImages } = preflight;
 
                     if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
 
@@ -138,10 +136,6 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     } else if (op.type === 'Laser Raster') {
 
                         getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, (gcode)=>{jobDone(gcode,cb)}, progress, jobIndex, QE.chunk, workers);
-
-                    } else if (op.type === 'Laser Raster Merge') {
-
-                        getLaserRasterMergeGcodeFromOp(settings, documentCacheHolder, opIndex, op, filteredDocIds, showAlert, (gcode) => { jobDone(gcode, cb) }, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type.substring(0, 5) === 'Mill ') {
 
@@ -171,7 +165,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
-            ww.terminate();
+                ww.terminate();
         })
 
     })

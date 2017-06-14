@@ -63,7 +63,7 @@ export function document(state, action) {
 const documentsForest = forest('document', document);
 
 function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
-    let { parser, tags } = content;
+    let { parser, tags, attrs={} } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
@@ -165,7 +165,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, tags, [1, 0, 0, 1, 0, 0]);
+    addChildren(doc, tags, attrs.transform2d || [1, 0, 0, 1, 0, 0]);
     return state;
 }
 
@@ -318,7 +318,9 @@ export function documents(state, action) {
         case "DOCUMENT_REMOVE_SELECTED":
             let ids = [];
             state.filter(d => d.selected).forEach((sel)=>{ ids = [...ids,...getSubtreeIds(state, sel.id)];})
-            return state.filter(d => (!ids.includes(d.id)));
+            return state.filter(o => (!ids.includes(o.id))).map(parent=>{
+                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c)))})
+            });
 
         case 'WORKSPACE_RESET':
             return [];
