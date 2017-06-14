@@ -231,13 +231,16 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
+                        <h5 className="header">Probe tool</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Probe Offset', units: 'mm' }} />
                         <hr />
                         <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
                         <hr />
                         <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage' }} />
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
-                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool offset', labelAddon: false, units: 'mm' }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', labelAddon: false, units: 'mm' }} />
                                 <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Start Height', labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>

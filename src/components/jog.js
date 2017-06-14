@@ -268,9 +268,9 @@ class Jog extends React.Component {
     probe(axis) {
         console.log('probe');
         if (axis.indexOf('z') === 0) {
-            let offset = this.props.settings.machineZToolOffset;
+            let offset = this.props.settings.machineZProbeOffset;
         } else  {
-            let offset = 0;
+            let offset = this.props.settings.machineXYProbeOffset;
         }
         probe(axis, offset);
     }

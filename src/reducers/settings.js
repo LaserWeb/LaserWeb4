@@ -65,11 +65,14 @@ export const SETTINGS_INITIALSTATE = {
         A: {min: 1, max:50000},
         S: {min: 0, max:30000},
     },
+    
+    machineXYProbeOffset: 0,
 
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+    machineZProbeOffset: 0,
 
     machineAEnabled: false,
 
