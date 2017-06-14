@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import Rnd from 'react-rnd';
 import { canvasFilters } from '../lib/lw.raster2gcode/canvas-filters';
-import { OPERATION_GROUPS } from './operation';
+import { OPERATION_GROUPS, OPERATION_FIELDS } from './operation';
 import { getSubset } from 'redux-localstorage-filter';
 
 import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
@@ -218,18 +218,31 @@ export class ImageEditorButton extends React.Component {
     }
 }
 
+function EnumInput(opts, def) {
+    if (Array.isArray(opts))
+        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
+    
+    return function({ op, field, onChangeValue, ...rest }){
+        return <select value={op[field]}  {...rest} >
+            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
+        </select>
+    }
+}
+
 class ImageEditor extends React.Component
 {
     constructor(props){
         super(props)
         this.state={
+            params:{
                 turnpolicy: 'minority', // potrace
                 turdsize: 2,            // potrace
                 optcurve: true,         // potrace
                 alphamax: 1,            // potrace
                 opttolerance: 0.2,      // potrace
+            }
         }
-        this.handleStateChange.bind(this)
+        this.handleParamChange.bind(this)
         this.handleTrace.bind(this)
         this.handleNew.bind(this)
     }
@@ -237,6 +250,7 @@ class ImageEditor extends React.Component
     componentDidMount()
     {
         this.processImage();
+        this.setState({svg:false})
     }
 
     componentDidUpdate()
@@ -244,28 +258,25 @@ class ImageEditor extends React.Component
         this.processImage();
     }
 
-    handleStateChange(change)
+    handleParamChange(change)
     {
         let state= Object.assign(this.state, change)
         this.setState(state)
     }
 
     handleTrace(e){
-        let [width, height] = this.currentDocument.originalSize;
         let [wpx, hpx] = this.currentDocument.originalPixels;
         Potrace.loadImageFromUrl(this.image.src)
-        Potrace.setParameter(this.state)
+        Potrace.setParameter(this.state.params)
         Potrace.process(function(){
-
-            this.svg=Potrace.getSVG(1).replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{ 
-                return `width="${width.toFixed(3)}mm" height="${height.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `} 
-            )
-            let blob = new Blob([this.svg], {type: 'image/svg+xml;charset=utf-8'});
+            let svg=Potrace.getSVG(1)
+            let blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
             let url = window.URL.createObjectURL(blob)
-            this.trace.onload=function(){
-                window.URL.revokeObjectURL(url);
-            }
+            this.trace.onload=function(){ window.URL.revokeObjectURL(url);}
             this.trace.src=url;
+            this.setState({svg: svg.replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{ 
+                return `width="${wpx.toFixed(3)}mm" height="${hpx.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `} 
+            )})
         }.bind(this))
     }
 
@@ -273,10 +284,11 @@ class ImageEditor extends React.Component
         let modifiers={};
         let doc = this.currentDocument
         let parser = new Parser({});
-            parser.parse(this.svg)
+            parser.parse(this.state.svg)
                 .then((tags) => {
                     imageTagPromise(tags).then((tags) => {
-                        this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags }, modifiers));
+                        let attrs=doc.transform2d ? {transform2d: doc.transform2d.slice()} : null;
+                        this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags, attrs }, modifiers));
                     })
                 })
                 .catch((e) => {
@@ -296,27 +308,35 @@ class ImageEditor extends React.Component
         {
             this.currentDocument = documents[0]
             this.image.src=this.currentDocument.dataURL;
+            
         }
     }
 
     render()
     {
+        let EnumTurn=EnumInput(['minority', 'majority','black','white','right', 'left', 'random']);
         return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Image Editor"
             >
-            <div>
-                <img ref={(i)=>{this.image=i}} src="" style={{width:"50%"}}/>
-                <img ref={(i)=>{this.trace=i}} src="" style={{width:"50%", height:"auto"}} className="checker"/>
+            <div className="trace-image">
+                <div className="showroom checker">
+                    <img ref={(i)=>{this.image=i}} src="" />
+                    <img ref={(i)=>{this.trace=i}} src="" />
+                </div>
+                <div className="filters">
+                    
+                </div>
+                <div className="controls">
+                    <div>Turn Policy <EnumTurn op={this.state.params} field="turnpolicy" onChange={v => this.handleParamChange({'turnpolicy':v.target.value}) } /></div>
+                    <div>Turd Size <Input Component={FormControl} type="number" onChangeValue={v => this.handleParamChange({'turdsize':v}) } value={this.state.params['turdsize']} /></div>
+                    <div>Alpha Max <Input Component={FormControl} type="number" onChangeValue={v => this.handleParamChange({'alphamax':v}) } value={this.state.params['alphamax']} /></div>
+                    <div>Opt Curve <Toggle id={"toggle_optcurve"} defaultChecked={this.state.params['optcurve'] == true} onChange={e => this.handleParamChange({'optcurve':e.target.checked })} /></div>
+                    <div>Opt Tolerance <Input Component={FormControl} type="number" onChangeValue={v => this.handleParamChange({'opttolerance':v}) } value={this.state.params['opttolerance']} /></div>
+                    <Button onClick={e=>this.handleTrace(e)}>Trace</Button>
+                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}>New Doc</Button>
+                </div>
             </div>
-            <div>
-                 <div>Turn Policy <Input Component={FormControl} type="text" onChangeValue={v => this.handleStateChange({'turnpolicy':v}) } value={this.state['turnpolicy']} /></div>
-                 <div>Turd Size <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'turdsize':v}) } value={this.state['turdsize']} /></div>
-                 <div>Alpha Max <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'alphamax':v}) } value={this.state['alphamax']} /></div>
-                 <div>Opt Curve <Toggle id={"toggle_optcurve"} defaultChecked={this.state['optcurve'] == true} onChange={e => this.handleStateChange({'optcurve':e.target.checked })} /></div>
-                 <div>Opt Tolerance <Input Component={FormControl} type="number" onChangeValue={v => this.handleStateChange({'opttolerance':v}) } value={this.state['opttolerance']} /></div>
-                 <Button onClick={e=>this.handleTrace(e)}>Trace</Button>
-                 <Button onClick={e=>this.handleNew(e)}>New Doc</Button>
-            </div>
+            
             </ImageEditorModal>
     }
 }
