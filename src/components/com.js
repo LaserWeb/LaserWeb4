@@ -736,6 +736,32 @@ export function gotoZero(axis) {
     }
 }
 
+export function home(axis) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Home ' + axis, CommandHistory.INFO);
+            socket.emit('home', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function probe(axis, offset) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Probe ' + axis + ' (Offset:' + offset + ')', CommandHistory.INFO);
+            socket.emit('probe', {axis: axis, offset: offset});
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
 export function laserTest(power, duration, maxS) {
     if (serverConnected) {
         if (machineConnected){
