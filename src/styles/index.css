@@ -639,8 +639,12 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 
 
 .trace-image .showroom {display:flex; flex-direction: row; align-items: center;}
-.trace-image .showroom img {
-    display: flex; flex-grow: 1; max-width: 50%; max-height:400px
+.trace-image .showroom > * {
+    flex-grow: 1; max-width: 50%; max-height:400px
+}
+.trace-image .controls {display:flex; flex-direction: row; align-items: flex-start;}
+.trace-image .controls > div {
+     width: 50%
 }
 
 .checker {
