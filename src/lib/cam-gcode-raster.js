@@ -175,7 +175,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     feedRate,
                     offsets: { 
                         X: (docBounds.x1 + docBounds.x2 - w / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[4],
-                        Y: (((docBounds.y1 + docBounds.y2 - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5]))/axisAFactor,
+                        Y: (docBounds.y1 + docBounds.y2 - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5],
                     },
                     trimLine: op.trimLine,
                     joinPixel: op.joinPixel,
