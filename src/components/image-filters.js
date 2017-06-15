@@ -16,6 +16,7 @@ import Icon from './font-awesome';
 import Parser from '../lib/lw.svg-parser/parser';
 
 import { sendAsFile } from '../lib/helpers'
+import { confirm } from './laserweb'
 
 export const promisedImage = (path) => {
     return new Promise(resolve => {
@@ -333,7 +334,9 @@ class ImageEditor extends React.Component
     }
 
     handleFilters(e){
-        this.props.dispatch(setDocumentAttrs({dataURL:this.canvas.toDataURL()}, this.currentDocument.id))
+        confirm("Are you sure? This will modify current image data.",(data)=>{
+            if (data) this.props.dispatch(setDocumentAttrs({dataURL:this.canvas.toDataURL()}, this.currentDocument.id))
+        })
     }
 
     handleNew(e){
