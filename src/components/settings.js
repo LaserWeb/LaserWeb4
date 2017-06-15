@@ -258,6 +258,7 @@ class Settings extends React.Component {
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">SVG</h5>
                         <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
+                        <ToggleField {...{ object: this.props.settings, field: 'forcePxPerInch', setAttrs: setSettingsAttrs, description: 'Force PX Per Inch' }} />
                         <h5 className="header">BITMAPS (bmp, png, jpg)</h5>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
                     </SettingsPanel>

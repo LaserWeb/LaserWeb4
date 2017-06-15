@@ -68,7 +68,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
 
-    if (tags.element.width && parser.document.viewBox.width) {
+    if (tags.element.width && parser.document.viewBox.width && !settings.forcePxPerInch) {
         let v = tags.element.width.baseVal;
         v.convertToSpecifiedUnits(v.SVG_LENGTHTYPE_IN);
         let w = v.valueInSpecifiedUnits;

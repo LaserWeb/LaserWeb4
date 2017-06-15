@@ -81,6 +81,7 @@ export const SETTINGS_INITIALSTATE = {
     machineBlowerGcodeOff: '',
 
     pxPerInch: 96,
+    forcePxPerInch: false,
     dpiBitmap: 300,
 
     toolGridWidth: 500,
