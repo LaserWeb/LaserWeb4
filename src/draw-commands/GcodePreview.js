@@ -101,6 +101,12 @@ export class GcodePreview {
             this.g1Time = 0;
         } else {
             let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
+            this.minX = Number.MAX_VALUE;
+            this.maxX = -Number.MAX_VALUE;
+            this.minY = Number.MAX_VALUE;
+            this.maxY = -Number.MAX_VALUE;
+            this.minA = Number.MAX_VALUE;
+            this.maxA = -Number.MAX_VALUE;
 
             let g0Dist = 0, g1Time = 0;
             for (let i = 0; i < parsed.length / parsedStride - 1; ++i) {
@@ -123,6 +129,13 @@ export class GcodePreview {
                 let a2 = parsed[i * parsedStride + 15];
                 // s
                 let t = parsed[i * parsedStride + 8];
+
+                this.minX = Math.min(this.minX, x1, x2);
+                this.maxX = Math.max(this.maxX, x1, x2);
+                this.minY = Math.min(this.minY, y1, y2);
+                this.maxY = Math.max(this.maxY, y1, y2);
+                this.minA = Math.min(this.minA, a1, a2);
+                this.maxA = Math.max(this.maxA, a1, a2);
 
                 array[i * drawStride * 2 + 0] = g;
                 array[i * drawStride * 2 + 1] = x1;

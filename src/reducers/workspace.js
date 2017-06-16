@@ -12,6 +12,7 @@ export const WORKSPACE_INITIALSTATE = {
     showGcode: true,
     showLaser: true,
     showDocuments: true,
+    showRotary: false,
     showCursor: true,
     showWebcam: false,
     showRasterPreview: false,

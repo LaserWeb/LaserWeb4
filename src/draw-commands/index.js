@@ -16,6 +16,7 @@
 import { basic, basic2d } from './basic';
 import { gcode } from './GcodePreview';
 import { image } from './image';
+import { imageMesh } from './imageMesh';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
@@ -36,6 +37,7 @@ export class DrawCommands {
         this.basic = basic(this);
         this.basic2d = basic2d(this);
         this.image = image(this);
+        this.imageMesh = imageMesh(this);
         this.thickLines = thickLines(this);
         this.gcode = gcode(this);
         this.laser = laser(this);

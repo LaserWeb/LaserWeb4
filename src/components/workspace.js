@@ -28,6 +28,7 @@ import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
 import { DrawCommands } from '../draw-commands'
 import { GcodePreview } from '../draw-commands/GcodePreview'
+import { CylImageMesh } from '../draw-commands/imageMesh'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
 import { Input } from './forms.js';
@@ -36,6 +37,7 @@ import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 import { clamp } from '../lib/helpers'
+import { objectHasMatchingFields, sameArrayContent } from '../lib/util.js';
 
 import CommandHistory from './command-history'
 
@@ -50,10 +52,6 @@ import { ImagePort, ImageEditorButton } from './image-filters'
 import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
-
-function sameArrayContent(a, b) {
-    return a.length === b.length && a.every((v, i) => v === b[i])
-}
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -387,11 +385,7 @@ const m4Identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 function cacheDrawing(fn, state, args) {
     let { drawCommands, width, height } = args;
-    let different = false;
-    for (let key in args)
-        if (args.hasOwnProperty(key) && state[key] !== args[key])
-            different = true;
-    if (different) {
+    if (!objectHasMatchingFields(state, args)) {
         for (let key in args)
             if (args.hasOwnProperty(key))
                 state[key] = args[key];
@@ -401,7 +395,7 @@ function cacheDrawing(fn, state, args) {
             state.frameBuffer.resize(width, height);
         drawCommands.useFrameBuffer(state.frameBuffer, () => {
             drawCommands.gl.clearColor(1, 1, 1, 0);
-            drawCommands.gl.clear(drawCommands.gl.COLOR_BUFFER_BIT, drawCommands.gl.DEPTH_BUFFER_BIT);
+            drawCommands.gl.clear(drawCommands.gl.COLOR_BUFFER_BIT | drawCommands.gl.DEPTH_BUFFER_BIT);
             fn(args);
         });
     }
@@ -627,9 +621,6 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
-        // WEBCAM INIT
-        let workspaceSize = { width: this.props.settings.machineWidth, height: this.props.settings.machineHeight }
-
         let draw = () => {
             if (!this.canvas)
                 return;
@@ -657,77 +648,183 @@ class WorkspaceContent extends React.Component {
 
             gl.viewport(0, 0, this.props.width, this.props.height);
             gl.clearColor(.8, .8, .8, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
-            let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
-            let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
-
-            gl.clearDepth(1);
-            this.lightenMachineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-            });
-            gl.clearDepth(1);
-
-            this.grid.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view,
-                width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
-                minor: this.props.settings.toolGridMinorSpacing,
-                major: this.props.settings.toolGridMajorSpacing,
-            });
-            this.machineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-            });
-            if (this.props.workspace.showDocuments)
-                cacheDrawing(drawDocuments, this.drawDocsState, {
-                    drawCommands: this.drawCommands,
-                    width: this.props.width, height: this.props.height,
-                    perspective: this.camera.perspective, view: this.camera.view,
-                    documents: this.props.documents,
-                    documentCacheHolder: this.props.documentCacheHolder,
-                    numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
-                });
-            if (this.props.workspace.showLaser) {
-                gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
-                gl.blendFunc(gl.ONE, gl.ONE);
-                this.props.laserPreview.draw(
-                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter,
-                    this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
-                gl.blendEquation(gl.FUNC_ADD);
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            }
-            if (this.props.workspace.showGcode) {
-                let draw = () => {
-                    this.props.gcodePreview.draw(
-                        this.drawCommands, this.camera.perspective, this.camera.view,
-                        this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
-                };
-                cacheDrawing(draw, this.drawGcodeState, {
-                    drawCommands: this.drawCommands,
-                    width: this.props.width, height: this.props.height,
-                    perspective: this.camera.perspective, view: this.camera.view,
-                    g0Rate: this.props.workspace.g0Rate,
-                    simTime: this.props.workspace.simTime,
-                    rotaryDiameter: this.props.workspace.rotaryDiameter,
-                    arrayVersion: this.props.gcodePreview.arrayVersion,
-                });
-            }
-            if (this.props.workspace.showDocuments)
-                cacheDrawing(drawSelectedDocuments, this.drawSelDocsState, {
-                    drawCommands: this.drawCommands,
-                    width: this.props.width, height: this.props.height,
-                    perspective: this.camera.perspective, view: this.camera.view,
-                    documents: this.props.documents,
-                    documentCacheHolder: this.props.documentCacheHolder,
-                    numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
-                });
-            if (this.props.workspace.showCursor)
-                drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
+            if (this.props.settings.machineAEnabled && this.props.workspace.showRotary)
+                this.drawRotary(gl);
+            else
+                this.drawFlat(gl);
 
             requestAnimationFrame(draw);
         };
         draw();
+    }
+
+    drawFlat(gl) {
+        let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+        let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+
+        gl.clearDepth(1);
+        this.lightenMachineBounds.draw(this.drawCommands, {
+            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+        });
+        gl.clearDepth(1);
+
+        this.grid.draw(this.drawCommands, {
+            perspective: this.camera.perspective, view: this.camera.view,
+            width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
+            minor: this.props.settings.toolGridMinorSpacing,
+            major: this.props.settings.toolGridMajorSpacing,
+        });
+        this.machineBounds.draw(this.drawCommands, {
+            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+        });
+        if (this.props.workspace.showDocuments)
+            cacheDrawing(drawDocuments, this.drawDocsState, {
+                drawCommands: this.drawCommands,
+                width: this.props.width, height: this.props.height,
+                perspective: this.camera.perspective, view: this.camera.view,
+                documents: this.props.documents,
+                documentCacheHolder: this.props.documentCacheHolder,
+                numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
+            });
+        if (this.props.workspace.showLaser) {
+            gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
+            gl.blendFunc(gl.ONE, gl.ONE);
+            this.props.laserPreview.draw(
+                this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter,
+                this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        }
+        if (this.props.workspace.showGcode) {
+            let draw = () => {
+                this.props.gcodePreview.draw(
+                    this.drawCommands, this.camera.perspective, this.camera.view,
+                    this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+            };
+            cacheDrawing(draw, this.drawGcodeState, {
+                drawCommands: this.drawCommands,
+                width: this.props.width, height: this.props.height,
+                perspective: this.camera.perspective, view: this.camera.view,
+                g0Rate: this.props.workspace.g0Rate,
+                simTime: this.props.workspace.simTime,
+                rotaryDiameter: this.props.workspace.rotaryDiameter,
+                arrayVersion: this.props.gcodePreview.arrayVersion,
+            });
+        }
+        if (this.props.workspace.showDocuments)
+            cacheDrawing(drawSelectedDocuments, this.drawSelDocsState, {
+                drawCommands: this.drawCommands,
+                width: this.props.width, height: this.props.height,
+                perspective: this.camera.perspective, view: this.camera.view,
+                documents: this.props.documents,
+                documentCacheHolder: this.props.documentCacheHolder,
+                numImagesLoaded: this.props.documentCacheHolder.numImagesLoaded,
+            });
+        if (this.props.workspace.showCursor)
+            drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
+    } // drawFlat()
+
+    drawRotary(gl) {
+        let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
+        let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
+
+        let minX = Number.MAX_VALUE;
+        let maxX = -Number.MAX_VALUE;
+        let minY = Number.MAX_VALUE;
+        let maxY = -Number.MAX_VALUE;
+
+        if (this.props.gcodePreview.array && this.props.laserPreview.array) {
+            if (this.props.workspace.showGcode || this.props.workspace.showLaser) {
+                minX = Math.min(minX, this.props.gcodePreview.minX - this.props.settings.machineBeamDiameter);
+                maxX = Math.max(maxX, this.props.gcodePreview.maxX + this.props.settings.machineBeamDiameter);
+                minY = Math.min(minY, this.props.gcodePreview.minY + this.props.gcodePreview.minA * this.props.workspace.rotaryDiameter * Math.PI / 360 - this.props.settings.machineBeamDiameter);
+                maxY = Math.max(maxY, this.props.gcodePreview.maxY + this.props.gcodePreview.maxA * this.props.workspace.rotaryDiameter * Math.PI / 360 + this.props.settings.machineBeamDiameter);
+            }
+        }
+
+        if (maxX < minX) {
+            minX = 0;
+            maxX = 200;
+        }
+        if (maxY < minY) {
+            minY = 0;
+            maxY = 100;
+        }
+
+        if (!this.rotaryFrameBuffer)
+            this.rotaryFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
+        else
+            this.rotaryFrameBuffer.resize(this.props.width, this.props.height);
+
+        this.drawCommands.useFrameBuffer(this.rotaryFrameBuffer, () => {
+            gl.clearColor(1, 1, 1, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            let perspective = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+            let sx = 2 / (maxX - minX);
+            let sy = 2 / Math.PI / this.props.workspace.rotaryDiameter;
+            let band = (minY, maxY, f) => {
+                for (let i = Math.floor(minY / Math.PI / this.props.workspace.rotaryDiameter); ; ++i) {
+                    let y = i * Math.PI * this.props.workspace.rotaryDiameter;
+                    if (y >= maxY)
+                        break;
+                    let view = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, -minX * sx - 1, -y * sy - 1, 0, 1];
+                    f(view);
+                    if (i >= 10)
+                        break;
+                }
+            };
+
+            if (this.props.gcodePreview.array && this.props.laserPreview.array) {
+                if (this.props.workspace.showLaser) {
+                    band(
+                        this.props.gcodePreview.minY - this.props.settings.machineBeamDiameter,
+                        this.props.gcodePreview.maxY + this.props.settings.machineBeamDiameter,
+                        view => {
+                            gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
+                            gl.blendFunc(gl.ONE, gl.ONE);
+                            this.props.laserPreview.draw(
+                                this.drawCommands, perspective, view, this.props.settings.machineBeamDiameter,
+                                this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                            gl.blendEquation(gl.FUNC_ADD);
+                            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                        });
+                }
+                if (this.props.workspace.showGcode) {
+                    band(
+                        this.props.gcodePreview.minY - this.props.settings.machineBeamDiameter,
+                        this.props.gcodePreview.maxY + this.props.settings.machineBeamDiameter,
+                        view => {
+                            this.props.gcodePreview.draw(
+                                this.drawCommands, perspective, view,
+                                this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                        });
+                }
+            }
+        });
+
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        this.grid.draw(this.drawCommands, {
+            perspective: this.camera.perspective, view: this.camera.view,
+            width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
+            minor: this.props.settings.toolGridMinorSpacing,
+            major: this.props.settings.toolGridMajorSpacing,
+        });
+        this.machineBounds.draw(this.drawCommands, {
+            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+        });
+
+        gl.enable(gl.DEPTH_TEST);
+        this.cylImageMesh = this.cylImageMesh || new CylImageMesh();
+        this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.workspace.rotaryDiameter, 360, this.rotaryFrameBuffer.texture);
+        gl.disable(gl.DEPTH_TEST);
+
+        if (this.props.workspace.showCursor)
+            drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
     }
 
     componentDidUpdate() {
@@ -789,6 +886,8 @@ class WorkspaceContent extends React.Component {
 
     hitTest(pageX, pageY) {
         if (!this.canvas || !this.drawCommands || !this.props.workspace.showDocuments)
+            return;
+        if (this.props.settings.machineAEnabled && this.props.workspace.showRotary)
             return;
         let result;
         this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
@@ -1111,7 +1210,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, setRasterPreview, enableVideo } = this.props;
+        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1149,6 +1248,12 @@ class Workspace extends React.Component {
                                     <td>Show Documents</td>
                                     <td><input checked={workspace.showDocuments} onChange={setShowDocuments} type="checkbox" /></td>
                                 </tr>
+                                {settings.machineAEnabled &&
+                                    <tr>
+                                        <td>Show Rotary</td>
+                                        <td><input checked={workspace.showRotary} onChange={setShowRotary} type="checkbox" /></td>
+                                    </tr>
+                                }
                                 <tr>
                                     <td>Show Webcam</td>
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
@@ -1204,6 +1309,7 @@ Workspace = connect(
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
+        setShowRotary: e => dispatch(setWorkspaceAttrs({ showRotary: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
         setRasterPreview: e => dispatch(setWorkspaceAttrs({ showRasterPreview: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
