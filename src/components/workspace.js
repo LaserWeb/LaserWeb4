@@ -1174,7 +1174,7 @@ class Workspace extends React.Component {
                                         </div>
                                         {settings.machineAEnabled &&
                                             <div className='input-group'>
-                                                <span className='input-group-addon'>Rotary Diameter</span>
+                                                <span className='input-group-addon'>Sim Rotary Diameter</span>
                                                 <Input style={{ width: '85px' }} className='form-control' value={workspace.rotaryDiameter} onChangeValue={setRotaryDiameter} type="number" step="any" />
                                                 <span className='input-group-addon'>mm</span>
                                             </div>
