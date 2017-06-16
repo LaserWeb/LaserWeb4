@@ -6,6 +6,7 @@ export const WORKSPACE_INITIALSTATE = {
     width: 1000,
     height: 1000,
     g0Rate: 1000,
+    rotaryDiameter: 10,
     simTime: 1e10,
     cursorPos: [0, 0, 0],
     showGcode: true,

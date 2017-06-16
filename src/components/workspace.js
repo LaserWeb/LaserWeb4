@@ -310,7 +310,7 @@ class FloatingControls extends React.Component {
                                     <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
                                     <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
                                 </ButtonGroup>
-                                &nbsp;<ImageEditorButton bsSize="xs"><Icon name="code"/> Filters/Trace</ImageEditorButton>
+                                &nbsp;<ImageEditorButton bsSize="xs"><Icon name="code" /> Filters/Trace</ImageEditorButton>
                             </td>
                         </tr>
                     </tfoot>
@@ -692,14 +692,16 @@ class WorkspaceContent extends React.Component {
                 gl.blendEquation(this.drawCommands.EXT_blend_minmax.MIN_EXT);
                 gl.blendFunc(gl.ONE, gl.ONE);
                 this.props.laserPreview.draw(
-                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter, this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                    this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter,
+                    this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
                 gl.blendEquation(gl.FUNC_ADD);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             }
             if (this.props.workspace.showGcode) {
                 let draw = () => {
                     this.props.gcodePreview.draw(
-                        this.drawCommands, this.camera.perspective, this.camera.view, this.props.workspace.g0Rate, this.props.workspace.simTime);
+                        this.drawCommands, this.camera.perspective, this.camera.view,
+                        this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
                 };
                 cacheDrawing(draw, this.drawGcodeState, {
                     drawCommands: this.drawCommands,
@@ -707,6 +709,7 @@ class WorkspaceContent extends React.Component {
                     perspective: this.camera.perspective, view: this.camera.view,
                     g0Rate: this.props.workspace.g0Rate,
                     simTime: this.props.workspace.simTime,
+                    rotaryDiameter: this.props.workspace.rotaryDiameter,
                     arrayVersion: this.props.gcodePreview.arrayVersion,
                 });
             }
@@ -1108,7 +1111,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, setG0Rate, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, setRasterPreview, enableVideo } = this.props;
+        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1169,6 +1172,13 @@ class Workspace extends React.Component {
                                             <Input style={{ width: '85px' }} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
                                             <span className='input-group-addon'>mm/min</span>
                                         </div>
+                                        {settings.machineAEnabled &&
+                                            <div className='input-group'>
+                                                <span className='input-group-addon'>Rotary Diameter</span>
+                                                <Input style={{ width: '85px' }} className='form-control' value={workspace.rotaryDiameter} onChangeValue={setRotaryDiameter} type="number" step="any" />
+                                                <span className='input-group-addon'>mm</span>
+                                            </div>
+                                        }
                                     </td>
                                 </tr>
                             </tbody>
@@ -1189,6 +1199,7 @@ Workspace = connect(
     dispatch => ({
         dispatch,
         setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
+        setRotaryDiameter: v => dispatch(setWorkspaceAttrs({ rotaryDiameter: v })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),

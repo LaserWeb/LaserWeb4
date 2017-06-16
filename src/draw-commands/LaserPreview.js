@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const parsedStride = 9;
-const drawStride = 11;
+const drawStride = 13;
 
 export function laser(drawCommands) {
     let program = drawCommands.compile({
@@ -24,8 +24,10 @@ export function laser(drawCommands) {
             uniform mat4 perspective; 
             uniform mat4 view;
             uniform float radius, g0Rate, simTime;
+            uniform float rotaryScale;
 
             attribute vec2 p1, p2;
+            attribute float a1, a2;
             attribute float g, s, vertex, g0Dist0, g0Dist1, g1Time0, g1Time1;
 
             varying vec2 vp1, vp2, vp;
@@ -34,8 +36,8 @@ export function laser(drawCommands) {
             void main() {
                 vg = g;
                 vs = s;
-                vp1 = p1;
-                vp2 = p2;
+                vp1 = vec2(p1.x, p1.y + a1 * rotaryScale);
+                vp2 = vec2(p2.x, p2.y + a2 * rotaryScale);
 
                 float time0 = g1Time0 + g0Dist0 / g0Rate;
                 float time1 = g1Time1 + g0Dist1 / g0Rate;
@@ -80,21 +82,23 @@ export function laser(drawCommands) {
             }`,
         attrs: {
             p1: { offset: 0 },
-            p2: { offset: 8 },
-            g: { offset: 16 },
-            s: { offset: 20 },
-            vertex: { offset: 24 },
-            g0Dist0: { offset: 28 },
-            g0Dist1: { offset: 32 },
-            g1Time0: { offset: 36 },
-            g1Time1: { offset: 40 },
+            a1: { offset: 8 },
+            p2: { offset: 12 },
+            a2: { offset: 20 },
+            g: { offset: 24 },
+            s: { offset: 28 },
+            vertex: { offset: 32 },
+            g0Dist0: { offset: 36 },
+            g0Dist1: { offset: 40 },
+            g1Time0: { offset: 44 },
+            g1Time1: { offset: 48 },
         },
     });
-    return ({perspective, view, g0Rate, simTime, radius, gcodeSMaxValue, data, count}) => {
+    return ({ perspective, view, g0Rate, simTime, rotaryDiameter, radius, gcodeSMaxValue, data, count }) => {
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.TRIANGLES,
-            uniforms: { perspective, view, g0Rate, simTime, radius, gcodeSMaxValue },
+            uniforms: { perspective, view, g0Rate, simTime, rotaryScale: rotaryDiameter * Math.PI / 360, radius, gcodeSMaxValue },
             buffer: {
                 data,
                 stride: drawStride * 4,
@@ -135,9 +139,6 @@ export class LaserPreview {
                 let s = parsed[i * parsedStride + 16];
                 // t
 
-                y1 += a1;
-                y2 += a2;
-
                 let g0Dist0 = g0Dist;
                 let g1Time0 = g1Time;
                 let dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
@@ -149,22 +150,24 @@ export class LaserPreview {
                 for (let vertex = 0; vertex < 6; ++vertex) {
                     array[i * drawStride * 6 + vertex * drawStride + 0] = x1;
                     array[i * drawStride * 6 + vertex * drawStride + 1] = y1;
-                    array[i * drawStride * 6 + vertex * drawStride + 2] = x2;
-                    array[i * drawStride * 6 + vertex * drawStride + 3] = y2;
-                    array[i * drawStride * 6 + vertex * drawStride + 4] = g;
-                    array[i * drawStride * 6 + vertex * drawStride + 5] = s;
-                    array[i * drawStride * 6 + vertex * drawStride + 6] = vertex;
-                    array[i * drawStride * 6 + vertex * drawStride + 7] = g0Dist0;
-                    array[i * drawStride * 6 + vertex * drawStride + 8] = g0Dist;
-                    array[i * drawStride * 6 + vertex * drawStride + 9] = g1Time0;
-                    array[i * drawStride * 6 + vertex * drawStride + 10] = g1Time;
+                    array[i * drawStride * 6 + vertex * drawStride + 2] = a1;
+                    array[i * drawStride * 6 + vertex * drawStride + 3] = x2;
+                    array[i * drawStride * 6 + vertex * drawStride + 4] = y2;
+                    array[i * drawStride * 6 + vertex * drawStride + 5] = a2;
+                    array[i * drawStride * 6 + vertex * drawStride + 6] = g;
+                    array[i * drawStride * 6 + vertex * drawStride + 7] = s;
+                    array[i * drawStride * 6 + vertex * drawStride + 8] = vertex;
+                    array[i * drawStride * 6 + vertex * drawStride + 9] = g0Dist0;
+                    array[i * drawStride * 6 + vertex * drawStride + 10] = g0Dist;
+                    array[i * drawStride * 6 + vertex * drawStride + 11] = g1Time0;
+                    array[i * drawStride * 6 + vertex * drawStride + 12] = g1Time;
                 }
             }
             this.array = array;
         }
     }
 
-    draw(drawCommands, perspective, view, diameter, gcodeSMaxValue, g0Rate, simTime) {
+    draw(drawCommands, perspective, view, diameter, gcodeSMaxValue, g0Rate, simTime, rotaryDiameter) {
         if (this.drawCommands !== drawCommands) {
             this.drawCommands = drawCommands;
             if (this.buffer)
@@ -186,6 +189,7 @@ export class LaserPreview {
             view,
             g0Rate,
             simTime,
+            rotaryDiameter,
             radius: diameter / 2,
             gcodeSMaxValue: gcodeSMaxValue,
             data: this.buffer,

@@ -181,6 +181,10 @@ export class DrawCommands {
                 type = this.gl.FLOAT;
                 size = 3;
             }
+            else if (type == this.gl.FLOAT_VEC4) {
+                type = this.gl.FLOAT;
+                size = 4;
+            }
             let attr = attrs[name];
             if (!attr) {
                 console.error('missing attr', name);
