@@ -18,6 +18,8 @@ import Parser from '../lib/lw.svg-parser/parser';
 import { sendAsFile } from '../lib/helpers'
 import { confirm } from './laserweb'
 
+import { mat2d } from 'gl-matrix'
+
 export const promisedImage = (path) => {
     return new Promise(resolve => {
         let img = new Image();
@@ -346,7 +348,21 @@ class ImageEditor extends React.Component
             parser.parse(this.state.svg)
                 .then((tags) => {
                     imageTagPromise(tags).then((tags) => {
-                        let attrs=doc.transform2d ? {transform2d: doc.transform2d.slice()} : null;
+                        let attrs=doc.transform2d ? {
+                            transform2d: 
+                            
+                                mat2d.mul([],
+                                    mat2d.mul([],
+                                        mat2d.fromTranslation([],[0, doc.originalPixels[1]]),
+                                        [-doc.transform2d[0],doc.transform2d[1],doc.transform2d[2],-doc.transform2d[3],0,0]
+                                    ),
+                                    mat2d.fromRotation([],Math.PI)   
+                                )
+                                
+                            
+                        } : null;
+
+                        console.log(attrs)
                         this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags, attrs }, modifiers));
                     })
                 })
