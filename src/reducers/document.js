@@ -91,6 +91,14 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let viewBoxDeltaX = -parser.document.viewBox.x / pxPerInch * 25.4;
     let viewBoxDeltaY = (parser.document.viewBox.y + parser.document.viewBox.height) / pxPerInch * 25.4;
 
+    function applyToPoint(t,x,y)
+    {
+        return [ 
+            x * t[0] + y * t[2] + t[4],
+		    x * t[1] + y * t[3] + t[5]
+        ]
+    }
+
     function addChildren(parent, tag, parentMat) {
         for (let child of tag.children) {
             let localMat = mat2dFromSnap(Snap(child.element).transform().localMatrix);
@@ -110,7 +118,8 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 for (let point of path.points) {
                     let x = (combinedMat[0] * point.x + combinedMat[2] * point.y) / pxPerInch * 25.4 + combinedMat[4];
                     let y = (combinedMat[1] * point.x + combinedMat[3] * point.y) / pxPerInch * 25.4 + combinedMat[5];
-                    p.push(viewBoxDeltaX + x, viewBoxDeltaY - y);
+                    let [tx, ty] = applyToPoint(attrs.transform2d || [1,0,0,1,0,0], viewBoxDeltaX + x, viewBoxDeltaY - y)
+                    p.push(tx,ty);
                 }
                 if (p.length)
                     rawPaths.push(p);
@@ -165,7 +174,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, tags, attrs.transform2d || [1, 0, 0, 1, 0, 0]);
+    addChildren(doc, tags, [1, 0, 0, 1, 0, 0]);
     return state;
 }
 

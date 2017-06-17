@@ -348,21 +348,7 @@ class ImageEditor extends React.Component
             parser.parse(this.state.svg)
                 .then((tags) => {
                     imageTagPromise(tags).then((tags) => {
-                        let attrs=doc.transform2d ? {
-                            transform2d: 
-                            
-                                mat2d.mul([],
-                                    mat2d.mul([],
-                                        mat2d.fromTranslation([],[0, doc.originalPixels[1]]),
-                                        [-doc.transform2d[0],doc.transform2d[1],doc.transform2d[2],-doc.transform2d[3],0,0]
-                                    ),
-                                    mat2d.fromRotation([],Math.PI)   
-                                )
-                                
-                            
-                        } : null;
-
-                        console.log(attrs)
+                        let attrs = doc.transform2d ? { transform2d: doc.transform2d.slice() } : null;
                         this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags, attrs }, modifiers));
                     })
                 })
