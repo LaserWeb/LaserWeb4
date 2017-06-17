@@ -768,13 +768,14 @@ class WorkspaceContent extends React.Component {
             let sx = 2 / (maxX - minX);
             let sy = 2 / Math.PI / this.props.workspace.rotaryDiameter;
             let band = (minY, maxY, f) => {
+                let n = 0;
                 for (let i = Math.floor(minY / Math.PI / this.props.workspace.rotaryDiameter); ; ++i) {
                     let y = i * Math.PI * this.props.workspace.rotaryDiameter;
                     if (y >= maxY)
                         break;
                     let view = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, -minX * sx - 1, -y * sy - 1, 0, 1];
                     f(view);
-                    if (i >= 10)
+                    if (++n >= 10)
                         break;
                 }
             };
@@ -818,10 +819,12 @@ class WorkspaceContent extends React.Component {
             perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
         });
 
-        gl.enable(gl.DEPTH_TEST);
-        this.cylImageMesh = this.cylImageMesh || new CylImageMesh();
-        this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.workspace.rotaryDiameter, 360, this.rotaryFrameBuffer.texture);
-        gl.disable(gl.DEPTH_TEST);
+        if (this.props.workspace.rotaryDiameter > 0) {
+            gl.enable(gl.DEPTH_TEST);
+            this.cylImageMesh = this.cylImageMesh || new CylImageMesh();
+            this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.workspace.rotaryDiameter, 360, this.rotaryFrameBuffer.texture);
+            gl.disable(gl.DEPTH_TEST);
+        }
 
         if (this.props.workspace.showCursor)
             drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
