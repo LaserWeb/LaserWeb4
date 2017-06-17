@@ -45,6 +45,8 @@ import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
 
+import { DrawCommands } from '../draw-commands'
+
 export const vex = require('vex-js/src/vex.js')
 try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
 vex.defaultOptions.className = 'vex-theme-default'
@@ -102,10 +104,27 @@ class LaserWeb extends React.Component {
         return nextProps.documents !== this.props.documents;
     }
 
+    componentWillMount() {
+        try {
+            let canvas = document.createElement('canvas');
+            let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+            if (!gl)
+                throw "canvas.getContext('webgl', {...}) returned " + gl;
+            let drawCommands = new DrawCommands(gl);
+            drawCommands.destroy();
+            this.glOk = true;
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+    }
+
     componentDidMount() {
         updateTitle();
-        this.setupKeybindings();
-        this.setupVideoCapture();
+        if (this.glOk) {
+            this.setupKeybindings();
+            this.setupVideoCapture();
+        }
     }
 
     setupKeybindings(){
@@ -141,7 +160,11 @@ class LaserWeb extends React.Component {
         // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
         // <Quote id="quote" title="Quote" icon="money" />
 
-
+        if (!this.glOk) {
+            return (
+                <h1>OpenGL won't start. This app can't run without it.</h1>
+            );
+        }
 
         return (
             <AllowCapture style={{ height: '100%' }}>
