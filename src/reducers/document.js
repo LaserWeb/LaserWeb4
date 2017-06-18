@@ -63,7 +63,7 @@ export function document(state, action) {
 const documentsForest = forest('document', document);
 
 function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
-    let { parser, tags, attrs={} } = content;
+    let { parser, tags, attrs = {} } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
@@ -91,11 +91,10 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let viewBoxDeltaX = -parser.document.viewBox.x / pxPerInch * 25.4;
     let viewBoxDeltaY = (parser.document.viewBox.y + parser.document.viewBox.height) / pxPerInch * 25.4;
 
-    function applyToPoint(t,x,y)
-    {
-        return [ 
+    function applyToPoint(t, x, y) {
+        return [
             x * t[0] + y * t[2] + t[4],
-		    x * t[1] + y * t[3] + t[5]
+            x * t[1] + y * t[3] + t[5]
         ]
     }
 
@@ -118,8 +117,8 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 for (let point of path.points) {
                     let x = (combinedMat[0] * point.x + combinedMat[2] * point.y) / pxPerInch * 25.4 + combinedMat[4];
                     let y = (combinedMat[1] * point.x + combinedMat[3] * point.y) / pxPerInch * 25.4 + combinedMat[5];
-                    let [tx, ty] = applyToPoint(attrs.transform2d || [1,0,0,1,0,0], viewBoxDeltaX + x, viewBoxDeltaY - y)
-                    p.push(tx,ty);
+                    let [tx, ty] = applyToPoint(attrs.transform2d || [1, 0, 0, 1, 0, 0], viewBoxDeltaX + x, viewBoxDeltaY - y)
+                    p.push(tx, ty);
                 }
                 if (p.length)
                     rawPaths.push(p);
@@ -238,10 +237,10 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
     return state;
 }
 
-function replaceImage(state, settings, { file, content, context}, id=uuid.v4()) {
-    return state.map((doc, index, docs)=>{
-        if (doc.name === file.name) 
-            return Object.assign(doc, {dataURL: content});
+function replaceImage(state, settings, { file, content, context }, id = uuid.v4()) {
+    return state.map((doc, index, docs) => {
+        if (doc.name === file.name)
+            return Object.assign(doc, { dataURL: content });
         return doc;
     })
 }
@@ -284,7 +283,7 @@ export function documentsLoad(state, settings, action) {
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload, docId);
     else if (action.payload.file.type.substring(0, 6) === 'image/') {
-        if (action.payload.modifiers.ctrl || action.payload.modifiers.meta ) {
+        if (action.payload.modifiers.ctrl || action.payload.modifiers.meta) {
             CommandHistory.warn('Replacing content of ' + action.payload.file.name)
             return replaceImage(state, settings, action.payload, docId);
         } else {
@@ -326,9 +325,9 @@ export function documents(state, action) {
         }
         case "DOCUMENT_REMOVE_SELECTED":
             let ids = [];
-            state.filter(d => d.selected).forEach((sel)=>{ ids = [...ids,...getSubtreeIds(state, sel.id)];})
-            return state.filter(o => (!ids.includes(o.id))).map(parent=>{
-                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c)))})
+            state.filter(d => d.selected).forEach((sel) => { ids = [...ids, ...getSubtreeIds(state, sel.id)]; })
+            return state.filter(o => (!ids.includes(o.id))).map(parent => {
+                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c))) })
             });
 
         case 'WORKSPACE_RESET':
