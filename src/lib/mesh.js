@@ -167,6 +167,19 @@ export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegment
     return null;
 }
 
+// Convert an SVG path string to [[x0, y0, x1, y1, ...], ...].
+// Result is in mm. Returns multiple paths. Converts curves.
+// Calls alertFn with an error message and returns null if there's a problem.
+export function pathStrToRawPaths(str, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
+    let Snap = require('snapsvg-cjs');
+    let path = Snap.parsePathString(str);
+    path = Snap.path.toCubic(path);
+    path = linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn);
+    if (path !== null)
+        return snapPathToRawPaths(path, pxPerInch, alertFn);
+    return null;
+}
+
 // [[[x0, y0, x1, y1, ...], ...], ...]
 export function flipY(allRawPaths, deltaY) {
     for (let rawPaths of allRawPaths)

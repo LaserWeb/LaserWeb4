@@ -7,7 +7,7 @@ import Snap from 'snapsvg-cjs';
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
-import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
+import { pathStrToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
 
 import CommandHistory from '../components/command-history'
@@ -111,18 +111,33 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 children: [],
                 selected: false,
             };
+
             let rawPaths = [];
-            for (let path of child.getPaths()) {
-                let p = [];
-                for (let point of path.points) {
-                    let x = (combinedMat[0] * point.x + combinedMat[2] * point.y) / pxPerInch * 25.4 + combinedMat[4];
-                    let y = (combinedMat[1] * point.x + combinedMat[3] * point.y) / pxPerInch * 25.4 + combinedMat[5];
-                    let [tx, ty] = applyToPoint(attrs.transform2d || [1, 0, 0, 1, 0, 0], viewBoxDeltaX + x, viewBoxDeltaY - y)
-                    p.push(tx, ty);
+            let addPoint = (path, svgX, svgY) => {
+                let x = (combinedMat[0] * svgX + combinedMat[2] * svgY) / pxPerInch * 25.4 + combinedMat[4];
+                let y = (combinedMat[1] * svgX + combinedMat[3] * svgY) / pxPerInch * 25.4 + combinedMat[5];
+                let [tx, ty] = applyToPoint(attrs.transform2d || [1, 0, 0, 1, 0, 0], viewBoxDeltaX + x, viewBoxDeltaY - y)
+                path.push(tx, ty);
+            };
+            if (child.name === 'path') {
+                let paths = pathStrToRawPaths(child.attrs.d, 25.4, 1, .1 * pxPerInch / 25.4, error => console.log(error));
+                for (let path of paths) {
+                    let p = [];
+                    for (let i = 0; i < path.length; i += 2)
+                        addPoint(p, path[i], path[i + 1]);
+                    if (p.length)
+                        rawPaths.push(p);
                 }
-                if (p.length)
-                    rawPaths.push(p);
+            } else {
+                for (let path of child.getPaths()) {
+                    let p = [];
+                    for (let point of path.points)
+                        addPoint(p, point.x, point.y);
+                    if (p.length)
+                        rawPaths.push(p);
+                }
             }
+
             if (rawPaths.length) {
                 allPositions.push(rawPaths);
                 c.rawPaths = rawPaths;
