@@ -1,4 +1,5 @@
 import { getLaserCutGcodeFromOp } from '../cam-gcode-laser-cut'
+import { initCam } from '../cam'
 
 onmessage = (event) => {
 
@@ -21,6 +22,6 @@ onmessage = (event) => {
         self.close();
     };
 
-    getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
+    initCam().then(() => getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress]))
 
 }

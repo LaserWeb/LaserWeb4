@@ -26,6 +26,12 @@ export const clipperToCppScale = 1 / 128; // Prevent overflow for coordinates up
 export const cleanPolyDist = 100;
 export const arcTolerance = 10000;
 
+let Module;
+
+export function meshSetModule(m) {
+    Module = m;
+}
+
 // Linearize a cubic bezier. Returns ['L', x2, y2, x3, y3, ...]. The return value doesn't
 // include (p1x, p1y); it's part of the previous segment.
 function linearizeCubicBezier(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, minNumSegments, minSegmentLength) {

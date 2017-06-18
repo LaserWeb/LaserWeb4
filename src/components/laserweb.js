@@ -47,6 +47,8 @@ import { VideoCapture } from '../lib/video-capture'
 
 import { DrawCommands } from '../draw-commands'
 
+import { initCam } from '../lib/cam'
+
 export const vex = require('vex-js/src/vex.js')
 try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
 vex.defaultOptions.className = 'vex-theme-default'
@@ -117,6 +119,10 @@ class LaserWeb extends React.Component {
             console.error(e);
             return;
         }
+
+        initCam()
+            .then(() => { this.camOk = true; this.forceUpdate(); })
+            .catch(e => { this.camError = e; this.forceUpdate(); })
     }
 
     componentDidMount() {
@@ -160,11 +166,13 @@ class LaserWeb extends React.Component {
         // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
         // <Quote id="quote" title="Quote" icon="money" />
 
-        if (!this.glOk) {
-            return (
-                <h1>OpenGL won't start. This app can't run without it.</h1>
-            );
-        }
+
+        if (!this.glOk)
+            return <h1>OpenGL won't start. This app can't run without it.</h1>;
+        if (this.camError)
+            return <h1>Error starting CAM: {this.camError}</h1>;
+        if (!this.camOk)
+            return <h1 />;
 
         return (
             <AllowCapture style={{ height: '100%' }}>

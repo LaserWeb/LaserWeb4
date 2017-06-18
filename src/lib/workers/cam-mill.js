@@ -1,4 +1,5 @@
 import { getMillGcodeFromOp } from '../cam-gcode-mill'
+import { initCam } from '../cam'
 
 onmessage = (event) => {
 
@@ -19,6 +20,6 @@ onmessage = (event) => {
         }
     };
 
-    getMillGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
+    initCam().then(() => getMillGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress]))
 
 }

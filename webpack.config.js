@@ -16,6 +16,7 @@ module.exports = {
         filename: 'index.js'
     },
     module: {
+        noParse: /web-cam-cpp\.js/,
         loaders: [
             {
                 test: /\.js$/,

@@ -18,9 +18,29 @@
 import ClipperLib from 'clipper-lib';
 import { mat3, vec2 } from 'gl-matrix';
 
-import { diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
+import { meshSetModule, diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
 
-require('script!web-cam-cpp');
+
+import WebCamCpp from '../lib/web-cam-cpp/web-cam-cpp';
+require("file-loader?name=web-cam-cpp.wasm!../lib/web-cam-cpp/web-cam-cpp.wasm");
+
+let Module;
+export function initCam() {
+    return new Promise((resolve, reject) => {
+        let wcc;
+        wcc = WebCamCpp({
+            quit(status, reason) {
+                if (!Module)
+                    reject(reason);
+            },
+            postRun() {
+                Module = wcc;
+                meshSetModule(wcc);
+                resolve();
+            },
+        });
+    });
+}
 
 export function dist(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
