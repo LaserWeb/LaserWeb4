@@ -82,7 +82,7 @@
     "lw.svg-curves": "^0.1.0",
     "lw.svg-path": "^0.1.0",
     "marked": "^0.3.6",
-    "merge-jsons-webpack-plugin": "^1.0.6",
+    "merge-jsons-webpack-plugin": "1.0.7",
     "node-uuid": "^1.4.7",
     "npm-run-all": "^4.0.1",
     "object-to-string": "^1.0.0",
