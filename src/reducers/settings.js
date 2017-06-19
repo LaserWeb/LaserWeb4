@@ -14,12 +14,20 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeMoveUnits: 'in:mm/s,mm/min',
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
+    gcodeConcurrency: 'required|numeric|min:1|max:5',
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
     machineZToolOffset: 'numeric',
 
+    machineAEnabled: 'boolean',
+
+    toolGridWidth: 'numeric|min:100',
+    toolGridHeight: 'numeric|min:100',
     toolImagePosition: 'in:TL,TR,C,BL,BR',
+
+    toolGridMinorSpacing: 'numeric|min:0.1',
+    toolGridMajorSpacing: 'numeric|min:1',
 
     jogFeedXY: 'numeric|min:0',
     jogFeedZ: 'numeric|min:0',
@@ -48,25 +56,44 @@ export const SETTINGS_INITIALSTATE = {
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
-    machineOriginX: 0,
-    machineOriginY: 0,
+    machineBottomLeftX: 0,
+    machineBottomLeftY: 0,
+
+    machineFeedRange: {
+        XY: {min: 1, max:50000},
+        Z: {min: 1, max:50000},
+        A: {min: 1, max:50000},
+        S: {min: 0, max:30000},
+    },
+    
+    machineXYProbeOffset: 0,
 
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+    machineZProbeOffset: 0,
+
+    machineAEnabled: false,
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',
     machineBlowerGcodeOff: '',
 
     pxPerInch: 96,
+    forcePxPerInch: false,
     dpiBitmap: 300,
 
+    toolGridWidth: 500,
+    toolGridHeight: 500,
+    toolGridMinorSpacing: 10,
+    toolGridMajorSpacing: 50,
     toolSafetyLockDisabled: true,
     toolCncMode: false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
+    toolDisplayCache: false,
+    toolUseGamepad: false,
 
     toolVideoDevice: null,
     toolVideoPerspective: { enabled: false },
@@ -80,7 +107,7 @@ export const SETTINGS_INITIALSTATE = {
     toolTestDuration: 0,
 
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeEnd: "M5          ; Switch tool offEnd\r\nM2          ; End\r\n",
+    gcodeEnd: "M5          ; Switch tool offEnd\r\n",
     gcodeHoming: "",
     gcodeToolOn: "",
     gcodeToolOff: "",
@@ -88,6 +115,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCheckSizePower: 0,
     gcodeToolTestPower: 0,
     gcodeToolTestDuration: 0,
+    gcodeConcurrency: 2,
 
     comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',

@@ -1,6 +1,6 @@
 import { undoCombineReducers, shouldSaveUndo } from './undo'
 
-import { camera, resetCamera } from './camera'
+import { camera, zoomArea } from './camera'
 import { documents, documentsLoad } from './document'
 import { gcode } from './gcode'
 import { operations, currentOperation, operationsAddDocuments, fixupOperations } from './operation'
@@ -20,9 +20,10 @@ const combined = undoCombineReducers({ camera, documents, operations, currentOpe
 
 export default function reducer(state, action) {
     switch (action.type) {
-        case 'CAMERA_RESET':
-            return { ...state, camera: resetCamera(state.camera, state.settings) };
+        case 'CAMERA_ZOOM_AREA':
+            return { ...state, camera: zoomArea(state.camera, state.settings, state.workspace, action) };
         case 'DOCUMENT_REMOVE':
+        case "DOCUMENT_REMOVE_SELECTED":
             state = combined(state, action);
             return { ...state, operations: fixupOperations(state.operations, state.documents) };
         case 'DOCUMENT_LOAD':
@@ -32,10 +33,9 @@ export default function reducer(state, action) {
             return { ...state, operations: operationsAddDocuments(state.operations, state.documents, action) };
         case "SNAPSHOT_UPLOAD":
             let newState = omit(action.payload.snapshot, ["history"]);
-            //if (action.payload.keys) newState = omit(newState, (val, key) => { return action.payload.keys.includes(key) })
-            newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
-
-            return reducer(Object.assign({}, state, deepMerge(action.getState(), newState)), { type: 'LOADED' });
+                newState = Object.assign(newState, { gcode: { ...state.gcode, dirty: true } })
+                newState = Object.assign({}, state, deepMerge(action.getState(), newState));
+            return reducer(newState, { type: 'LOADED', payload: newState });
         default:
             return combined(state, action);
     }

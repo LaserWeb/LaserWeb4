@@ -1,4 +1,5 @@
 
+import objectToString from 'object-to-string';
 
 export function sendAsFile(filename, data, mimetype) {
         let blob = new Blob([data], {type: mimetype});
@@ -7,6 +8,10 @@ export function sendAsFile(filename, data, mimetype) {
             tempLink.href = window.URL.createObjectURL(blob);
             tempLink.setAttribute('download', filename);
             tempLink.click();
+}
+
+export function appendExt(filename, ext) {
+    return (!filename.match(new RegExp(ext.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')+"$",'gi'))) ? (filename+ext):filename;
 }
 
 export function openDataWindow(data, mimetype='text/plain;charset=utf-8', target="data")
@@ -50,6 +55,7 @@ export function cast(value, def = '') {
     if (value === undefined) return def;
     if (value === false) return "No";
     if (value === true) return "Yes";
+    if (isObject(value)) return objectToString(value);
     return String(value);
 }
 

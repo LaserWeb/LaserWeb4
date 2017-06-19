@@ -68,6 +68,8 @@ class Splitter extends React.Component {
         this.size = this.props.splitters[this.props.splitterId];
         if (this.size === undefined)
             this.size = this.props.initialSize;
+        if (this.props.minSize && this.size<this.props.minSize)
+            this.size = this.props.minSize
         return (
             <div style={{ ...this.props.style, display: 'flex', flexDirection: this.props.split === 'horizontal' ? 'column' : 'row' }} className={this.props.className}>
                 {React.cloneElement(

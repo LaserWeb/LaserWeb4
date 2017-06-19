@@ -21,6 +21,7 @@ import { connect } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs } from '../actions/document';
 import { setGcode, generatingGcode } from '../actions/gcode';
+import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
 import { GetBounds, withGetBounds } from './get-bounds.js';
@@ -28,7 +29,7 @@ import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
-import { sendAsFile, openDataWindow, captureConsole } from '../lib/helpers';
+import { sendAsFile, appendExt, openDataWindow, captureConsole } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
@@ -37,8 +38,9 @@ import Icon from './font-awesome'
 import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
-
 import { FileField } from './forms'
+
+import { promisedImage, imageTagPromise } from './image-filters';
 
 export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
 
@@ -59,17 +61,18 @@ GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(
 
 
 export class CAMValidator extends React.Component {
-    render(){
-        let {noneOnSuccess, documents, className, style} = this.props;
+    render() {
+        let { noneOnSuccess, documents, className, style } = this.props;
         let errors = (!documents) ? "Add files to begin" : undefined
         if (noneOnSuccess && !errors) return null;
         return <span className={className} title={errors ? errors : "Good to go!"} style={style}><Icon name={errors ? 'warning' : 'check'} /></span>
     }
 }
 
-CAMValidator = connect((state)=>{return { documents: state.documents.length}})(CAMValidator)
+CAMValidator = connect((state) => { return { documents: state.documents.length } })(CAMValidator)
 
 
+let __interval;
 
 class Cam extends React.Component {
 
@@ -80,14 +83,20 @@ class Cam extends React.Component {
 
             let { settings, documents, operations } = that.props;
 
+            let percent = 0;
+            __interval= setInterval(()=>{
+                that.props.dispatch(generatingGcode(true, isNaN(percent)? 0:Number(percent))); 
+            },100)
+            
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
-                    that.props.dispatch(generatingGcode(false))
+                    clearInterval(__interval)
                     that.props.dispatch(setGcode(gcode));
+                    that.props.dispatch(generatingGcode(false))
                 },
-                (percent) => {
-                    that.props.dispatch(generatingGcode(true, percent))
+                (threads) => {
+                    percent = ((Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads).toFixed(2);
                 }
             );
             return QE;
@@ -102,9 +111,7 @@ class Cam extends React.Component {
     }
 
     stopGcode(e) {
-        if (this.QE) {
-            this.QE.end();
-        }
+        if (this.QE) { this.QE.end(); }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -135,7 +142,9 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                      <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm" />
+                                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName="Laserweb-Workspace.json" label="Workspace" className="well well-sm">
+                                            <Button bsSize="xsmall" bsStyle="warning" onClick={e => this.props.resetWorkspace(e)}>Reset <Icon name="trash" /></Button>
+                                        </ApplicationSnapshotToolbar>
                                     </td>
                                 </tr>
                             </tbody>
@@ -154,7 +163,7 @@ class Cam extends React.Component {
                                     <td>
                                         <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                                            {(this.props.panes.visible)? <NoDocumentsError camBounds={bounds} documents={documents} />:undefined}
+                                            {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} documents={documents} /> : undefined}
                                         </FileField>
                                     </td>
                                 </tr>
@@ -183,7 +192,7 @@ class Cam extends React.Component {
                                         <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
                                         <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
                                         <FileField onChange={this.props.loadGcode} disabled={!valid || this.props.gcoding.enable} accept=".gcode,.gc,.nc">
-                                        <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} ><i className="fa fa-folder-open" /></button>
+                                            <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} ><i className="fa fa-folder-open" /></button>
                                         </FileField>
                                     </ButtonGroup>
                                     <button title="Clear" className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
@@ -198,47 +207,14 @@ class Cam extends React.Component {
 };
 
 
-const promisedImage = (path) => {
-    return new Promise(resolve => {
-        let img = new Image();
-        img.onload = () => { resolve(img) }
-        img.src = path;
-    })
-}
 
-const imageTagPromise = (tags) => {
-    return new Promise(resolve => {
-        let images=[];
-        const walker=(tag)=>{
-            if (tag.name==='image')
-                images.push(tag);
-            if (tag.children)
-                tag.children.forEach(t=>walker(t))    
-        }
 
-        const consumer=() => {
-            if (images.length){
-                let tag = images.shift()
-                let dataURL = tag.element.getAttribute('xlink:href')
-                if (dataURL.substring(0, 5) !== 'data:')
-                    return consumer();
-                let image = new Image();
-                    image.onload = ()=> { tag.naturalWidth = image.naturalWidth; tag.naturalHeight = image.naturalHeight; consumer()}
-                    image.src = dataURL;
-            } else {
-                 resolve(tags);
-            }
-        }
 
-        walker(tags);
-        consumer();
-    })
-}
 
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
-        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(file, state.gcode.content) }, !e.shiftKey) },
+        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(appendExt(file,'.gcode'), state.gcode.content) }, !e.shiftKey) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
@@ -246,6 +222,9 @@ Cam = connect(
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         clearGcode: () => {
             dispatch(setGcode(""))
+        },
+        resetWorkspace: () => {
+            confirm("Are you sure?", () => { dispatch(resetWorkspace()); })
         },
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
@@ -255,32 +234,33 @@ Cam = connect(
                     reader.onload = () => {
                         const release = captureConsole()
 
-                        console.log('loadDocument: construct Parser');
+                        //console.log('loadDocument: construct Parser');
                         let parser = new Parser({});
-                            parser.parse(reader.result)
-                                .then((tags) => {
-                                    let captures=release(true);
-                                    if (captures.filter(i => i.method=='warn').length)
-                                        CommandHistory.warn("The file has minor issues. Please check document is correctly loaded!")
-                                    if (captures.filter(i => i.method=='error').length)
-                                        CommandHistory.error("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.")
+                        parser.parse(reader.result)
+                            .then((tags) => {
+                                let captures = release(true);
+                                let warns = captures.filter(i => i.method == 'warn') 
+                                let errors = captures.filter(i => i.method == 'errors') 
+                                if (warns.length)
+                                    CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!",warns, 2)
+                                if (errors.length)
+                                    CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",errors, 3)
 
-                                    console.log('loadDocument: imageTagPromise');
-                                    imageTagPromise(tags).then((tags)=>{
-                                        console.log('loadDocument: dispatch');
-                                        dispatch(loadDocument(file, { parser, tags }, modifiers));
-                                    })
+                                //onsole.log('loadDocument: imageTagPromise');
+                                imageTagPromise(tags).then((tags) => {
+                                    console.log('loadDocument: dispatch');
+                                    dispatch(loadDocument(file, { parser, tags }, modifiers));
                                 })
+                            })
                             .catch((e) => {
-                                    console.log('loadDocument: catch:', e);
-                                    release(true);
-                                    CommandHistory.error("The file has fatal errors. If you think is not your fault, report to LW dev team attaching the file.")
-                                    CommandHistory.error(String(e))
-                                    console.log(e)
+                                //console.log('loadDocument: catch:', e);
+                                release(true);
+                                CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",String(e), 3)
+                                console.error(e)
                             })
 
                     }
-                    console.log('loadDocument: readAsText');
+                    //console.log('loadDocument: readAsText');
                     reader.readAsText(file);
                 }
                 else if (file.name.substr(-4).toLowerCase() === '.dxf') {

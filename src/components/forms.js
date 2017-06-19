@@ -237,43 +237,31 @@ export class FileField extends React.Component {
 
     constructor(props) {
         super(props);
-        this.handleClick.bind(this)
-        this.handleChange.bind(this)
-        this.nativeClick = null;
+        this._domclick = function(ce) {
+            ce.preventDefault();
+            let modifiers={ ctrl: ce.ctrlKey, shift: ce.shiftKey, meta: ce.metaKey };
+            if (this.input.__changeHandler) this.input.removeEventListener('change',this.input.__changeHandler)
+            this.input.value="";
+            this.input.__changeHandler = (e)=> {
+               e.preventDefault();
+               this.props.onChange(e,modifiers)
+            }
+            this.input.addEventListener('change',this.input.__changeHandler)
+            this.input.click();
+        }.bind(this)
     }
 
-    handleClick(ce) {
-        ce.persist();
-        if (this.props.disabled) return;
-        
-        if (!this.nativeClick){
-             console.log("FileField: set nativeClick");
-             this.nativeClick = ce;
-             let nullify = (e)=>{
-               console.log("FileField: clear nativeClick");
-                e.target.removeEventListener(e.type, nullify);
-                setTimeout(()=>{this.nativeClick = null},200);
-             }
-             window.addEventListener('focus', nullify)
-             this.input.click()
-        }
-        
+    componentDidMount() {
+        this.clicker.addEventListener('click', this._domclick)
     }
 
-    handleChange(e) {
-        e.persist()
-         if (this.nativeClick) {
-            console.log("FileField: use nativeClick");
-            this.props.onChange(e, { ctrl: this.nativeClick.ctrlKey, shift: this.nativeClick.shiftKey, meta: this.nativeClick.metaKey })
-            this.nativeClick = null
-            this.input.value = null;
-        } else
-            console.log("FileField: oops! need nativeClick");
+    componentWillUnMount() {
+        this.clicker.removeEventListener('click', this._domclick)
     }
 
     render() {
-        return <span style={this.props.style} onClick={e => this.handleClick(e)}>{this.props.children}
-            <input type="file" ref={(input) => { this.input = input }} multiple onChange={e => this.handleChange(e)} style={{display:"none"}} accept={this.props.accept} />
+        return <span style={this.props.style} >
+            <span ref={(input)=>this.clicker = input}>{this.props.children}</span><input type="file" ref={(input) => { this.input = input }} multiple style={{display:"none"}} accept={this.props.accept} />
         </span>
     }
 }
@@ -310,8 +298,43 @@ export class CheckBoxListField extends React.Component {
 
 
     }
+}
 
+export class InputRangeField extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.handleChange.bind(this)
+        this.handleNormalize.bind(this)
+        this.state = Object.assign({ min: this.props.minValue, max: this.props.maxValue }, this.props.value);
+    }
+
+    handleChange(key, v) {
+        let state = Object.assign(this.state, { [key]: parseFloat(v) })
+            state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
+            state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
+       
+        this.props.onChangeValue(state);
+        this.setState(state)
+    }
+
+    handleNormalize()
+    {
+        if (this.props.normalize) {
+            let state = Object.assign(this.state, {min: Math.min(this.state.min, this.state.max), max: Math.max(this.state.min, this.state.max)})
+                this.props.onChangeValue(state);
+                this.setState(state)
+        }
+            
+    }
+
+    render() {
+        let { min, max } = this.state;
+        return <div>
+            <label style={{ whiteSpace: "nowrap" }} >Min <input size="3" onBlur={e=>this.handleNormalize(e)} style={{ display: "inline-block" }} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
+            <label style={{ whiteSpace: "nowrap" }} >Max <input size="3" onBlur={e=>this.handleNormalize(e)} style={{ display: "inline-block" }} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
+        </div>
+    }
 }
 
 
@@ -321,3 +344,4 @@ ToggleField = connect()(ToggleField);
 QuadrantField = connect()(QuadrantField);
 CheckBoxListField = connect()(CheckBoxListField);
 SelectField = connect()(SelectField);
+InputRangeField = connect()(InputRangeField);

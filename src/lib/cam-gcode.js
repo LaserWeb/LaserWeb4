@@ -15,15 +15,18 @@
 
 'use strict';
 
-import { getLaserRasterGcodeFromOp } from './cam-gcode-raster'
+import { getLaserRasterGcodeFromOp, getLaserRasterMergeGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
 
 import { GlobalStore } from '../index'
 
 import queue from 'queue';
 
+import hhmmss from 'hhmmss';
+
 export const expandHookGCode = (operation) =>{
-    let macros = GlobalStore().getState().macros;
+    let state = GlobalStore().getState(); 
+    let macros = state.settings.macros || {};
     let op=Object.assign({},operation)
     let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
         hooks.forEach(hook => {
@@ -43,11 +46,14 @@ export const expandHookGCode = (operation) =>{
 export function getGcode(settings, documents, operations, documentCacheHolder, showAlert, done, progress) {
     "use strict";
 
+    let starttime=new Date().getTime()
+
     const QE = new queue();
     QE.timeout = 3600 * 1000;
-    QE.concurrency = 1;
+    QE.concurrency = settings.gcodeConcurrency || 1;
 
-    const gcode = [];
+    const gcode = Array(operations.length);
+    const gauge = Array(operations.length*2).fill(0)
     const workers = [];
     let jobIndex = 0;
 
@@ -55,7 +61,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         let op = expandHookGCode(operations[opIndex]);
 
         const jobDone = (g, cb) => { 
-            if (g !== false) { gcode.push(g); cb(); } 
+            if (g !== false) { gcode[opIndex]=g; };  cb();
         }
 
         let invokeWebWorker = (ww, props, cb, jobIndex) => {
@@ -63,10 +69,12 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             peasant.onmessage = (e) => {
                 let data = JSON.parse(e.data)
                 if (data.event == 'onDone') {
+                    gauge[props.opIndex*2+1]=100;
+                    progress(gauge)
                     jobDone(data.gcode, cb)
                 } else if (data.event == 'onProgress') {
-                    let p = parseInt((jobIndex * QE.chunk) + (data.progress * QE.chunk / 100))
-                    progress(p)
+                    gauge[props.opIndex*2+1]=data.progress;
+                    progress(gauge)
                 } else {
                     data.errors.forEach((item) => {
                         showAlert(item.message, item.level)
@@ -75,7 +83,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
             }
             workers.push(peasant)
-            progress(jobIndex * QE.chunk);
+            
             peasant.postMessage(props)
 
         }
@@ -85,6 +93,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 let geometry = [];
                 let openGeometry = [];
                 let tabGeometry = [];
+                let filteredDocIds = [];
                 let docsWithImages = [];
 
                 let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
@@ -95,15 +104,17 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (data.geometry) geometry = data.geometry
                         if (data.openGeometry) openGeometry = data.openGeometry
                         if (data.tabGeometry) tabGeometry = data.tabGeometry
+                        if (data.filteredDocIds) filteredDocIds = data.filteredDocIds
                         data.docsWithImages.forEach(_doc => {
                             let cache = documentCacheHolder.cache.get(_doc.id);
                             if (cache && cache.imageLoaded)
                                 docsWithImages.push(Object.assign([], _doc, { image: cache.image }));
                         })
-                        resolve({ geometry, openGeometry, tabGeometry, docsWithImages })
+                        gauge[opIndex*2]=100;
+                        resolve({ geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages })
                     } else if (data.event == 'onProgress') {
-                        let p = parseInt((data.percent / 100) * QE.chunk);
-                        progress(p)
+                        gauge[opIndex*2]=data.percent;
+                        progress(gauge)
                     } else if (data.event == 'onError') {
                         reject(data)
                     }
@@ -118,7 +129,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             console.log(op.type + "->" + jobIndex)
             preflightPromise(settings, documents, opIndex, op, workers)
                 .then((preflight) => {
-                    let { geometry, openGeometry, tabGeometry, docsWithImages } = preflight;
+                    let { geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages } = preflight;
 
                     if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
 
@@ -127,6 +138,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     } else if (op.type === 'Laser Raster') {
 
                         getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, (gcode)=>{jobDone(gcode,cb)}, progress, jobIndex, QE.chunk, workers);
+
+                    } else if (op.type === 'Laser Raster Merge') {
+
+                        getLaserRasterMergeGcodeFromOp(settings, documentCacheHolder, opIndex, op, filteredDocIds, showAlert, (gcode) => { jobDone(gcode, cb) }, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type.substring(0, 5) === 'Mill ') {
 
@@ -156,17 +171,15 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
-            if (ww.abort) {
-                ww.abort()
-            } else {
-                ww.terminate();
-            }
+            ww.terminate();
         })
 
     })
 
     QE.start((err) => {
         progress(100)
+        let ellapsed=(new Date().getTime()-starttime)/1000;
+        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 

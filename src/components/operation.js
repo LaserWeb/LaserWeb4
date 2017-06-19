@@ -16,12 +16,13 @@
 import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import uuid from 'node-uuid';
 
-import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField } from '../actions/operation';
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
-import { Input } from './forms.js';
+import { Input, InputRangeField } from './forms.js';
 import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
 import { selectedDocuments } from './document'
 
@@ -35,9 +36,17 @@ import Icon from './font-awesome'
 
 import { Details } from './material-database'
 
+import { confirm } from './laserweb'
+
+import { SETTINGS_INITIALSTATE } from '../reducers/settings'
+
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import "../styles/context-menu.css";
+
 function StringInput(props) {
     let { op, field, fillColors, strokeColors, ...rest } = props;
-    return <Input value={op[field.name]}  {...rest } />;
+    let value = op[field.name];
+    return <Input value={value !== undefined ? value : ''}  {...rest } />;
 }
 
 function NumberInput(props) {
@@ -45,33 +54,20 @@ function NumberInput(props) {
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>Conventional</option>
-            <option>Climb</option>
+function EnumInput(opts, def) {
+    if (Array.isArray(opts))
+        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
+    
+    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        return <select value={op[field.name]}  {...rest} >
+            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
-    );
+    }
 }
 
-function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>none</option>
-            <option>average</option>
-            <option>luma</option>
-            <option>luma-601</option>
-            <option>luma-709</option>
-            <option>luma-240</option>
-            <option>desaturation</option>
-            <option>decomposition-min</option>
-            <option>decomposition-max</option>
-            <option>red-chanel</option>
-            <option>green-chanel</option>
-            <option>blue-chanel</option>
-        </select>
-    );
-}
+const DirectionInput = EnumInput(['Conventional','Climb']);
+const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
+
 
 function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
@@ -81,45 +77,17 @@ function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, class
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
-
-class InputRange extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.handleChange.bind(this)
-        this.state = Object.assign({ min: this.props.minValue, max: this.props.maxValue }, this.props.value);
-    }
-
-    handleChange(key, v) {
-        let state = Object.assign(this.state, { [key]: parseFloat(v) })
-        state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
-        state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
-
-
-        this.setState(state)
-        this.props.onChangeValue(state);
-    }
-
-    render() {
-        let { min, max } = this.state;
-        return <div>
-            <label style={{ whiteSpace: "nowrap" }} >Min <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.minValue} min={this.props.minValue} max={this.props.maxValue} step='any' onChange={(e) => this.handleChange('min', e.target.value)} value={min} /></label>
-            <label style={{ whiteSpace: "nowrap" }} >Max <input size="3" style={{ display: "inline-block" }} type='number' placeholder={this.props.maxValue} max={this.props.maxValue} min={this.props.minValue} step='any' onChange={(e) => this.handleChange('max', e.target.value)} value={max} /></label>
-        </div>
-    }
-}
-
 function RangeInput(minValue, maxValue) {
     return ({ op, field, onChangeValue, ...rest }) => {
-        return <InputRange maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
+        return <InputRangeField maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
     }
 }
 
-function TagInput(statekey, opts = { multi: true, simpleValue:true, delimiter:',', clearable:true }, connector) {
-    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state,statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
+function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: ',', clearable: true }, connector) {
+    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
     return connect(connector)(React.createClass({
-        render: function() {
-            return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{...opts}} />
+        render: function () {
+            return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{ ...opts }} />
         }
     }))
 
@@ -207,7 +175,7 @@ class Field extends React.Component {
     }
 
     render() {
-        let { op, field, operationsBounds, fillColors, strokeColors, settings } = this.props;
+        let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch } = this.props;
         let Input = field.input;
         let { units } = field;
         let error;
@@ -215,9 +183,13 @@ class Field extends React.Component {
             units = settings.toolFeedUnits;
         if (field.check && !field.check(op[field.name], settings, op))
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
+
+        let Ctx = field.contextMenu;
+        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dashed blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
+
         return (
             <GetBounds Type="tr">
-                <th width="30%">{field.label}</th>
+                <th width="30%">{label}</th>
                 <td>
                     <Input
                         op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
@@ -290,6 +262,11 @@ const checkToolAngle = {
     error: 'Must be in range (0, 180)',
 };
 
+const checkToolDiameter = {
+    check: (v, settings, op) => v > 0 || op.type === 'Mill Cut' && v >= 0,
+    error: (v, settings, op) => op.type === 'Mill Cut' ? 'Must be >= 0' : 'Must be > 0',
+};
+
 function checkRange(min, max) {
     return {
         check: (v) => {
@@ -303,13 +280,32 @@ function checkRange(min, max) {
     }
 }
 
+function checkFeedRateRange(axis) {
+    return {
+        check: (v, settings) => {
+
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
+            if (isFinite(v)) {
+                return v >= min && v <= max;
+            } else if (isObject(v) && v.hasOwnProperty('min') && v.hasOwnProperty('max')) {
+                return (v.min >= min && v.min <= max) && (v.max >= min && v.max <= max)
+            }
+        },
+        error: (v, settings) => {
+            let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
+            return 'Must be in range [' + min + ' , ' + max + ']'
+        }
+    }
+}
+
 const ifUseA = {
     condition: op => op.useA
 };
 
 const checkZHeight = {
     check: (v, settings) => settings.machineZEnabled && v && !isNaN(v),
-    error: (v, settings) => {
+    error: (v, settings, op) => {
+        if (!op.type.match(/^Laser/)) return false;
         if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
         return 'Has to be a number'
     }
@@ -334,6 +330,16 @@ const checkPassDepth = {
     error: (v, settings, op) => { return (op.type.match(/^Laser/)) ? checkGE0.error : checkPositive.error },
 }
 
+
+const FieldContextMenu = (id = uuid.v4()) => {
+    return ({ children, dispatch, op, field, settings }) => {
+        let ctx = <ContextMenu id={id}>
+            <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
+        </ContextMenu>
+        return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+    }
+}
+
 export const OPERATION_FIELDS = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
 
@@ -346,7 +352,7 @@ export const OPERATION_FIELDS = {
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
     lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
-    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkToolDiameter },
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
@@ -355,15 +361,16 @@ export const OPERATION_FIELDS = {
     stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
-    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, ...checkZHeight, ...ifUseZ },
+    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
     clearance: { name: 'clearance', label: 'ZClearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
+    ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput },
 
-    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
-    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkPositive },
+    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
+    cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY'), contextMenu: FieldContextMenu() },
+    toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
-    aAxisStepsPerTurn: { name: 'aAxisStepsPerTurn', label: 'A Resolution', units: 'steps/turn', input: NumberInput, ...checkPositive, ...ifUseA },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 
     useBlower: { name: 'useBlower', label: 'Use Air Assist', units: '', input: ToggleInput, ...ifUseBlower },
@@ -405,26 +412,35 @@ const tabFields = [
 ];
 
 export const OPERATION_TYPES = {
-    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
-    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength',...OPERATION_GROUPS.Macros.fields] },
-    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', 'segmentLength',...OPERATION_GROUPS.Macros.fields] },
-    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisStepsPerTurn', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserPower', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Inside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Cut Outside': { allowTabs: true, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'laserDiameter', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', 'segmentLength', ...OPERATION_GROUPS.Macros.fields] },
+    'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Raster': {
-            allowTabs: false, tabFields: false, fields: [
-                'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-                'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA',
-                 ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
-            ] },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate',  'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'cutDepth', 'passDepth', 'clearance',  'segmentLength', 'plungeRate', 'cutRate', 'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth',  'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate',  'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate',  'segmentLength', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+        allowTabs: false, tabFields: false, fields: [
+            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
+        ]
+    },
+    'Laser Raster Merge': {
+        allowTabs: false, tabFields: false, fields: [
+            'name', 'filterFillColor', 'filterStrokeColor',
+            'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
+        ]
+    },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
 const groupFields = (ofields) => {
     let groups = { '_default': { visible: true, collapsible: false, fields: [] } };
-    let fields=ofields.slice();
+    let fields = ofields.slice();
 
     Object.entries(OPERATION_GROUPS).forEach(entry => {
         let [key, group] = entry;
@@ -433,9 +449,9 @@ const groupFields = (ofields) => {
             groups[key].fields = []
         }
         group.fields.forEach(field => {
-            let index=fields.indexOf(field);
-            if (index>-1)
-                groups[key].fields.push(fields.splice(index,1).pop())
+            let index = fields.indexOf(field);
+            if (index > -1)
+                groups[key].fields.push(fields.splice(index, 1).pop())
 
         })
     })
@@ -496,17 +512,15 @@ class Operation extends React.Component {
             this.availableOps = Object.keys(OPERATION_TYPES);
             if (nextProps.op.documents.length) {
                 if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
-                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
+                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/^Laser Raster$/gi))
 
                 if (!this.availableOps.includes(nextProps.op.type))
                     this.setTypeString(this.availableOps[0])
             }
         }
-    }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.op.type != this.props.op.type) {
-            this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+        if (nextProps.op.type != this.props.op.type) {
+            this.operationGroups = groupFields(OPERATION_TYPES[nextProps.op.type].fields)
         }
     }
 
@@ -529,10 +543,6 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
-
-
-        let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
-
         let header;
 
         if (op.name && op.name.length)
@@ -551,7 +561,7 @@ class Operation extends React.Component {
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
 
                         <div style={{ whiteSpace: 'nowrap' }}>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} ><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
@@ -595,10 +605,10 @@ class Operation extends React.Component {
                                 {Object.entries(this.operationGroups || {}).map((entry) => {
                                     let [key, group] = entry;
                                     let fields = group.fields
-                                                .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return f && (!f.condition || f.condition(op, settings)); })
+                                        .filter(fieldName => { let f = OPERATION_FIELDS[fieldName]; return f && (!f.condition || f.condition(op, settings)); })
                                         .map(fieldName => {
                                             return <Field
-                                                        key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
+                                                key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
                                                 fillColors={fillColors} strokeColors={strokeColors} settings={settings}
                                                 operationsBounds={bounds} dispatch={dispatch} />
                                         })
@@ -709,9 +719,10 @@ class Operations extends React.Component {
         return (
             <div style={this.props.style}>
                 <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
-                    <b>Drag document(s) here</b> or<br /><OperationToolbar />
+                    <b>Drag document(s) here to add</b>
                     <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
+                <OperationToolbar />
                 <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
                     {operations.map(o =>
                         <Operation
@@ -737,6 +748,7 @@ class OperationToolbar extends React.Component {
         super(props);
         this.handleAddSingle.bind(this)
         this.handleAddMultiple.bind(this)
+        this.handleClearAll.bind(this)
     }
 
     handleAddSingle() {
@@ -747,21 +759,31 @@ class OperationToolbar extends React.Component {
         this.props.createMultiple(selectedDocuments(this.props.documents));
     }
 
+    handleClearAll() {
+        this.props.clearAll();
+    }
+
     render() {
         let hasSelected = this.props.documents.some((item) => item.selected)
-        return <ButtonToolbar>
+        return <ButtonToolbar style={{ paddingBottom: "5px", marginBottom: "5px", borderBottom: "1px solid #eee" }}>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
+            <Button disabled={!this.props.operations.length} onClick={e => this.handleClearAll()} bsStyle="danger" bsSize="xsmall" title="Clear all operations" >Clear All</Button>
         </ButtonToolbar>
     }
 }
 
 OperationToolbar = connect(
-    (state) => { return { documents: state.documents } },
+    (state) => { return { documents: state.documents, operations: state.operations } },
     (dispatch) => {
         return {
             createSingle: (documents) => { dispatch(addOperation({ documents })) },
-            createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) }
+            createMultiple: (documents) => { documents.forEach((doc) => { dispatch(addOperation({ documents: [doc] })) }) },
+            clearAll: () => {
+                confirm("Are you sure?", (data) => {
+                    if (data) dispatch(clearOperations());
+                })
+            }
         }
     }
 )(OperationToolbar);

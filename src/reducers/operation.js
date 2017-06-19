@@ -6,7 +6,7 @@ import arrayMove from 'array-move'
 
 import { GlobalStore } from '../index';
 
-export const OPERATION_INITIALSTATE={
+export const OPERATION_INITIALSTATE = {
     id: '',
     name: '',
     enabled: true,
@@ -18,7 +18,7 @@ export const OPERATION_INITIALSTATE={
     filterStrokeColor: null,
     direction: 'Conventional',
     laserPower: 100,
-    laserPowerRange: {min:0, max:100},
+    laserPowerRange: { min: 0, max: 100 },
     laserDiameter: 0,
     toolDiameter: 0,
     lineDistance: 0,
@@ -26,6 +26,7 @@ export const OPERATION_INITIALSTATE={
     margin: 0,
     passes: 1,
     cutWidth: 0,
+    toolSpeed: 0,
     stepOver: 40,
     passDepth: 0,
     startHeight: '',
@@ -37,8 +38,8 @@ export const OPERATION_INITIALSTATE={
     cutRate: 0,
     overScan: 0,
     toolAngle: 0,
+    ramp: false,
     useA: false,
-    aAxisStepsPerTurn: 0,
     aAxisDiameter: 0,
     useBlower: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
@@ -66,7 +67,7 @@ export const OPERATION_INITIALSTATE={
 const operationBase = object('operation', OPERATION_INITIALSTATE);
 
 export const OPERATION_DEFAULTS = (state) => {
-    if (!state) state=GlobalStore().getState()
+    if (!state) state = GlobalStore().getState()
     return {
         laserDiameter: state.settings.machineBeamDiameter,
         useBlower: state.settings.machineBlowerEnabled,
@@ -105,6 +106,13 @@ export const operations = (state, action) => {
         case 'OPERATION_ADD':
             state = state.map(op => ({ ...op, expanded: op.id === action.payload.attrs.id }));
             break;
+        case "OPERATION_SPREAD_FIELD":
+            let op = state.find(o => o.id === action.payload.id)
+            if (op) state = state.map(o => { return { ...o, [action.payload.field]: op[action.payload.field] } })
+            break;
+        case 'WORKSPACE_RESET':
+        case 'OPERATION_CLEAR_ALL':
+            state = [];
     }
     return state;
 }
@@ -116,6 +124,8 @@ export function currentOperation(state = '', action) {
         return action.payload.attrs.id;
     else if (action.type === 'OPERATION_SET_ATTRS' || action.type === 'OPERATION_ADD_DOCUMENTS')
         return action.payload.id;
+    else if (action.type === 'WORKSPACE_RESET')
+        return '';
     else
         return state;
 }

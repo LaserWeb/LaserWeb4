@@ -24,7 +24,8 @@ var paused = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
-var xpos, ypos, zpos;
+var xpos, ypos, zpos, apos;
+var xOffset, yOffset, zOffset, aOffset;
 
 class Com extends React.Component {
 
@@ -209,7 +210,7 @@ class Com extends React.Component {
             fDate = data.date;
             dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
-            if (fVersion < '1.1e') {
+            if (firmware === 'grbl' && fVersion < '1.1e') {
                 CommandHistory.error('Grbl version too old -> YOU MUST INSTALL AT LEAST GRBL 1.1e')
                 socket.emit('closePort', 1);
                 machineConnected = false;
@@ -270,7 +271,7 @@ class Com extends React.Component {
         socket.on('wPos', function (wpos) {
             serverConnected = true;
             machineConnected = true;
-            let {x, y, z} = wpos; //var pos = wpos.split(',');
+            let {x, y, z, a} = wpos; //var pos = wpos.split(',');
             let posChanged = false;
             if (xpos !== x) {
                 xpos = x;
@@ -284,13 +285,45 @@ class Com extends React.Component {
                 zpos = z;
                 posChanged = true;
             }
+            if (apos !== a) {
+                apos = a;
+                posChanged = true;
+            }
             if (posChanged) {
                 //CommandHistory.write('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 //console.log('WPos: ' + xpos + ' / ' + ypos + ' / ' + zpos);
                 $('#mX').html(xpos);
                 $('#mY').html(ypos);
                 $('#mZ').html(zpos);
-                dispatch(setWorkspaceAttrs({ workPos: [xpos, ypos, zpos] }));
+                $('#mA').html(apos);
+                dispatch(setWorkspaceAttrs({ cursorPos: [xpos, ypos, zpos] }));
+            }
+        });
+
+        socket.on('wOffset', function (wOffset) {
+            serverConnected = true;
+            machineConnected = true;
+            let {x, y, z, a} = wOffset;
+            let posChanged = false;
+            if ((xOffset !== x) && (xOffset || x)) {
+                xOffset = x;
+                posChanged = true;
+            }
+            if ((yOffset !== y) && (yOffset || y)) {
+                yOffset = y;
+                posChanged = true;
+            }
+            if ((zOffset !== z) && (zOffset || z)) {
+                zOffset = z;
+                posChanged = true;
+            }
+            if ((aOffset !== a) && (aOffset || a)) {
+                aOffset = a;
+                posChanged = true;
+            }
+            if (posChanged) {
+                CommandHistory.write('Work Offset: ' + xOffset + ' / ' + yOffset + ' / ' + zOffset + ' / ' + aOffset);
+                dispatch(setWorkspaceAttrs({ workOffsetX: +xOffset, workOffsetY: +yOffset }));
             }
         });
 
@@ -391,6 +424,7 @@ class Com extends React.Component {
     }
 
     handleDisconnectServer() {
+        let { dispatch } = this.props;
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
             socket.disconnect();
@@ -694,6 +728,32 @@ export function gotoZero(axis) {
         if (machineConnected){
             CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
             socket.emit('gotoZero', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function home(axis) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Home ' + axis, CommandHistory.INFO);
+            socket.emit('home', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function probe(axis, offset) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Probe ' + axis + ' (Offset:' + offset + ')', CommandHistory.INFO);
+            socket.emit('probe', {axis: axis, offset: offset});
         } else {
             CommandHistory.error('Machine is not connected!')
         }

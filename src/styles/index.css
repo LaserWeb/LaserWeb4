@@ -70,10 +70,10 @@ body, html, .full-height {
 }
 
 .workspace-overlay.jog {
-   border: 5px dashed #ccc;
+   border: 5px solid #66F;
     opacity: 0.5
 }
-.workspace-overlay.jog:after { color: #bbb; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px}
+.workspace-overlay.jog:after { color: #66F; content:"Jog Mode"; font-size: 12px; text-transform: uppercase; position:absolute; right:2px; font-weight: bold}
 
 #workspace-controls {
     flex-grow: 0;
@@ -184,7 +184,8 @@ body, html, .full-height {
 }
 
 .form-group .input-group-addon ,
-.form-group label { text-transform: uppercase; font-size: smaller}
+.form-group label, h5.header { text-transform: uppercase; font-size: smaller; }
+h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
 
@@ -317,13 +318,14 @@ body, html, .full-height {
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #f6f6f6}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
-.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre}
+.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre; vertical-align: top}
 .commandHistory code.danger {background: #fee}
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
 .commandHistory code.success {background: #efe}
 .commandHistory code.success i {color: #0a0}
+.commandHistory details {display:inline-block}
 
 /*FullSizeModal*/
 
@@ -628,3 +630,38 @@ button:hover,
 
 .vex-dialog-input label {display:block; font-weight: normal}
 .vex-dialog-input select {width:100%}
+
+.pane-settings .details {
+    margin-left:0;
+}
+
+canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'none'; box-shadow: 10px 10px 10px rgba(0,0,0,0.5); border: 1px solid #666; padding: 10px}
+
+
+.trace-image .showroom {display:flex; flex-direction: row; align-items: center;}
+.trace-image .showroom > * {
+    flex-grow: 1; max-width: 50%; max-height:400px
+}
+.trace-image .controls {display:flex; flex-direction: row; align-items: flex-start;}
+.trace-image .controls > div {
+     width: 50%
+}
+
+.checker {
+    background-image:
+      -moz-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%), 
+      -moz-linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+      -moz-linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.1) 75%),
+      -moz-linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.1) 75%);
+    background-image:
+      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)), 
+      -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)),
+      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1))),
+      -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1)));
+
+    -moz-background-size:50px 50px;
+    background-size:50px 50px;
+    -webkit-background-size:50px 51px; 
+    
+    background-position:0 0, 25px 0, 25px -25px, 0px 25px;
+}

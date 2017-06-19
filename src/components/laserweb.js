@@ -37,14 +37,15 @@ import { DocumentCacheHolder } from './document-cache'
 
 import { keyboardUndoAction } from '../actions/laserweb';
 
-import keydown, { Keys } from 'react-keydown';
-import keyboardJS from 'keyboardjs'
+import { keyboardLogger, bindKeys, unbindKeys } from './keyboard';
 
 import { fireMacroById } from '../actions/macros'
 
 import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
+
+import { DrawCommands } from '../draw-commands'
 
 export const vex = require('vex-js/src/vex.js')
 try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
@@ -103,22 +104,47 @@ class LaserWeb extends React.Component {
         return nextProps.documents !== this.props.documents;
     }
 
+    componentWillMount() {
+        try {
+            let canvas = document.createElement('canvas');
+            let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+            if (!gl)
+                throw "canvas.getContext('webgl', {...}) returned " + gl;
+            let drawCommands = new DrawCommands(gl);
+            drawCommands.destroy();
+            this.glOk = true;
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+    }
+
     componentDidMount() {
         updateTitle();
+        if (this.glOk) {
+            this.setupKeybindings();
+            this.setupVideoCapture();
+        }
+    }
 
-        if (!window.keyboardLogger) {
-            window.keyboardLogger = keyboardJS;
-            
-            window.keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
+    setupKeybindings(){
+            keyboardLogger.bind(['command + z', 'ctrl + z'], function (e) {
                 this.props.handleUndo(e);
             }.bind(this));
 
-            Object.entries(this.props.macros).filter(entry=>entry[1].keybinding!=="").map(entry=>entry[1].keybinding).forEach((key)=>{
-                window.keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
-            });
-            
-        }
+            Object.entries(this.props.macros).filter(entry=>{
+                    let [label, macro] = entry;
+                    return macro.keybinding && macro.keybinding.length
+                }).map(entry=>{
+                    let [label, macro] = entry;
+                    return macro.keybinding
+                }).forEach((key)=>{
+                    keyboardLogger.bind(key, function (e) { this.props.handleMacro(e, key, this.props.macros) }.bind(this))
+                });
+    }
 
+    setupVideoCapture()
+    {
         if (!window.videoCapture) {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
@@ -128,12 +154,17 @@ class LaserWeb extends React.Component {
         }
     }
 
+
     render() {
         // 2017-01-21 Pvdw - removed the following from Dock
         // <Gcode id="gcode" title="G-Code" icon="file-code-o" />
         // <Quote id="quote" title="Quote" icon="money" />
 
-
+        if (!this.glOk) {
+            return (
+                <h1>OpenGL won't start. This app can't run without it.</h1>
+            );
+        }
 
         return (
             <AllowCapture style={{ height: '100%' }}>
