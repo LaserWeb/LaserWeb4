@@ -7,7 +7,7 @@ import Snap from 'snapsvg-cjs';
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
 import { addDocument, addDocumentChild } from '../actions/document'
-import { elementToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
+import { pathStrToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
 
 import CommandHistory from '../components/command-history'
@@ -63,7 +63,7 @@ export function document(state, action) {
 const documentsForest = forest('document', document);
 
 function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
-    let { parser, tags, attrs={} } = content;
+    let { parser, tags, attrs = {} } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
     let allPositions = [];
@@ -91,11 +91,10 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
     let viewBoxDeltaX = -parser.document.viewBox.x / pxPerInch * 25.4;
     let viewBoxDeltaY = (parser.document.viewBox.y + parser.document.viewBox.height) / pxPerInch * 25.4;
 
-    function applyToPoint(t,x,y)
-    {
-        return [ 
+    function applyToPoint(t, x, y) {
+        return [
             x * t[0] + y * t[2] + t[4],
-		    x * t[1] + y * t[3] + t[5]
+            x * t[1] + y * t[3] + t[5]
         ]
     }
 
@@ -112,18 +111,33 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 children: [],
                 selected: false,
             };
+
             let rawPaths = [];
-            for (let path of child.getPaths()) {
-                let p = [];
-                for (let point of path.points) {
-                    let x = (combinedMat[0] * point.x + combinedMat[2] * point.y) / pxPerInch * 25.4 + combinedMat[4];
-                    let y = (combinedMat[1] * point.x + combinedMat[3] * point.y) / pxPerInch * 25.4 + combinedMat[5];
-                    let [tx, ty] = applyToPoint(attrs.transform2d || [1,0,0,1,0,0], viewBoxDeltaX + x, viewBoxDeltaY - y)
-                    p.push(tx,ty);
+            let addPoint = (path, svgX, svgY) => {
+                let x = (combinedMat[0] * svgX + combinedMat[2] * svgY) / pxPerInch * 25.4 + combinedMat[4];
+                let y = (combinedMat[1] * svgX + combinedMat[3] * svgY) / pxPerInch * 25.4 + combinedMat[5];
+                let [tx, ty] = applyToPoint(attrs.transform2d || [1, 0, 0, 1, 0, 0], viewBoxDeltaX + x, viewBoxDeltaY - y)
+                path.push(tx, ty);
+            };
+            if (child.name === 'path') {
+                let paths = pathStrToRawPaths(child.attrs.d, 25.4, 1, .1 * pxPerInch / 25.4, error => console.log(error));
+                for (let path of paths) {
+                    let p = [];
+                    for (let i = 0; i < path.length; i += 2)
+                        addPoint(p, path[i], path[i + 1]);
+                    if (p.length)
+                        rawPaths.push(p);
                 }
-                if (p.length)
-                    rawPaths.push(p);
+            } else {
+                for (let path of child.getPaths()) {
+                    let p = [];
+                    for (let point of path.points)
+                        addPoint(p, point.x, point.y);
+                    if (p.length)
+                        rawPaths.push(p);
+                }
             }
+
             if (rawPaths.length) {
                 allPositions.push(rawPaths);
                 c.rawPaths = rawPaths;
@@ -238,10 +252,10 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
     return state;
 }
 
-function replaceImage(state, settings, { file, content, context}, id=uuid.v4()) {
-    return state.map((doc, index, docs)=>{
-        if (doc.name === file.name) 
-            return Object.assign(doc, {dataURL: content});
+function replaceImage(state, settings, { file, content, context }, id = uuid.v4()) {
+    return state.map((doc, index, docs) => {
+        if (doc.name === file.name)
+            return Object.assign(doc, { dataURL: content });
         return doc;
     })
 }
@@ -284,7 +298,7 @@ export function documentsLoad(state, settings, action) {
     else if (action.payload.file.name.substr(-4).toLowerCase() === '.dxf')
         return loadDxf(state, settings, action.payload, docId);
     else if (action.payload.file.type.substring(0, 6) === 'image/') {
-        if (action.payload.modifiers.ctrl || action.payload.modifiers.meta ) {
+        if (action.payload.modifiers.ctrl || action.payload.modifiers.meta) {
             CommandHistory.warn('Replacing content of ' + action.payload.file.name)
             return replaceImage(state, settings, action.payload, docId);
         } else {
@@ -326,9 +340,9 @@ export function documents(state, action) {
         }
         case "DOCUMENT_REMOVE_SELECTED":
             let ids = [];
-            state.filter(d => d.selected).forEach((sel)=>{ ids = [...ids,...getSubtreeIds(state, sel.id)];})
-            return state.filter(o => (!ids.includes(o.id))).map(parent=>{
-                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c)))})
+            state.filter(d => d.selected).forEach((sel) => { ids = [...ids, ...getSubtreeIds(state, sel.id)]; })
+            return state.filter(o => (!ids.includes(o.id))).map(parent => {
+                return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c))) })
             });
 
         case 'WORKSPACE_RESET':

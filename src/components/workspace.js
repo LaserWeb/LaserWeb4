@@ -328,18 +328,16 @@ class FloatingControls extends React.Component {
             vec4.transformMat4([],
                 vec4.transformMat4([], [bounds.x1, bounds.y1, 0, 1], this.props.camera.view),
                 this.props.camera.perspective);
-        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20;
+        let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20 - this.props.width;
         let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2 + 20;
 
-        x = x / window.devicePixelRatio - this.props.width;
-        y = y / window.devicePixelRatio;
-        x = Math.min(Math.max(x, 0), this.props.workspaceWidth / window.devicePixelRatio - this.props.width);
-        y = Math.min(Math.max(y, 0), this.props.workspaceHeight / window.devicePixelRatio - this.props.height);
+        x = Math.min(Math.max(x, 0), this.props.workspaceWidth - this.props.width);
+        y = Math.min(Math.max(y, 0), this.props.workspaceHeight - this.props.height);
 
         let round = n => Math.round(n * 100) / 100;
 
         return (
-            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee' }} className="floating-controls" >
+            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', pointerEvents: 'all' }} className="floating-controls" >
                 <tbody>
                     <tr>
                         <td></td>
@@ -646,23 +644,23 @@ class WorkspaceContent extends React.Component {
                 }
             }
 
-            gl.viewport(0, 0, this.props.width, this.props.height);
+            gl.viewport(0, 0, canvas.width, canvas.height);
             gl.clearColor(.8, .8, .8, 1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
 
             if (this.props.settings.machineAEnabled && this.props.workspace.showRotary)
-                this.drawRotary(gl);
+                this.drawRotary(canvas, gl);
             else
-                this.drawFlat(gl);
+                this.drawFlat(canvas, gl);
 
             requestAnimationFrame(draw);
         };
         draw();
     }
 
-    drawFlat(gl) {
+    drawFlat(canvas, gl) {
         let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
         let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
 
@@ -684,7 +682,7 @@ class WorkspaceContent extends React.Component {
         if (this.props.workspace.showDocuments)
             cacheDrawing(drawDocuments, this.drawDocsState, {
                 drawCommands: this.drawCommands,
-                width: this.props.width, height: this.props.height,
+                width: canvas.width, height: canvas.height,
                 perspective: this.camera.perspective, view: this.camera.view,
                 documents: this.props.documents,
                 documentCacheHolder: this.props.documentCacheHolder,
@@ -707,7 +705,7 @@ class WorkspaceContent extends React.Component {
             };
             cacheDrawing(draw, this.drawGcodeState, {
                 drawCommands: this.drawCommands,
-                width: this.props.width, height: this.props.height,
+                width: canvas.width, height: canvas.height,
                 perspective: this.camera.perspective, view: this.camera.view,
                 g0Rate: this.props.workspace.g0Rate,
                 simTime: this.props.workspace.simTime,
@@ -718,7 +716,7 @@ class WorkspaceContent extends React.Component {
         if (this.props.workspace.showDocuments)
             cacheDrawing(drawSelectedDocuments, this.drawSelDocsState, {
                 drawCommands: this.drawCommands,
-                width: this.props.width, height: this.props.height,
+                width: canvas.width, height: canvas.height,
                 perspective: this.camera.perspective, view: this.camera.view,
                 documents: this.props.documents,
                 documentCacheHolder: this.props.documentCacheHolder,
@@ -728,7 +726,7 @@ class WorkspaceContent extends React.Component {
             drawCursor(this.camera.perspective, this.camera.view, this.drawCommands, this.props.workspace.cursorPos);
     } // drawFlat()
 
-    drawRotary(gl) {
+    drawRotary(canvas, gl) {
         let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
         let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
 
@@ -864,8 +862,8 @@ class WorkspaceContent extends React.Component {
 
     rayFromPoint(pageX, pageY) {
         let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
-        let x = 2 * (pageX * window.devicePixelRatio - r.left) / (this.props.width) - 1;
-        let y = -2 * (pageY * window.devicePixelRatio - r.top) / (this.props.height) + 1;
+        let x = 2 * (pageX - r.left) / (this.props.width) - 1;
+        let y = -2 * (pageY - r.top) / (this.props.height) + 1;
         if (this.props.camera.showPerspective) {
             let cursor = [x * this.props.width / this.props.height * Math.tan(this.camera.fovy / 2), y * Math.tan(this.camera.fovy / 2), -1];
             let origin = vec3.transformMat4([], [0, 0, 0], this.camera.viewInv);
@@ -893,16 +891,16 @@ class WorkspaceContent extends React.Component {
         if (this.props.settings.machineAEnabled && this.props.workspace.showRotary)
             return;
         let result;
-        this.hitTestFrameBuffer.resize(this.props.width, this.props.height);
+        this.hitTestFrameBuffer.resize(this.canvas.width, this.canvas.height);
         this.drawCommands.useFrameBuffer(this.hitTestFrameBuffer, () => {
             let { gl } = this.drawCommands;
             gl.clearColor(1, 1, 1, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.disable(gl.BLEND);
             let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
-            let x = Math.round(pageX * window.devicePixelRatio - r.left);
-            let y = Math.round(this.props.height - pageY * window.devicePixelRatio + r.top);
-            if (x >= 0 && x < this.props.width && y >= 0 && y < this.props.height) {
+            let x = Math.round((pageX - r.left) * window.devicePixelRatio);
+            let y = Math.round((this.props.height - pageY + r.top) * window.devicePixelRatio);
+            if (x >= 0 && x < this.canvas.width && y >= 0 && y < this.canvas.height) {
                 drawDocumentsHitTest(this.camera.perspective, this.camera.view, this.drawCommands, this.props.documentCacheHolder);
                 let pixel = new Uint8Array(4);
                 gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
@@ -921,8 +919,8 @@ class WorkspaceContent extends React.Component {
         let newFovy = Math.max(.1, Math.min(Math.PI - .1, camera.fovy * amount));
         let oldScale = vec3.distance(camera.eye, camera.center) * Math.tan(camera.fovy / 2) / (r.height / 2);
         let newScale = vec3.distance(camera.eye, camera.center) * Math.tan(newFovy / 2) / (r.height / 2);
-        let dx = Math.round(pageX * window.devicePixelRatio - (r.left + r.right) / 2) * (newScale - oldScale);
-        let dy = Math.round(-pageY * window.devicePixelRatio + (r.top + r.bottom) / 2) * (newScale - oldScale);
+        let dx = Math.round(pageX - (r.left + r.right) / 2) * (newScale - oldScale);
+        let dy = Math.round(-pageY + (r.top + r.bottom) / 2) * (newScale - oldScale);
         let adjX = vec3.scale([], vec3.cross([], vec3.normalize([], vec3.sub([], camera.center, camera.eye)), camera.up), -dx);
         let adjY = vec3.scale([], camera.up, -dy);
         let adj = vec3.add([], adjX, adjY);
@@ -1072,7 +1070,7 @@ class WorkspaceContent extends React.Component {
                         machineX: this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX,
                         machineY: this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY,
                     }).view;
-                    let scale = 2 * window.devicePixelRatio / this.props.width / view[0];
+                    let scale = 2 / this.props.width / view[0];
                     dx *= scale;
                     dy *= scale;
                     let n = vec3.normalize([], vec3.cross([], camera.up, vec3.sub([], camera.eye, camera.center)));
@@ -1130,16 +1128,16 @@ class WorkspaceContent extends React.Component {
                     <div className="workspace-content">
                         <canvas
                             style={{ width: this.props.width, height: this.props.height }}
-                            width={Math.round(this.props.width)}
-                            height={Math.round(this.props.height)}
+                            width={Math.round(this.props.width * window.devicePixelRatio)}
+                            height={Math.round(this.props.height * window.devicePixelRatio)}
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
                         <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
                     </Dom3d>
                 </Pointable>
-                <div className="workspace-content workspace-overlay" style={{ zoom: window.devicePixelRatio }}>
-                    <SetSize style={{ display: 'inline-block', pointerEvents: 'all' }}>
+                <div className="workspace-content workspace-overlay">
+                    <SetSize style={{ display: 'inline-block' }}>
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
@@ -1222,7 +1220,7 @@ class Workspace extends React.Component {
         }
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
-                <SetSize id="workspace-top" style={{ zoom: 'reset' }}>
+                <SetSize id="workspace-top">
                     <WorkspaceContent gcodePreview={this.gcodePreview} laserPreview={this.laserPreview} />
                 </SetSize>
                 <div id="workspace-controls">

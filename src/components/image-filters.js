@@ -267,11 +267,11 @@ const ImageFilterControls={
 }
 
 const ImageTraceControls={
-    turnpolicy:     { name: 'turnpolicy', label: 'Turn Policy',  input: EnumInput(['minority', 'majority','black','white','right', 'left', 'random']) },                                // potrace
-    turdsize:       { name: 'turdsize', label: 'Turd Size',  input: NumberInput,  },                                // potrace
-    alphamax:       { name: 'alphamax',  label: 'Alpha Max',  input: NumberInput,  },                                // potrace
-    optcurve:       { name: 'optcurve', label: 'Opt Curve', units: '', input: ToggleInput, },                       // potrace
-    opttolerance:   { name: 'opttolerance', label: 'Opt Tolerance', units: '', input: NumberInput },                // potrace
+    turnpolicy:     { name: 'turnpolicy', label: 'Turn Policy', hint:`How to resolve ambiguities in path decomposition`,  input: EnumInput(['minority', 'majority','black','white','right', 'left', 'random']) },                                // potrace
+    turdsize:       { name: 'turdsize', label: 'Despeckle', hint:`Suppress speckles of up to this size (default 2)`, input: NumberInput,  },                                // potrace
+    alphamax:       { name: 'alphamax',  label: 'Alpha Max', hint:`Corner threshold parameter (default 1)`,  input: NumberInput,  },                                // potrace
+    optcurve:       { name: 'optcurve', label: 'Opt Curve', hint:`Optimize curves`, units: '', input: ToggleInput, },                       // potrace
+    opttolerance:   { name: 'opttolerance', label: 'Opt Tolerance',hint:`Curve optimization tolerance (default 0.2)`, units: '', input: NumberInput },                // potrace
 }
 
 class ImageEditor extends React.Component
@@ -321,13 +321,17 @@ class ImageEditor extends React.Component
 
     handleTrace(e){
         let [wpx, hpx] = this.currentDocument.originalPixels;
+        this.setState({working:true})
         Potrace.loadImageFromUrl(this.canvas.toDataURL())
         Potrace.setParameter(this.state.params)
         Potrace.process(function(){
             let svg=Potrace.getSVG(1)
             let blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
             let url = window.URL.createObjectURL(blob)
-            this.trace.onload=function(){ window.URL.revokeObjectURL(url);}
+            this.trace.onload=function(){ 
+                this.setState({working:false})
+                window.URL.revokeObjectURL(url);
+            }.bind(this)
             this.trace.src=url;
             this.setState({svg: svg.replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{ 
                 return `width="${wpx.toFixed(3)}mm" height="${hpx.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `} 
@@ -344,12 +348,14 @@ class ImageEditor extends React.Component
     handleNew(e){
         let modifiers={};
         let doc = this.currentDocument
+        this.setState({working:true})
         let parser = new Parser({});
             parser.parse(this.state.svg)
                 .then((tags) => {
                     imageTagPromise(tags).then((tags) => {
                         let attrs = doc.transform2d ? { transform2d: doc.transform2d.slice() } : null;
                         this.props.dispatch(loadDocument({name: `Traced ${doc.name}`, type:'image/svg+xml'}, { parser, tags, attrs }, modifiers));
+                         this.setState({working:false})
                     })
                 })
                 .catch((e) => {
@@ -371,8 +377,8 @@ class ImageEditor extends React.Component
             if (documents.length) {
                 this.currentDocument = documents[0];
                 promisedImage(this.currentDocument.dataURL).then(function(image){
-                    this.canvas.width = image.width;
-                    this.canvas.height = image.height;
+                    this.canvas.width = image.naturalWidth;
+                    this.canvas.height = image.naturalHeight;
                     this.canvas.getContext("2d").drawImage(image, 0, 0)
                     canvasFilters(this.canvas, this.state.filters)
                 }.bind(this))
@@ -388,10 +394,10 @@ class ImageEditor extends React.Component
         
         return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Image Editor"
-                footer={<div>
+                footer={this.state.working? "Working...." : (<div >
                     <Button bsStyle="warning" onClick={e=>this.handleFilters(e)}><Icon name="warning"/> Modify source image</Button>
                     <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button>
-                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button></div>}
+                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button></div>)}
             >
             <div className="trace-image">
                 <div className="showroom checker">
@@ -404,15 +410,16 @@ class ImageEditor extends React.Component
                         {Object.entries(ImageFilterControls).map((e,i)=>{
                             let [key, data] = e;
                             let Field = data.input;
-                            return <div key={i}>{data.label} <Field op={this.state.filters} field={data} onChangeValue={v => this.handleChange('filters',{[key]:v}) } /></div>
+                            return <div key={i} title={data.hint}><label>{data.label}</label> <Field op={this.state.filters} field={data} onChangeValue={v => this.handleChange('filters',{[key]:v}) } /></div>
                         })}
                     </div>
                     <div>
-                        <h4>Trace</h4>
+                        <h4>Trace <small><a href="http://potrace.sourceforge.net/" target="_blank" title="see Potrace"><Icon name="info-circle"/></a></small></h4>
                         {Object.entries(ImageTraceControls).map((e,i)=>{
                             let [key, data] = e;
                             let Field = data.input;
-                            return <div key={i}>{data.label} <Field op={this.state.params} field={data} onChangeValue={v => this.handleChange('params',{[key]:v}) } /></div>
+                            return <div key={i} title={data.hint}>
+                                <label>{data.label}</label> <Field op={this.state.params} field={data} onChangeValue={v => this.handleChange('params',{[key]:v}) } /></div>
                         })}
                     </div>
                 </div>
