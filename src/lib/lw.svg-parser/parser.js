@@ -296,9 +296,9 @@ class Parser {
     }
 
     _isVendor(tag,attr) {
-        if (tag && tag.element.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
+        if (tag && tag.element && tag.element.namespaceURI && tag.element.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
             return true;
-        if (attr && attr.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
+        if (attr && attr.namespaceURI && attr.namespaceURI.match(/sodipodi|inkscape|adobe/gi))
             return true;
         return false;
     }
