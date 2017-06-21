@@ -315,8 +315,7 @@ class FloatingControls extends React.Component {
                 }
             }
         }
-        if (!found || !this.props.camera)
-            return <div />
+       
 
         if (this.rotateDocs !== this.props.documents) {
             this.baseRotate = 0;
@@ -331,49 +330,60 @@ class FloatingControls extends React.Component {
         let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20 - this.props.width;
         let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2 + 20;
 
-        x = Math.min(Math.max(x, 0), this.props.workspaceWidth - this.props.width);
-        y = Math.min(Math.max(y, 0), this.props.workspaceHeight - this.props.height);
+            x = Math.min(Math.max(x, 0), this.props.workspaceWidth - this.props.width);
+            y = Math.min(Math.max(y, 0), this.props.workspaceHeight - this.props.height);
 
         let round = n => Math.round(n * 100) / 100;
+        let hidden = !found || !this.props.camera;
+       
+        let position = (this.found !== found) ? { x, y } : null;
+            this.found = found;
+
+        if (hidden) bounds.x1= bounds.x2 = bounds.y1 = bounds.y2=0
+
 
         return (
-            <table style={{ position: 'relative', left: x, top: y, border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', pointerEvents: 'all' }} className="floating-controls" >
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td>Min</td>
-                        <td>Center</td>
-                        <td>Max</td>
-                        <td>Size</td>
-                        <td></td>
-                        <td>Rot</td>
-                    </tr>
-                    <tr>
-                        <td><span className="label label-danger">X</span></td>
-                        <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" tabIndex="1" /></td>
-                        <td><Input value={round((bounds.x1 + bounds.x2) * .5)} onChangeValue={this.setCenterX} type="number" step="any" tabIndex="3" /></td>
-                        <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
-                        <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
-                        <td rowSpan={2}>
-                            &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
-                        </td>
-                        <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
-                            <ButtonToolbar>
-                                <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon name="rotate-left" /></Button>
-                                <Button bsSize="xsmall" onClick={e => this.rotate(e, true)} bsStyle="info"><Icon name="rotate-right" /></Button>
-                            </ButtonToolbar>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><span className="label label-success">Y</span></td>
-                        <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" tabIndex="2" /></td>
-                        <td><Input value={round((bounds.y1 + bounds.y2) * .5)} onChangeValue={this.setCenterY} type="number" step="any" tabIndex="4" /></td>
-                        <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" tabIndex="6" /></td>
-                        <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" tabIndex="8" /></td>
-                    </tr>
-                </tbody>
-                {tools}
-            </table>
+            <Draggable bounds="parent" position={ position } disabled={ hidden } handle=".handle">
+                <div style={{position:"absolute", pointerEvents: hidden?'none':'all', display: hidden?'none':'block'}}>
+                    <table style={{  border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', }} className="floating-controls" >
+                        <tbody>
+                            <tr>
+                                <td><span className="handle"><Icon name="arrows"/></span></td>
+                                <td>Min</td>
+                                <td>Center</td>
+                                <td>Max</td>
+                                <td>Size</td>
+                                <td></td>
+                                <td>Rot</td>
+                            </tr>
+                            <tr>
+                                <td><span className="label label-danger">X</span></td>
+                                <td><Input value={round(bounds.x1)} onChangeValue={this.setMinX} type="number" step="any" tabIndex="1" /></td>
+                                <td><Input value={round((bounds.x1 + bounds.x2) * .5)} onChangeValue={this.setCenterX} type="number" step="any" tabIndex="3" /></td>
+                                <td><Input value={round(bounds.x2)} type="number" onChangeValue={this.setMaxX} step="any" tabIndex="5" /></td>
+                                <td><Input value={round(bounds.x2 - bounds.x1)} type="number" onChangeValue={this.setSizeX} step="any" tabIndex="7" /></td>
+                                <td rowSpan={2}>
+                                    &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
+                                </td>
+                                <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
+                                    <ButtonToolbar>
+                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon name="rotate-left" /></Button>
+                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, true)} bsStyle="info"><Icon name="rotate-right" /></Button>
+                                    </ButtonToolbar>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span className="label label-success">Y</span></td>
+                                <td><Input value={round(bounds.y1)} onChangeValue={this.setMinY} type="number" step="any" tabIndex="2" /></td>
+                                <td><Input value={round((bounds.y1 + bounds.y2) * .5)} onChangeValue={this.setCenterY} type="number" step="any" tabIndex="4" /></td>
+                                <td><Input value={round(bounds.y2)} type="number" onChangeValue={this.setMaxY} step="any" tabIndex="6" /></td>
+                                <td><Input value={round(bounds.y2 - bounds.y1)} type="number" onChangeValue={this.setSizeY} step="any" tabIndex="8" /></td>
+                            </tr>
+                        </tbody>
+                        {tools}
+                    </table>
+                </div>
+            </Draggable>
         );
     }
 } // FloatingControls
@@ -1136,15 +1146,15 @@ class WorkspaceContent extends React.Component {
                         <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
                     </Dom3d>
                 </Pointable>
-                <div className="workspace-content workspace-overlay">
-                    <SetSize style={{ display: 'inline-block' }}>
+                
+                    <SetSize className="workspace-content workspace-overlay" selector=".floating-controls">
                         <FloatingControls
                             documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
                             workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
                             settings={this.props.settings}
                         />
                     </SetSize>
-                </div>
+                
                 <div className={"workspace-content workspace-overlay " + this.props.mode}></div>
             </div>
         );
