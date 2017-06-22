@@ -336,19 +336,25 @@ class FloatingControls extends React.Component {
         let round = n => Math.round(n * 100) / 100;
         let hidden = !found || !this.props.camera;
        
-        let position = (this.found !== found) ? { x, y } : null;
-            this.found = found;
+       
+        if (hidden) bounds.x1 = bounds.x2 = bounds.y1 = bounds.y2 = 0
 
-        if (hidden) bounds.x1= bounds.x2 = bounds.y1 = bounds.y2=0
+        
+        const detach=(e, ui)=>{
+            this.setState({dragged:true});
+        }
 
+        const restore=(e)=>{
+            this.setState({dragged:false});
+        }
 
         return (
-            <Draggable bounds="parent" position={ position } disabled={ hidden } handle=".handle">
+            <Draggable bounds="parent" position={ this.state.dragged? null:{x,y} } onStart = { detach } disabled={ hidden } handle=".handle">
                 <div style={{position:"absolute", pointerEvents: hidden?'none':'all', display: hidden?'none':'block'}}>
                     <table style={{  border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', }} className="floating-controls" >
                         <tbody>
                             <tr>
-                                <td><span className="handle"><Icon name="arrows"/></span></td>
+                                <td title="Drag to position. DblClick to restore"><span className="handle" onDoubleClick={restore} style={{color: this.state.dragged? '#00F':'#000'}}><Icon name="arrows"/></span></td>
                                 <td>Min</td>
                                 <td>Center</td>
                                 <td>Max</td>

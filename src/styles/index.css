@@ -81,7 +81,7 @@ body, html, .full-height {
 }
 
 .floating-controls {
-    background-color: white;
+    background-color: white; z-index:10000
 }
 
 .floating-controls td {
@@ -673,3 +673,5 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
     
     background-position:0 0, 25px 0, 25px -25px, 0px 25px;
 }
+
+.react-draggable {z-index:20000}
