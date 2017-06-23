@@ -22,6 +22,8 @@ import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
+import { setSettingsAttrs } from '../actions/settings';
+
 import { runCommand, jogTo } from './com.js';
 
 import { withDocumentCache } from './document-cache'
@@ -188,10 +190,22 @@ class MachineBounds {
 };
 
 class FloatingControls extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.handleDrag = this.handleDrag.bind(this)
+        this.handleStop = this.handleStop.bind(this)
+        
+        this.state = {
+            linkScale: true,
+            degrees: 45,
+            drag: this.props.settings.uiFcDrag
+        }
+    }
     componentWillMount() {
-        this.state = { linkScale: true };
+        
         this.linkScaleChanged = e => {
-            this.setState({ linkScale: e.target.checked, degrees: 45 });
+            this.setState({ linkScale: e.target.checked });
         }
         this.scale = (sx, sy, anchor = 'C') => {
             let cx, cy
@@ -287,6 +301,20 @@ class FloatingControls extends React.Component {
         }
     }
 
+    handleDrag(e, ui) {
+        const { x, y } = this.state.drag || { x: 0, y: 0 };
+        this.setState({
+            drag: {
+                x: x + ui.deltaX,
+                y: y + ui.deltaY,
+            }
+        });
+    }
+
+    handleStop(e) {
+            this.props.dispatch(setSettingsAttrs({uiFcDrag: this.state.drag}))
+    }
+
     render() {
         let tools;
         let found = false;
@@ -315,7 +343,7 @@ class FloatingControls extends React.Component {
                 }
             }
         }
-       
+
 
         if (this.rotateDocs !== this.props.documents) {
             this.baseRotate = 0;
@@ -330,31 +358,39 @@ class FloatingControls extends React.Component {
         let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20 - this.props.width;
         let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2 + 20;
 
-            x = Math.min(Math.max(x, 0), this.props.workspaceWidth - this.props.width);
-            y = Math.min(Math.max(y, 0), this.props.workspaceHeight - this.props.height);
+           
 
         let round = n => Math.round(n * 100) / 100;
         let hidden = !found || !this.props.camera;
-       
-       
+
+
         if (hidden) bounds.x1 = bounds.x2 = bounds.y1 = bounds.y2 = 0
 
-        
-        const detach=(e, ui)=>{
-            this.setState({dragged:true});
+
+        const detach = (e, ui) => {
+            if (!this.state.drag)
+                this.setState({ drag: { x, y } });
         }
 
-        const restore=(e)=>{
-            this.setState({dragged:false});
+        const reattach = (e) => {
+            this.props.dispatch(setSettingsAttrs({uiFcDrag: null}))
+            this.setState({ drag: null });
+        }
+
+        const constraint=(point)=>{
+            return {
+                x: Math.min(Math.max(point.x, 0), this.props.workspaceWidth - this.props.width),
+                y: Math.min(Math.max(point.y, 0), this.props.workspaceHeight - this.props.height)
+            }
         }
 
         return (
-            <Draggable bounds="parent" position={ this.state.dragged? null:{x,y} } onStart = { detach } disabled={ hidden } handle=".handle">
-                <div style={{position:"absolute", pointerEvents: hidden?'none':'all', display: hidden?'none':'block'}}>
-                    <table style={{  border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', }} className="floating-controls" >
+            <Draggable bounds="parent" position={constraint(this.state.drag? this.state.drag:{ x, y })} onStart={ detach } onStop={ this.handleStop } onDrag={this.handleDrag} disabled={hidden} handle=".handle">
+                <div style={{ position: "absolute", pointerEvents: hidden ? 'none' : 'all', display: hidden ? 'none' : 'block' }}>
+                    <table style={{ border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', }} className="floating-controls" >
                         <tbody>
                             <tr>
-                                <td title="Drag to position. DblClick to restore"><span className="handle" onDoubleClick={restore} style={{color: this.state.dragged? '#00F':'#000'}}><Icon name="arrows"/></span></td>
+                                <td title="Drag to position. DblClick to restore"><span className="handle" onDoubleClick={ reattach } style={{ color: this.state.drag ? '#00F' : '#000' }}><Icon name="arrows" /></span></td>
                                 <td>Min</td>
                                 <td>Center</td>
                                 <td>Max</td>
@@ -1152,15 +1188,15 @@ class WorkspaceContent extends React.Component {
                         <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
                     </Dom3d>
                 </Pointable>
-                
-                    <SetSize className="workspace-content workspace-overlay" selector=".floating-controls">
-                        <FloatingControls
-                            documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
-                            workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
-                            settings={this.props.settings}
-                        />
-                    </SetSize>
-                
+
+                <SetSize className="workspace-content workspace-overlay" selector=".floating-controls">
+                    <FloatingControls
+                        documents={this.props.documents} documentCacheHolder={this.props.documentCacheHolder} camera={this.camera}
+                        workspaceWidth={this.props.width} workspaceHeight={this.props.height} dispatch={this.props.dispatch}
+                        settings={this.props.settings}
+                    />
+                </SetSize>
+
                 <div className={"workspace-content workspace-overlay " + this.props.mode}></div>
             </div>
         );
