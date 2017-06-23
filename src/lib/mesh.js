@@ -23,8 +23,10 @@ import SweepContext from 'poly2tri/src/sweepcontext';
 export const inchToClipperScale = 1270000000;
 export const mmToClipperScale = inchToClipperScale / 25.4; // 50000000;
 export const clipperToCppScale = 1 / 128; // Prevent overflow for coordinates up to ~1000 mm
+export const mmToCppScale = mmToClipperScale * clipperToCppScale;
 export const cleanPolyDist = 100;
 export const arcTolerance = 10000;
+export const cppArcTolerance = Math.round(arcTolerance * clipperToCppScale);
 
 let Module;
 
@@ -225,6 +227,32 @@ export function rawPathsToClipperPaths(rawPaths, transform) {
         result = ClipperLib.Clipper.SimplifyPolygons(result, ClipperLib.PolyFillType.pftEvenOdd);
     }
     return result;
+}
+
+export function rawPathsToClipperPathsAsIs(rawPaths) {
+    let result = rawPaths.map(p => {
+        let result = [];
+        for (let i = 0; i < p.length; i += 2) {
+            result.push({
+                X: p[i] * mmToClipperScale,
+                Y: p[i + 1] * mmToClipperScale,
+            });
+        }
+        return result;
+    });
+    return result;
+}
+
+export function clipperPathsToRawPaths(clipperPaths) {
+    return clipperPaths.map(clipperPath => {
+        let rawPath = new Array(clipperPath.length * 2);
+        let dest = 0;
+        for (let point of clipperPath) {
+            rawPath[dest++] = point.X / mmToClipperScale;
+            rawPath[dest++] = point.Y / mmToClipperScale;
+        }
+        return rawPath;
+    });
 }
 
 function clipperPathsToPolyTree(paths) {
@@ -437,4 +465,16 @@ export function offset(paths, amount, joinType, endType) {
     var offsetted = [];
     co.Execute(offsetted, amount);
     return offsetted;
+}
+
+export function cppClean(paths, destroy) {
+    return Module.clean(mmToCppScale, paths, destroy);
+}
+
+export function cppOffset(paths, destroy, amount, closed) {
+    return Module.offset(mmToCppScale, paths, destroy, Math.round(amount * mmToCppScale), cppArcTolerance, closed);
+}
+
+export function cppGetRawPaths(paths, destroy) {
+    return Module.getRawPaths(mmToCppScale, paths, destroy);
 }

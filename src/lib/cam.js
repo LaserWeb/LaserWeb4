@@ -19,7 +19,7 @@ import ClipperLib from 'clipper-lib';
 import { mat3, vec2 } from 'gl-matrix';
 
 import { meshSetModule, diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
-
+import { mmToClipperScale, mmToCppScale, cppArcTolerance, rawPathsToClipperPathsAsIs, clipperPathsToRawPaths, cppClean, cppOffset, cppGetRawPaths } from './mesh';
 
 import WebCamCpp from '../lib/web-cam-cpp/web-cam-cpp';
 require("file-loader?name=web-cam-cpp.wasm!../lib/web-cam-cpp/web-cam-cpp.wasm");
@@ -175,6 +175,12 @@ function mergePaths(bounds, paths) {
 // Compute paths for pocket operation on Clipper geometry. Returns array
 // of CamPath. cutterDia is in Clipper units. stepover is in the range (0, 100).
 export function pocket(geometry, cutterDia, stepover, climb) {
+    let result = Module.pocket(mmToCppScale, clipperPathsToRawPaths(geometry), false, cutterDia / mmToClipperScale, stepover, climb, cppArcTolerance);
+    return mergePaths(
+        rawPathsToClipperPathsAsIs(cppGetRawPaths(result.bounds, true)),
+        rawPathsToClipperPathsAsIs(cppGetRawPaths(result.allPaths, true)));
+
+    /*
     stepover = stepover / 100;
     let current = offset(geometry, -cutterDia / 2);
     let bounds = current.slice(0);
@@ -188,6 +194,7 @@ export function pocket(geometry, cutterDia, stepover, climb) {
     }
     closeClipperPaths(allPaths);
     return mergePaths(bounds, allPaths);
+    */
 };
 
 // Compute paths for inside/outside operation on Clipper geometry. Returns array
