@@ -132,7 +132,9 @@ export const SETTINGS_INITIALSTATE = {
     jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
 
-    macros: MACROS_INITIALSTATE
+    macros: MACROS_INITIALSTATE,
+
+    uiFcDrag: null,
 }
 
 export const settings = (state, action) => {

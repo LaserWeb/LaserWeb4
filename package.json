@@ -1,6 +1,6 @@
 {
   "name": "laserweb",
-  "version": "4.0.734",
+  "version": "4.0.735",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
@@ -126,7 +126,7 @@
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
-    "dxf-parser": "^0.4.6",
+    "dxf-parser": "^0.4.7",
     "immutability-helper": "^2.0.0",
     "unicode": "^0.6.1",
     "vectorize-text": "^3.0.2"

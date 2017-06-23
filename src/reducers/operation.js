@@ -108,7 +108,10 @@ export const operations = (state, action) => {
             break;
         case "OPERATION_SPREAD_FIELD":
             let op = state.find(o => o.id === action.payload.id)
-            if (op) state = state.map(o => { return { ...o, [action.payload.field]: op[action.payload.field] } })
+            if (op) state = state.map(o => { 
+                if (!o.enabled) return o;
+                return { ...o, [action.payload.field]: op[action.payload.field] } 
+            })
             break;
         case 'WORKSPACE_RESET':
         case 'OPERATION_CLEAR_ALL':

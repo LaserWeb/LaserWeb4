@@ -146,9 +146,9 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
                 c.fillColor = getColor(child.attrs.fill);
                 if (hasClosedRawPaths(rawPaths)) {
                     if (!c.fillColor[3] && !c.strokeColor[3])
-                        c.fillColor[3] = .3;
+                        c.fillColor[3] = .8;
                 } else if (!c.strokeColor[3])
-                    c.strokeColor[3] = .3;
+                    c.strokeColor[3] = .8;
             } else if (child.name === 'image') {
                 let element = child.element;
                 let dataURL = element.getAttribute('xlink:href');
