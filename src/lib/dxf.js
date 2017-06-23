@@ -199,7 +199,7 @@ function drawCircle(state, entity, docLayer, index) {
     let segments = 128;
     let thetaStart = entity.startAngle !== undefined ? entity.startAngle : 0;
     let thetaLength = entity.angleLength !== undefined ? entity.angleLength : Math.PI * 2;
-    let vertices = segments + 2;
+    let vertices = segments + 1;
 
     let docEntity = {
         type: entity.type,
@@ -221,7 +221,7 @@ function drawCircle(state, entity, docLayer, index) {
     let p = [];
     let theta = 2 * Math.PI / vertices;
     for (let i = 0; i < vertices; i++) {
-        let segment = thetaStart + i / vertices * thetaLength;
+        let segment = thetaStart + i / segments * thetaLength;
         let dx = radius * Math.cos(segment);
         let dy = radius * Math.sin(segment);
         p.push(entity.center.x + dx);
