@@ -53,6 +53,7 @@ export const SETTINGS_INITIALSTATE = {
     __version: version,
     __selectedProfile: null,
 
+    showMachine: false,
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,

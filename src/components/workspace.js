@@ -686,18 +686,27 @@ class WorkspaceContent extends React.Component {
             if (this.props.width > 1 && this.props.height > 1 && (this.props.workspace.width !== this.props.width || this.props.workspace.height !== this.props.height)) {
                 this.props.dispatch(setWorkspaceAttrs({ width: this.props.width, height: this.props.height }));
                 if (!this.props.workspace.initialZoom) {
+                    let x = this.props.settings.machineBottomLeftX;
+                    let y = this.props.settings.machineBottomLeftY;
+                    if (!this.props.settings.showMachine) {
+                        x = 0;
+                        y = 0;
+                    }
                     this.props.dispatch(setWorkspaceAttrs({ initialZoom: true }));
                     this.props.dispatch(zoomArea(
-                        this.props.settings.machineBottomLeftX - 10,
-                        this.props.settings.machineBottomLeftY - 10,
-                        this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10,
-                        this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10
+                        x - 10,
+                        y - 10,
+                        x + this.props.settings.machineWidth + 10,
+                        y + this.props.settings.machineHeight + 10
                     ));
                 }
             }
 
             gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.clearColor(.8, .8, .8, 1);
+            if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary)
+                gl.clearColor(.8, .8, .8, 1);
+            else
+                gl.clearColor(1, 1, 1, 1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
@@ -716,11 +725,13 @@ class WorkspaceContent extends React.Component {
         let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
         let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
 
-        gl.clearDepth(1);
-        this.lightenMachineBounds.draw(this.drawCommands, {
-            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-        });
-        gl.clearDepth(1);
+        if (this.props.settings.showMachine) {
+            gl.clearDepth(1);
+            this.lightenMachineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+            });
+            gl.clearDepth(1);
+        }
 
         this.grid.draw(this.drawCommands, {
             perspective: this.camera.perspective, view: this.camera.view,
@@ -728,9 +739,10 @@ class WorkspaceContent extends React.Component {
             minor: this.props.settings.toolGridMinorSpacing,
             major: this.props.settings.toolGridMajorSpacing,
         });
-        this.machineBounds.draw(this.drawCommands, {
-            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-        });
+        if (this.props.settings.showMachine)
+            this.machineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+            });
         if (this.props.workspace.showDocuments)
             cacheDrawing(drawDocuments, this.drawDocsState, {
                 drawCommands: this.drawCommands,
@@ -865,9 +877,10 @@ class WorkspaceContent extends React.Component {
             minor: this.props.settings.toolGridMinorSpacing,
             major: this.props.settings.toolGridMajorSpacing,
         });
-        this.machineBounds.draw(this.drawCommands, {
-            perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-        });
+        if (this.props.settings.showMachine)
+            this.machineBounds.draw(this.drawCommands, {
+                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+            });
 
         if (this.props.workspace.rotaryDiameter > 0) {
             gl.enable(gl.DEPTH_TEST);
@@ -1223,11 +1236,17 @@ class Workspace extends React.Component {
     }
 
     zoomMachine() {
+        let x = this.props.settings.machineBottomLeftX;
+        let y = this.props.settings.machineBottomLeftY;
+        if (!this.props.settings.showMachine) {
+            x = 0;
+            y = 0;
+        }
         this.props.dispatch(zoomArea(
-            this.props.settings.machineBottomLeftX - 10 - this.props.workspace.workOffsetX,
-            this.props.settings.machineBottomLeftY - 10 - this.props.workspace.workOffsetY,
-            this.props.settings.machineBottomLeftX + this.props.settings.machineWidth + 10 - this.props.workspace.workOffsetX,
-            this.props.settings.machineBottomLeftY + this.props.settings.machineHeight + 10 - this.props.workspace.workOffsetY
+            x - 10 - this.props.workspace.workOffsetX,
+            y - 10 - this.props.workspace.workOffsetY,
+            x + this.props.settings.machineWidth + 10 - this.props.workspace.workOffsetX,
+            y + this.props.settings.machineHeight + 10 - this.props.workspace.workOffsetY
         ));
     }
 

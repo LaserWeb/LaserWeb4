@@ -227,6 +227,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
                         <h5 className="header">Origin offsets</h5>
+                        <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
