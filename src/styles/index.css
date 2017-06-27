@@ -178,7 +178,8 @@ body, html, .full-height {
 }
 
 #sidebar .panes .pane-settings .panel .panel-heading .label,
-#sidebar .panes .pane-settings .panel .react-toggle
+#sidebar .panes .pane-settings .panel .react-toggle,
+.form-group.toggle-right .react-toggle
 {
     float:right
 }

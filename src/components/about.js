@@ -101,7 +101,7 @@ class Lifesaver extends React.Component
 
         return <ButtonToolbar>
           {button}
-           <div><Toggle defaultChecked={getDebug()} onChange={this.props.handleDebug} />Enable debug logger</div>
+           <div className="form-group toggle-right"><Toggle defaultChecked={getDebug()} onChange={this.props.handleDebug} /><label>Enable debug logger</label></div>
           <Button bsSize="xs" bsStyle="warning" onClick={(e) => { this.props.handleRefresh(e) }}><Icon name="refresh" /> Refresh window</Button>
           <Button bsSize="xs" bsStyle="danger" onClick={(e) => { this.props.handleReset(e) }}><Icon name="bolt" /> Reset to factory defaults</Button>
         </ButtonToolbar>
