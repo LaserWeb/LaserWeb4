@@ -285,7 +285,14 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
                         <hr/>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
+                        <hr/> 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
+                        <div>
+                        Jog XY using Numpad <Label>2</Label> <Label>4</Label> <Label>6</Label> <Label>8</Label><br/>
+                        Jog Z using Numpad <Label>+</Label> <Label>-</Label><br/>
+                        Jog A using Numpad <Label>*</Label> <Label>/</Label>
+                        </div>
+                        <hr/>
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad' }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                         <hr/>
