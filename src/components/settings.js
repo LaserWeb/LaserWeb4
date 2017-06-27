@@ -287,13 +287,17 @@ class Settings extends React.Component {
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
                         <hr/> 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
-                        <div>
+                        <p className="help-block">
                         Jog XY using Numpad <Label>2</Label> <Label>4</Label> <Label>6</Label> <Label>8</Label><br/>
                         Jog Z using Numpad <Label>+</Label> <Label>-</Label><br/>
                         Jog A using Numpad <Label>*</Label> <Label>/</Label>
-                        </div>
+                        </p>
                         <hr/>
+                        
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad' }} />
+                        <p className="help-block">Gamepad for jogging. Use analog left stick to move on Jog tab.</p>
+                        <hr/>
+
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                         <hr/>
                         <p className="help-block">Enable Display cache. Disable animations.</p>
