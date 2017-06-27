@@ -256,13 +256,19 @@ function NumberInput(props) {
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
+function RangeInput(props) {
+    return function({ op, field, onChangeValue, ...rest }){
+        return <div className="rangeInput"><code>{op[field.name]}</code><input type='range' value={op[field.name]} onChange={e => onChangeValue(e.target.value)} {...{...props}}/></div>
+    }
+}
+
 const ImageFilterControls={
     smoothing:      { name: 'smoothing', label: 'Smoothing',  input: ToggleInput },                                // lw.raster-to-gcode: Smoothing the input image ?
-    brightness:     { name: 'brightness',label: 'Brightness',  input: NumberInput, ...checkRange(-255, 255) },   // lw.raster-to-gcode: Image brightness [-255 to +255]
-    contrast:       { name: 'contrast', label: 'Contrast',  input: NumberInput, ...checkRange(-255, 255) },         // lw.raster-to-gcode: Image contrast [-255 to +255]
-    gamma:          { name: 'gamma',label: 'Gamma', units: '', input: NumberInput, ...checkRange(0, 7.99) },                    // lw.raster-to-gcode: Image gamma correction [0.01 to 7.99]
+    brightness:     { name: 'brightness',label: 'Brightness',  input: RangeInput({min:-255, max:255}), ...checkRange(-255, 255) },   // lw.raster-to-gcode: Image brightness [-255 to +255]
+    contrast:       { name: 'contrast', label: 'Contrast',  input: RangeInput({min:-255, max:255}), ...checkRange(-255, 255) },         // lw.raster-to-gcode: Image contrast [-255 to +255]
+    gamma:          { name: 'gamma',label: 'Gamma', units: '', input: RangeInput({min:0, max:7.99}), ...checkRange(0, 7.99) },                    // lw.raster-to-gcode: Image gamma correction [0.01 to 7.99]
     grayscale:      { name: 'grayscale',label: 'Grayscale', units: '', input: EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']) },                             // lw.raster-to-gcode: Graysale algorithm [none, average, luma, luma-601, luma-709, luma-240, desaturation, decomposition-[min|max], [red|green|blue]-chanel]
-    shadesOfGray:   { name: 'shadesOfGray', label: 'Shades', units: '', input: NumberInput, ...checkRange(2, 256) },      // lw.raster-to-gcode: Number of shades of gray [2-256]
+    shadesOfGray:   { name: 'shadesOfGray', label: 'Shades', units: '', input: RangeInput({min:2, max:255}), ...checkRange(2, 256) },      // lw.raster-to-gcode: Number of shades of gray [2-256]
     invertColor:    { name: 'invertColor', label: 'Invert Color', units: '', input: ToggleInput },                         // lw.raster-to-gcode
 }
 
