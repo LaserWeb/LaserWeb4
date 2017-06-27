@@ -195,7 +195,7 @@ class FloatingControls extends React.Component {
         super(props)
         this.handleDrag = this.handleDrag.bind(this)
         this.handleStop = this.handleStop.bind(this)
-        
+
         this.state = {
             linkScale: true,
             degrees: 45,
@@ -203,7 +203,7 @@ class FloatingControls extends React.Component {
         }
     }
     componentWillMount() {
-        
+
         this.linkScaleChanged = e => {
             this.setState({ linkScale: e.target.checked });
         }
@@ -312,7 +312,7 @@ class FloatingControls extends React.Component {
     }
 
     handleStop(e) {
-            this.props.dispatch(setSettingsAttrs({uiFcDrag: this.state.drag}))
+        this.props.dispatch(setSettingsAttrs({ uiFcDrag: this.state.drag }))
     }
 
     render() {
@@ -358,7 +358,7 @@ class FloatingControls extends React.Component {
         let x = (p[0] / p[3] + 1) * this.props.workspaceWidth / 2 - 20 - this.props.width;
         let y = this.props.workspaceHeight - (p[1] / p[3] + 1) * this.props.workspaceHeight / 2 + 20;
 
-           
+
 
         let round = n => Math.round(n * 100) / 100;
         let hidden = !found || !this.props.camera;
@@ -373,11 +373,11 @@ class FloatingControls extends React.Component {
         }
 
         const reattach = (e) => {
-            this.props.dispatch(setSettingsAttrs({uiFcDrag: null}))
+            this.props.dispatch(setSettingsAttrs({ uiFcDrag: null }))
             this.setState({ drag: null });
         }
 
-        const constraint=(point)=>{
+        const constraint = (point) => {
             return {
                 x: Math.min(Math.max(point.x, 0), this.props.workspaceWidth - this.props.width),
                 y: Math.min(Math.max(point.y, 0), this.props.workspaceHeight - this.props.height)
@@ -385,12 +385,12 @@ class FloatingControls extends React.Component {
         }
 
         return (
-            <Draggable bounds="parent" position={constraint(this.state.drag? this.state.drag:{ x, y })} onStart={ detach } onStop={ this.handleStop } onDrag={this.handleDrag} disabled={hidden} handle=".handle">
+            <Draggable bounds="parent" position={constraint(this.state.drag ? this.state.drag : { x, y })} onStart={detach} onStop={this.handleStop} onDrag={this.handleDrag} disabled={hidden} handle=".handle">
                 <div style={{ position: "absolute", pointerEvents: hidden ? 'none' : 'all', display: hidden ? 'none' : 'block' }}>
                     <table style={{ border: '2px solid #ccc', margin: '1px', padding: '2px', backgroundColor: '#eee', }} className="floating-controls" >
                         <tbody>
                             <tr>
-                                <td title="Drag to position. DblClick to restore"><span className="handle" onDoubleClick={ reattach } style={{ color: this.state.drag ? '#00F' : '#000' }}><Icon name="arrows" /></span></td>
+                                <td title="Drag to position. DblClick to restore"><span className="handle" onDoubleClick={reattach} style={{ color: this.state.drag ? '#00F' : '#000' }}><Icon name="arrows" /></span></td>
                                 <td>Min</td>
                                 <td>Center</td>
                                 <td>Max</td>
