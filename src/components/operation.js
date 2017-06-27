@@ -336,7 +336,7 @@ const FieldContextMenu = (id = uuid.v4()) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
-        return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+        return <div title="Right click or press long to popup context menu"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
 }
 
