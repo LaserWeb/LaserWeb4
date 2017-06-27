@@ -288,9 +288,9 @@ class Settings extends React.Component {
                         <hr/> 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
                         X <Label>4</Label> <Label>6</Label><br/>
-                        Y using Numpad <Label>2</Label> <Label>8</Label><br/>
-                        Z using Numpad <Label>+</Label> <Label>-</Label><br/>
-                        A using Numpad <Label>*</Label> <Label>/</Label>
+                        Y <Label>2</Label> <Label>8</Label><br/>
+                        Z <Label>+</Label> <Label>-</Label><br/>
+                        A <Label>*</Label> <Label>/</Label>
                         </p>,"Jog using Numpad")}} />
                         
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">Gamepad for jogging. Use analog left stick to move on Jog tab.</p>) }} />
