@@ -7,7 +7,7 @@ import 'react-toggle/style.css';
 import '../styles/forms.css';
 import Select from 'react-select'
 
-import { Tooltip, Overlay, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox, Button } from 'react-bootstrap';
+import { Tooltip, Overlay, OverlayTrigger, Popover, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox, Button, Label } from 'react-bootstrap';
 import Icon from './font-awesome';
 
 // <input> for text and number fields
@@ -179,13 +179,13 @@ export class SelectField extends React.Component {
 }
 
 
-export function ToggleField({object, field, description, units = "", setAttrs, dispatch, ...rest}) {
+export function ToggleField({object, field, description, units = "", setAttrs, dispatch, info, ...rest}) {
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <div >
         <Toggle id={"toggle_" + object.id + "_" + field} defaultChecked={object[field] == true} onChange={e => dispatch(setAttrs({ [field]: e.target.checked }, object.id))} />
-        <label htmlFor={"toggle_" + object.id + "_" + field}>{description}</label>
+        <label htmlFor={"toggle_" + object.id + "_" + field}>{description}</label> {info}
     </div>
 
     return <TooltipFormGroup validationState={errors ? "error" : undefined}
@@ -345,3 +345,9 @@ QuadrantField = connect()(QuadrantField);
 CheckBoxListField = connect()(CheckBoxListField);
 SelectField = connect()(SelectField);
 InputRangeField = connect()(InputRangeField);
+
+
+export function Info(content,title='Help',alignment='right') {
+    let pop=<Popover id={"popover-positioned-"+alignment} title={title}>{content}</Popover>
+    return <OverlayTrigger trigger="focus" placement="right" overlay={pop}><Button bsSize="xsmall" bsStyle="link" style={{color:"blue", cursor:'pointer'}}><Icon name="question-circle"/></Button></OverlayTrigger>
+}

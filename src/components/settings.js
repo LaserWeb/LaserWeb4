@@ -15,7 +15,7 @@ import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField, Info } from './forms';
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
@@ -286,18 +286,15 @@ class Settings extends React.Component {
                         <hr/>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
                         <hr/> 
-                        <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad' }} />
-                        <p className="help-block">
-                        Jog XY using Numpad <Label>2</Label> <Label>4</Label> <Label>6</Label> <Label>8</Label><br/>
-                        Jog Z using Numpad <Label>+</Label> <Label>-</Label><br/>
-                        Jog A using Numpad <Label>*</Label> <Label>/</Label>
-                        </p>
-                        <hr/>
+                        <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
+                        X <Label>4</Label> <Label>6</Label><br/>
+                        Y using Numpad <Label>2</Label> <Label>8</Label><br/>
+                        Z using Numpad <Label>+</Label> <Label>-</Label><br/>
+                        A using Numpad <Label>*</Label> <Label>/</Label>
+                        </p>,"Jog using Numpad")}} />
                         
-                        <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad' }} />
-                        <p className="help-block">Gamepad for jogging. Use analog left stick to move on Jog tab.</p>
-                        <hr/>
-
+                        <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">Gamepad for jogging. Use analog left stick to move on Jog tab.</p>) }} />
+                        
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                         <hr/>
                         <p className="help-block">Enable Display cache. Disable animations.</p>
