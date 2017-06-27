@@ -224,7 +224,7 @@ Cam = connect(
             dispatch(setGcode(""))
         },
         resetWorkspace: () => {
-            confirm("Are you sure?", () => { dispatch(resetWorkspace()); })
+            confirm("Are you sure?", (data) => { if (data) dispatch(resetWorkspace()); })
         },
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
