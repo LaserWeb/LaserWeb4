@@ -304,20 +304,25 @@ class Com extends React.Component {
             serverConnected = true;
             machineConnected = true;
             let {x, y, z, a} = wOffset;
+                x=Number(x)
+                y=Number(y)
+                z=Number(z)
+                a=Number(a)
+              
             let posChanged = false;
-            if ((xOffset !== x) && (xOffset || x)) {
+            if ((xOffset !== x) && !isNaN(x)) {
                 xOffset = x;
                 posChanged = true;
             }
-            if ((yOffset !== y) && (yOffset || y)) {
+            if ((yOffset !== y) && !isNaN(y)) {
                 yOffset = y;
                 posChanged = true;
             }
-            if ((zOffset !== z) && (zOffset || z)) {
+            if ((zOffset !== z) && !isNaN(z)) {
                 zOffset = z;
                 posChanged = true;
             }
-            if ((aOffset !== a) && (aOffset || a)) {
+            if ((aOffset !== a) && !isNaN(a)) {
                 aOffset = a;
                 posChanged = true;
             }
