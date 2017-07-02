@@ -741,6 +741,19 @@ export function gotoZero(axis) {
     }
 }
 
+export function setPosition(data) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Set position to ' + JSON.stringify(data), CommandHistory.INFO);
+            socket.emit('setPosition', data);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
 export function home(axis) {
     if (serverConnected) {
         if (machineConnected){
