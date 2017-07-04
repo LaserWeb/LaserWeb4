@@ -23,6 +23,7 @@ import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
 import { bindKeys, unbindKeys } from './keyboard'
 import Gamepad from 'gamepad.js';
+import { OmrJog } from './omr';
 
 var ovStep = 1;
 var ovLoop;
@@ -281,6 +282,11 @@ class Jog extends React.Component {
 
         console.log('setZero(' + axis + ')');
         setZero(axis);
+    }
+
+    setPosition(pos) {
+        console.log('setPosition(' + JSON.stringify(pos) + ')');
+        setPosition(pos)
     }
 
     gotoZero(axis) {
@@ -817,9 +823,10 @@ class Jog extends React.Component {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td colSpan="5">
+                                        <td colSpan="5" className="hr" style={{textAlign:"left"}} >
                                             <LiveJogging {... this.state.liveJogging}
                                             onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
+                                            {this.props.settings.toolVideoOMR? <OmrJog onSetPosition={(pos) => this.setPosition(pos)} />:undefined}
                                         </td>
                                     </tr>
                                 </tbody>

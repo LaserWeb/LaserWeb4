@@ -8,13 +8,13 @@ import Rnd from 'react-rnd';
 import Icon from './font-awesome'
 import Select from 'react-select'
 import Toggle from 'react-toggle'
-import { FormGroup, InputGroup, ControlLabel, Button } from 'react-bootstrap'
+import { FormGroup, InputGroup, ControlLabel, Button, FormControl } from 'react-bootstrap'
 
 import '../styles/webcam.css';
 
 import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution } from '../lib/video-capture'
 
-
+import { openDataWindow } from '../lib/helpers';
 
 export class VideoDeviceField extends React.Component {
 
@@ -103,10 +103,24 @@ VideoResolutionField.defaultProps = {
 export class VideoPort extends React.Component {
 
     componentDidMount() {
+        this.__mounted=true;
         this.enableVideo()
     }
     componentDidUpdate(prevProps) {
         this.enableVideo();
+    }
+
+    componentWillUnmount()
+    {
+        this.__mounted=false;
+    }
+
+    shouldComponentUpdate(nextProps)
+    {
+        return nextProps.toolVideoDevice !== this.props.toolVideoDevice ||
+               nextProps.toolVideoResolution !== this.props.toolVideoResolution ||
+               nextProps.enabled !== this.props.enabled
+               
     }
 
     enableVideo() {
@@ -117,12 +131,42 @@ export class VideoPort extends React.Component {
             if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
                 requestAnimationFrame(enable);
 
-            const myvideo = selfNode.querySelector('video')
-
-            if (this.props.enabled && myvideo) {
+            if (this.props.enabled) {
                 const stream = window.videoCapture.getStream();
-                if (myvideo.srcObject !== stream)
-                    myvideo.srcObject = stream
+                const { width, height } = getVideoResolution(this.props.settings.toolVideoResolution)
+                if (this.props.useCanvas){
+                    const display=ReactDOM.findDOMNode(this.refs['display'])
+                    const myvideo=document.createElement('video')
+                          myvideo.autoplay=true;
+                          myvideo.width=width
+                          myvideo.height=height;
+                          display.width=width;
+                          display.height=height;
+
+                    if (myvideo.srcObject !== stream)
+                        myvideo.srcObject = stream
+
+                    const draw=function(){
+                        if (this.__mounted && display && this.props.enabled) {
+                            let context = display.getContext('2d');
+                                context.drawImage(myvideo, 0, 0);
+
+                            if (this.props.canvasProcess)
+                                this.props.canvasProcess(display, this.props.settings);
+                            
+                            requestAnimationFrame(draw)
+                        }
+                    }.bind(this);
+                    if (this.__mounted)
+                        draw();
+                } else {
+                    const myvideo=ReactDOM.findDOMNode(this.refs['display'])
+                          myvideo.srcObject=stream;
+                          myvideo.autoplay=true;
+                          myvideo.width=width
+                          myvideo.height=height;
+                }
+
                 selfNode.style.display = 'block'
             } else {
                 selfNode.style.display = 'none'
@@ -132,14 +176,14 @@ export class VideoPort extends React.Component {
         try {
             enable();
         } catch (e) {
-
+            throw e;
         }
     }
     
     render() {
 
-        let video = <video ref="videoport" style={{ width: '100%' }} autoPlay />;
-
+        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}}/> : <video ref="display" style={{width:"100%",height:"auto"}}/>
+       
         if (this.props.draggable) {
             return <Rnd
                 ref={c => { this.rnd = c; }}
@@ -153,10 +197,10 @@ export class VideoPort extends React.Component {
                 maxHeight={600}
                 lockAspectRatio={true}
                 bounds={this.props.draggable}
-                zIndex={10000}
-            >{video}</Rnd>
+                zIndex={800}
+            >{element}</Rnd>
         } else {
-            return <div>{video}</div>;
+            return <div>{element}</div>;
         }
     }
 }
@@ -170,3 +214,39 @@ VideoPort.defaultProps = {
 VideoDeviceField = connect(null, (dispatch => { return { dispatch } }))(VideoDeviceField);
 VideoResolutionField = connect(null, (dispatch => { return { dispatch } }))(VideoResolutionField);
 VideoPort = connect(state=>({settings: state.settings}))(VideoPort)
+
+export const ArMarker=require('aruco-marker');
+
+const randomIntFromInterval=(min,max)=>{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+export class ArucoMarker extends React.Component {
+
+    constructor(props){
+        super(props)
+        this.state={number: randomIntFromInterval(0,1024)}
+    }
+    render(){
+
+        const rand=()=>{this.setState({number: randomIntFromInterval(0,1024)})}
+        const setNumber=(e)=>{this.setState({number: e.target.value})}
+        const popupMarker=(e)=>{
+            let myMarker = new ArMarker(this.state.number);
+            let svg=myMarker.toSVG('500px');
+            openDataWindow(svg,'image/svg+xml','arucomarker')
+        }
+
+        return <FormGroup>
+        <InputGroup>
+            <InputGroup.Button>
+            <Button bsStyle="info" onClick={rand}><Icon name="random"/></Button>
+            </InputGroup.Button>
+            <FormControl type="number" placeholder="0 to 1024" min="0" max="1024" value={this.state.number} onChange={setNumber} />
+            <InputGroup.Button>
+            <Button bsStyle="primary" onClick={popupMarker}>Generate Marker</Button>
+            </InputGroup.Button>
+        </InputGroup>
+        </FormGroup>
+    }
+}

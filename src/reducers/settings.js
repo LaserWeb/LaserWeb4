@@ -101,6 +101,10 @@ export const SETTINGS_INITIALSTATE = {
     toolVideoLens: { a: 1, b: 1, F: 1, scale: 1 },
     toolVideoFov: { x: 1, y: 1 },
     toolVideoResolution: "720p(HD)",
+    
+    toolVideoOMR: false,
+    toolVideoOMROffsetX: 0,
+    toolVideoOMROffsetY: 0,
 
     toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',

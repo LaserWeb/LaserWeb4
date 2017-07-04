@@ -680,3 +680,6 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 
 .rangeInput { margin: 5px; display:flex; flex-direction: row }
 .rangeInput input { flex-grow: 1}
+
+
+.hr {border-top: 1px solid rgba(0,0,0,0.1); margin-top:5px}

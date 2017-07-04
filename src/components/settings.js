@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { VideoDeviceField, VideoPort, VideoResolutionField } from './webcam';
+import { VideoDeviceField, VideoPort, VideoResolutionField, ArucoMarker } from './webcam';
 
 import { alert, prompt, confirm } from './laserweb';
 
@@ -312,6 +312,20 @@ class Settings extends React.Component {
                         <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
+                        <hr/>
+                        <ToggleField  {... { object: this.props.settings, field: 'toolVideoOMR', setAttrs: setSettingsAttrs, description: 'Activate OMR', info: Info(<p className="help-block">
+                        Enabling this, ARUCO markers will be recognized by floating camera port, allowing stock alignment. <Label bsStyle="warning">Experimental!</Label>
+                        </p>,"Optical Mark Recognition"), disabled:!this.props.settings['toolVideoDevice'] }} />
+
+                        <Collapse in={this.props.settings.toolVideoOMR}>
+                            <div>
+                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetX', setAttrs: setSettingsAttrs, description: 'Camera offset X',  }} />
+                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetY', setAttrs: setSettingsAttrs, description: 'Camera offset Y', }} />
+                                <ArucoMarker />
+                            </div>
+                        </Collapse>
+
+                        
                     </Panel>
 
                     <Panel collapsible header="Macros" bsStyle="info" eventKey="7">

@@ -40,6 +40,7 @@
   "homepage": "https://github.com/openhardwarecoza/LaserWeb4#readme",
   "devDependencies": {
     "array-move": "^1.0.0",
+    "aruco-marker": "^2.0.0",
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
