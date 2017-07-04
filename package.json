@@ -100,6 +100,7 @@
     "react-dom": "^15.3.1",
     "react-draggable": "^2.2.3",
     "react-hot-loader": "^3.0.0-beta.4",
+    "react-nested-file-tree": "0.0.4",
     "react-redux": "^4.4.5",
     "react-rnd": "^4.2.2",
     "react-select": "^1.0.0-rc.2",

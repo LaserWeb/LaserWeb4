@@ -1,0 +1,16 @@
+.file-manager { font-size: 0.8em}
+.file-manager ul, li {margin:0; padding:0}
+.file-manager ul {list-style: none}
+.file-manager a {
+    border-radius: 2px;
+    border-left: 4px solid transparent;
+    display: block;
+    color: inherit;
+    margin-bottom: 3px;
+    padding: 3px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.file-manager .active { background: #0A93FF }
+.file-manager li ul { margin-left: 18px } 
+.file-manager > div,.file-manager > div> div  {height: 100%; overflow: auto}

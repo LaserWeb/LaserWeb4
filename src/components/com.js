@@ -14,6 +14,8 @@ import { alert, prompt, confirm} from './laserweb';
 
 import Icon from './font-awesome';
 
+import { FileManagerButton } from './file-manager';
+
 import io from 'socket.io-client';
 var socket, connectVia;
 var serverConnected = false;
@@ -512,6 +514,10 @@ class Com extends React.Component {
                             <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
+                    </Panel>
+                    
+                    <Panel collapsible header="File Manager" bsStyle="primary" eventKey="3" defaultExpanded={true}>
+                        <FileManagerButton>FileManager</FileManagerButton>
                     </Panel>
                 </PanelGroup>
             </div>
