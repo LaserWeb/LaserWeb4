@@ -564,9 +564,10 @@ class MaterialDatabasePicker extends React.Component {
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
+                                    let disabled= !!this.props.types || !this.props.types.includes(op.type);
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
-                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
+                                        header={<Button disabled={disabled} bsStyle="success" bsSize="xsmall" title={disabled? 'Operation Documents not compatible with this type':undefined } onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
                                     >
                                         <table className="table table-sm">
                                             <tbody>
@@ -780,7 +781,7 @@ export class MaterialPickerButton extends React.Component {
         if (this.state.shiftKey) className += ' btn-warning'
         return (
             <Button bsStyle="primary" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
-                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
+                <MaterialDatabasePicker types={this.props.types} show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
             </Button>
         )
     }
