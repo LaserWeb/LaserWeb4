@@ -202,12 +202,20 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { return { ...vendor, _locked: true } });
+                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { 
+                    return  (vendor._locked!==false) ? { ...vendor, _locked: true } : vendor
+                });
+                let currentState = action.payload.materialDatabase || []
                 let v = new Validator();
-                let result =  v.validate(action.payload.materialDatabase || {},MATERIALDB_SCHEMA);
+                let result =  v.validate(currentState,MATERIALDB_SCHEMA);
 
                 if (result.valid) {
-                    return Object.assign(action.payload.materialDatabase || {}, lockedState);
+                    if (currentState.length) {
+                        lockedState.forEach((l,i)=>{ if (l._locked && !currentState.find((f)=>{ return f.id == l.id })) currentState=[l, ...currentState];})
+                    } else {
+                        currentState=lockedState;
+                    }
+                    return oldstate;
                 } else {
                     CommandHistory.error("Material Database corrupt/obsolete. Restoring.")
                     console.error(result);

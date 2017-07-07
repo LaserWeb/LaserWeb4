@@ -1180,7 +1180,8 @@ class WorkspaceContent extends React.Component {
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
             nextProps.mode !== this.props.mode ||
-            nextProps.workspace.cursorPos !== this.props.workspace.cursorPos
+            nextProps.workspace.cursorPos !== this.props.workspace.cursorPos ||
+            nextProps.simTime !== this.props.workspace.simTime
         );
     }
 
