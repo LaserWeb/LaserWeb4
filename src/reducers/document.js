@@ -2,7 +2,7 @@
 
 import { mat2d, mat3, vec3 } from 'gl-matrix';
 import uuid from 'node-uuid';
-import Snap from 'snapsvg-cjs';
+import Snap from 'snapsvg';
 
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
 import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentIds, reduceParents } from '../reducers/object'
