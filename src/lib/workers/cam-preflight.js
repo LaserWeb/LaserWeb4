@@ -7,6 +7,7 @@ self.onmessage = (event) => {
 
     let { settings, opIndex, op, geometry, openGeometry, tabGeometry, documents } = event.data;
 
+    const filteredDocIds = new Set();
     const docsWithImages = []
 
     function matchColor(filterColor, color) {
@@ -22,22 +23,26 @@ self.onmessage = (event) => {
         if (doc.rawPaths) {
             jobs.push((cb) => {
                 if (isTab) {
-                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]));
+                    tabGeometry = union(tabGeometry, rawPathsToClipperPaths(doc.rawPaths, doc.transform2d));
                 } else if (matchColor(op.filterFillColor, doc.fillColor) && matchColor(op.filterStrokeColor, doc.strokeColor)) {
-                    let isClosed = false;
-                    for (let rawPath of doc.rawPaths)
-                        if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
-                            isClosed = true;
-                    let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.scale[0], doc.scale[1], doc.translate[0], doc.translate[1]);
-                    if (isClosed)
-                        geometry = xor(geometry, clipperPaths);
-                    else if (!op.filterFillColor)
-                        openGeometry = openGeometry.concat(clipperPaths);
+                    filteredDocIds.add(doc.id);
+                    if (!op.type.includes('Raster')) {
+                        let isClosed = false;
+                        for (let rawPath of doc.rawPaths)
+                            if (rawPath.length >= 4 && rawPath[0] == rawPath[rawPath.length - 2] && rawPath[1] == rawPath[rawPath.length - 1])
+                                isClosed = true;
+                        let clipperPaths = rawPathsToClipperPaths(doc.rawPaths, doc.transform2d);
+                        if (isClosed)
+                            geometry = xor(geometry, clipperPaths);
+                        else if (!op.filterFillColor)
+                            openGeometry = openGeometry.concat(clipperPaths);
+                    }
                 }
                 cb()
             })
         }
         if (doc.type === 'image' && !isTab) {
+            filteredDocIds.add(doc.id);
             docsWithImages.push(doc)
         }
         for (let child of doc.children)
@@ -64,6 +69,6 @@ self.onmessage = (event) => {
         }
     }
 
-    postMessage({ event: "onDone", settings, opIndex, op, geometry, openGeometry, tabGeometry, docsWithImages })
+    postMessage({ event: "onDone", settings, opIndex, op, geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages })
     self.close();
 }

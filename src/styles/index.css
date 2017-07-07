@@ -81,7 +81,7 @@ body, html, .full-height {
 }
 
 .floating-controls {
-    background-color: white;
+    background-color: white; z-index:950
 }
 
 .floating-controls td {
@@ -178,13 +178,15 @@ body, html, .full-height {
 }
 
 #sidebar .panes .pane-settings .panel .panel-heading .label,
-#sidebar .panes .pane-settings .panel .react-toggle
+#sidebar .panes .pane-settings .panel .react-toggle,
+.form-group.toggle-right .react-toggle
 {
     float:right
 }
 
 .form-group .input-group-addon ,
-.form-group label { text-transform: uppercase; font-size: smaller}
+.form-group label, h5.header { text-transform: uppercase; font-size: smaller; }
+h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
 
@@ -311,19 +313,21 @@ body, html, .full-height {
 }
 
 /*Command History*/
-.commandHistory {padding-top: 4px; position:relative; margin-bottom: 4px; padding-bottom:2em; background: #ffffff; border: 1px solid #ccc; border-radius:4px}
+.commandHistory {padding-top: 4px; position:relative; margin-bottom: 4px; padding-bottom:2em; background: #ffffff; border: 1px solid #ccc; border-radius:4px; overflow: hidden; width: 1%;}
 .commandHistory .code:empty:before { font-size: 0.8em; content:"empty command history"; color: #ccc;}
-.commandHistory .code { height: 10em; display:block;  overflow:auto;  white-space: pre; background: none}
+.commandHistory .code { height: 10em; display:block;  overflow:auto;  background: none}
 .commandHistory .form {position:absolute; bottom: 0; width: 100%; display:flex; align-items: center; border-top: 1px dotted #f6f6f6}
 .commandHistory input[type="text"] {width: 100%; background: none; border:none}
 .commandHistory .toolbar { padding-right: 4px; white-space:nowrap;  }
-.commandHistory code {display:block; font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace; white-space: pre}
+.commandHistory code {display:block;  font-size: 0.7em; background: none; color: black; border-bottom: 1px dotted #f6f6f6; font-family: 'Inconsolata', monospace;  padding-left:1em; margin-left: 0.25em }
+.commandHistory code i {margin-left: -1em}
 .commandHistory code.danger {background: #fee}
 .commandHistory code.danger i {color: red}
 .commandHistory code.warning {background: #ffa}
 .commandHistory code.warning i {color: #f90}
 .commandHistory code.success {background: #efe}
 .commandHistory code.success i {color: #0a0}
+.commandHistory details {display:inline-block}
 
 /*FullSizeModal*/
 
@@ -609,12 +613,13 @@ button:hover,
 .scale50{
     -ms-transform: scale(0.5, 0.5); /* IE 9 */
     -webkit-transform: scale(0.5, 0.5); /* Safari */
-    transform: scale(0.5, 0.5);
+    transform: scale(0.5, 0.5); transform-origin: left center;
 }
 .scale75 {
     -ms-transform: scale(0.75, 0.75); /* IE 9 */
     -webkit-transform: scale(0.75, 0.75); /* Safari */
     transform: scale(0.75, 0.75);
+    transform-origin: left center;
 }
 
 #ApplicationSnapshot > section {margin-bottom: 0.5em}
@@ -634,3 +639,44 @@ button:hover,
 }
 
 canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'none'; box-shadow: 10px 10px 10px rgba(0,0,0,0.5); border: 1px solid #666; padding: 10px}
+
+
+.trace-image .showroom {display:flex; flex-direction: row; align-items: center;}
+.trace-image .showroom > * {
+    flex-grow: 1; max-width: 50%; max-height:400px; border: 5px solid #eee
+}
+.trace-image .controls {display:flex; flex-direction: row; align-items: flex-start;}
+.trace-image .controls > div {
+     width: 50%; 
+}
+.trace-image .controls > div + div { padding: 0 5px}
+.trace-image .controls > div > div {display: flex; flex-direction: row; align-items: flex-start; align-content: flex-start}
+.trace-image .controls > div > div > * {
+    flex-grow: 1; width: 50%
+}
+
+
+
+.checker {
+    background-image:
+      -moz-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%), 
+      -moz-linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+      -moz-linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.1) 75%),
+      -moz-linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.1) 75%);
+    background-image:
+      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)), 
+      -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)),
+      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1))),
+      -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1)));
+
+    -moz-background-size:50px 50px;
+    background-size:50px 50px;
+    -webkit-background-size:50px 51px; 
+    
+    background-position:0 0, 25px 0, 25px -25px, 0px 25px;
+}
+
+.react-draggable { z-index:900 }
+
+.rangeInput { margin: 5px; display:flex; flex-direction: row }
+.rangeInput input { flex-grow: 1}

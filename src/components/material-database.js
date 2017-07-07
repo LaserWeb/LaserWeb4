@@ -205,7 +205,7 @@ class GroupsPane extends React.Component {
                     <div className="listing">
                         {this.props.items.map((item, i) => {
                             return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
-                                <h5 title={item._locked ? "This grouping is locked. Will be reset on next application start." : undefined} >{item.name} {item._locked ? <Icon name="lock" /> : undefined} </h5>
+                                <h5 title={item._locked ? "This grouping is locked. Will be reset on next application start." : undefined} >{item.name} {item._locked===true ? <Icon name="lock" /> : (item._locked===false ? <Icon name="gift" /> : undefined)}</h5>
                                 <small>{item.notes}</small>
                             </heading>
                         })}
@@ -564,9 +564,10 @@ class MaterialDatabasePicker extends React.Component {
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
+                                    let disabled= !!this.props.types || !this.props.types.includes(op.type);
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
-                                        header={<Button bsStyle="success" bsSize="xsmall" onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
+                                        header={<Button disabled={disabled} bsStyle="success" bsSize="xsmall" title={disabled? 'Operation Documents not compatible with this type':undefined } onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
                                     >
                                         <table className="table table-sm">
                                             <tbody>
@@ -780,7 +781,7 @@ export class MaterialPickerButton extends React.Component {
         if (this.state.shiftKey) className += ' btn-warning'
         return (
             <Button bsStyle="primary" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
-                <MaterialDatabasePicker show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
+                <MaterialDatabasePicker types={this.props.types} show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
             </Button>
         )
     }

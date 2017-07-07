@@ -54,7 +54,9 @@ class MachineProfile extends React.Component {
     }
     
     handleAppend(e){
-        this.props.dispatch(addMachineProfile(this.state.newSlug, {machineLabel: this.state.newLabel, settings: this.props.settings}))
+        if (this.state.newLabel.trim().length)
+            this.props.dispatch(addMachineProfile(this.state.newSlug, {machineLabel: this.state.newLabel, settings: this.props.settings}))
+            
         this.setState({selected: this.state.newSlug})
         
     }
@@ -120,7 +122,7 @@ class MachineProfile extends React.Component {
                         
                         <FormControl type="text" onChange={(e)=>{this.handleInput(e)}} ref="newLabel" value={this.state.newLabel}/>
                         <InputGroup.Button>
-                        <Button bsClass="btn btn-success" onClick={(e)=>{this.handleAppend(e)}}><Glyphicon glyph="plus-sign" /></Button>
+                        <Button bsClass="btn btn-success" disabled={!this.state.newLabel.trim().length} onClick={(e)=>{this.handleAppend(e)}}><Glyphicon glyph="plus-sign" /></Button>
                         </InputGroup.Button>
                      </InputGroup>
                      

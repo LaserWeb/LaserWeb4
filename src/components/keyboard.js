@@ -5,10 +5,12 @@ import keyboardJS from 'keyboardjs'
 
 export const keyboardLogger = keyboardJS;
 
-export const bindKeys=(keys)=>{
-    keys.forEach((entry)=>{
-        let [keybinding,method] = entry;
-       keyboardLogger.bind(keybinding.filter((i)=>(i!==undefined)),method)
+export const bindKeys=(keys, context='global')=>{
+    keyboardLogger.withContext(context, () => {
+        keys.forEach((entry)=>{
+            let [keybinding,method] = entry;
+            keyboardLogger.bind(keybinding.filter((i)=>(i!==undefined)),method)
+        })
     })
 }
 

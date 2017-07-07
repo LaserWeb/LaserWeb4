@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const parsedStride = 9;
-const drawStride = 7;
+const drawStride = 8;
 
 export function gcode(drawCommands) {
     let program = drawCommands.compile({
@@ -22,7 +22,8 @@ export function gcode(drawCommands) {
             precision mediump float;
             uniform mat4 perspective; 
             uniform mat4 view;
-            attribute vec3 position;
+            uniform float rotaryScale;
+            attribute vec4 position;
             attribute float g;
             attribute float t;
             attribute float g0Dist;
@@ -31,7 +32,7 @@ export function gcode(drawCommands) {
             varying float vg0Dist;
             varying float vg1Time;  
             void main() {
-                gl_Position = perspective * view * vec4(position, 1);
+                gl_Position = perspective * view * vec4(position.x, position.y + position.a * rotaryScale, position.z, 1);
                 if(g == 0.0)
                     color = vec4(0.0, 0.7, 0.0, 1.0);
                 else if(t == 1.0)
@@ -66,16 +67,16 @@ export function gcode(drawCommands) {
         attrs: {
             g: { offset: 0, },
             position: { offset: 4, },
-            t: { offset: 16, },
-            g0Dist: { offset: 20, },
-            g1Time: { offset: 24, },
+            t: { offset: 20, },
+            g0Dist: { offset: 24, },
+            g1Time: { offset: 28, },
         },
     });
-    return ({perspective, view, g0Rate, simTime, data, count}) => {
+    return ({ perspective, view, g0Rate, simTime, rotaryDiameter, data, count }) => {
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.LINES,
-            uniforms: { perspective, view, g0Rate, simTime },
+            uniforms: { perspective, view, g0Rate, simTime, rotaryScale: rotaryDiameter * Math.PI / 360 },
             buffer: {
                 data,
                 stride: drawStride * 4,
@@ -87,14 +88,25 @@ export function gcode(drawCommands) {
 } // gcode
 
 export class GcodePreview {
+    constructor() {
+        this.arrayVersion = 0;
+    }
+
     setParsedGcode(parsed) {
         this.arrayChanged = true;
+        ++this.arrayVersion;
         if (parsed.length < 2 * parsedStride) {
             this.array = null;
             this.g0Dist = 0;
             this.g1Time = 0;
         } else {
             let array = new Float32Array((parsed.length - parsedStride) / parsedStride * drawStride * 2);
+            this.minX = Number.MAX_VALUE;
+            this.maxX = -Number.MAX_VALUE;
+            this.minY = Number.MAX_VALUE;
+            this.maxY = -Number.MAX_VALUE;
+            this.minA = Number.MAX_VALUE;
+            this.maxA = -Number.MAX_VALUE;
 
             let g0Dist = 0, g1Time = 0;
             for (let i = 0; i < parsed.length / parsedStride - 1; ++i) {
@@ -118,16 +130,21 @@ export class GcodePreview {
                 // s
                 let t = parsed[i * parsedStride + 8];
 
-                y1 += a1;
-                y2 += a2;
+                this.minX = Math.min(this.minX, x1, x2);
+                this.maxX = Math.max(this.maxX, x1, x2);
+                this.minY = Math.min(this.minY, y1, y2);
+                this.maxY = Math.max(this.maxY, y1, y2);
+                this.minA = Math.min(this.minA, a1, a2);
+                this.maxA = Math.max(this.maxA, a1, a2);
 
                 array[i * drawStride * 2 + 0] = g;
                 array[i * drawStride * 2 + 1] = x1;
                 array[i * drawStride * 2 + 2] = y1;
                 array[i * drawStride * 2 + 3] = z1;
-                array[i * drawStride * 2 + 4] = t;
-                array[i * drawStride * 2 + 5] = g0Dist;
-                array[i * drawStride * 2 + 6] = g1Time;
+                array[i * drawStride * 2 + 4] = a1;
+                array[i * drawStride * 2 + 5] = t;
+                array[i * drawStride * 2 + 6] = g0Dist;
+                array[i * drawStride * 2 + 7] = g1Time;
 
                 let dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
                 if (g)
@@ -135,13 +152,14 @@ export class GcodePreview {
                 else
                     g0Dist += dist;
 
-                array[i * drawStride * 2 + 7] = g;
-                array[i * drawStride * 2 + 8] = x2;
-                array[i * drawStride * 2 + 9] = y2;
-                array[i * drawStride * 2 + 10] = z2;
-                array[i * drawStride * 2 + 11] = t;
-                array[i * drawStride * 2 + 12] = g0Dist;
-                array[i * drawStride * 2 + 13] = g1Time;
+                array[i * drawStride * 2 + 8] = g;
+                array[i * drawStride * 2 + 9] = x2;
+                array[i * drawStride * 2 + 10] = y2;
+                array[i * drawStride * 2 + 11] = z2;
+                array[i * drawStride * 2 + 12] = a2;
+                array[i * drawStride * 2 + 13] = t;
+                array[i * drawStride * 2 + 14] = g0Dist;
+                array[i * drawStride * 2 + 15] = g1Time;
             }
             this.array = array;
             this.g0Dist = g0Dist;
@@ -149,7 +167,7 @@ export class GcodePreview {
         }
     }
 
-    draw(drawCommands, perspective, view, g0Rate, simTime) {
+    draw(drawCommands, perspective, view, g0Rate, simTime, rotaryDiameter) {
         if (this.drawCommands !== drawCommands) {
             this.drawCommands = drawCommands;
             if (this.buffer)
@@ -171,6 +189,7 @@ export class GcodePreview {
             view,
             g0Rate,
             simTime,
+            rotaryDiameter,
             data: this.buffer,
             count: this.array.length / drawStride,
         });

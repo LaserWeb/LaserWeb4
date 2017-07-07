@@ -14,7 +14,7 @@ import { setWorkspaceAttrs } from '../actions/workspace';
 import CommandHistory from './command-history';
 
 import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
-import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, checkSize, laserTest, jog, jogTo, feedOverride, spindleOverride, resetMachine } from './com.js';
+import { runCommand, runJob, pauseJob, resumeJob, abortJob, clearAlarm, setZero, gotoZero, setPosition, home, probe, checkSize, laserTest, jog, jogTo, feedOverride, spindleOverride, resetMachine } from './com.js';
 import { MacrosBar } from './macros';
 
 import '../styles/index.css'
@@ -22,6 +22,7 @@ import Icon from './font-awesome'
 import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
 import { bindKeys, unbindKeys } from './keyboard'
+import Gamepad from 'gamepad.js';
 
 var ovStep = 1;
 var ovLoop;
@@ -54,7 +55,7 @@ class Jog extends React.Component {
 
     constructor(props) {
         super(props);
-        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled, toolUseNumpad } = this.props.settings;
+        let { jogStepsize, jogFeedXY, jogFeedZ, machineZEnabled, machineAEnabled, toolUseNumpad, toolUseGamepad } = this.props.settings;
         this.state = {
             jogStepsize: jogStepsize,
             jogFeedXY: jogFeedXY,
@@ -89,17 +90,54 @@ class Jog extends React.Component {
                 [['ctrl+alt+right',toolUseNumpad?'numdivide':undefined],this.jogAminus.bind(this)]
             ]
         }
+        
     }
 
     componentDidMount()
     {
-        bindKeys(this.bindings)
+        bindKeys(this.bindings);
+
+        if (this.props.settings.toolUseGamepad) {
+            if (!this.gamepad) {
+                this.gamepad= new Gamepad();
+                this.gamepad.on('connect', e => {
+                    CommandHistory.log(`Controller ${e.index} connected!`);
+                });
+                this.gamepad.on('disconnect', e => {
+                    CommandHistory.log(`controller ${e.index} disconnected!`);
+                });
+                let time=new Date()
+                this.gamepad.on('hold','stick_axis_left',function(e){
+                    let now=new Date();
+                    if ((now.getTime()-time.getTime())>200){
+                        time = now;
+                        let [x,y] = e.value;
+                        let jogF = this.props.settings.jogFeedXY * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
+                        let jogX = (Math.abs(x)>0.05) ?  ((x>0) ? +1:-1) : 0;
+                        let jogY = (Math.abs(y)>0.05) ?  ((y>0) ? -1:+1) : 0;
+                        let jogS =  Math.floor(Math.max(Math.abs(x), Math.abs(y))*jogF);
+                        jogTo(jogX, jogY, undefined, true, jogS);
+                    }
+                    
+                }.bind(this));
+            } else {
+                this.gamepad.resume(); 
+            }
+        } else {
+            if (this.gamepad) {
+                this.gamepad.destroy();
+                this.gamepad=null;
+            }
+        }
+
     }
 
     componentWillUnmount() {
         liveJoggingState = this.state.liveJogging;
         //
         unbindKeys(this.bindings)
+
+        if (this.gamepad) this.gamepad.pause()
     }
 
     jogRight(event) {
@@ -148,16 +186,6 @@ class Jog extends React.Component {
     escapeX( event ) {
         event.preventDefault();
         resetMachine();
-    }
-
-    homeAll() {
-        console.log('homeAll');
-        let cmd = this.props.settings.gcodeHoming;
-
-        if (!this.state.isPlaying)
-            this.setState({ liveJogging: { ... this.state.liveJogging, hasHomed: true, disabled: false } })
-
-        runCommand(cmd);
     }
 
     runCommand(e) {
@@ -222,7 +250,35 @@ class Jog extends React.Component {
         }
     }
 
+    homeAll() {
+        console.log('homeAll');
+        let cmd = this.props.settings.gcodeHoming;
+
+        if (!this.state.isPlaying)
+            this.setState({ liveJogging: { ... this.state.liveJogging, hasHomed: true, disabled: false } })
+
+        runCommand(cmd);
+    }
+
+    home(axis) {
+        console.log('home');
+        home(axis);
+    }
+
+    probe(axis) {
+        console.log('probe');
+        if (axis.indexOf('z') === 0) {
+            let offset = this.props.settings.machineZProbeOffset;
+        } else  {
+            let offset = this.props.settings.machineXYProbeOffset;
+        }
+        probe(axis, offset);
+    }
+
     setZero(axis) {
+        if (!this.state.isPlaying)
+            this.setState({ liveJogging: { ... this.state.liveJogging, hasHomed: true, disabled: false } })
+
         console.log('setZero(' + axis + ')');
         setZero(axis);
     }
@@ -397,11 +453,11 @@ class Jog extends React.Component {
                                 </button>
                                 <ul className="dropdown-menu">
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                    <li id="XProbeMin"><a href="#"><i className="fa fa-fw fa-arrow-right" aria-hidden="true"></i>Probe X Min</a></li>
-                                    <li id="XProbeMax"><a href="#"><i className="fa fa-fw fa-arrow-left" aria-hidden="true"></i>Probe X Max</a></li>
+                                    <li id="XProbeMin"><a href="#" onClick={(e) => { this.probe('x-') }}><i className="fa fa-fw fa-arrow-right" aria-hidden="true"></i>Probe X Min</a></li>
+                                    <li id="XProbeMax"><a href="#" onClick={(e) => { this.probe('x') }}><i className="fa fa-fw fa-arrow-left" aria-hidden="true"></i>Probe X Max</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                    <li id="homeX"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home X Axis</a></li>
+                                    <li id="homeX"><a href="#" onClick={(e) => { this.home('x') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home X Axis</a></li>
                                     <li id="zeroX"><a href="#" onClick={(e) => { this.setZero('x') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set X Axis Zero</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
@@ -420,11 +476,11 @@ class Jog extends React.Component {
                                 </button>
                                 <ul className="dropdown-menu">
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                    <li id="YProbeMin"><a href="#"><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe Y Min</a></li>
-                                    <li id="YProbeMax"><a href="#"><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Y Max</a></li>
+                                    <li id="YProbeMin"><a href="#" onClick={(e) => { this.probe('y-') }}><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe Y Min</a></li>
+                                    <li id="YProbeMax"><a href="#" onClick={(e) => { this.probe('y') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Y Max</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                    <li id="homeY"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Y Axis</a></li>
+                                    <li id="homeY"><a href="#" onClick={(e) => { this.home('y') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Y Axis</a></li>
                                     <li id="zeroY"><a href="#" onClick={(e) => { this.setZero('y') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Y Axis Zero</a></li>
                                     <li role="separator" className="divider"></li>
                                     <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
@@ -445,10 +501,10 @@ class Jog extends React.Component {
                                         </button>
                                         <ul className="dropdown-menu">
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                            <li id="ZProbeMin"><a href="#" ><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Z Min</a></li>
+                                            <li id="ZProbeMin"><a href="#" onClick={(e) => { this.probe('z-') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Z Min</a></li>
                                             <li role="separator" className="divider"></li>
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                            <li id="homeZ"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
+                                            <li id="homeZ"><a href="#" onClick={(e) => { this.home('z') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
                                             <li id="zeroZ"><a href="#" onClick={(e) => { this.setZero('z') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
                                             <li role="separator" className="divider"></li>
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
@@ -471,12 +527,12 @@ class Jog extends React.Component {
                                         </button>
                                         <ul className="dropdown-menu">
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                            <li id="AProbeMin"><a href="#"><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe A Min</a></li>
-                                            <li id="AProbeMax"><a href="#"><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe A Max</a></li>
+                                            <li id="AProbeMin"><a href="#" onClick={(e) => { this.probe('a-') }}><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe A Min</a></li>
+                                            <li id="AProbeMax"><a href="#" onClick={(e) => { this.probe('a') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe A Max</a></li>
                                             <li role="separator" className="divider"></li>
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                            <li id="homeA"><a href="#"><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home A Axis</a></li>
-                                            <li id="zeroA"><a href="#" onClick={(e) => { this.setZero('y') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set A Axis Zero</a></li>
+                                            <li id="homeA"><a href="#" onClick={(e) => { this.home('a') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home A Axis</a></li>
+                                            <li id="zeroA"><a href="#" onClick={(e) => { this.setZero('a') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set A Axis Zero</a></li>
                                             <li role="separator" className="divider"></li>
                                             <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
                                             <li id="gotoAZero"><a href="#" onClick={(e) => { this.gotoZero('a') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to A0</a></li>

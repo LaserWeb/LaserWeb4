@@ -15,6 +15,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom';
+import omit from 'object.omit';
 
 export default class SetSize extends React.Component {
     constructor() {
@@ -29,6 +30,8 @@ export default class SetSize extends React.Component {
             if (!this.mounted)
                 return;
             let node = ReactDOM.findDOMNode(this);
+            if (this.props.selector && node.querySelector(this.props.selector))
+                node = node.querySelector(this.props.selector)
             if (this.clientWidth !== node.clientWidth || this.clientHeight !== node.clientHeight) {
                 this.clientWidth = node.clientWidth;
                 this.clientHeight = node.clientHeight;
@@ -45,7 +48,7 @@ export default class SetSize extends React.Component {
 
     render() {
         return (
-            <div {...{ ...this.props }}>
+            <div {...{ ...omit(this.props,'selector') }}>
                 {React.cloneElement(this.props.children, { width: this.clientWidth, height: this.clientHeight })}
             </div>
         );

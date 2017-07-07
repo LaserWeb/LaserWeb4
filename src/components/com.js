@@ -304,20 +304,25 @@ class Com extends React.Component {
             serverConnected = true;
             machineConnected = true;
             let {x, y, z, a} = wOffset;
+                x=Number(x)
+                y=Number(y)
+                z=Number(z)
+                a=Number(a)
+              
             let posChanged = false;
-            if ((xOffset !== x) && (xOffset || x)) {
+            if ((xOffset !== x) && !isNaN(x)) {
                 xOffset = x;
                 posChanged = true;
             }
-            if ((yOffset !== y) && (yOffset || y)) {
+            if ((yOffset !== y) && !isNaN(y)) {
                 yOffset = y;
                 posChanged = true;
             }
-            if ((zOffset !== z) && (zOffset || z)) {
+            if ((zOffset !== z) && !isNaN(z)) {
                 zOffset = z;
                 posChanged = true;
             }
-            if ((aOffset !== a) && (aOffset || a)) {
+            if ((aOffset !== a) && !isNaN(a)) {
                 aOffset = a;
                 posChanged = true;
             }
@@ -728,6 +733,45 @@ export function gotoZero(axis) {
         if (machineConnected){
             CommandHistory.write('Goto ' + axis + ' zero', CommandHistory.INFO);
             socket.emit('gotoZero', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function setPosition(data) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Set position to ' + JSON.stringify(data), CommandHistory.INFO);
+            socket.emit('setPosition', data);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function home(axis) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Home ' + axis, CommandHistory.INFO);
+            socket.emit('home', axis);
+        } else {
+            CommandHistory.error('Machine is not connected!')
+        }
+    } else {
+        CommandHistory.error('Server is not connected!')
+    }
+}
+
+export function probe(axis, offset) {
+    if (serverConnected) {
+        if (machineConnected){
+            CommandHistory.write('Probe ' + axis + ' (Offset:' + offset + ')', CommandHistory.INFO);
+            socket.emit('probe', {axis: axis, offset: offset});
         } else {
             CommandHistory.error('Machine is not connected!')
         }

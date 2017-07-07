@@ -53,6 +53,7 @@ export const SETTINGS_INITIALSTATE = {
     __version: version,
     __selectedProfile: null,
 
+    showMachine: false,
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
@@ -65,11 +66,14 @@ export const SETTINGS_INITIALSTATE = {
         A: {min: 1, max:50000},
         S: {min: 0, max:30000},
     },
+    
+    machineXYProbeOffset: 0,
 
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+    machineZProbeOffset: 0,
 
     machineAEnabled: false,
 
@@ -78,6 +82,7 @@ export const SETTINGS_INITIALSTATE = {
     machineBlowerGcodeOff: '',
 
     pxPerInch: 96,
+    forcePxPerInch: false,
     dpiBitmap: 300,
 
     toolGridWidth: 500,
@@ -89,6 +94,7 @@ export const SETTINGS_INITIALSTATE = {
     toolImagePosition: "BL",
     toolUseNumpad: false,
     toolDisplayCache: false,
+    toolUseGamepad: false,
 
     toolVideoDevice: null,
     toolVideoPerspective: { enabled: false },
@@ -102,7 +108,7 @@ export const SETTINGS_INITIALSTATE = {
     toolTestDuration: 0,
 
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeEnd: "M5          ; Switch tool offEnd\r\nM2          ; End\r\n",
+    gcodeEnd: "M5          ; Switch tool offEnd\r\n",
     gcodeHoming: "",
     gcodeToolOn: "",
     gcodeToolOff: "",
@@ -127,7 +133,9 @@ export const SETTINGS_INITIALSTATE = {
     jogFeedZ: 300,
     jogAccumulatedJobTime: 0,
 
-    macros: MACROS_INITIALSTATE
+    macros: MACROS_INITIALSTATE,
+
+    uiFcDrag: null,
 }
 
 export const settings = (state, action) => {

@@ -52,7 +52,10 @@ module.exports = {
             }, {
                 test: /\.swf$/,
                 loader: "file?name=[path][name].[ext]"
-            }
+            }, {
+                test: require.resolve('snapsvg'),
+                loader: 'imports-loader?this=>window,fix=>module.exports=0'
+            },
         ]
     },
     plugins: [
@@ -71,7 +74,7 @@ module.exports = {
         ]),
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
-        
+
     ],
     devServer: {
         contentBase: dist_path,

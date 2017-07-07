@@ -54,33 +54,20 @@ function NumberInput(props) {
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
-function DirectionInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>Conventional</option>
-            <option>Climb</option>
+function EnumInput(opts, def) {
+    if (Array.isArray(opts))
+        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
+    
+    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        return <select value={op[field.name]}  {...rest} >
+            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
-    );
+    }
 }
 
-function GrayscaleInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
-    return (
-        <select value={op[field.name]}  {...rest} >
-            <option>none</option>
-            <option>average</option>
-            <option>luma</option>
-            <option>luma-601</option>
-            <option>luma-709</option>
-            <option>luma-240</option>
-            <option>desaturation</option>
-            <option>decomposition-min</option>
-            <option>decomposition-max</option>
-            <option>red-chanel</option>
-            <option>green-chanel</option>
-            <option>blue-chanel</option>
-        </select>
-    );
-}
+const DirectionInput = EnumInput(['Conventional','Climb']);
+const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
+
 
 function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
@@ -89,9 +76,6 @@ function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...
 function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
-
-
-
 
 function RangeInput(minValue, maxValue) {
     return ({ op, field, onChangeValue, ...rest }) => {
@@ -352,7 +336,7 @@ const FieldContextMenu = (id = uuid.v4()) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
-        return <div><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+        return <div title="Right click or press long to popup context menu"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
 }
 
@@ -363,19 +347,19 @@ export const OPERATION_FIELDS = {
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
 
-    laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent },
+    laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent, contextMenu: FieldContextMenu() },
     laserPowerRange: { name: 'laserPowerRange', label: 'Laser Power Range', units: '%', input: RangeInput(0, 100), ...checkRange(0, 100) },
-    laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive },
-    lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive },
+    laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
+    lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
     lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
     toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkToolDiameter },
     toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
 
-    margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput },
-    passes: { name: 'passes', label: 'Passes', units: '', input: NumberInput, ...checkPositiveInt },
+    margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu() },
+    passes: { name: 'passes', label: 'Passes', units: '', input: NumberInput, ...checkPositiveInt, contextMenu: FieldContextMenu() },
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
     stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver },
-    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ },
+    passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ, contextMenu: FieldContextMenu() },
     cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
     startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
     clearance: { name: 'clearance', label: 'ZClearance', units: 'mm', input: NumberInput, ...checkGE0 },
@@ -386,10 +370,10 @@ export const OPERATION_FIELDS = {
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY'), contextMenu: FieldContextMenu() },
     toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
 
-    useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput },
+    useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },
     aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
 
-    useBlower: { name: 'useBlower', label: 'Use Air Assist', units: '', input: ToggleInput, ...ifUseBlower },
+    useBlower: { name: 'useBlower', label: 'Use Air Assist', units: '', input: ToggleInput, ...ifUseBlower, contextMenu: FieldContextMenu() },
 
     smoothing: { name: 'smoothing', label: 'Smoothing', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Smoothing the input image ?
     brightness: { name: 'brightness', label: 'Brightness', units: '', input: NumberInput, ...checkRange(-255, 255) },   // lw.raster-to-gcode: Image brightness [-255 to +255]
@@ -435,6 +419,14 @@ export const OPERATION_TYPES = {
     'Laser Raster': {
         allowTabs: false, tabFields: false, fields: [
             'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
+        ]
+    },
+    'Laser Raster Merge': {
+        allowTabs: false, tabFields: false, fields: [
+            'name', 'filterFillColor', 'filterStrokeColor',
+            'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
@@ -520,17 +512,15 @@ class Operation extends React.Component {
             this.availableOps = Object.keys(OPERATION_TYPES);
             if (nextProps.op.documents.length) {
                 if (!this.documentTypes.vectors) this.availableOps = this.availableOps.filter(item => item.match(/Raster/gi))
-                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/Raster/gi))
+                if (!this.documentTypes.images) this.availableOps = this.availableOps.filter(item => !item.match(/^Laser Raster$/gi))
 
                 if (!this.availableOps.includes(nextProps.op.type))
                     this.setTypeString(this.availableOps[0])
             }
         }
-    }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.op.type != this.props.op.type) {
-            this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
+        if (nextProps.op.type != this.props.op.type) {
+            this.operationGroups = groupFields(OPERATION_TYPES[nextProps.op.type].fields)
         }
     }
 
@@ -553,10 +543,6 @@ class Operation extends React.Component {
         else
             leftStyle = { display: 'table-cell', borderLeft: '4px solid transparent', borderRight: '4px solid transparent' };
 
-
-
-        let millFilter = (item) => settings.toolCncMode ? true : !item.match(/Mill/gi)
-
         let header;
 
         if (op.name && op.name.length)
@@ -575,8 +561,8 @@ class Operation extends React.Component {
                     <span style={{ display: 'flex', justifyContent: 'space-between' }}>
 
                         <div style={{ whiteSpace: 'nowrap' }}>
-                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).filter(millFilter).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
-                            <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} ><i className="fa fa-magic"></i></MaterialPickerButton>
+                            <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
+                            <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} types={this.availableOps}><i className="fa fa-magic"></i></MaterialPickerButton>
                         </div>
                         <div className="btn-group">
                             <button className={"btn btn-warning btn-xs " + (op.enabled ? '' : 'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>

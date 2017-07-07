@@ -178,8 +178,7 @@ function drawLine(state, entity, docLayer, index) {
     if (rawPaths.length) {
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
-        docEntity.translate = [0, 0, 0];
-        docEntity.scale = [1, 1, 1];
+        docEntity.transform2d = [1, 0, 0, 1, 0, 0];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
@@ -200,7 +199,7 @@ function drawCircle(state, entity, docLayer, index) {
     let segments = 128;
     let thetaStart = entity.startAngle !== undefined ? entity.startAngle : 0;
     let thetaLength = entity.angleLength !== undefined ? entity.angleLength : Math.PI * 2;
-    let vertices = segments + 2;
+    let vertices = segments + 1;
 
     let docEntity = {
         type: entity.type,
@@ -222,7 +221,7 @@ function drawCircle(state, entity, docLayer, index) {
     let p = [];
     let theta = 2 * Math.PI / vertices;
     for (let i = 0; i < vertices; i++) {
-        let segment = thetaStart + i / vertices * thetaLength;
+        let segment = thetaStart + i / segments * thetaLength;
         let dx = radius * Math.cos(segment);
         let dy = radius * Math.sin(segment);
         p.push(entity.center.x + dx);
@@ -241,8 +240,7 @@ function drawCircle(state, entity, docLayer, index) {
     if (rawPaths.length) {
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
-        docEntity.translate = [0, 0, 0];
-        docEntity.scale = [1, 1, 1];
+        docEntity.transform2d = [1, 0, 0, 1, 0, 0];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else
@@ -336,8 +334,7 @@ function drawText(state, entity, docLayer, index) {
 
     if (coords.length) {
         docEntity.rawPaths = coords;
-        docEntity.translate = [entity.startPoint.x, entity.startPoint.y - ppmmTrans, 0];
-        docEntity.scale = [1, 1, 1]; //14
+        docEntity.transform2d = [1, 0, 0, 1, entity.startPoint.x, entity.startPoint.y - ppmmTrans];
         if (entity.color)
             docEntity.strokeColor = idxToRGBColor(entity.color);
         else

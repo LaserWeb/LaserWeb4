@@ -16,6 +16,7 @@
 import { basic, basic2d } from './basic';
 import { gcode } from './GcodePreview';
 import { image } from './image';
+import { imageMesh } from './imageMesh';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
@@ -36,6 +37,7 @@ export class DrawCommands {
         this.basic = basic(this);
         this.basic2d = basic2d(this);
         this.image = image(this);
+        this.imageMesh = imageMesh(this);
         this.thickLines = thickLines(this);
         this.gcode = gcode(this);
         this.laser = laser(this);
@@ -85,13 +87,18 @@ export class DrawCommands {
         let result = {
             texture,
             drawCommands: this,
-            set({image, width, height}) {
+            set({ image, width, height }) {
                 let gl = this.drawCommands.gl;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
-                if (image)
+                if (image) {
+                    this.width = image.width;
+                    this.height = image.height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                else
+                } else if (this.width !== width || this.height !== height) {
+                    this.width = width;
+                    this.height = height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                }
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -134,7 +141,7 @@ export class DrawCommands {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, old);
     }
 
-    compile({vert, frag, attrs}) {
+    compile({ vert, frag, attrs }) {
         let comp = (type, source) => {
             let shader = this.gl.createShader(type);
             this.shaders.push(shader);
@@ -161,13 +168,13 @@ export class DrawCommands {
         let numUniforms = this.gl.getProgramParameter(program, this.gl.ACTIVE_UNIFORMS);
         let uniforms = [];
         for (let i = 0; i < numUniforms; ++i) {
-            let {name, size, type} = this.gl.getActiveUniform(program, i);
+            let { name, size, type } = this.gl.getActiveUniform(program, i);
             uniforms.push({ name, size, type, location: this.gl.getUniformLocation(program, name) });
         }
         let numAttrs = this.gl.getProgramParameter(program, this.gl.ACTIVE_ATTRIBUTES);
         let result = { program, uniforms, attrs: [] };
         for (let i = 0; i < numAttrs; ++i) {
-            let {name, size, type} = this.gl.getActiveAttrib(program, i);
+            let { name, size, type } = this.gl.getActiveAttrib(program, i);
             if (type == this.gl.FLOAT_VEC2) {
                 type = this.gl.FLOAT;
                 size = 2;
@@ -175,6 +182,10 @@ export class DrawCommands {
             else if (type == this.gl.FLOAT_VEC3) {
                 type = this.gl.FLOAT;
                 size = 3;
+            }
+            else if (type == this.gl.FLOAT_VEC4) {
+                type = this.gl.FLOAT;
+                size = 4;
             }
             let attr = attrs[name];
             if (!attr) {
@@ -189,7 +200,7 @@ export class DrawCommands {
     }
 
     generateUseUniforms(program) {
-        let {uniforms} = program;
+        let { uniforms } = program;
         let body = 'let {' + uniforms.map(u => u.name) + '} = props;\n';
         body += 'let gl = drawCommands.gl;\n';
         let numTextures = 0;
@@ -211,6 +222,12 @@ export class DrawCommands {
                     break;
                 case this.gl.FLOAT_VEC4:
                     set = 'gl.uniform4fv(this.' + uniform.name + '_location, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_MAT2:
+                    set = 'gl.uniformMatrix2fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
+                    break;
+                case this.gl.FLOAT_MAT3:
+                    set = 'gl.uniformMatrix3fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
                     break;
                 case this.gl.FLOAT_MAT4:
                     set = 'gl.uniformMatrix4fv(this.' + uniform.name + '_location, false, ' + uniform.name + ');\n';
@@ -243,7 +260,7 @@ export class DrawCommands {
     }
 
     generateUseAttrs(program) {
-        let {attrs} = program;
+        let { attrs } = program;
         let setup = '';
         let teardown = '';
         for (let i = 0; i < attrs.length; ++i) {
@@ -257,7 +274,7 @@ export class DrawCommands {
         program.useAttrs = new Function('drawCommands', 'stride', 'offset', 'next', body);
     }
 
-    execute({program, primitive, uniforms, buffer, attributes}) {
+    execute({ program, primitive, uniforms, buffer, attributes }) {
         let useBuffer = next => {
             if (buffer.data.isBuffer) {
                 this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.data.buffer);

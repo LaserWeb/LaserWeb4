@@ -1,6 +1,6 @@
 {
   "name": "laserweb",
-  "version": "4.0.733",
+  "version": "4.0.735",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
@@ -61,11 +61,13 @@
     "flatnest": "^1.0.0",
     "floyd-steinberg": "^1.0.5",
     "font-awesome": "^4.6.3",
+    "gamepad.js": "github:neogeek/gamepad.js",
     "gl-matrix": "^2.3.2",
     "glfx": "0.0.4",
     "grunt": "^1.0.1",
     "hhmmss": "^1.0.0",
     "http-server": "^0.9.0",
+    "imports-loader": "^0.7.1",
     "ink-docstrap": "^1.3.0",
     "jquery": "^3.1.0",
     "jsdoc": "^3.4.1",
@@ -81,7 +83,7 @@
     "lw.svg-curves": "^0.1.0",
     "lw.svg-path": "^0.1.0",
     "marked": "^0.3.6",
-    "merge-jsons-webpack-plugin": "^1.0.6",
+    "merge-jsons-webpack-plugin": "1.0.7",
     "node-uuid": "^1.4.7",
     "npm-run-all": "^4.0.1",
     "object-to-string": "^1.0.0",
@@ -112,7 +114,7 @@
     "script-loader": "^0.7.0",
     "sillyname": "^0.1.0",
     "slug": "^0.9.1",
-    "snapsvg-cjs": "0.0.4",
+    "snapsvg": "^0.5.1",
     "socket.io-client": "^1.7.3",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
@@ -127,7 +129,7 @@
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
-    "dxf-parser": "^0.4.6",
+    "dxf-parser": "^0.4.7",
     "immutability-helper": "^2.0.0",
     "unicode": "^0.6.1",
     "vectorize-text": "^3.0.2"
