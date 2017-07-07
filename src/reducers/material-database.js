@@ -215,7 +215,7 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
                     } else {
                         currentState=lockedState;
                     }
-                    return oldstate;
+                    return currentState;
                 } else {
                     CommandHistory.error("Material Database corrupt/obsolete. Restoring.")
                     console.error(result);
