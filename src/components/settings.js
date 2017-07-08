@@ -319,8 +319,9 @@ class Settings extends React.Component {
 
                         <Collapse in={this.props.settings.toolVideoOMR}>
                             <div>
-                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetX', setAttrs: setSettingsAttrs, description: 'Camera offset X',  }} />
-                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetY', setAttrs: setSettingsAttrs, description: 'Camera offset Y', }} />
+                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetX', setAttrs: setSettingsAttrs, description: 'Camera offset X', units:'mm'  }} />
+                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetY', setAttrs: setSettingsAttrs, description: 'Camera offset Y', units:'mm' }} />
+                                <NumberField {...{ object: this.props.settings, field: 'toolVideoOMRMarkerSize', setAttrs: setSettingsAttrs, description: 'Marker size', units:'mm' }} />
                                 <ArucoMarker />
                             </div>
                         </Collapse>

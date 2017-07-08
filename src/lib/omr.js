@@ -5,7 +5,7 @@ const DEFAULT_MODEL_SIZE = 20
 
 export const arucoProcess= (canvas, settings) => {
     const context= canvas.getContext('2d');
-    const model_size = settings.arucoModelSize || DEFAULT_MODEL_SIZE;
+    const model_size = settings.toolVideoOMRMarkerSize || DEFAULT_MODEL_SIZE;
     const detector = new AR.Detector();
     
     

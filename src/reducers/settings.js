@@ -105,6 +105,7 @@ export const SETTINGS_INITIALSTATE = {
     toolVideoOMR: false,
     toolVideoOMROffsetX: 0,
     toolVideoOMROffsetY: 0,
+    toolVideoOMRMarkerSize: 20,
 
     toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',
