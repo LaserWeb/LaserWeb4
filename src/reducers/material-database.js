@@ -1,6 +1,6 @@
 
 import omit from 'object.omit'
-import { deepMerge } from "../lib/helpers"
+import { deepMerge, sendAsFile } from "../lib/helpers"
 import generateName from 'sillyname'
 import uuid from 'node-uuid';
 
@@ -12,6 +12,9 @@ import CommandHistory from '../components/command-history'
 
 export const MATERIALDB_INITIALSTATE = require("../data/lw.materials/material-database.json");
 export const MATERIALDB_SCHEMA = require("../data/lw.materials/material-database.spec.json");
+
+import { confirm } from '../components/laserweb'
+import stringify from 'json-stringify-pretty-compact';
 
 import Ajv from 'ajv';
 const ajv = new Ajv();
@@ -209,7 +212,6 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
                     return  (vendor._locked!==false) ? { ...vendor, _locked: true } : vendor
                 });
                 let currentState = action.payload.materialDatabase || []
-                
                 if (validate(currentState)) {
                     if (currentState.length) {
                         lockedState.forEach((l,i)=>{ if (l._locked && !currentState.find((f)=>{ return f.id == l.id })) currentState=[l, ...currentState];})
@@ -218,12 +220,15 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
                     }
                     return currentState;
                 } else {
+                    let backup = stringify(currentState);
+                    confirm("Material Database corrupt/obsolete. Restoring. Ok download a backup, Cancel to continue.",function(data){
+                        if (data) sendAsFile('LaserWeb-MaterialDatabase-Backup.json',backup,'application/json')
+                    })
                     CommandHistory.error("Material Database corrupt/obsolete. Restoring.")
                     console.error(validate.errors);
                     return lockedState;
                 }
             }
-            return state;
 
         default:
             return state;
