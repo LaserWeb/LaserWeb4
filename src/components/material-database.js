@@ -564,7 +564,7 @@ class MaterialDatabasePicker extends React.Component {
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
-                                    let disabled= !!this.props.types || !this.props.types.includes(op.type);
+                                    let disabled= (this.props.types && !this.props.types.includes(op.type)) || !this.props.types;
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
                                         header={<Button disabled={disabled} bsStyle="success" bsSize="xsmall" title={disabled? 'Operation Documents not compatible with this type':undefined } onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}
