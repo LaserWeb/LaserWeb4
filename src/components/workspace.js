@@ -1179,7 +1179,8 @@ class WorkspaceContent extends React.Component {
             nextProps.camera !== this.props.camera ||
             nextProps.mode !== this.props.mode ||
             nextProps.workspace.cursorPos !== this.props.workspace.cursorPos ||
-            nextProps.simTime !== this.props.workspace.simTime
+            nextProps.simTime !== this.props.workspace.simTime ||
+            nextProps.gcode.content !== this.props.gcode.content
         );
     }
 
@@ -1218,7 +1219,7 @@ class WorkspaceContent extends React.Component {
 } // WorkspaceContent
 
 WorkspaceContent = connect(
-    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace, mode: state.panes.selected })
+    state => ({ settings: state.settings, documents: state.documents, camera: state.camera, workspace: state.workspace, mode: state.panes.selected, gcode: state.gcode })
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
