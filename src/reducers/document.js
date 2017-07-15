@@ -121,13 +121,14 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             };
             if (child.name === 'path') {
                 let paths = pathStrToRawPaths(child.attrs.d, 25.4, 1, .1 * pxPerInch / 25.4, error => console.log(error));
-                for (let path of paths) {
-                    let p = [];
-                    for (let i = 0; i < path.length; i += 2)
-                        addPoint(p, path[i], path[i + 1]);
-                    if (p.length)
-                        rawPaths.push(p);
-                }
+                if (paths)
+                    for (let path of paths) {
+                        let p = [];
+                        for (let i = 0; i < path.length; i += 2)
+                            addPoint(p, path[i], path[i + 1]);
+                        if (p.length)
+                            rawPaths.push(p);
+                    }
             } else {
                 for (let path of child.getPaths()) {
                     let p = [];
