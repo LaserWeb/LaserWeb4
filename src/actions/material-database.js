@@ -19,6 +19,7 @@ export const newPreset = (preset, grouping, name) => ({ type: "MATERIALDB_PRESET
 
 /*MATERIALDB*/
 export const uploadMaterialDatabase = (file, content) => ({ type: "MATERIALDB_UPLOAD", payload: { file, database: JSON.parse(content) } });
+export const importMaterialDatabase = (file, content) => ({ type: "MATERIALDB_IMPORT", payload: { file, database: content } });
 export const downloadMaterialDatabase = (database) => ({ type: "MATERIALDB_DOWNLOAD", payload: { database } });
 
 

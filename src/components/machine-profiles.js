@@ -1,8 +1,9 @@
 import React from 'react';
-import { dispatch, connect } from 'react-redux';
-import {FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
+import { connect } from 'react-redux';
+import { FormGroup, FormControl, ControlLabel, Button, InputGroup, Glyphicon, ButtonGroup, ButtonToolbar} from 'react-bootstrap'
 
 import { addMachineProfile, delMachineProfileId } from '../actions/settings';
+import { importMaterialDatabase } from '../actions/material-database';
 
 import stringify from 'json-stringify-pretty-compact';
 import slug from 'slug'
@@ -10,6 +11,9 @@ import slug from 'slug'
 import Icon from './font-awesome';
 
 import { alert, prompt, confirm} from './laserweb';
+
+import CommandHistory from '../components/command-history'
+import { validate } from '../reducers/material-database'
 
 class MachineProfile extends React.Component {
     
@@ -32,6 +36,20 @@ class MachineProfile extends React.Component {
        if (selected) {
             confirm("Are you sure? Current settings will be overwritten.",(b)=>{
                 if (b) this.props.onApply({...selected.settings , __selectedProfile: profileId });
+                try {
+                    let mdb = require('../data/lw.materials/materials/'+profileId.replace("*","")+".json")
+                        if (validate(mdb)){
+                            if (mdb) {
+                                confirm(`A material database related with ${profileId} has been detected. Do you want to load it?`,(data)=>{
+                                    if (data) this.props.dispatch(importMaterialDatabase(profileId,mdb));
+                                })
+                            }
+                        } else {
+                            CommandHistory.dir(`Material database bundle ${profileId} found corrupt. Please open an issue.`,validate.errors, 2)
+                        }
+                } catch(e) {
+
+                }
             })
        }
        return ;

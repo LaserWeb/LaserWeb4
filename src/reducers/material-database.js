@@ -19,7 +19,8 @@ import stringify from 'json-stringify-pretty-compact';
 import Ajv from 'ajv';
 const ajv = new Ajv();
       ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-04.json'));
-const validate = ajv.compile(MATERIALDB_SCHEMA);
+
+export const validate = ajv.compile(MATERIALDB_SCHEMA);
 
 function generateInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -101,6 +102,19 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
         case "MATERIALDB_DOWNLOAD":
             return state;
+
+        case "MATERIALDB_IMPORT":
+            let __state=state.slice();
+            let { file, database } = action.payload;
+            database.forEach(i=>{
+                let m=state.find((v)=>(v.id==i.id))
+                if (!m) {
+                    __state.push(i);
+                } else {
+                    CommandHistory.warn(`Material Database Item "${file}.${m.id}" found on database. Won't be replaced.`)
+                }
+            })
+            return __state;
 
         case "MATERIALDB_GROUP_ADD":
             state = [...state, GROUP_TEMPLATE()];

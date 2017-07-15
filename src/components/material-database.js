@@ -328,6 +328,8 @@ class PresetsPane extends React.Component {
 
         }
 
+        let __presets=presets.filter((operation,i)=>(shouldShow(operation, this.props.selectedProfile)))
+
         return <div className="full-height" id="operationsPane" style={this.props.style}>
 
             <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
@@ -337,9 +339,7 @@ class PresetsPane extends React.Component {
             <div className="full-height right innerPane">
                 {rightToolbar}
                 <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
-                    {presets.map((operation, i) => {
-                        if (!shouldShow(operation, this.props.selectedProfile)) return;
-
+                    {__presets.map((operation, i) => {
                         return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
@@ -359,6 +359,7 @@ class PresetsPane extends React.Component {
                                 caption="Parameters" />
                         </Details>
                     })}
+                    { (!__presets.length && this.props.selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
                 </PanelGroup>
             </div>
         </div>
