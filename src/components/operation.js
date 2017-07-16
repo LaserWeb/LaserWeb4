@@ -56,18 +56,17 @@ function NumberInput(props) {
 
 function EnumInput(opts, def) {
     if (Array.isArray(opts))
-        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
-    
-    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        opts = Object.assign(...opts.map(i => ({ [i]: i })))
+
+    return function ({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
         return <select value={op[field.name]}  {...rest} >
-            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
+            {Object.entries(opts).map((e, i) => (<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
     }
 }
 
-const DirectionInput = EnumInput(['Conventional','Climb']);
+const DirectionInput = EnumInput(['Conventional', 'Climb']);
 const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
-
 
 function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />

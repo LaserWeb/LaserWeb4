@@ -44,7 +44,6 @@ import { promisedImage, imageTagPromise } from './image-filters';
 
 export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
 
-
 function NoDocumentsError(props) {
     let { documents, camBounds } = props;
     if (documents.length === 0)
@@ -59,7 +58,6 @@ function GcodeProgress({ gcoding, onStop }) {
 
 GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
 
-
 export class CAMValidator extends React.Component {
     render() {
         let { noneOnSuccess, documents, className, style } = this.props;
@@ -71,23 +69,19 @@ export class CAMValidator extends React.Component {
 
 CAMValidator = connect((state) => { return { documents: state.documents.length } })(CAMValidator)
 
-
 let __interval;
 
 class Cam extends React.Component {
-
-
     componentWillMount() {
         let that = this
         window.generateGcode = e => {
-
             let { settings, documents, operations } = that.props;
 
             let percent = 0;
-            __interval= setInterval(()=>{
-                that.props.dispatch(generatingGcode(true, isNaN(percent)? 0:Number(percent))); 
-            },100)
-            
+            __interval = setInterval(() => {
+                that.props.dispatch(generatingGcode(true, isNaN(percent) ? 0 : Number(percent)));
+            }, 100)
+
             let QE = getGcode(settings, documents, operations, that.props.documentCacheHolder,
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
@@ -206,15 +200,10 @@ class Cam extends React.Component {
     }
 };
 
-
-
-
-
-
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
-        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(appendExt(file,'.gcode'), state.gcode.content) }, !e.shiftKey) },
+        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(appendExt(file, '.gcode'), state.gcode.content) }, !e.shiftKey) },
         viewGcode: () => openDataWindow(state.gcode.content),
     }),
     dispatch => ({
@@ -239,12 +228,12 @@ Cam = connect(
                         parser.parse(reader.result)
                             .then((tags) => {
                                 let captures = release(true);
-                                let warns = captures.filter(i => i.method == 'warn') 
-                                let errors = captures.filter(i => i.method == 'errors') 
+                                let warns = captures.filter(i => i.method == 'warn')
+                                let errors = captures.filter(i => i.method == 'errors')
                                 if (warns.length)
-                                    CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!",warns, 2)
+                                    CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!", warns, 2)
                                 if (errors.length)
-                                    CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",errors, 3)
+                                    CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", errors, 3)
 
                                 //onsole.log('loadDocument: imageTagPromise');
                                 imageTagPromise(tags).then((tags) => {
@@ -255,7 +244,7 @@ Cam = connect(
                             .catch((e) => {
                                 //console.log('loadDocument: catch:', e);
                                 release(true);
-                                CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.",String(e), 3)
+                                CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", String(e), 3)
                                 console.error(e)
                             })
 
