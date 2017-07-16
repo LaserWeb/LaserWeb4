@@ -55,16 +55,34 @@ export const OPERATION_INITIALSTATE = {
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
+    latheToolBackSide: false,
+    latheRapidToDiameter: 0,
+    latheRapidToZ: 0,
+    latheStartZ: 0,
+    latheRoughingFeed: 0,
+    latheRoughingDepth: 0,
+    latheFinishFeed: 0,
+    latheFinishDepth: 0,
+    latheFinishExtraPasses: 0,
+    latheFace: true,
+    latheFaceEndDiameter: 0,
+    latheTurns: [],
     _docs_visible: true,
     // Hooks!
     hookOperationStart: '',
     hookOperationEnd: '',
     hookPassStart: '',
     hookPassEnd: ''
+};
 
-}
+const OPERATION_LATHE_TURN_INITIALSTATE = {
+    diameter: 0,
+    length: 0,
+};
 
 const operationBase = object('operation', OPERATION_INITIALSTATE);
+const operationLatheTurnBase = object('operation_lathe_turn', OPERATION_LATHE_TURN_INITIALSTATE);
+const operationLatheTurnsBase = objectArray('operation_lathe_turn', operationLatheTurnBase);
 
 export const OPERATION_DEFAULTS = (state) => {
     if (!state) state = GlobalStore().getState()
@@ -84,6 +102,14 @@ export function operation(state, action) {
                     return { ...state, tabDocuments: state.tabDocuments.filter(d => d !== action.payload.document) }
                 else
                     return { ...state, documents: state.documents.filter(d => d !== action.payload.document) }
+            break;
+        case 'OPERATION_LATHE_TURN_ADD':
+            if (action.payload.id === state.id)
+                return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
+            break;
+        case 'OPERATION_LATHE_TURN_SET_ATTRS':
+        case 'OPERATION_LATHE_TURN_REMOVE':
+            return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
     }
     return state;
 }
