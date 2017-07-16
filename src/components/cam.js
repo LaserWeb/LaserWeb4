@@ -45,8 +45,8 @@ import { promisedImage, imageTagPromise } from './image-filters';
 export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap,.gc,.nc'
 
 function NoDocumentsError(props) {
-    let { documents, camBounds } = props;
-    if (documents.length === 0)
+    let { settings, documents, operations, camBounds } = props;
+    if (documents.length === 0 && (operations.length === 0 || !settings.toolCreateEmptyOps))
         return <GetBounds Type="span"><Error operationsBounds={camBounds} message='Click here to begin' /></GetBounds>;
     else
         return <span />;
@@ -121,7 +121,7 @@ class Cam extends React.Component {
     }
 
     render() {
-        let { documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
+        let { settings, documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
 
@@ -157,7 +157,7 @@ class Cam extends React.Component {
                                     <td>
                                         <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
-                                            {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} documents={documents} /> : undefined}
+                                            {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} settings={settings} documents={documents} operations={operations} /> : undefined}
                                         </FileField>
                                     </td>
                                 </tr>

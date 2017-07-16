@@ -95,6 +95,7 @@ export const SETTINGS_INITIALSTATE = {
     toolUseNumpad: false,
     toolDisplayCache: false,
     toolUseGamepad: false,
+    toolCreateEmptyOps: false,
 
     toolVideoDevice: null,
     toolVideoPerspective: { enabled: false },
