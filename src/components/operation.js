@@ -380,7 +380,6 @@ const checkLatheStartZ = {
 const checkLatheFaceEndDiameter = {
     condition: op => op.latheFace,
     check: (v, settings, op) => {
-        console.log(op.latheFaceEndDiameter, op.latheRapidToDiameter);
         if (op.latheFaceEndDiameter >= op.latheRapidToDiameter)
             return false;
         if (op.latheFaceEndDiameter < -op.latheRapidToDiameter)
@@ -498,7 +497,7 @@ export const OPERATION_FIELDS = {
     latheRoughingFeed: { name: 'latheRoughingFeed', label: 'Roughing Feed', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
     latheRoughingDepth: { name: 'latheRoughingDepth', label: 'Roughing Depth', units: 'mm', input: NumberInput, ...checkPositive },
     latheFinishFeed: { name: 'latheFinishFeed', label: 'Finish Feed', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
-    latheFinishDepth: { name: 'latheFinishDepth', label: 'Finish Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    latheFinishDepth: { name: 'latheFinishDepth', label: 'Finish Depth', units: 'mm', input: NumberInput, ...checkGE0 },
     latheFinishExtraPasses: { name: 'latheFinishExtraPasses', label: 'Finish Extra Passes', input: NumberInput, ...checkGE0Int },
     latheFace: { name: 'latheFace', label: 'Face', input: ToggleInput },
     latheFaceEndDiameter: { name: 'latheFaceEndDiameter', label: 'Face End Diameter', units: 'mm', input: NumberInput, ...checkLatheFaceEndDiameter },
@@ -551,7 +550,7 @@ export const OPERATION_TYPES = {
     'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
     'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
-    'Lathe Conv Face/Turn': { skipDocs: true, tabFields: false, fields: ['name', 'latheToolBackSide', 'latheRapidToDiameter', 'latheRapidToZ', 'latheStartZ', 'latheRoughingFeed', 'latheRoughingDepth', 'latheFinishFeed', 'latheFinishDepth', 'latheFinishExtraPasses', 'latheFace', 'latheFaceEndDiameter', 'latheTurnAdd', 'latheTurns'] },
+    'Lathe Conv Face/Turn': { skipDocs: true, tabFields: false, fields: ['name', 'latheToolBackSide', 'latheRapidToDiameter', 'latheRapidToZ', 'latheStartZ', 'latheRoughingFeed', 'latheRoughingDepth', 'latheFinishFeed', 'latheFinishDepth', 'latheFinishExtraPasses', 'latheFace', 'latheFaceEndDiameter', 'latheTurnAdd', 'latheTurns', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
 const groupFields = (ofields) => {
