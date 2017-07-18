@@ -83,11 +83,31 @@ class GcodeGenerator {
     }
 }; // GcodeGenerator
 
-function latheConvFaceTurn(gen, props) {
+function latheConvFaceTurn(gen, showAlert, props) {
     let {
         latheToolBackSide, latheRapidToDiameter, latheRapidToZ, latheStartZ, latheRoughingFeed,
         latheRoughingDepth, latheFinishFeed, latheFinishDepth, latheFinishExtraPasses, latheFace,
         latheFaceEndDiameter, latheTurns } = props;
+
+    if (latheRapidToDiameter <= 0) return showAlert('latheRapidToDiameter <= 0', 'danger');
+    if (latheStartZ > latheRapidToZ) return showAlert('latheStartZ > latheRapidToZ', 'danger');
+    if (latheRoughingFeed <= 0) return showAlert('latheRoughingFeed <= 0', 'danger');
+    if (latheRoughingDepth <= 0) return showAlert('latheRoughingDepth <= 0', 'danger');
+    if (latheFinishFeed <= 0) return showAlert('latheFinishFeed <= 0', 'danger');
+    if (latheFinishDepth < 0) return showAlert('latheFinishDepth < 0', 'danger');
+    if (latheFinishExtraPasses < 0) return showAlert('latheFinishExtraPasses < 0', 'danger');
+    if (latheFace && latheFaceEndDiameter >= latheRapidToDiameter) return showAlert('latheFace && latheFaceEndDiameter >= latheRapidToDiameter', 'danger');
+    if (!latheFace && !latheTurns.length) return showAlert('!latheFace && !latheTurns.length', 'danger');
+
+    for (let i = 0; i < latheTurns.length; ++i) {
+        if (latheTurns[i].startDiameter < 0) return showAlert('i=' + i + ': latheTurns[i].startDiameter < 0');
+        if (i > 0 && latheTurns[i].startDiameter < latheTurns[i - 1].endDiameter) return showAlert('i=' + i + ': i > 0 && latheTurns[i].startDiameter < latheTurns[i - 1].endDiameter');
+        if (latheTurns[i].startDiameter >= latheRapidToDiameter) return showAlert('i=' + i + ': latheTurns[i].startDiameter >= latheRapidToDiameter');
+        if (latheTurns[i].endDiameter <= 0) return showAlert('i=' + i + ': latheTurns[i].endDiameter <= 0');
+        if (latheTurns[i].endDiameter < latheTurns[i].startDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter < latheTurns[i].startDiameter');
+        if (latheTurns[i].endDiameter >= latheRapidToDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter >= latheRapidToDiameter');
+        if (latheTurns[i].length <= 0) return showAlert('i=' + i + ': latheTurns[i].length <= 0');
+    }
 
     gen.gcode +=
         '\r\n; latheToolBackSide:       ' + latheToolBackSide +
@@ -105,7 +125,7 @@ function latheConvFaceTurn(gen, props) {
 
     if (latheTurns.length) {
         gen.gcode += '\r\n; turns:';
-        for (let turn of turns)
+        for (let turn of latheTurns)
             gen.gcode +=
                 '\r\n;     diameter:            ' + turn.diameter + ' mm' +
                 '\r\n;     length:              ' + turn.length + ' mm' +
@@ -158,7 +178,7 @@ export function getLatheGcodeFromOp(settings, opIndex, op, geometry, openGeometr
     if (op.hookOperationStart.length)
         gen.gcode += op.hookOperationStart;
     if (op.type === 'Lathe Conv Face/Turn')
-        latheConvFaceTurn(gen, op);
+        latheConvFaceTurn(gen, showAlert, op);
     if (op.hookOperationEnd.length)
         gen.gcode += op.hookOperationEnd;
     done(gen.gcode)

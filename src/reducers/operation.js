@@ -76,7 +76,9 @@ export const OPERATION_INITIALSTATE = {
 };
 
 const OPERATION_LATHE_TURN_INITIALSTATE = {
-    diameter: 0,
+    id: '',
+    startDiameter: 0,
+    endDiameter: 0,
     length: 0,
 };
 
@@ -109,6 +111,7 @@ export function operation(state, action) {
             break;
         case 'OPERATION_LATHE_TURN_SET_ATTRS':
         case 'OPERATION_LATHE_TURN_REMOVE':
+        case 'LOADED':
             return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
     }
     return state;

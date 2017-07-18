@@ -101,8 +101,8 @@ function TableInput({ op, field, operationsBounds, fillColors, strokeColors, set
     let array = op[name];
     if (!array.length)
         return null;
-    return <table><tbody>
-        <tr>{Object.entries(fields).map(f => <th key={f[1].name}>{f[1].label}</th>)}</tr>
+    return <div style={{ display: 'inline-block' }}><table><tbody>
+        <tr>{Object.entries(fields).map(f => <th key={f[1].name} style={{ paddingRight: 10 }}>{f[1].label}</th>)}</tr>
         {array.map((item, index) => <tr key={item.id}>
             {Object.entries(fields).map(f => <td key={f[1].name}>
                 <Field {...{
@@ -116,7 +116,7 @@ function TableInput({ op, field, operationsBounds, fillColors, strokeColors, set
                 </button>
             </td>
         </tr>)}
-    </tbody></table>
+    </tbody></table></div>;
 }
 
 function ColorBox(v) {
@@ -203,7 +203,7 @@ class Field extends React.Component {
     render() {
         let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, justControl, parent, index } = this.props;
         let Input = field.input;
-        let { units, style } = field;
+        let { units, wide, style } = field;
         let error;
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
@@ -220,6 +220,19 @@ class Field extends React.Component {
                         {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
                         onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
                     {error}
+                </GetBounds>
+            );
+        }
+
+        if (wide) {
+            return (
+                <GetBounds Type="tr">
+                    <td colSpan="3">
+                        <Input
+                            {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                            onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
+                    </td>
+                    <td>{units}{error}</td>
                 </GetBounds>
             );
         }
@@ -403,23 +416,35 @@ const latheTurnAdd = {
 
 const checkLatheTurn = {
     check: (v, settings, turn, parent, index) => {
-        if (turn.diameter <= 0)
+        if (turn.startDiameter < 0)
             return false;
-        if (turn.diameter >= parent.latheRapidToDiameter)
+        if (index > 0 && turn.startDiameter < parent.latheTurns[index - 1].endDiameter)
             return false;
-        if (index > 0 && turn.diameter <= parent.latheTurns[index - 1].diameter)
+        if (turn.startDiameter >= parent.latheRapidToDiameter)
+            return false;
+        if (turn.endDiameter <= 0)
+            return false;
+        if (turn.endDiameter < turn.startDiameter)
+            return false;
+        if (turn.endDiameter >= parent.latheRapidToDiameter)
             return false;
         if (turn.length <= 0)
             return false;
         return true;
     },
     error: (v, settings, turn, parent, index) => {
-        if (turn.diameter <= 0)
-            return 'Diameter must be > 0';
-        if (turn.diameter >= parent.latheRapidToDiameter)
-            return 'Diameter must be < Rapid';
-        if (index > 0 && turn.diameter <= parent.latheTurns[index - 1].diameter)
-            return 'Diameter must be >= above Diameter';
+        if (turn.startDiameter < 0)
+            return 'Start Diameter must be >= 0';
+        if (index > 0 && turn.startDiameter < parent.latheTurns[index - 1].endDiameter)
+            return 'Start Diameter must be >= previous End Diameter';
+        if (turn.startDiameter >= parent.latheRapidToDiameter)
+            return 'Start Diameter must be < Rapid';
+        if (turn.endDiameter <= 0)
+            return 'End Diameter must be > 0';
+        if (turn.endDiameter < turn.startDiameter)
+            return 'End Diameter must be >= Start Diameter';
+        if (turn.endDiameter >= parent.latheRapidToDiameter)
+            return 'End Diameter must be < Rapid';
         if (turn.length <= 0)
             return 'Length must be > 0';
         return "I'm confused";
@@ -436,7 +461,8 @@ const FieldContextMenu = (id = uuid.v4()) => {
 }
 
 export const OPERATION_LATHE_TURN_FIELDS = {
-    diameter: { name: 'diameter', label: 'Diameter', input: NumberInput, style: { width: 80 }, ...checkLatheTurn },
+    startDiameter: { name: 'startDiameter', label: 'Start Diameter', input: NumberInput, style: { width: 80 }, ...checkLatheTurn },
+    endDiameter: { name: 'endDiameter', label: 'End Diameter', input: NumberInput, style: { width: 80 } },
     length: { name: 'length', label: 'Length', input: NumberInput, style: { width: 80 } },
 };
 
@@ -501,8 +527,8 @@ export const OPERATION_FIELDS = {
     latheFinishExtraPasses: { name: 'latheFinishExtraPasses', label: 'Finish Extra Passes', input: NumberInput, ...checkGE0Int },
     latheFace: { name: 'latheFace', label: 'Face', input: ToggleInput },
     latheFaceEndDiameter: { name: 'latheFaceEndDiameter', label: 'Face End Diameter', units: 'mm', input: NumberInput, ...checkLatheFaceEndDiameter },
-    latheTurnAdd: { name: 'latheTurnAdd', buttonLabel: 'Add Turn', input: ButtonInput, ...latheTurnAdd },
-    latheTurns: { name: 'latheTurns', input: TableInput, fields: OPERATION_LATHE_TURN_FIELDS, remove: operationLatheTurnRemove },
+    latheTurnAdd: { name: 'latheTurnAdd', buttonLabel: 'Add Turn', input: ButtonInput, wide: true, ...latheTurnAdd },
+    latheTurns: { name: 'latheTurns', input: TableInput, fields: OPERATION_LATHE_TURN_FIELDS, remove: operationLatheTurnRemove, wide: true },
 
     hookOperationStart: { name: 'hookOperationStart', label: 'Pre Op', units: '', input: TagInput('settings.macros') },
     hookOperationEnd: { name: 'hookOperationEnd', label: 'Post Op', units: '', input: TagInput('settings.macros') },
