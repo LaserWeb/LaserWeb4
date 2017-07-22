@@ -72,7 +72,7 @@ class GcodeGenerator {
     }
 
     moveXDia(xDia, backSide, f) {
-        if (backSide)
+        if (!backSide)
             xDia = -xDia;
         let strX = (xDia / 2).toFixed(this.decimal);
         let roundedX = Number(strX);
@@ -95,6 +95,7 @@ function latheConvFaceTurn(gen, showAlert, props) {
     if (latheRoughingDepth <= 0) return showAlert('latheRoughingDepth <= 0', 'danger');
     if (latheFinishFeed <= 0) return showAlert('latheFinishFeed <= 0', 'danger');
     if (latheFinishDepth < 0) return showAlert('latheFinishDepth < 0', 'danger');
+    if (latheStartZ + latheFinishDepth > latheRapidToZ) return showAlert('latheStartZ + latheFinishDepth > latheRapidToZ', 'danger');
     if (latheFinishExtraPasses < 0) return showAlert('latheFinishExtraPasses < 0', 'danger');
     if (latheFace && latheFaceEndDiameter >= latheRapidToDiameter) return showAlert('latheFace && latheFaceEndDiameter >= latheRapidToDiameter', 'danger');
     if (!latheFace && !latheTurns.length) return showAlert('!latheFace && !latheTurns.length', 'danger');
@@ -105,7 +106,8 @@ function latheConvFaceTurn(gen, showAlert, props) {
         if (latheTurns[i].startDiameter >= latheRapidToDiameter) return showAlert('i=' + i + ': latheTurns[i].startDiameter >= latheRapidToDiameter');
         if (latheTurns[i].endDiameter <= 0) return showAlert('i=' + i + ': latheTurns[i].endDiameter <= 0');
         if (latheTurns[i].endDiameter < latheTurns[i].startDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter < latheTurns[i].startDiameter');
-        if (latheTurns[i].endDiameter >= latheRapidToDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter >= latheRapidToDiameter');
+        if (latheTurns[i].endDiameter + latheFinishDepth >= latheRapidToDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter + latheFinishDepth >= latheRapidToDiameter');
+        if (latheTurns[i].endDiameter != latheTurns[i].startDiameter) return showAlert('i=' + i + ': latheTurns[i].endDiameter != latheTurns[i].startDiameter');
         if (latheTurns[i].length <= 0) return showAlert('i=' + i + ': latheTurns[i].length <= 0');
     }
 
@@ -127,7 +129,8 @@ function latheConvFaceTurn(gen, showAlert, props) {
         gen.gcode += '\r\n; turns:';
         for (let turn of latheTurns)
             gen.gcode +=
-                '\r\n;     diameter:            ' + turn.diameter + ' mm' +
+                '\r\n;     startDiameter:       ' + turn.startDiameter + ' mm' +
+                '\r\n;     endDiameter:         ' + turn.endDiameter + ' mm' +
                 '\r\n;     length:              ' + turn.length + ' mm' +
                 '';
     }
@@ -136,7 +139,7 @@ function latheConvFaceTurn(gen, showAlert, props) {
     gen.rapidXDia(latheRapidToDiameter, latheToolBackSide);
     gen.rapidZ(latheRapidToZ);
 
-    if (latheFace && latheFaceEndDiameter < latheRapidToDiameter) {
+    if (latheFace) {
         gen.gcode += '\n; Face roughing\n';
         let z = latheRapidToZ;
         while (true) {
@@ -164,6 +167,55 @@ function latheConvFaceTurn(gen, showAlert, props) {
         latheRapidToZ = Math.min(z + latheRoughingDepth, latheRapidToZ);
         gen.rapidZ(latheRapidToZ);
     }
+
+    if (latheTurns.length) {
+        gen.gcode += '\n; Turn roughing\n';
+        let turnRapidToDiameter = latheRapidToDiameter;
+        let startX = turnRapidToDiameter - latheRoughingDepth;
+        while (true) {
+            let x = startX;
+            let z = latheRapidToZ;
+            let turnStartZ = latheStartZ + latheFinishDepth;
+            let done = false;
+            for (let turn of latheTurns) {
+                if (x < turn.startDiameter + latheFinishDepth && turn.startDiameter + latheFinishDepth < startX + latheRoughingDepth)
+                    x = turn.startDiameter + latheFinishDepth;
+                if (x < turn.startDiameter + latheFinishDepth) {
+                    if (turn === latheTurns[0]) {
+                        done = true;
+                        break;
+                    }
+                    gen.moveXDia(x, latheToolBackSide, latheRoughingFeed);
+                    z = turnStartZ;
+                    gen.moveZ(z, latheRoughingFeed);
+                    gen.moveXDia(Math.min(x + latheRoughingDepth, turnRapidToDiameter), latheToolBackSide, latheRoughingFeed);
+                    break;
+                } else {
+                    gen.moveXDia(x, latheToolBackSide, latheRoughingFeed);
+                    z = turnStartZ - turn.length;
+                    gen.moveZ(z, latheRoughingFeed);
+                }
+                turnStartZ -= turn.length;
+            }
+            if (done)
+                break;
+            turnRapidToDiameter = Math.min(turnRapidToDiameter, x + latheRoughingDepth);
+            startX -= latheRoughingDepth;
+            gen.moveXDia(turnRapidToDiameter, latheToolBackSide, latheRoughingFeed);
+            gen.rapidZ(latheRapidToZ);
+        }
+
+        gen.gcode += '\n; Turn finishing\n';
+        gen.rapidXDia(latheTurns[0].startDiameter, latheToolBackSide);
+        let z = latheStartZ;
+        for (let turn of latheTurns) {
+            gen.moveXDia(turn.startDiameter, latheToolBackSide, latheFinishFeed);
+            z -= turn.length;
+            gen.moveZ(z, latheFinishFeed);
+        }
+        gen.moveXDia(latheRapidToDiameter, latheToolBackSide, latheFinishFeed);
+        gen.rapidZ(latheRapidToZ);
+    } // if(latheTurns.length)
 
     gen.gcode += '\n';
 } // latheConvFaceTurn

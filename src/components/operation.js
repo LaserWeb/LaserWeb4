@@ -386,8 +386,8 @@ const checkPassDepth = {
 }
 
 const checkLatheStartZ = {
-    check: (v, settings, op) => v <= op.latheRapidToZ,
-    error: 'Must be <= Rapid To Z',
+    check: (v, settings, op) => v <= op.latheRapidToZ - op.latheFinishDepth,
+    error: 'Must be <= Rapid To Z - Finish Depth',
 };
 
 const checkLatheFaceEndDiameter = {
@@ -426,7 +426,9 @@ const checkLatheTurn = {
             return false;
         if (turn.endDiameter < turn.startDiameter)
             return false;
-        if (turn.endDiameter >= parent.latheRapidToDiameter)
+        if (turn.endDiameter >= parent.latheRapidToDiameter - parent.latheFinishDepth)
+            return false;
+        if (turn.endDiameter !== turn.startDiameter)
             return false;
         if (turn.length <= 0)
             return false;
@@ -443,8 +445,10 @@ const checkLatheTurn = {
             return 'End Diameter must be > 0';
         if (turn.endDiameter < turn.startDiameter)
             return 'End Diameter must be >= Start Diameter';
-        if (turn.endDiameter >= parent.latheRapidToDiameter)
-            return 'End Diameter must be < Rapid';
+        if (turn.endDiameter >= parent.latheRapidToDiameter - parent.latheFinishDepth)
+            return 'End Diameter must be < Rapid - Finish Depth';
+        if (turn.endDiameter !== turn.startDiameter)
+            return 'Taper not implemented yet';
         if (turn.length <= 0)
             return 'Length must be > 0';
         return "I'm confused";
