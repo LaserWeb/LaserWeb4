@@ -21,6 +21,7 @@ var machineConnected = false;
 var jobStartTime = -1;
 var playing = false;
 var paused = false;
+var m0 = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
@@ -232,6 +233,9 @@ class Com extends React.Component {
                 paused = false;
             } else if (status === 'paused') {
                 paused = true;
+            } else if (status === 'm0') {
+                paused = true;
+                m0 = true;
             } else if (status === 'resumed') {
                 paused = false;
             } else if (status === 'stopped') {
@@ -401,6 +405,7 @@ class Com extends React.Component {
                     CommandHistory.write("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
                     jobStartTime = -1;
                     let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
+                    that.setState({jogAccumulatedJobTime: accumulatedJobTime});
                     dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
                     CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
                 }
@@ -670,6 +675,7 @@ export function resumeJob() {
     if (serverConnected) {
         if (machineConnected){
             paused = false;
+            m0 = false;
             runStatus('running');
             $('#playicon').removeClass('fa-play');
             $('#playicon').addClass('fa-pause');
@@ -689,6 +695,7 @@ export function abortJob() {
             CommandHistory.write('Aborting job', CommandHistory.INFO);
             playing = false;
             paused = false;
+            m0 = false;
             runStatus('stopped');
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');
