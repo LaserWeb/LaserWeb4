@@ -19,6 +19,7 @@ var socket, connectVia;
 var serverConnected = false;
 var machineConnected = false;
 var jobStartTime = -1;
+var accumulatedJobTime = 0;
 var playing = false;
 var paused = false;
 var m0 = false;
@@ -32,7 +33,8 @@ class Com extends React.Component {
 
     constructor(props) {
         super(props);
-        let {comInterfaces, comPorts} = this.props.settings;
+        let {comInterfaces, comPorts, comAccumulatedJobTime} = this.props.settings;
+        accumulatedJobTime = comAccumulatedJobTime;
         this.state = {comInterfaces: comInterfaces, comPorts: comPorts};
     }
 
@@ -404,10 +406,10 @@ class Com extends React.Component {
                     CommandHistory.write("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
                     CommandHistory.write("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
                     jobStartTime = -1;
-                    let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
-                    that.setState({jogAccumulatedJobTime: accumulatedJobTime});
-                    dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
-                    CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
+                    accumulatedJobTime += elapsedTime;
+                    let AJT = accumulatedJobTime;
+                    dispatch(setSettingsAttrs({comAccumulatedJobTime: AJT}));
+                    CommandHistory.write("Total accumulated job time: " + secToHMS(AJT), CommandHistory.SUCCESS);
                 }
             }
         });

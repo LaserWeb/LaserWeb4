@@ -124,6 +124,8 @@ export const SETTINGS_INITIALSTATE = {
     comServerConnect: false,
     comInterfaces: [],
     comPorts: [],
+    comAccumulatedJobTime: 0,
+
     connectVia: '',
     connectPort: '',
     connectBaud: '115200',
@@ -132,7 +134,6 @@ export const SETTINGS_INITIALSTATE = {
     jogStepsize: 1,
     jogFeedXY: 1800,
     jogFeedZ: 300,
-    jogAccumulatedJobTime: 0,
 
     macros: MACROS_INITIALSTATE,
 
