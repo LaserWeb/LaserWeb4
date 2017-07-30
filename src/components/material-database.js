@@ -328,6 +328,8 @@ class PresetsPane extends React.Component {
 
         }
 
+        let __presets=presets.filter((operation,i)=>(shouldShow(operation, this.props.selectedProfile)))
+
         return <div className="full-height" id="operationsPane" style={this.props.style}>
 
             <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
@@ -337,9 +339,7 @@ class PresetsPane extends React.Component {
             <div className="full-height right innerPane">
                 {rightToolbar}
                 <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
-                    {presets.map((operation, i) => {
-                        if (!shouldShow(operation, this.props.selectedProfile)) return;
-
+                    {__presets.map((operation, i) => {
                         return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                             handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                             header={<div>
@@ -359,6 +359,7 @@ class PresetsPane extends React.Component {
                                 caption="Parameters" />
                         </Details>
                     })}
+                    { (!__presets.length && this.props.selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
                 </PanelGroup>
             </div>
         </div>
@@ -564,7 +565,7 @@ class MaterialDatabasePicker extends React.Component {
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
-                                    let disabled= !!this.props.types || !this.props.types.includes(op.type);
+                                    let disabled= (this.props.types && !this.props.types.includes(op.type)) || !this.props.types;
                                     return <Details key={j}
                                         handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
                                         header={<Button disabled={disabled} bsStyle="success" bsSize="xsmall" title={disabled? 'Operation Documents not compatible with this type':undefined } onClick={(e) => { this.handleApplyPreset(op.id) }}><Icon name="share" /></Button>}

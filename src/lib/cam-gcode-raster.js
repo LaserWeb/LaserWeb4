@@ -63,6 +63,10 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     const postProcessing = (gc) => {
         let g = '';
         let raster = '';
+        
+        let firstMove = gc.find((line)=>{
+            return line.match(/^G[0-1]\s+[XYZ]/gi);
+        })
         for (let line of gc) {
             if (op.useA) {
                 line = line.replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{ 
@@ -90,6 +94,11 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 if (settings.machineBlowerGcodeOn) {
                     g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
                 }
+            }
+
+            if (firstMove) {
+                g+= `\r\n; First Move\r\n`;
+                g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'');
             }
 
             if (settings.machineZEnabled) {

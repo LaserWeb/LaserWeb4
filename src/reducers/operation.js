@@ -30,10 +30,11 @@ export const OPERATION_INITIALSTATE = {
     stepOver: 40,
     passDepth: 0,
     startHeight: '',
-    cutDepth: 0,
+    millRapidZ: 0,
+    millStartZ: 0,
+    millEndZ: 0,
     segmentLength: 0,
     tabDepth: 0,
-    clearance: 0,
     plungeRate: 0,
     cutRate: 0,
     overScan: 0,
@@ -55,16 +56,36 @@ export const OPERATION_INITIALSTATE = {
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
+    latheToolBackSide: false,
+    latheRapidToDiameter: 0,
+    latheRapidToZ: 0,
+    latheStartZ: 0,
+    latheRoughingFeed: 0,
+    latheRoughingDepth: 0,
+    latheFinishFeed: 0,
+    latheFinishDepth: 0,
+    latheFinishExtraPasses: 0,
+    latheFace: true,
+    latheFaceEndDiameter: 0,
+    latheTurns: [],
     _docs_visible: true,
     // Hooks!
     hookOperationStart: '',
     hookOperationEnd: '',
     hookPassStart: '',
     hookPassEnd: ''
+};
 
-}
+const OPERATION_LATHE_TURN_INITIALSTATE = {
+    id: '',
+    startDiameter: 0,
+    endDiameter: 0,
+    length: 0,
+};
 
 const operationBase = object('operation', OPERATION_INITIALSTATE);
+const operationLatheTurnBase = object('operation_lathe_turn', OPERATION_LATHE_TURN_INITIALSTATE);
+const operationLatheTurnsBase = objectArray('operation_lathe_turn', operationLatheTurnBase);
 
 export const OPERATION_DEFAULTS = (state) => {
     if (!state) state = GlobalStore().getState()
@@ -76,7 +97,8 @@ export const OPERATION_DEFAULTS = (state) => {
 }
 
 export function operation(state, action) {
-    state = operationBase(state, action);
+    if (action.type !== 'LOADED')
+        state = operationBase(state, action);
     switch (action.type) {
         case 'OPERATION_REMOVE_DOCUMENT':
             if (action.payload.id === state.id)
@@ -84,6 +106,23 @@ export function operation(state, action) {
                     return { ...state, tabDocuments: state.tabDocuments.filter(d => d !== action.payload.document) }
                 else
                     return { ...state, documents: state.documents.filter(d => d !== action.payload.document) }
+            break;
+        case 'OPERATION_LATHE_TURN_ADD':
+            if (action.payload.id === state.id)
+                return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
+            break;
+        case 'OPERATION_LATHE_TURN_SET_ATTRS':
+        case 'OPERATION_LATHE_TURN_REMOVE':
+        case 'LOADED':
+            state = { ...state };
+            if ('clearance' in state && !('millRapidZ' in state))
+                state.millRapidZ = state.clearance;
+            if ('cutDepth' in state && !('millEndZ' in state))
+                state.millEndZ = -state.cutDepth;
+            delete state.clearance;
+            delete state.cutDepth;
+            state = operationBase(state, action);
+            return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
     }
     return state;
 }
@@ -108,9 +147,9 @@ export const operations = (state, action) => {
             break;
         case "OPERATION_SPREAD_FIELD":
             let op = state.find(o => o.id === action.payload.id)
-            if (op) state = state.map(o => { 
+            if (op) state = state.map(o => {
                 if (!o.enabled) return o;
-                return { ...o, [action.payload.field]: op[action.payload.field] } 
+                return { ...o, [action.payload.field]: op[action.payload.field] }
             })
             break;
         case 'WORKSPACE_RESET':

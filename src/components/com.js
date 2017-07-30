@@ -19,8 +19,10 @@ var socket, connectVia;
 var serverConnected = false;
 var machineConnected = false;
 var jobStartTime = -1;
+var accumulatedJobTime = 0;
 var playing = false;
 var paused = false;
+var m0 = false;
 var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
@@ -31,7 +33,8 @@ class Com extends React.Component {
 
     constructor(props) {
         super(props);
-        let {comInterfaces, comPorts} = this.props.settings;
+        let {comInterfaces, comPorts, comAccumulatedJobTime} = this.props.settings;
+        accumulatedJobTime = comAccumulatedJobTime;
         this.state = {comInterfaces: comInterfaces, comPorts: comPorts};
     }
 
@@ -232,6 +235,9 @@ class Com extends React.Component {
                 paused = false;
             } else if (status === 'paused') {
                 paused = true;
+            } else if (status === 'm0') {
+                paused = true;
+                m0 = true;
             } else if (status === 'resumed') {
                 paused = false;
             } else if (status === 'stopped') {
@@ -400,9 +406,10 @@ class Com extends React.Component {
                     CommandHistory.write("Job finished at " + jobFinishTime.toString(), CommandHistory.SUCCESS);
                     CommandHistory.write("Elapsed time: " + secToHMS(elapsedTime), CommandHistory.SUCCESS);
                     jobStartTime = -1;
-                    let accumulatedJobTime = settings.jogAccumulatedJobTime + elapsedTime;
-                    dispatch(setSettingsAttrs({jogAccumulatedJobTime: accumulatedJobTime}));
-                    CommandHistory.write("Total accumulated job time: " + secToHMS(accumulatedJobTime), CommandHistory.SUCCESS);
+                    accumulatedJobTime += elapsedTime;
+                    let AJT = accumulatedJobTime;
+                    dispatch(setSettingsAttrs({comAccumulatedJobTime: AJT}));
+                    CommandHistory.write("Total accumulated job time: " + secToHMS(AJT), CommandHistory.SUCCESS);
                 }
             }
         });
@@ -670,6 +677,7 @@ export function resumeJob() {
     if (serverConnected) {
         if (machineConnected){
             paused = false;
+            m0 = false;
             runStatus('running');
             $('#playicon').removeClass('fa-play');
             $('#playicon').addClass('fa-pause');
@@ -689,6 +697,7 @@ export function abortJob() {
             CommandHistory.write('Aborting job', CommandHistory.INFO);
             playing = false;
             paused = false;
+            m0 = false;
             runStatus('stopped');
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');

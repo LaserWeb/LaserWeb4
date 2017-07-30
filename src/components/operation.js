@@ -18,7 +18,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 import uuid from 'node-uuid';
 
-import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField } from '../actions/operation';
+import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField, operationLatheTurnAdd, operationLatheTurnRemove, operationLatheTurnSetAttrs } from '../actions/operation';
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
@@ -44,41 +44,40 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import "../styles/context-menu.css";
 
 function StringInput(props) {
-    let { op, field, fillColors, strokeColors, ...rest } = props;
+    let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest } = props;
     let value = op[field.name];
     return <Input value={value !== undefined ? value : ''}  {...rest } />;
 }
 
 function NumberInput(props) {
-    let { op, field, fillColors, strokeColors, ...rest } = props;
+    let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest } = props;
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
 function EnumInput(opts, def) {
     if (Array.isArray(opts))
-        opts = Object.assign( ...opts.map(i=>({[i]:i})) )
-    
-    return function({ op, field, onChangeValue, fillColors, strokeColors, ...rest }){
+        opts = Object.assign(...opts.map(i => ({ [i]: i })))
+
+    return function ({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest }) {
         return <select value={op[field.name]}  {...rest} >
-            {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
+            {Object.entries(opts).map((e, i) => (<option key={i} value={e[0]}>{e[1]}</option>))}
         </select>
     }
 }
 
-const DirectionInput = EnumInput(['Conventional','Climb']);
+const DirectionInput = EnumInput(['Conventional', 'Climb']);
 const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
 
-
-function CheckboxInput({ op, field, onChangeValue, fillColors, strokeColors, ...rest }) {
+function CheckboxInput({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest }) {
     return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
 }
 
-function ToggleInput({ op, field, onChangeValue, fillColors, strokeColors, className = "scale75", ...rest }) {
+function ToggleInput({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, className = "scale75", dispatch, ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
 function RangeInput(minValue, maxValue) {
-    return ({ op, field, onChangeValue, ...rest }) => {
+    return ({ op, field, onChangeValue, dispatch, ...rest }) => {
         return <InputRangeField maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
     }
 }
@@ -91,6 +90,33 @@ function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: 
         }
     }))
 
+}
+
+function ButtonInput(args) {
+    return <Button onClick={e => args.field.onClick(e, args)} bsSize="xsmall" bsStyle="info" >{args.field.buttonLabel}</Button>;
+}
+
+function TableInput({ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch }) {
+    let { name, fields, remove } = field;
+    let array = op[name];
+    if (!array.length)
+        return null;
+    return <div style={{ display: 'inline-block' }}><table><tbody>
+        <tr>{Object.entries(fields).map(f => <th key={f[1].name} style={{ paddingRight: 10 }}>{f[1].label}</th>)}</tr>
+        {array.map((item, index) => <tr key={item.id}>
+            {Object.entries(fields).map(f => <td key={f[1].name}>
+                <Field {...{
+                    op: item, field: f[1], operationsBounds, fillColors, strokeColors, settings,
+                    setAttrs: operationLatheTurnSetAttrs, dispatch, justControl: true, parent: op, index,
+                }} />
+            </td>)}
+            <td>
+                <button className="btn btn-default btn-xs" onClick={e => dispatch(remove(item.id))}>
+                    <i className="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>)}
+    </tbody></table></div>;
 }
 
 function ColorBox(v) {
@@ -113,7 +139,7 @@ class FilterInput extends React.Component {
     }
 
     render() {
-        let { op, field, onChange, onChangeValue, fillColors, strokeColors, ...rest } = this.props;
+        let { op, field, onChange, onChangeValue, operationsBounds, fillColors, strokeColors, settings, ...rest } = this.props;
         let raw = op[field.name];
         let colors = field.name === 'filterFillColor' ? fillColors : strokeColors;
         let value;
@@ -160,9 +186,9 @@ class Field extends React.Component {
     }
 
     onChangeValue(v) {
-        let { op, field } = this.props;
+        let { op, field, setAttrs } = this.props;
         if (op[field.name] !== v)
-            this.props.dispatch(setOperationAttrs({ [field.name]: v }, op.id));
+            this.props.dispatch(setAttrs({ [field.name]: v }, op.id));
     }
 
     onChange(e) {
@@ -175,24 +201,48 @@ class Field extends React.Component {
     }
 
     render() {
-        let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch } = this.props;
+        let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, justControl, parent, index } = this.props;
         let Input = field.input;
-        let { units } = field;
+        let { units, wide, style } = field;
         let error;
         if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
             units = settings.toolFeedUnits;
-        if (field.check && !field.check(op[field.name], settings, op))
-            error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op) : field.error} />;
+        if (field.check && !field.check(op[field.name], settings, op, parent, index))
+            error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
 
         let Ctx = field.contextMenu;
         let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dashed blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
+
+        if (justControl) {
+            return (
+                <GetBounds Type="div">
+                    <Input
+                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                        onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
+                    {error}
+                </GetBounds>
+            );
+        }
+
+        if (wide) {
+            return (
+                <GetBounds Type="tr">
+                    <td colSpan="3">
+                        <Input
+                            {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                            onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
+                    </td>
+                    <td>{units}{error}</td>
+                </GetBounds>
+            );
+        }
 
         return (
             <GetBounds Type="tr">
                 <th width="30%">{label}</th>
                 <td>
                     <Input
-                        op={op} field={field} fillColors={fillColors} strokeColors={strokeColors}
+                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
                         onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
                 </td>
                 <td>{units}{error}</td>
@@ -240,6 +290,11 @@ const checkPositiveInt = {
 const checkGE0 = {
     check: v => v >= 0,
     error: 'Must be >= 0',
+};
+
+const checkGE0Int = {
+    check: v => v >= 0 && (v | 0) === +v,
+    error: 'Must be integer >= 0',
 };
 
 const checkNot0 = {
@@ -330,6 +385,85 @@ const checkPassDepth = {
     error: (v, settings, op) => { return (op.type.match(/^Laser/)) ? checkGE0.error : checkPositive.error },
 }
 
+const checkMillStartZ = {
+    check: (v, settings, op) => v <= op.millRapidZ,
+    error: 'Must be <= Rapid Z',
+};
+
+const checkMillEndZ = {
+    check: (v, settings, op) => v < op.millStartZ,
+    error: 'Must be < Start Z',
+};
+
+const checkLatheStartZ = {
+    check: (v, settings, op) => v <= op.latheRapidToZ - op.latheFinishDepth,
+    error: 'Must be <= Rapid To Z - Finish Depth',
+};
+
+const checkLatheFaceEndDiameter = {
+    condition: op => op.latheFace,
+    check: (v, settings, op) => {
+        if (op.latheFaceEndDiameter >= op.latheRapidToDiameter)
+            return false;
+        if (op.latheFaceEndDiameter < -op.latheRapidToDiameter)
+            return false;
+        return true;
+    },
+    error: (v, settings, op) => {
+        if (op.latheFaceEndDiameter >= op.latheRapidToDiameter)
+            return "Must be < Rapid To Diameter";
+        if (op.latheFaceEndDiameter < -op.latheRapidToDiameter)
+            return "Must be >= -(Rapid To Diameter)";
+        return "I'm confused";
+    },
+};
+
+const latheTurnAdd = {
+    check: (v, settings, op) => op.latheFace || op.latheTurns.length > 0,
+    error: 'Need at least one turn when not facing',
+    onClick: (e, { op, dispatch }) => dispatch(operationLatheTurnAdd(op.id)),
+};
+
+const checkLatheTurn = {
+    check: (v, settings, turn, parent, index) => {
+        if (turn.startDiameter < 0)
+            return false;
+        if (index > 0 && turn.startDiameter < parent.latheTurns[index - 1].endDiameter)
+            return false;
+        if (turn.startDiameter >= parent.latheRapidToDiameter)
+            return false;
+        if (turn.endDiameter <= 0)
+            return false;
+        if (turn.endDiameter < turn.startDiameter)
+            return false;
+        if (turn.endDiameter >= parent.latheRapidToDiameter - parent.latheFinishDepth)
+            return false;
+        if (turn.endDiameter !== turn.startDiameter)
+            return false;
+        if (turn.length <= 0)
+            return false;
+        return true;
+    },
+    error: (v, settings, turn, parent, index) => {
+        if (turn.startDiameter < 0)
+            return 'Start Diameter must be >= 0';
+        if (index > 0 && turn.startDiameter < parent.latheTurns[index - 1].endDiameter)
+            return 'Start Diameter must be >= previous End Diameter';
+        if (turn.startDiameter >= parent.latheRapidToDiameter)
+            return 'Start Diameter must be < Rapid';
+        if (turn.endDiameter <= 0)
+            return 'End Diameter must be > 0';
+        if (turn.endDiameter < turn.startDiameter)
+            return 'End Diameter must be >= Start Diameter';
+        if (turn.endDiameter >= parent.latheRapidToDiameter - parent.latheFinishDepth)
+            return 'End Diameter must be < Rapid - Finish Depth';
+        if (turn.endDiameter !== turn.startDiameter)
+            return 'Taper not implemented yet';
+        if (turn.length <= 0)
+            return 'Length must be > 0';
+        return "I'm confused";
+    },
+};
 
 const FieldContextMenu = (id = uuid.v4()) => {
     return ({ children, dispatch, op, field, settings }) => {
@@ -339,6 +473,12 @@ const FieldContextMenu = (id = uuid.v4()) => {
         return <div title="Right click or press long to popup context menu"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
 }
+
+export const OPERATION_LATHE_TURN_FIELDS = {
+    startDiameter: { name: 'startDiameter', label: 'Start Diameter', input: NumberInput, style: { width: 80 }, ...checkLatheTurn },
+    endDiameter: { name: 'endDiameter', label: 'End Diameter', input: NumberInput, style: { width: 80 } },
+    length: { name: 'length', label: 'Length', input: NumberInput, style: { width: 80 } },
+};
 
 export const OPERATION_FIELDS = {
     name: { name: 'name', label: 'Name', units: '', input: StringInput },
@@ -360,9 +500,10 @@ export const OPERATION_FIELDS = {
     cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
     stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ, contextMenu: FieldContextMenu() },
-    cutDepth: { name: 'cutDepth', label: 'Final Cut Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    millRapidZ: { name: 'millRapidZ', label: 'Rapid Z', units: 'mm', input: NumberInput },
+    millStartZ: { name: 'millStartZ', label: 'Start Z', units: 'mm', input: NumberInput, ...checkMillStartZ },
+    millEndZ: { name: 'millEndZ', label: 'End Z', units: 'mm', input: NumberInput, ...checkMillEndZ },
     startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
-    clearance: { name: 'clearance', label: 'ZClearance', units: 'mm', input: NumberInput, ...checkGE0 },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
     ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput },
 
@@ -389,6 +530,20 @@ export const OPERATION_FIELDS = {
     diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
+
+    latheToolBackSide: { name: 'latheToolBackSide', label: 'Tool Back Side', input: ToggleInput },
+    latheRapidToDiameter: { name: 'latheRapidToDiameter', label: 'Rapid To Diameter', units: 'mm', input: NumberInput, ...checkPositive },
+    latheRapidToZ: { name: 'latheRapidToZ', label: 'Rapid To Z', units: 'mm', input: NumberInput },
+    latheStartZ: { name: 'latheStartZ', label: 'Start Z', units: 'mm', input: NumberInput, ...checkLatheStartZ },
+    latheRoughingFeed: { name: 'latheRoughingFeed', label: 'Roughing Feed', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
+    latheRoughingDepth: { name: 'latheRoughingDepth', label: 'Roughing Depth', units: 'mm', input: NumberInput, ...checkPositive },
+    latheFinishFeed: { name: 'latheFinishFeed', label: 'Finish Feed', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
+    latheFinishDepth: { name: 'latheFinishDepth', label: 'Finish Depth', units: 'mm', input: NumberInput, ...checkGE0 },
+    latheFinishExtraPasses: { name: 'latheFinishExtraPasses', label: 'Finish Extra Passes', input: NumberInput, ...checkGE0Int },
+    latheFace: { name: 'latheFace', label: 'Face', input: ToggleInput },
+    latheFaceEndDiameter: { name: 'latheFaceEndDiameter', label: 'Face End Diameter', units: 'mm', input: NumberInput, ...checkLatheFaceEndDiameter },
+    latheTurnAdd: { name: 'latheTurnAdd', buttonLabel: 'Add Turn', input: ButtonInput, wide: true, ...latheTurnAdd },
+    latheTurns: { name: 'latheTurns', input: TableInput, fields: OPERATION_LATHE_TURN_FIELDS, remove: operationLatheTurnRemove, wide: true },
 
     hookOperationStart: { name: 'hookOperationStart', label: 'Pre Op', units: '', input: TagInput('settings.macros') },
     hookOperationEnd: { name: 'hookOperationEnd', label: 'Post Op', units: '', input: TagInput('settings.macros') },
@@ -431,11 +586,12 @@ export const OPERATION_TYPES = {
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'cutDepth', 'passDepth', 'clearance', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'clearance', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'millRapidZ', 'millStartZ', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
+    'Lathe Conv Face/Turn': { skipDocs: true, tabFields: false, fields: ['name', 'latheToolBackSide', 'latheRapidToDiameter', 'latheRapidToZ', 'latheStartZ', 'latheRoughingFeed', 'latheRoughingDepth', 'latheFinishFeed', 'latheFinishDepth', 'latheFinishExtraPasses', 'latheFace', 'latheFaceEndDiameter', 'latheTurnAdd', 'latheTurns', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
 const groupFields = (ofields) => {
@@ -576,26 +732,29 @@ class Operation extends React.Component {
             </GetBounds>
         ];
         if (op.expanded) {
-            rows.push(
-                <div key="docs" style={{ display: 'table-row' }} data-operation-id={op.id}>
-                    <div style={leftStyle} />
-                    <div style={{ display: 'table-cell' }} />
-                    <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
-                        <table style={{ width: '100%', border: '2px dashed #ccc' }}>
-                            <thead>
-                                <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
-                            </thead>
-                            <tbody style={{ display: op._docs_visible ? 'block' : 'none' }}>
-                                {op.documents.map(id => {
-                                    return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
-                                })}
-                            </tbody>
-                            <tfoot>
-                                <tr><td colSpan='3' style={{ textAlign: 'right' }}><a onClick={this.toggleDocs}><small>{op._docs_visible ? 'Hide Docs' : 'Show Docs (' + op.documents.length + ')'}</small></a></td></tr>
-                            </tfoot>
-                        </table>
+            if (!OPERATION_TYPES[op.type].skipDocs)
+                rows.push(
+                    <div key="docs" style={{ display: 'table-row' }} data-operation-id={op.id}>
+                        <div style={leftStyle} />
+                        <div style={{ display: 'table-cell' }} />
+                        <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                            <table style={{ width: '100%', border: '2px dashed #ccc' }}>
+                                <thead>
+                                    <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
+                                </thead>
+                                <tbody style={{ display: op._docs_visible ? 'block' : 'none' }}>
+                                    {op.documents.map(id => {
+                                        return <Doc key={id} op={op} documents={documents} id={id} isTab={false} dispatch={dispatch} />
+                                    })}
+                                </tbody>
+                                <tfoot>
+                                    <tr><td colSpan='3' style={{ textAlign: 'right' }}><a onClick={this.toggleDocs}><small>{op._docs_visible ? 'Hide Docs' : 'Show Docs (' + op.documents.length + ')'}</small></a></td></tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
-                </div>,
+                );
+            rows.push(
                 <div key="attrs" style={{ display: 'table-row' }}>
                     <div style={leftStyle} />
                     <div style={{ display: 'table-cell' }} />
@@ -610,7 +769,7 @@ class Operation extends React.Component {
                                             return <Field
                                                 key={fieldName} op={op} field={OPERATION_FIELDS[fieldName]} selected={selected}
                                                 fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                                                operationsBounds={bounds} dispatch={dispatch} />
+                                                operationsBounds={bounds} setAttrs={setOperationAttrs} dispatch={dispatch} />
                                         })
                                     if (key !== '_default' && group.fields.length) {
                                         if (group.collapsible) {
@@ -666,7 +825,7 @@ class Operation extends React.Component {
                                     <table>
                                         <tbody>
                                             {tabFields.map(field => {
-                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={bounds} dispatch={dispatch} />
+                                                return <Field key={field.name} op={op} field={field} selected={selected} operationsBounds={bounds} setAttrs={setOperationAttrs} dispatch={dispatch} />
                                             })}
                                         </tbody>
                                     </table>
@@ -765,8 +924,9 @@ class OperationToolbar extends React.Component {
 
     render() {
         let hasSelected = this.props.documents.some((item) => item.selected)
+        let settings = this.props.settings;
         return <ButtonToolbar style={{ paddingBottom: "5px", marginBottom: "5px", borderBottom: "1px solid #eee" }}>
-            <Button disabled={!hasSelected} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
+            <Button disabled={!hasSelected && !settings.toolCreateEmptyOps} onClick={(e) => { this.handleAddSingle() }} bsSize="xsmall" bsStyle="info" title="Create a single operation with the selected documents"><Icon name="object-group" /> Create Single </Button>
             <Button disabled={!hasSelected} onClick={(e) => { this.handleAddMultiple() }} bsSize="xsmall" bsStyle="info" title="Create operations with each of the selected documents"><Icon name="object-ungroup" /> Create Multiple </Button>
             <Button disabled={!this.props.operations.length} onClick={e => this.handleClearAll()} bsStyle="danger" bsSize="xsmall" title="Clear all operations" >Clear All</Button>
         </ButtonToolbar>
@@ -774,7 +934,7 @@ class OperationToolbar extends React.Component {
 }
 
 OperationToolbar = connect(
-    (state) => { return { documents: state.documents, operations: state.operations } },
+    (state) => { return { documents: state.documents, operations: state.operations, settings: state.settings } },
     (dispatch) => {
         return {
             createSingle: (documents) => { dispatch(addOperation({ documents })) },
