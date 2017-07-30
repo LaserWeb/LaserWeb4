@@ -30,10 +30,11 @@ export const OPERATION_INITIALSTATE = {
     stepOver: 40,
     passDepth: 0,
     startHeight: '',
-    cutDepth: 0,
+    millRapidZ: 0,
+    millStartZ: 0,
+    millEndZ: 0,
     segmentLength: 0,
     tabDepth: 0,
-    clearance: 0,
     plungeRate: 0,
     cutRate: 0,
     overScan: 0,
@@ -96,7 +97,8 @@ export const OPERATION_DEFAULTS = (state) => {
 }
 
 export function operation(state, action) {
-    state = operationBase(state, action);
+    if (action.type !== 'LOADED')
+        state = operationBase(state, action);
     switch (action.type) {
         case 'OPERATION_REMOVE_DOCUMENT':
             if (action.payload.id === state.id)
@@ -112,6 +114,14 @@ export function operation(state, action) {
         case 'OPERATION_LATHE_TURN_SET_ATTRS':
         case 'OPERATION_LATHE_TURN_REMOVE':
         case 'LOADED':
+            state = { ...state };
+            if ('clearance' in state && !('millRapidZ' in state))
+                state.millRapidZ = state.clearance;
+            if ('cutDepth' in state && !('millEndZ' in state))
+                state.millEndZ = -state.cutDepth;
+            delete state.clearance;
+            delete state.cutDepth;
+            state = operationBase(state, action);
             return { ...state, latheTurns: operationLatheTurnsBase(state.latheTurns, action) };
     }
     return state;

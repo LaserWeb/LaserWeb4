@@ -36,10 +36,11 @@ const hide = [
     'laserDia',
     'toolAngle',
     'lineSpace',
-    'zClearance',
+    'millRapidZ',
     'cutDirection',
     'zStep',
-    'zDepth'
+    'millStartZ',
+    'millEndZ',
 ];
 
 const types = {
@@ -49,11 +50,11 @@ const types = {
     'Laser Fill Path': { show: ['LaserFill', 'lineSpace'] },
     'Laser Raster': { show: ['LaserRaster', 'laserDia'] },
     'Laser Raster Merge': { show: ['LaserRaster', 'laserDia'] },
-    'Mill Pocket': { show: ['MillPocket', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
-    'Mill Cut': { show: ['MillCut', 'zStep', 'zDepth'] },
-    'Mill Cut Inside': { show: ['MillCutInside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
-    'Mill Cut Outside': { show: ['MillCutOutside', 'toolDia', 'zClearance', 'zStep', 'zDepth'] },
-    'Mill V Carve': { show: ['MillVCarve', 'toolAngle', 'zClearance', 'zStep'] },
+    'Mill Pocket': { show: ['MillPocket', 'toolDia', 'millRapidZ', 'zStep', 'millStartZ', 'millEndZ'] },
+    'Mill Cut': { show: ['MillCut', 'toolDia', 'millRapidZ', 'zStep', 'millStartZ', 'millEndZ'] },
+    'Mill Cut Inside': { show: ['MillCutInside', 'toolDia', 'millRapidZ', 'zStep', 'millStartZ', 'millEndZ'] },
+    'Mill Cut Outside': { show: ['MillCutOutside', 'toolDia', 'millRapidZ', 'zStep', 'millStartZ', 'millEndZ'] },
+    'Mill V Carve': { show: ['MillVCarve', 'toolAngle', 'millStartZ', 'millRapidZ', 'zStep'] },
 };
 
 export class OperationDiagram extends React.Component {
@@ -86,11 +87,12 @@ export class OperationDiagram extends React.Component {
         document.getElementById('Labels').style.display = 'inline';
         document.getElementById('laserDia').textContent = op.laserDiameter + 'mm Diameter';
         document.getElementById('toolDia').textContent = op.toolDiameter + 'mm Diameter';
-        document.getElementById('zClearance').textContent = op.clearance + 'mm Clearance';
+        document.getElementById('millRapidZ').textContent = op.millRapidZ + 'mm Rapid Z';
         document.getElementById('lineSpace').textContent = op.lineDistance + 'mm Spacing';
         document.getElementById('toolAngle').textContent = op.toolAngle + '\u00B0 Angle';
         document.getElementById('zStep').textContent = op.passDepth + 'mm per pass';
-        document.getElementById('zDepth').textContent = op.cutDepth + 'mm depth';
+        document.getElementById('millStartZ').textContent = op.millStartZ + 'mm Start Z';
+        document.getElementById('millEndZ').textContent = op.millEndZ + 'mm End Z';
 
         if (op.type == 'Mill Cut' || op.type == 'Mill Cut Outside') {
             if (op.direction == 'Conventional') {
