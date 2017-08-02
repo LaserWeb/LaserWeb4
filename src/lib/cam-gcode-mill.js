@@ -185,6 +185,10 @@ export function getMillGcode(props) {
 
 export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress) {
     let ok = true;
+    if (op.millStartZ > op.millRapidZ) {
+        showAlert("millStartZ must be <= millRapidZ", "danger");
+        ok = false;
+    }
     if (op.passDepth <= 0) {
         showAlert("Pass Depth must be greater than 0", "danger");
         ok = false;
@@ -195,8 +199,8 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
             ok = false;
         }
     } else {
-        if (op.cutDepth <= 0) {
-            showAlert("Final Cut Depth must be greater than 0", "danger");
+        if (op.millEndZ >= op.millStartZ) {
+            showAlert("millEndZ must be < millStartZ", "danger");
             ok = false;
         }
         if (op.type !== 'Mill Cut' && op.toolDiameter <= 0) {
@@ -260,9 +264,10 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         "\r\n; Type:         " + op.type +
         "\r\n; Paths:        " + camPaths.length +
         "\r\n; Direction:    " + op.direction +
-        "\r\n; Cut Depth:    " + op.cutDepth +
+        "\r\n; Rapid Z:      " + op.millRapidZ +
+        "\r\n; Start Z:      " + op.millStartZ +
+        "\r\n; End Z:        " + op.millEndZ +
         "\r\n; Pass Depth:   " + op.passDepth +
-        "\r\n; clearance:    " + op.clearance +
         "\r\n; Plunge rate:  " + op.plungeRate + ' ' + settings.toolFeedUnits +
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
         "\r\n;\r\n";
@@ -277,9 +282,9 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         offsetX: 0,
         offsetY: 0,
         decimal: 3,
-        topZ: 0,
-        botZ: -op.cutDepth,
-        safeZ: +op.clearance,
+        topZ: op.millStartZ,
+        botZ: op.millEndZ,
+        safeZ: op.millRapidZ,
         passDepth: op.passDepth,
         plungeFeed: op.plungeRate * feedScale,
         cutFeed: op.cutRate * feedScale,

@@ -147,6 +147,10 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
                         invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
+                    } else if (op.type.substring(0, 6) === 'Lathe ') {
+
+                        invokeWebWorker(require('worker-loader!./workers/cam-lathe.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+
                     } else {
                         showAlert("Unknown operation " + op.type, 'warning')
                         cb()

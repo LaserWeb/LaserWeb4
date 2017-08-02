@@ -295,6 +295,7 @@ class Settings extends React.Component {
                         </p>,"Jog using Numpad")}} />
                         
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">Gamepad for jogging. Use analog left stick to move on Jog tab.</p>) }} />
+                        <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations' }} />
                         
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                         <hr/>
