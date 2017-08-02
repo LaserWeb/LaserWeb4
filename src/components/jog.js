@@ -299,7 +299,11 @@ class Jog extends React.Component {
 
     checkSize() {
         console.log('checkSize');
-        let feedrate = $('#jogfeedxy').val() * 60;
+        let units = this.props.settings.toolFeedUnits;
+        let feedrate, mult = 1;
+        if (units == 'mm/s') mult = 60;
+        feedrate = jQuery('#jogfeedxy').val() * mult;
+
         let gcode = this.props.gcode;
         
         //let linemoves = gcode.split(/g[13]/i);
