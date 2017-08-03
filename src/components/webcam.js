@@ -117,8 +117,8 @@ export class VideoPort extends React.Component {
 
     shouldComponentUpdate(nextProps)
     {
-        return nextProps.toolVideoDevice !== this.props.toolVideoDevice ||
-               nextProps.toolVideoResolution !== this.props.toolVideoResolution ||
+        return nextProps.settings.toolVideoDevice !== this.props.settings.toolVideoDevice ||
+               nextProps.settings.toolVideoResolution !== this.props.settings.toolVideoResolution ||
                nextProps.enabled !== this.props.enabled ||
                nextProps.useCanvas !== this.props.useCanvas 
                
@@ -138,7 +138,7 @@ export class VideoPort extends React.Component {
                 if (this.props.useCanvas){
                     const display=ReactDOM.findDOMNode(this.refs['display'])
                     const myvideo=document.createElement('video')
-                          myvideo.autoplay=true;
+                          myvideo.autoPlay=true;
                           myvideo.width=width
                           myvideo.height=height;
                           display.width=width;
