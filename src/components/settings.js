@@ -215,7 +215,7 @@ class Settings extends React.Component {
 
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
-
+        let isVideoFX = this.props.settings.toolVideoFX && this.props.settings.toolVideoFX.enabled 
 
         return (
             <div className="form">
@@ -312,8 +312,7 @@ class Settings extends React.Component {
                             <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
 
                         </tr></tbody></table>
-
-                        <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true} canvasProcess={this.props.settings.toolVideoFX && this.props.settings.toolVideoFX.enabled ? webcamFxProcess: null}/>
+                        { isVideoFX ? <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess }/> :  <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
                         <hr/>
                         <WebcamFxControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>
                         <hr/>

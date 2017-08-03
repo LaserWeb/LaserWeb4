@@ -3,8 +3,10 @@ import POS from './js-aruco/posit2.js';
 
 const DEFAULT_MODEL_SIZE = 20
 
-export const arucoProcess= (canvas, settings) => {
-    const context= canvas.getContext('2d');
+export const arucoProcess= ({canvas, video, settings}) => {
+    const context= canvas.getContext('2d')
+          context.drawImage(video, 0, 0);
+          context.save();
     const model_size = settings.toolVideoOMRMarkerSize || DEFAULT_MODEL_SIZE;
     const detector = new AR.Detector();
     

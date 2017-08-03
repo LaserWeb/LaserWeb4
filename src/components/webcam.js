@@ -119,7 +119,8 @@ export class VideoPort extends React.Component {
     {
         return nextProps.toolVideoDevice !== this.props.toolVideoDevice ||
                nextProps.toolVideoResolution !== this.props.toolVideoResolution ||
-               nextProps.enabled !== this.props.enabled
+               nextProps.enabled !== this.props.enabled ||
+               nextProps.useCanvas !== this.props.useCanvas 
                
     }
 
@@ -146,14 +147,17 @@ export class VideoPort extends React.Component {
                     if (myvideo.srcObject !== stream)
                         myvideo.srcObject = stream
 
-                    const draw=function(){
-                        if (this.__mounted && display && this.props.enabled) {
-                            let context = display.getContext('2d');
-                                context.drawImage(myvideo, 0, 0);
-
-                            if (this.props.canvasProcess)
-                                this.props.canvasProcess(display, this.props.settings);
+                    const draw=function(){ 
+                        if (this.__mounted && display && this.props.enabled ) {
                             
+                            if (myvideo.readyState === myvideo.HAVE_ENOUGH_DATA) {
+                                if (this.props.canvasProcess) {
+                                    this.props.canvasProcess({ canvas: display, video: myvideo,settings: this.props.settings });
+                                } else {
+                                    let context = display.getContext('2d');
+                                    if (context) context.drawImage(myvideo, 0, 0);
+                                }
+                            }
                             requestAnimationFrame(draw)
                         }
                     }.bind(this);
