@@ -20,7 +20,7 @@ import { imageMesh } from './imageMesh';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
-import { barrelDistort } from './webcamfx';
+import { webcamFX } from './webcam-fx';
 
 export class DrawCommands {
     constructor(gl) {
@@ -42,7 +42,7 @@ export class DrawCommands {
         this.gcode = gcode(this);
         this.laser = laser(this);
 
-        this.barrelDistort = barrelDistort(this)
+        this.webcamFX = webcamFX(this)
 
     }
 

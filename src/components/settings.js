@@ -27,6 +27,9 @@ import { getSubset } from 'redux-localstorage-filter';
 
 import { Details } from './material-database'
 
+import webcamFxProcess from '../lib/webcam-fx'
+import { WebcamFxControls } from './webcam-fx';
+
 export class ApplicationSnapshot extends React.Component {
 
     constructor(props) {
@@ -310,12 +313,12 @@ class Settings extends React.Component {
 
                         </tr></tbody></table>
 
-                        <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} />
-
-                        <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} />
+                        <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true} canvasProcess={this.props.settings.toolVideoFX && this.props.settings.toolVideoFX.enabled ? webcamFxProcess: null}/>
                         <hr/>
-                        <ToggleField  {... { object: this.props.settings, field: 'toolVideoOMR', setAttrs: setSettingsAttrs, description: 'Activate OMR', info: Info(<p className="help-block">
-                        Enabling this, ARUCO markers will be recognized by floating camera port, allowing stock alignment. <Label bsStyle="warning">Experimental!</Label>
+                        <WebcamFxControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>
+                        <hr/>
+                        <ToggleField  {... { object: this.props.settings, field: 'toolVideoOMR', setAttrs: setSettingsAttrs, description: <div>Activate OMR <Label bsStyle="warning">Experimental!</Label></div>, info: Info(<p className="help-block">
+                        Enabling this, ARUCO markers will be recognized by floating camera port, allowing stock alignment. 
                         </p>,"Optical Mark Recognition"), disabled:!this.props.settings['toolVideoDevice'] }} />
 
                         <Collapse in={this.props.settings.toolVideoOMR}>
@@ -399,7 +402,8 @@ const mapDispatchToProps = (dispatch) => {
         },
         handleApplyProfile: (settings) => {
             dispatch(setSettingsAttrs(settings));
-        }
+        },
+        dispatch
 
     };
 };

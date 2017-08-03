@@ -52,7 +52,7 @@ export class Input extends React.Component {
     }
 };
 
-class TooltipFormGroup extends React.Component {
+export class TooltipFormGroup extends React.Component {
     componentWillMount() {
         this.handleBlur = this.handleBlur.bind(this);
         this.handleFocus = this.handleFocus.bind(this);

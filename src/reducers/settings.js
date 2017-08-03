@@ -98,10 +98,20 @@ export const SETTINGS_INITIALSTATE = {
     toolCreateEmptyOps: false,
 
     toolVideoDevice: null,
-    toolVideoPerspective: { enabled: false },
-    toolVideoLens: { a: 1, b: 1, F: 1, scale: 1 },
-    toolVideoFov: { x: 1, y: 1 },
     toolVideoResolution: "720p(HD)",
+    toolVideoFX: {
+        enabled:false,
+        inputcorrection: { angle: 0, aspect: 1.38, scale: 0.39},
+        lens: { invF: 0.73, r1: 1.97, r2: 2.3 },
+        refcoords: [46, 490, 433, 323, 862, 322, 1260, 497],
+        // front left x,y
+        // back left x,y
+        // back right x,y
+        // front left x,y
+        // y is pixes from top
+        outputmapping: {x0: -9, x1: 306, y0: 0, y1: 200},
+    },
+    
     
     toolVideoOMR: false,
     toolVideoOMROffsetX: 0,
