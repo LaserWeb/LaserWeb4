@@ -120,19 +120,20 @@ export class VideoPort extends React.Component {
         return nextProps.settings.toolVideoDevice !== this.props.settings.toolVideoDevice ||
                nextProps.settings.toolVideoResolution !== this.props.settings.toolVideoResolution ||
                nextProps.enabled !== this.props.enabled ||
-               nextProps.useCanvas !== this.props.useCanvas 
-               
+               nextProps.useCanvas !== this.props.useCanvas ||
+               nextProps.canvasProcess !== this.props.canvasProcess
     }
 
     enableVideo() {
         const selfNode = ReactDOM.findDOMNode(this);
         selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
-
+        
         let enable = () => {
             if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
-                requestAnimationFrame(enable);
+                return requestAnimationFrame(enable);
 
             if (this.props.enabled) {
+                
                 const stream = window.videoCapture.getStream();
                 const { width, height } = getVideoResolution(this.props.settings.toolVideoResolution)
                 if (this.props.useCanvas){
@@ -146,23 +147,26 @@ export class VideoPort extends React.Component {
 
                     if (myvideo.srcObject !== stream)
                         myvideo.srcObject = stream
-
+                    
+                    let defaultProcess=({canvas, video, settings})=>{
+                        let context = display.getContext('2d');
+                        if (context) context.drawImage(myvideo, 0, 0);
+                        return ()=>{}
+                    }
+                    let canvasProcess=this.props.canvasProcess || defaultProcess
+                    let killProcess;
                     const draw=function(){ 
-                        if (this.__mounted && display && this.props.enabled ) {
-                            
-                            if (myvideo.readyState === myvideo.HAVE_ENOUGH_DATA) {
-                                if (this.props.canvasProcess) {
-                                    this.props.canvasProcess({ canvas: display, video: myvideo,settings: this.props.settings });
-                                } else {
-                                    let context = display.getContext('2d');
-                                    if (context) context.drawImage(myvideo, 0, 0);
-                                }
-                            }
+                        if (this.__mounted && display && this.props.enabled && this.props.useCanvas ) {
+                            killProcess = canvasProcess({ canvas: display, video: myvideo,settings: this.props.settings })
                             requestAnimationFrame(draw)
+                        } else {
+                            if (killProcess) killProcess();
                         }
                     }.bind(this);
-                    if (this.__mounted)
+                    if (this.__mounted){
                         draw();
+                    }
+                        
                 } else {
                     const myvideo=ReactDOM.findDOMNode(this.refs['display'])
                           myvideo.srcObject=stream;
@@ -173,11 +177,13 @@ export class VideoPort extends React.Component {
 
                 selfNode.style.display = 'block'
             } else {
+                
                 selfNode.style.display = 'none'
             }
 
         }
         try {
+            
             enable();
         } catch (e) {
             throw e;

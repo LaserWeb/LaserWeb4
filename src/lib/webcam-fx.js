@@ -1,47 +1,59 @@
 import { DrawCommands } from '../draw-commands'
 
-
+let gl, drawCommands;
 
 export default function webcamFxProcess({canvas, video, settings})
 {
-    
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) 
+        return ;
 
-    const gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
-     
-          gl.viewport(0, 0, canvas.width, canvas.height);
-          gl.clearColor(1, 1, 1, 1);
-          gl.clearDepth(1);
-          gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
-          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-          gl.enable(gl.BLEND);
-    
-          const drawCommands = new DrawCommands(gl);
-    
-        const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
-              videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
+    const params= settings.toolVideoFX
 
-        const params= settings.toolVideoFX
-            // APPLIES FX CHAIN
-                let vt = fxChain(drawCommands,
-                    [
-                        {name: 'webcamFX',  buffer: null, uniforms: {  texture: videoTexture, 
-                                                                            inputcorrection: [params.inputcorrection.angle,
-                                                                                                params.inputcorrection.aspect,
-                                                                                                params.inputcorrection.scale ],
-                                                                            lens: [params.lens.invF, params.lens.r1, params.lens.r2],
-                                                                            perspective: false,
-                                                                            refcoords: params.refcoords/*[0, 0,
-                                                                                        0, params.height, 
-                                                                                        params.width, params.height,
-                                                                                        params.width, 0]*/,
-                                                                            resolution: {x: params.width, y: params.height} } }
-                    ]
-                )
-     
+    if (!drawCommands){
+        gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
+       /* gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(1, 1, 1, 1);
+        gl.clearDepth(1);
+        gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);*/
+        drawCommands = new DrawCommands(gl);
+    } 
     
-        drawCommands.destroy()
+    const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
+          videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
+
+   
+    let uniforms={  texture: videoTexture, 
+                    inputcorrection: [params.inputcorrection.angle,
+                                        params.inputcorrection.aspect,
+                                        params.inputcorrection.scale ],
+                    lens: [params.lens.invF, params.lens.r1, params.lens.r2],
+                    perspective: false,
+                    refcoords: [0, 0,
+                                0, canvas.height, 
+                                canvas.width, canvas.height,
+                                canvas.width, 0],
+                    resolution: {x: canvas.width, y: canvas.height} 
+                }
+
+    /*
+    // APPLIES FX CHAIN
+    let vt = fxChain(drawCommands,
+        [
+            
+            {name: 'webcamFX',  buffer: null, uniforms }
+            
+        ]
+    )
+     */
+    drawCommands.webcamFX(uniforms)
+    
          
-    return canvas;
+    return ()=>{
+        drawCommands.destroy();
+        gl=null; drawCommands=null;
+    };
 }
 
 function fxChain(drawCommands, fx) {

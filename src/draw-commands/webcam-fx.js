@@ -1,3 +1,55 @@
+export function pipeImage(drawCommands) {
+    let program = drawCommands.compile({
+        vert: `
+            precision mediump float;
+            attribute vec2 aPosition;
+            varying vec2 uv;
+            uniform float flipX;
+            uniform float flipY;
+            void main () {
+                uv = aPosition;
+                gl_Position = vec4(flipX + 2.0 * aPosition.x, flipY + 2.0 * aPosition.y, 0, 1);
+            }
+        `,
+        frag: `
+            precision mediump float;
+            uniform sampler2D texture;
+            varying vec2 uv;
+            void main () {
+                gl_FragColor = texture2D(texture, uv);
+            }
+        `,
+        attrs: {
+            aPosition: [
+                -2, 0,
+                0, -2,
+                2, 2
+            ]
+        },
+    });
+
+    let data = drawCommands.createBuffer(new Float32Array([-2, 0, 0, -2, 2, 2]));
+
+    return ({texture, flipX, flipY}) => {
+        drawCommands.execute({
+            program,
+            primitive:drawCommands.gl.TRIANGLES,
+            uniforms: { 
+                texture,
+                flipX: flipX? -1.0 : 1.0,
+                flipY: flipY? -1.0 : 1.0
+            },
+            buffer: {
+                data,
+                stride: 8,
+                offset: 0,
+                count: 3,
+            },
+        });
+    };
+}
+
+
 export function webcamFX(drawCommands) {
     let program = drawCommands.compile({
         frag: `
@@ -168,7 +220,7 @@ export function webcamFX(drawCommands) {
         let p2 = [transx(refcoords[4]), transy(refcoords[5])]
         let p3 = [transx(refcoords[6]), transy(refcoords[7])]
         
-        drawCommands.execute({
+        let params={
             program,
             primitive: drawCommands.gl.TRIANGLES,
             uniforms: { uInputcorrection: inputcorrection.map(parseFloat),
@@ -185,6 +237,10 @@ export function webcamFX(drawCommands) {
                 offset: 0,
                 count: 12,
             },
-        });
+        };
+
+        console.log(params)
+
+        drawCommands.execute(params);
     };
 }

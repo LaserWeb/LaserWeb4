@@ -20,7 +20,7 @@ import { imageMesh } from './imageMesh';
 import { laser } from './LaserPreview';
 import { thickLines } from './thick-lines';
 
-import { webcamFX } from './webcam-fx';
+import { webcamFX, pipeImage } from './webcam-fx';
 
 export class DrawCommands {
     constructor(gl) {
@@ -43,6 +43,7 @@ export class DrawCommands {
         this.laser = laser(this);
 
         this.webcamFX = webcamFX(this)
+        this.pipeImage = pipeImage(this)
 
     }
 
