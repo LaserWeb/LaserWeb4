@@ -117,8 +117,8 @@ export class VideoPort extends React.Component {
 
     shouldComponentUpdate(nextProps)
     {
-        return nextProps.toolVideoDevice !== this.props.toolVideoDevice ||
-               nextProps.toolVideoResolution !== this.props.toolVideoResolution ||
+        return nextProps.settings.toolVideoDevice !== this.props.settings.toolVideoDevice ||
+               nextProps.settings.toolVideoResolution !== this.props.settings.toolVideoResolution ||
                nextProps.enabled !== this.props.enabled
                
     }
@@ -162,7 +162,7 @@ export class VideoPort extends React.Component {
                 } else {
                     const myvideo=ReactDOM.findDOMNode(this.refs['display'])
                           myvideo.srcObject=stream;
-                          myvideo.autoplay=true;
+                          myvideo.autoPlay=true;
                           myvideo.width=width
                           myvideo.height=height;
                 }
