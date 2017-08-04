@@ -2,6 +2,7 @@ import { DrawCommands } from '../draw-commands'
 
 let gl, drawCommands;
 
+
 export default function webcamFxProcess({canvas, video, settings})
 {
     if (video.readyState !== video.HAVE_ENOUGH_DATA) 
@@ -11,12 +12,12 @@ export default function webcamFxProcess({canvas, video, settings})
 
     if (!drawCommands){
         gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });
-       /* gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(1, 1, 1, 1);
         gl.clearDepth(1);
         gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);*/
+        gl.enable(gl.BLEND);
         drawCommands = new DrawCommands(gl);
     } 
     
@@ -37,16 +38,6 @@ export default function webcamFxProcess({canvas, video, settings})
                     resolution: {x: canvas.width, y: canvas.height} 
                 }
 
-    /*
-    // APPLIES FX CHAIN
-    let vt = fxChain(drawCommands,
-        [
-            
-            {name: 'webcamFX',  buffer: null, uniforms }
-            
-        ]
-    )
-     */
     drawCommands.webcamFX(uniforms)
     
          

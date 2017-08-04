@@ -16,6 +16,17 @@ import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, ge
 
 import { openDataWindow } from '../lib/helpers';
 
+
+const defaultProcess = ({canvas, video, settings}) =>{
+    
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) 
+        return ;
+
+    let context = display.getContext('2d');
+    if (context) context.drawImage(video, 0, 0);
+    return ()=>{}
+}
+
 export class VideoDeviceField extends React.Component {
 
     constructor(props) {
@@ -148,11 +159,7 @@ export class VideoPort extends React.Component {
                     if (myvideo.srcObject !== stream)
                         myvideo.srcObject = stream
                     
-                    let defaultProcess=({canvas, video, settings})=>{
-                        let context = display.getContext('2d');
-                        if (context) context.drawImage(myvideo, 0, 0);
-                        return ()=>{}
-                    }
+                    
                     let canvasProcess=this.props.canvasProcess || defaultProcess
                     let killProcess;
                     const draw=function(){ 
