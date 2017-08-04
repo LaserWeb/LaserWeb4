@@ -21,6 +21,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 
 // Main components
+import Toolbar from './toolbar'
 import Sidebar from './sidebar'
 import Workspace from './workspace'
 
@@ -169,6 +170,7 @@ class LaserWeb extends React.Component {
         return (
             <AllowCapture style={{ height: '100%' }}>
                 <DocumentCacheHolder style={{ width: '100%' }} documents={this.props.documents}>
+                    <Toolbar ref="toolbar" style={{ flexGrow: 0, flexShrink: 0 }} />
                     <div style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
                         <Sidebar ref="sidebar" style={{ flexGrow: 0, flexShrink: 0 }}>
                             <Cam id="cam" title="Files" icon="pencil-square-o" />

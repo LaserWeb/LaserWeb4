@@ -124,6 +124,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeToolTestDuration: 0,
     gcodeConcurrency: 2,
 
+    comMachines: [],
     comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',
     comServerConnect: false,

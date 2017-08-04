@@ -16,7 +16,7 @@ import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField, Info } from './forms';
-import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
+import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button, Glyphicon } from 'react-bootstrap';
 import Icon from './font-awesome';
 
 import { VideoDeviceField, VideoPort, VideoResolutionField, ArucoMarker } from './webcam';
@@ -222,6 +222,27 @@ class Settings extends React.Component {
                         <MachineProfile onApply={this.props.handleApplyProfile} />
                         <MaterialDatabaseButton>Launch Material Database</MaterialDatabaseButton>
                     </Panel>
+                    <SettingsPanel collapsible header="Connection" eventKey="0" bsStyle="info" errors={this.state.errors} >
+                        <h5 className="header">Server</h5>
+                        <TextField {...{ object: this.props.settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
+                        <ButtonGroup>
+                            <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                        </ButtonGroup>
+                        <h5 className="header">Interface</h5>
+                        <SelectField {...{ object: this.props.settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.props.settings.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
+                        <Collapse in={this.props.settings.connectVia == 'USB'}>
+                            <div>
+                                <SelectField {...{ object: this.props.settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.props.settings.comPorts, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
+                                <SelectField {...{ object: this.props.settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
+                            </div>
+                        </Collapse>
+                        <Collapse in={this.props.settings.connectVia != 'USB'}>
+                            <div>
+                                <TextField {...{ object: this.props.settings, field: 'connectIP', setAttrs: setSettingsAttrs, description: 'Machine IP' }} />
+                            </div>
+                        </Collapse>
+                    </SettingsPanel>
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <h5 className="header">Dimensions</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
