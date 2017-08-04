@@ -740,12 +740,10 @@ class WorkspaceContent extends React.Component {
     drawVideoFeed()
     {
         let stream = window.videoCapture.getStream();
-        if (!this.videoElement.src)
-            this.videoElement.src = window.URL.createObjectURL(stream);
+        if (this.videoElement.srcObject !== stream)
+            this.videoElement.srcObject = stream;
 
         if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
-
-            console.log(this.videoElement.readyState)
 
             this.videoTexture.set({ image: this.videoElement, width: this.videoSize.width, height: this.videoSize.height })
             
