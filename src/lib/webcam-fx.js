@@ -17,29 +17,29 @@ export default function webcamFxProcess({canvas, video, settings})
         gl.enable(gl.BLEND);
         drawCommands = new DrawCommands(gl);
     } 
-    
-    const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
-          videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
+    if (drawCommands) {
+        const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
+            videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
 
-   
-    let uniforms={  texture: videoTexture, 
-                    inputcorrection: [params.inputcorrection.angle,
-                                        params.inputcorrection.aspect,
-                                        params.inputcorrection.scale ],
-                    lens: [params.lens.invF, params.lens.r1, params.lens.r2],
-                    perspective: false,
-                    refcoords: [0, 0,
-                                0, canvas.height, 
-                                canvas.width, canvas.height,
-                                canvas.width, 0],
-                    resolution: {x: canvas.width, y: canvas.height} 
-                }
-
-    drawCommands.webcamFX(uniforms)
     
+        let uniforms={  texture: videoTexture, 
+                        inputcorrection: [params.inputcorrection.angle,
+                                            params.inputcorrection.aspect,
+                                            params.inputcorrection.scale ],
+                        lens: [params.lens.invF, params.lens.r1, params.lens.r2],
+                        perspective: false,
+                        refcoords: [0, 0,
+                                    0, canvas.height, 
+                                    canvas.width, canvas.height,
+                                    canvas.width, 0],
+                        resolution: {x: canvas.width, y: canvas.height} 
+                    }
+
+        drawCommands.webcamFX(uniforms)
+    }
          
     return ()=>{
-        drawCommands.destroy();
+        if (drawCommands) drawCommands.destroy();
         gl=null; drawCommands=null;
     };
 }
