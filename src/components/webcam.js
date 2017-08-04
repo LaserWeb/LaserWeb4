@@ -60,7 +60,8 @@ export class VideoResolutionField extends React.Component {
         super(props);
         this.state = {
             resolutions: window.videoCapture.data.resolutions || [],
-            isLoading: false
+            isLoading: false,
+            selected:this.props.object[this.props.field]
         }
         this.handleChange.bind(this)
     }
@@ -81,6 +82,7 @@ export class VideoResolutionField extends React.Component {
     }
 
     setResolution(resolutionId) {
+        this.setState({selected: resolutionId})
         window.videoCapture.refreshStream({ resolution: resolutionId }, (s) => { console.log('Resolution change: ' + resolutionId + ' [' + s.id + ']') })
     }
 
@@ -91,16 +93,18 @@ export class VideoResolutionField extends React.Component {
     }
 
     handleChange(v) {
-        this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
-        if (v.value) this.setResolution(v.value)
+        if (v.value && (v.value!==this.state.selected)) {
+            this.setResolution(v.value)
+            this.props.dispatch(this.props.setAttrs({ [this.props.field]: v.value }));
+        }
     }
 
     render() {
         let resolutions = this.state.resolutions.map((v) => { return { label: `${v.label} (${v.width} x ${v.height}) / ${v.ratio}`, value: v.label } })
-        let selected = this.props.object[this.props.field];
+        
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select isLoading={this.state.isLoading} options={resolutions} value={selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
+            <Select isLoading={this.state.isLoading} options={resolutions} value={this.state.selected} clearable={false} disabled={!this.props.deviceId} onChange={(v) => this.handleChange(v)} />
         </FormGroup>
     }
 }
