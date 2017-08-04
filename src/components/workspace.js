@@ -55,7 +55,10 @@ import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
+import { getVideoResolution } from '../lib/video-capture'
 import { arucoProcess } from '../lib/omr.js';
+import { fxChain } from '../lib/webcam-fx.js';
+
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -673,6 +676,9 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
+        // INIT videofeed
+            this.initVideoFeed();
+
         let draw = () => {
             if (!this.canvas)
                 return;
@@ -723,6 +729,48 @@ class WorkspaceContent extends React.Component {
         draw();
     }
 
+    initVideoFeed()
+    {
+        this.videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
+        this.videoElement = document.createElement('video');
+        this.videoTexture = this.drawCommands.createTexture(this.videoSize.width, this.videoSize.height);
+        this.videoBuffer = this.drawCommands.createFrameBuffer(this.videoSize.width, this.videoSize.height);
+    }
+
+    drawVideoFeed()
+    {
+        let stream = window.videoCapture.getStream();
+        if (!this.videoElement.src)
+            this.videoElement.src = window.URL.createObjectURL(stream);
+
+        if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+
+            console.log(this.videoElement.readyState)
+
+            this.videoTexture.set({ image: this.videoElement, width: this.videoSize.width, height: this.videoSize.height })
+            
+            let params = this.props.settings.toolVideoFX
+        
+            // APPLIES FX CHAIN
+            let videoTexture = fxChain(this.drawCommands,
+                [
+                    {name: 'webcamFX',  buffer: this.videoBuffer, uniforms: { texture: this.videoTexture, 
+                                                                        inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
+                                                                        lens: [params.lens.invF, params.lens.r1, params.lens.r2],
+                                                                        refcoords: params.refcoords,
+                                                                        perspective: true,
+                                                                        resolution: {x: this.videoSize.width, y: this.videoSize.height} } },
+                    {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
+                                                                transform2d: [1, 0, 0, 1, 0, 0],
+                                                                view: this.camera.view, 
+                                                                location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
+                                                                size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0], 
+                                                                elected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                ]
+            , true)
+        }      
+    }
+
     drawFlat(canvas, gl) {
         let machineX = this.props.settings.machineBottomLeftX - this.props.workspace.workOffsetX;
         let machineY = this.props.settings.machineBottomLeftY - this.props.workspace.workOffsetY;
@@ -734,6 +782,9 @@ class WorkspaceContent extends React.Component {
             });
             gl.clearDepth(1);
         }
+
+        if (this.props.workspace.showVideoFeed)
+            this.drawVideoFeed()
 
         this.grid.draw(this.drawCommands, {
             perspective: this.camera.perspective, view: this.camera.view,
@@ -1286,7 +1337,7 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setRasterPreview, enableVideo } = this.props;
+        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setShowVideoFeed, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1333,6 +1384,10 @@ class Workspace extends React.Component {
                                 <tr>
                                     <td>Show Webcam</td>
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Show VideoFeed</td>
+                                    <td><input checked={workspace.showVideoFeed} disabled={!enableVideo} onChange={setShowVideoFeed} type="checkbox" /></td>
                                 </tr>
                                 <tr>
                                     <td>Show Raster Preview</td>
@@ -1387,6 +1442,7 @@ Workspace = connect(
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
         setShowRotary: e => dispatch(setWorkspaceAttrs({ showRotary: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
+        setShowVideoFeed: e => dispatch(setWorkspaceAttrs({ showVideoFeed: e.target.checked })),
         setRasterPreview: e => dispatch(setWorkspaceAttrs({ showRasterPreview: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })

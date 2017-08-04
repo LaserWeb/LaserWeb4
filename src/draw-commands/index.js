@@ -135,11 +135,14 @@ export class DrawCommands {
         return result;
     }
 
-    useFrameBuffer(frameBuffer, next) {
-        let old = this.gl.getParameter(this.gl.FRAMEBUFFER_BINDING);
+    useFrameBuffer(frameBuffer, next, useviewport=false) {
+        let oldbuffer = this.gl.getParameter(this.gl.FRAMEBUFFER_BINDING);
+        let oldviewport;
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer.frameBuffer);
+        if (useviewport) oldviewport = this.gl.getParameter(this.gl.VIEWPORT)
         next();
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, old);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, oldbuffer);
+        if (useviewport) this.gl.viewport(...oldviewport)
     }
 
     compile({ vert, frag, attrs }) {

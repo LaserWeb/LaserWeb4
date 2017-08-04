@@ -44,7 +44,7 @@ export default function webcamFxProcess({canvas, video, settings})
     };
 }
 
-function fxChain(drawCommands, fx) {
+export function fxChain(drawCommands, fx, viewport=false) {
     let fxTexture;
     fx.forEach((params) => {
         let cb = () => {
@@ -54,7 +54,7 @@ function fxChain(drawCommands, fx) {
         }
 
         if (params.buffer) {
-            drawCommands.useFrameBuffer(params.buffer, cb)
+            drawCommands.useFrameBuffer(params.buffer, cb, viewport)
         } else {
             cb()
         }

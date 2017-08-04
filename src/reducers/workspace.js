@@ -15,6 +15,7 @@ export const WORKSPACE_INITIALSTATE = {
     showRotary: false,
     showCursor: true,
     showWebcam: false,
+    showVideoFeed: false,
     showRasterPreview: false,
     workOffsetX: 0,
     workOffsetY: 0,
