@@ -159,12 +159,14 @@ export class VideoPort extends React.Component {
                     if (myvideo.srcObject !== stream)
                         myvideo.srcObject = stream
                     
+
                     
                     let canvasProcess=this.props.canvasProcess || defaultProcess
                     let killProcess;
                     const draw=function(){ 
                         if (this.__mounted && display && this.props.enabled && this.props.useCanvas ) {
-                            killProcess = canvasProcess({ canvas: display, video: myvideo,settings: this.props.settings })
+                            if (myvideo.readyState === myvideo.HAVE_ENOUGH_DATA) 
+                                killProcess = canvasProcess({ canvas: display, video: myvideo,settings: this.props.settings })
                             requestAnimationFrame(draw)
                         } else {
                             if (killProcess) killProcess();

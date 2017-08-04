@@ -5,9 +5,6 @@ let gl, drawCommands;
 
 export default function webcamFxProcess({canvas, video, settings})
 {
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) 
-        return ;
-
     const params= settings.toolVideoFX
 
     if (!drawCommands){

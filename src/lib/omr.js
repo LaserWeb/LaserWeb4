@@ -5,9 +5,6 @@ const DEFAULT_MODEL_SIZE = 20
 
 export const arucoProcess= ({canvas, video, settings}) => {
 
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) 
-        return ;
-
     const context= canvas.getContext('2d')
           context.drawImage(video, 0, 0);
           context.save();

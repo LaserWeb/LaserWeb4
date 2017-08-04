@@ -239,8 +239,6 @@ export function webcamFX(drawCommands) {
             },
         };
 
-        console.log(params)
-
         drawCommands.execute(params);
     };
 }
