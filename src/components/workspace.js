@@ -741,7 +741,7 @@ class WorkspaceContent extends React.Component {
     {
         if (!this.props.settings.toolVideoFX || !this.props.settings.toolVideoFX.enabled)
             return;
-        
+
         let stream = window.videoCapture.getStream();
         if (this.videoElement.srcObject !== stream)
             this.videoElement.srcObject = stream;
@@ -766,7 +766,8 @@ class WorkspaceContent extends React.Component {
                                                                 view: this.camera.view, 
                                                                 location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
                                                                 size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0], 
-                                                                elected: false}}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                                                                selected: false, alpha: 0.2
+                                                            }}  // DRAWS THE RESULT BUFFER ONTO IMAGE
                 ]
             , true)
         }      
