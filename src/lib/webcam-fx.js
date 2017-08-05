@@ -1,6 +1,6 @@
 import { DrawCommands } from '../draw-commands'
 
-let gl, drawCommands;
+let gl, drawCommands, resolutionId;
 
 
 export default function webcamFxProcess({canvas, video, settings})
@@ -18,8 +18,10 @@ export default function webcamFxProcess({canvas, video, settings})
         drawCommands = new DrawCommands(gl);
     } 
     if (drawCommands) {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+       
         const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
-            videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
+              videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
 
     
         let uniforms={  texture: videoTexture, 
@@ -40,7 +42,7 @@ export default function webcamFxProcess({canvas, video, settings})
          
     return ()=>{
         if (drawCommands) drawCommands.destroy();
-        gl=null; drawCommands=null;
+        gl=null; drawCommands=null; resolutionId=null;
     };
 }
 
