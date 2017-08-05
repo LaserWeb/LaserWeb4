@@ -739,6 +739,9 @@ class WorkspaceContent extends React.Component {
 
     drawVideoFeed()
     {
+        if (!this.props.settings.toolVideoFX || !this.props.settings.toolVideoFX.enabled)
+            return;
+        
         let stream = window.videoCapture.getStream();
         if (this.videoElement.srcObject !== stream)
             this.videoElement.srcObject = stream;
@@ -1335,7 +1338,10 @@ class Workspace extends React.Component {
     }
 
     render() {
-        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setShowVideoFeed, setRasterPreview, enableVideo } = this.props;
+        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, 
+              setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setShowVideoFeed, setRasterPreview, 
+              enableVideo, enableWorkspaceVideo } = this.props;
+
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
@@ -1384,8 +1390,8 @@ class Workspace extends React.Component {
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
                                 </tr>
                                 <tr>
-                                    <td>Show VideoFeed</td>
-                                    <td><input checked={workspace.showVideoFeed} disabled={!enableVideo} onChange={setShowVideoFeed} type="checkbox" /></td>
+                                    <td>Show Webcam FX</td>
+                                    <td><input checked={workspace.showVideoFeed} disabled={!enableWorkspaceVideo} onChange={setShowVideoFeed} type="checkbox" /></td>
                                 </tr>
                                 <tr>
                                     <td>Show Raster Preview</td>
@@ -1429,7 +1435,10 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: (state.settings.toolVideoDevice !== null) }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, 
+        enableVideo: (state.settings.toolVideoDevice !== null),
+        enableWorkspaceVideo: (state.settings.toolVideoDevice !== null) && state.settings.toolVideoFX && state.settings.toolVideoFX.enabled
+     }),
     dispatch => ({
         dispatch,
         setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
