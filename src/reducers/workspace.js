@@ -15,11 +15,12 @@ export const WORKSPACE_INITIALSTATE = {
     showRotary: false,
     showCursor: true,
     showWebcam: false,
-    showVideoFeed: false,
+    showTracer: false,
     showRasterPreview: false,
     workOffsetX: 0,
     workOffsetY: 0,
     initialZoom: false,
+    tracer: {dataUrl: null, name: null},
 }
 
 export const workspace = objectNoId('workspace', WORKSPACE_INITIALSTATE);

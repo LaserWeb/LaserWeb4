@@ -48,8 +48,8 @@ import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';
 
-import { VideoPort } from './webcam'
-import { ImagePort, ImageEditorButton } from './image-filters'
+import { VideoPort, TracerImageButton } from './webcam'
+import { ImagePort, ImageEditorButton, promisedImage } from './image-filters'
 
 import { LiveJogging } from './jog'
 
@@ -676,8 +676,8 @@ class WorkspaceContent extends React.Component {
         this.props.documentCacheHolder.drawCommands = this.drawCommands;
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
-        // INIT videofeed
-            this.initVideoFeed();
+        // INIT tracer image
+            this.initTracerImage();
 
         let draw = () => {
             if (!this.canvas)
@@ -729,48 +729,95 @@ class WorkspaceContent extends React.Component {
         draw();
     }
 
-    initVideoFeed()
+    initTracerImage()
     {
-        this.videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
-        this.videoElement = document.createElement('video');
-        this.videoTexture = this.drawCommands.createTexture(this.videoSize.width, this.videoSize.height);
-        this.videoBuffer = this.drawCommands.createFrameBuffer(this.videoSize.width, this.videoSize.height);
+        //this.tracerTexture = this.drawCommands.createTexture({width:0, height:0});
+        //this.tracerBuffer = this.drawCommands.createFrameBuffer(0,0);
+
+        //if (this.props.tracer) {
+          //  console.log(this.props.tracer)
+            /*
+            this.tracerSize = getVideoResolution(this.props.settings.toolVideoResolution)
+            this.tracerElement = document.createElement('video');
+            
+            this.tracerTexture = this.drawCommands.createTexture(this.tracerSize.width, this.tracerSize.height);
+            this.tracerBuffer = this.drawCommands.createFrameBuffer(this.tracerSize.width, this.tracerSize.height);
+            */
+        //}
     }
 
-    drawVideoFeed()
+    drawTracerImage()
     {
+        if (this.props.workspace.tracer){
+            if (!this.tracerTexture){
+                if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL && this.props.workspace.tracer.dataURL.indexOf("data:")!==false){
+                    promisedImage(this.props.workspace.tracer.dataURL).then(function(img){
+                            this.tracerElement=img
+                            this.tracerTexture = this.drawCommands.createTexture({image: img, width: img.naturalWidth, height: img.naturalHeight});
+                            //this.tracerBuffer = this.drawCommands.createFrameBuffer(this.tracerElement.naturalWidth,this.tracerElement.naturalHeight);
+                        }.bind(this))
+               }
+            }
+        } 
+
+        if (this.tracerTexture) {
+            this.drawCommands.image({
+                texture: this.tracerTexture,
+                perspective: this.camera.perspective, 
+                transform2d:  [1,0,0,1,0,0],
+                view: this.camera.view, 
+                selected: false, alpha: 0.6
+            })
+        }
+
+        /*
         if (!this.props.settings.toolVideoFX || !this.props.settings.toolVideoFX.enabled)
             return;
-
+        
         let stream = window.videoCapture.getStream();
-        if (this.videoElement.srcObject !== stream)
-            this.videoElement.srcObject = stream;
+        if (this.tracerElement.srcObject !== stream)
+            this.tracerElement.srcObject = stream;
 
-        if (this.videoElement.readyState === this.videoElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
+        if (this.tracerElement.readyState === this.tracerElement.HAVE_ENOUGH_DATA && window.videoCapture.isReady) {
 
-            this.videoTexture.set({ image: this.videoElement, width: this.videoSize.width, height: this.videoSize.height })
-            
+            this.tracerTexture.set({ image: this.tracerElement, width: this.tracerSize.width, height: this.tracerSize.height })
             let params = this.props.settings.toolVideoFX
         
+            
+            this.drawCommands.image({
+                texture: this.tracerTexture,
+                perspective: this.camera.perspective, 
+                transform2d:  [1,0,0,1,0,0],
+                view: this.camera.view, 
+                selected: false, alpha: 0.6
+            });*/
             // APPLIES FX CHAIN
+            /*
             let videoTexture = fxChain(this.drawCommands,
                 [
-                    {name: 'webcamFX',  buffer: this.videoBuffer, uniforms: { texture: this.videoTexture, 
+                      {
+                        name:'pipeImage', buffer: this.tracerBuffer, uniforms: {texture: this.videoTexture, width: this.videoSize.width, height: this.videoSize.height}
+                    },
+ 
+                      {name: 'webcamFX',  buffer: this.tracerBuffer, uniforms: { texture: this.videoTexture, 
                                                                         inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
                                                                         lens: [params.lens.invF, params.lens.r1, params.lens.r2],
                                                                         refcoords: params.refcoords,
                                                                         perspective: true,
-                                                                        resolution: {x: this.videoSize.width, y: this.videoSize.height} } },
-                    {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
+                                                                        resolution: {x: this.videoSize.width, y: this.videoSize.height} } },  
+                     {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
                                                                 transform2d: [1, 0, 0, 1, 0, 0],
                                                                 view: this.camera.view, 
                                                                 location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
                                                                 size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0], 
-                                                                selected: false, alpha: 0.2
-                                                            }}  // DRAWS THE RESULT BUFFER ONTO IMAGE
+                                                                selected: false, alpha: 1
+                                                            }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
+
+                    
                 ]
             , true)
-        }      
+            */
+        //}      
     }
 
     drawFlat(canvas, gl) {
@@ -785,8 +832,8 @@ class WorkspaceContent extends React.Component {
             gl.clearDepth(1);
         }
 
-        if (this.props.workspace.showVideoFeed)
-            this.drawVideoFeed()
+        if (this.props.workspace.showTracer && this.props.workspace.tracer)
+            this.drawTracerImage()
 
         this.grid.draw(this.drawCommands, {
             perspective: this.camera.perspective, view: this.camera.view,
@@ -954,6 +1001,9 @@ class WorkspaceContent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.setCamera(nextProps);
+        if (nextProps.workspace.tracer !== this.props.workspace.tracer){
+            this.tracerTexture = null;
+        }
     }
 
     setCamera(props) {
@@ -1235,7 +1285,8 @@ class WorkspaceContent extends React.Component {
             nextProps.mode !== this.props.mode ||
             nextProps.workspace.cursorPos !== this.props.workspace.cursorPos ||
             nextProps.simTime !== this.props.workspace.simTime ||
-            nextProps.gcode.content !== this.props.gcode.content
+            nextProps.gcode.content !== this.props.gcode.content ||
+            nextProps.workspace.tracer !== this.props.workspace.tracer
         );
     }
 
@@ -1340,8 +1391,8 @@ class Workspace extends React.Component {
 
     render() {
         let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, 
-              setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setShowVideoFeed, setRasterPreview, 
-              enableVideo, enableWorkspaceVideo } = this.props;
+              setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setShowTracer, setRasterPreview, 
+              enableVideo, enableTracer } = this.props;
 
         if (this.gcode !== gcode) {
             this.gcode = gcode;
@@ -1391,8 +1442,8 @@ class Workspace extends React.Component {
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
                                 </tr>
                                 <tr>
-                                    <td>Show Webcam FX</td>
-                                    <td><input checked={workspace.showVideoFeed} disabled={!enableWorkspaceVideo} onChange={setShowVideoFeed} type="checkbox" /></td>
+                                    <td>Show Tracer Image</td>
+                                    <td><input checked={workspace.showTracer} disabled={!enableTracer} onChange={setShowTracer} type="checkbox" /></td>
                                 </tr>
                                 <tr>
                                     <td>Show Raster Preview</td>
@@ -1420,6 +1471,7 @@ class Workspace extends React.Component {
                                                 <span className='input-group-addon'>mm</span>
                                             </div>
                                         }
+                                        <TracerImageButton/>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1438,7 +1490,7 @@ class Workspace extends React.Component {
 Workspace = connect(
     state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, 
         enableVideo: (state.settings.toolVideoDevice !== null),
-        enableWorkspaceVideo: (state.settings.toolVideoDevice !== null) && state.settings.toolVideoFX && state.settings.toolVideoFX.enabled
+        enableTracer: state.workspace.tracer!==null//(state.settings.toolVideoDevice !== null) && state.settings.toolVideoFX && state.settings.toolVideoFX.enabled
      }),
     dispatch => ({
         dispatch,
@@ -1450,7 +1502,7 @@ Workspace = connect(
         setShowDocuments: e => dispatch(setWorkspaceAttrs({ showDocuments: e.target.checked })),
         setShowRotary: e => dispatch(setWorkspaceAttrs({ showRotary: e.target.checked })),
         setShowWebcam: e => dispatch(setWorkspaceAttrs({ showWebcam: e.target.checked })),
-        setShowVideoFeed: e => dispatch(setWorkspaceAttrs({ showVideoFeed: e.target.checked })),
+        setShowTracer: e => dispatch(setWorkspaceAttrs({ showTracer: e.target.checked })),
         setRasterPreview: e => dispatch(setWorkspaceAttrs({ showRasterPreview: e.target.checked })),
         runCommand: () => dispatch(runCommand()),
     })

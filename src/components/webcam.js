@@ -15,7 +15,8 @@ import '../styles/webcam.css';
 import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution } from '../lib/video-capture'
 
 import { openDataWindow } from '../lib/helpers';
-
+import { FileField } from './forms'
+import { setWorkspaceAttrs } from '../actions/workspace';
 
 const defaultProcess = ({canvas, video, settings}) =>{
     
@@ -117,6 +118,11 @@ VideoResolutionField.defaultProps = {
 
 export class VideoPort extends React.Component {
 
+    constructor(props){
+        super(props)
+        this.snapshot=this.snapshot.bind(this)
+    }
+
     componentDidMount() {
         this.__mounted=true;
         this.enableVideo()
@@ -203,9 +209,19 @@ export class VideoPort extends React.Component {
         }
     }
     
+    snapshot(e){
+        const display=ReactDOM.findDOMNode(this.refs['display'])
+        let transfer=document.createElement("canvas");
+            transfer.width=display.width; 
+            transfer.height=display.height;
+        let context=transfer.getContext('2d')
+            context.drawImage(display,0,0);
+            this.props.dispatch(setWorkspaceAttrs({tracer: {name: "Webcam Snapshot", dataURL: transfer.toDataURL()}}))
+    }
+
     render() {
 
-        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}}/> : <video ref="display" style={{width:"100%",height:"auto"}}/>
+        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}} onDoubleClick={this.snapshot}/> : <video ref="display" style={{width:"100%",height:"auto"}} onDoubleClick={this.snapshot}/>
        
         if (this.props.draggable) {
             return <Rnd
@@ -273,3 +289,38 @@ export class ArucoMarker extends React.Component {
         </FormGroup>
     }
 }
+
+export class TracerImageButton extends React.Component {
+    constructor(props){
+        super(props)
+        this.loadTracer=this.loadTracer.bind(this)
+    }
+
+    loadTracer(e){
+        if (!e.target.files.length) return;
+        let file = e.target.files[0];
+        this.props.loadTracer(file)
+    }
+    render(){
+        let filename = (this.props.workspace.tracer && this.props.workspace.tracer.name) ? this.props.workspace.tracer.name : undefined
+        return <FileField style={{ cursor: 'pointer' }} onChange={this.loadTracer} accept=".png,.jpg,.jpeg,.bmp">
+                <button title="Pick a tracing image" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-image" />Load Tracing Image <strong>{filename}</strong></button>
+            </FileField>
+    }
+}
+
+TracerImageButton = connect(
+    (state)=>({
+        workspace:state.workspace
+    }), 
+    (dispatch)=>({
+        loadTracer:(file)=>{
+            let reader = new FileReader;
+                reader.onload=()=>{
+                    dispatch(setWorkspaceAttrs({tracer: {dataURL: reader.result, name: file.name}}));
+                }
+                reader.readAsDataURL(file);
+        }
+
+    })
+)(TracerImageButton);
