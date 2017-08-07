@@ -92,8 +92,8 @@ export class DrawCommands {
                 let gl = this.drawCommands.gl;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 if (image) {
-                    this.width = image.width;
-                    this.height = image.height;
+                    this.width = width || image.naturalWidth || image.width;
+                    this.height = height || image.naturalHeight || image.height;
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
                 } else if (this.width !== width || this.height !== height) {
                     this.width = width;
