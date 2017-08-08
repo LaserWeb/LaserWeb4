@@ -677,7 +677,7 @@ class WorkspaceContent extends React.Component {
         this.hitTestFrameBuffer = this.drawCommands.createFrameBuffer(this.props.width, this.props.height);
 
         // INIT tracer image
-            this.initTracerImage();
+        //    this.initTracerImage();
 
         let draw = () => {
             if (!this.canvas)
@@ -729,31 +729,40 @@ class WorkspaceContent extends React.Component {
         draw();
     }
 
-    initTracerImage()
+    /* initTracerImage()
     {
-        //this.tracerTexture = this.drawCommands.createTexture({width:0, height:0});
-        //this.tracerBuffer = this.drawCommands.createFrameBuffer(0,0);
+        this.tracerTexture = this.drawCommands.createTexture({width:0, height:0});
+        this.tracerBuffer = this.drawCommands.createFrameBuffer(0,0);
 
-        //if (this.props.tracer) {
-          //  console.log(this.props.tracer)
-            /*
+        if (this.props.tracer) {
+            console.log(this.props.tracer)
+           
             this.tracerSize = getVideoResolution(this.props.settings.toolVideoResolution)
             this.tracerElement = document.createElement('video');
             
             this.tracerTexture = this.drawCommands.createTexture(this.tracerSize.width, this.tracerSize.height);
             this.tracerBuffer = this.drawCommands.createFrameBuffer(this.tracerSize.width, this.tracerSize.height);
-            */
-        //}
-    }
+           
+        }
+    } */
 
     drawTracerImage()
     {
+        
         if (this.props.workspace.tracer){
+            
+            if (this.tracerTimestamp !== this.props.workspace.tracer.timestamp){
+                this.tracerTimestamp = this.props.workspace.tracer.timestamp
+                this.tracerTexture=null;
+            }
+                
             if (!this.tracerTexture){
                 if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL && this.props.workspace.tracer.dataURL.indexOf("data:")!==false){
+
                     promisedImage(this.props.workspace.tracer.dataURL).then(function(img){
-                            this.tracerElement=img
+                            //this.tracerElement=img
                             this.tracerTexture = this.drawCommands.createTexture({image: img, width: img.naturalWidth, height: img.naturalHeight});
+
                             //this.tracerBuffer = this.drawCommands.createFrameBuffer(this.tracerElement.naturalWidth,this.tracerElement.naturalHeight);
                         }.bind(this))
                }
@@ -766,7 +775,7 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, 
                 transform2d:  [1,0,0,1,0,0],
                 view: this.camera.view, 
-                selected: false, alpha: 0.6
+                selected: false, alpha: this.props.workspace.tracer.alpha/100
             })
         }
 
@@ -1001,9 +1010,6 @@ class WorkspaceContent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.setCamera(nextProps);
-        if (nextProps.workspace.tracer !== this.props.workspace.tracer){
-            this.tracerTexture = null;
-        }
     }
 
     setCamera(props) {

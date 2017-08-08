@@ -260,7 +260,7 @@ export class FileField extends React.Component {
     }
 
     render() {
-        return <span style={this.props.style} >
+        return <span style={this.props.style} className={this.props.className} >
             <span ref={(input)=>this.clicker = input}>{this.props.children}</span><input type="file" ref={(input) => { this.input = input }} multiple style={{display:"none"}} accept={this.props.accept} />
         </span>
     }

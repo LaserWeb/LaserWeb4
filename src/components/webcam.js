@@ -216,7 +216,7 @@ export class VideoPort extends React.Component {
             transfer.height=display.height;
         let context=transfer.getContext('2d')
             context.drawImage(display,0,0);
-            this.props.dispatch(setWorkspaceAttrs({tracer: {name: "Webcam Snapshot", dataURL: transfer.toDataURL()}}))
+            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || {},{ name: "Webcam Snapshot", dataURL: transfer.toDataURL(), timestamp: (new Date()).getTime()} )}))
     }
 
     render() {
@@ -252,7 +252,7 @@ VideoPort.defaultProps = {
 
 VideoDeviceField = connect(null, (dispatch => { return { dispatch } }))(VideoDeviceField);
 VideoResolutionField = connect(null, (dispatch => { return { dispatch } }))(VideoResolutionField);
-VideoPort = connect(state=>({settings: state.settings}))(VideoPort)
+VideoPort = connect(state=>({settings: state.settings, workspace: state.workspace}))(VideoPort)
 
 export const ArMarker=require('aruco-marker');
 
@@ -294,33 +294,54 @@ export class TracerImageButton extends React.Component {
     constructor(props){
         super(props)
         this.loadTracer=this.loadTracer.bind(this)
+        this.removeTracer=this.removeTracer.bind(this)
+        this.alphaTracer=this.alphaTracer.bind(this)
     }
 
     loadTracer(e){
         if (!e.target.files.length) return;
         let file = e.target.files[0];
-        this.props.loadTracer(file)
+        let reader = new FileReader;
+            reader.onload=()=>{
+                this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || {},{
+                    dataURL: reader.result, 
+                    name: file.name, 
+                    alpha: this.props.workspace.tracer? this.props.workspace.tracer.alpha:50,
+                    timestamp: (new Date()).getTime()
+                })}));
+            }
+            reader.readAsDataURL(file);
     }
+
+    removeTracer(){
+         this.props.dispatch(setWorkspaceAttrs({tracer: null}));
+    }
+
+    alphaTracer(e){
+        if (this.props.workspace.tracer)
+            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer, {alpha: e.target.value})}));
+    }
+
     render(){
         let filename = (this.props.workspace.tracer && this.props.workspace.tracer.name) ? this.props.workspace.tracer.name : undefined
-        return <FileField style={{ cursor: 'pointer' }} onChange={this.loadTracer} accept=".png,.jpg,.jpeg,.bmp">
-                <button title="Pick a tracing image" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-image" />Load Tracing Image <strong>{filename}</strong></button>
-            </FileField>
+        let alpha = (this.props.workspace.tracer) ?  this.props.workspace.tracer.alpha : 50
+        return <div> <h5>Tracing Image <strong>{filename}</strong> </h5>
+        <div className='input-group'>
+                   
+                <FileField style={{ cursor: 'pointer' }} className="input-group-btn" onChange={this.loadTracer} accept=".png,.jpg,.jpeg,.bmp">
+                <button title="Pick a tracing image" className="btn btn-primary "><i className="fa fa-fw fa-upload" /></button>
+                </FileField>
+                <input  class='form-control'  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaTracer} />
+                <span className='input-group-btn'> 
+                <button title="Remove tracing image" className="btn btn-danger " disabled={!filename} onClick={this.removeTracer}><i className="fa fa-fw fa-trash" /></button>
+                 </span>
+                </div>
+       </div>
     }
 }
 
 TracerImageButton = connect(
     (state)=>({
         workspace:state.workspace
-    }), 
-    (dispatch)=>({
-        loadTracer:(file)=>{
-            let reader = new FileReader;
-                reader.onload=()=>{
-                    dispatch(setWorkspaceAttrs({tracer: {dataURL: reader.result, name: file.name}}));
-                }
-                reader.readAsDataURL(file);
-        }
-
     })
 )(TracerImageButton);

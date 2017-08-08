@@ -20,7 +20,7 @@ export const WORKSPACE_INITIALSTATE = {
     workOffsetX: 0,
     workOffsetY: 0,
     initialZoom: false,
-    tracer: {dataUrl: null, name: null},
+    tracer: {dataURL: null, name: null},
 }
 
 export const workspace = objectNoId('workspace', WORKSPACE_INITIALSTATE);
