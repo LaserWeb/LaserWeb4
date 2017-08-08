@@ -770,10 +770,16 @@ class WorkspaceContent extends React.Component {
         } 
 
         if (this.tracerTexture) {
+            this.tracerScale= (Math.max(this.props.settings.machineWidth/this.tracerTexture.width, this.props.settings.machineHeight/this.tracerTexture.height));
+            let transform2d=[
+                this.tracerScale,0,0,
+                this.tracerScale,0,0
+            ]
+            
             this.drawCommands.image({
                 texture: this.tracerTexture,
                 perspective: this.camera.perspective, 
-                transform2d:  [1,0,0,1,0,0],
+                transform2d,
                 view: this.camera.view, 
                 selected: false, alpha: this.props.workspace.tracer.alpha/100
             })
