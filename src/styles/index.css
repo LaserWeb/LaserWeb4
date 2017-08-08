@@ -683,3 +683,9 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 
 
 .hr {border-top: 1px solid rgba(0,0,0,0.1); margin-top:5px}
+.truncate {
+    width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

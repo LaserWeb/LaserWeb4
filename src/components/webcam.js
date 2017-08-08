@@ -328,13 +328,13 @@ export class TracerImageButton extends React.Component {
     render(){
         let filename = (this.props.workspace.tracer && this.props.workspace.tracer.name) ? this.props.workspace.tracer.name : undefined
         let alpha = (this.props.workspace.tracer) ?  this.props.workspace.tracer.alpha : 50
-        return <div> <h5>Tracing Image <strong>{filename}</strong> </h5>
+        return <div> <h5 className="truncate" title={filename}>Tracing Image <strong>{filename}</strong> </h5>
         <div className='input-group'>
                    
                 <FileField style={{ cursor: 'pointer' }} className="input-group-btn" onChange={this.loadTracer} accept=".png,.jpg,.jpeg,.bmp">
                 <button title="Pick a tracing image" className="btn btn-primary "><i className="fa fa-fw fa-upload" /></button>
                 </FileField>
-                <input  class='form-control'  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaTracer} />
+                <input  class='form-control' disabled={!filename? true:undefined}  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaTracer} />
                 <span className='input-group-btn'> 
                 <button title="Remove tracing image" className="btn btn-danger " disabled={!filename} onClick={this.removeTracer}><i className="fa fa-fw fa-trash" /></button>
                  </span>
