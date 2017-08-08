@@ -216,7 +216,11 @@ export class VideoPort extends React.Component {
             transfer.height=display.height;
         let context=transfer.getContext('2d')
             context.drawImage(display,0,0);
-            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || {},{ name: "Webcam Snapshot", dataURL: transfer.toDataURL(), timestamp: (new Date()).getTime()} )}))
+            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || {alpha:50},{ 
+                name: "Webcam Snapshot", 
+                dataURL: transfer.toDataURL(), 
+                timestamp: (new Date()).getTime()
+            } )}))
     }
 
     render() {
@@ -303,10 +307,9 @@ export class TracerImageButton extends React.Component {
         let file = e.target.files[0];
         let reader = new FileReader;
             reader.onload=()=>{
-                this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || {},{
+                this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer || { alpha:50 },{
                     dataURL: reader.result, 
                     name: file.name, 
-                    alpha: this.props.workspace.tracer? this.props.workspace.tracer.alpha:50,
                     timestamp: (new Date()).getTime()
                 })}));
             }
