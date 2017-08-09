@@ -5,6 +5,9 @@
     pointer-events: none
 }
 
+.coordinator {pointer-events: none}
+.coordinator .symbol {pointer-events: all}
+
 .videoPort {
     position: relative; 
 }

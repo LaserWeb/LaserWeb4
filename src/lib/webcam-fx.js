@@ -29,12 +29,10 @@ export default function webcamFxProcess({canvas, video, settings})
                                             params.inputcorrection.aspect,
                                             params.inputcorrection.scale ],
                         lens: [params.lens.invF, params.lens.r1, params.lens.r2],
-                        perspective: true,
-                        refcoords: [0, 0,
-                                    0, canvas.height, 
-                                    canvas.width, canvas.height,
-                                    canvas.width, 0],
-                                    /*params.refcoords,*/
+                        perspective: false,
+                        refcoords: params.refcoords.map((v,i)=>{
+                            return (i%2==0) ? v*canvas.width: v*canvas.height
+                        }),
                         resolution: {x: canvas.width, y: canvas.height} 
                     }
 
