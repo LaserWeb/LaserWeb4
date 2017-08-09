@@ -24,6 +24,8 @@ export class GetBounds extends React.Component {
             top: 0,
             right: 0,
             bottom: 0,
+            width: 0,
+            height: 0,
         };
     }
 
@@ -38,8 +40,10 @@ export class GetBounds extends React.Component {
                 top: rect.top,
                 right: rect.right,
                 bottom: rect.bottom,
+                width: rect.width,
+                height: rect.height,
             };
-            if (newState.left !== this.state.left || newState.top !== this.state.top || newState.right !== this.state.right || newState.bottom !== this.state.bottom)
+            if (newState.left !== this.state.left || newState.top !== this.state.top || newState.right !== this.state.right || newState.bottom !== this.state.bottom || newState.width !==this.state.width || newState.height !== this.state.height)
                 this.setState(newState);
             requestAnimationFrame(f);
         };
