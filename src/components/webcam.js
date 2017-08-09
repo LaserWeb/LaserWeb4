@@ -23,7 +23,7 @@ const defaultProcess = ({canvas, video, settings}) =>{
     if (video.readyState !== video.HAVE_ENOUGH_DATA) 
         return ;
 
-    let context = display.getContext('2d');
+    let context = canvas.getContext('2d');
     if (context) context.drawImage(video, 0, 0);
     return ()=>{}
 }
@@ -226,7 +226,7 @@ export class VideoPort extends React.Component {
     render() {
 
         const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}} onDoubleClick={this.snapshot}/> : <video ref="display" style={{width:"100%",height:"auto", background:"white"}} onDoubleClick={this.snapshot}/>
-        const overlay=undefined;
+        const overlay=this.props.overlay;
 
         if (this.props.draggable) {
             return <Rnd
@@ -244,7 +244,7 @@ export class VideoPort extends React.Component {
                 zIndex={800}
             >{overlay}{element}</Rnd>
         } else {
-            return <div>{overlay}{element}</div>;
+            return <div className="videoPort">{overlay}{element}</div>;
         }
     }
 }

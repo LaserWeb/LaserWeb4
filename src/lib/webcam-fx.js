@@ -1,6 +1,6 @@
 import { DrawCommands } from '../draw-commands'
 
-let gl, drawCommands, resolutionId;
+let gl, drawCommands, resolutionId, videoTexture;
 
 
 export default function webcamFxProcess({canvas, video, settings})
@@ -16,12 +16,12 @@ export default function webcamFxProcess({canvas, video, settings})
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         drawCommands = new DrawCommands(gl);
+        videoTexture = drawCommands.createTexture(canvas.width, canvas.height)
     } 
     if (drawCommands) {
         gl.viewport(0, 0, canvas.width, canvas.height);
        
-        const videoTexture = drawCommands.createTexture(canvas.width, canvas.height);
-              videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
+        videoTexture.set({ image: video, width: canvas.width, height: canvas.height });
 
     
         let uniforms={  texture: videoTexture, 
@@ -29,11 +29,12 @@ export default function webcamFxProcess({canvas, video, settings})
                                             params.inputcorrection.aspect,
                                             params.inputcorrection.scale ],
                         lens: [params.lens.invF, params.lens.r1, params.lens.r2],
-                        perspective: false,
+                        perspective: true,
                         refcoords: [0, 0,
                                     0, canvas.height, 
                                     canvas.width, canvas.height,
                                     canvas.width, 0],
+                                    /*params.refcoords,*/
                         resolution: {x: canvas.width, y: canvas.height} 
                     }
 
@@ -42,7 +43,7 @@ export default function webcamFxProcess({canvas, video, settings})
          
     return ()=>{
         if (drawCommands) drawCommands.destroy();
-        gl=null; drawCommands=null; resolutionId=null;
+        gl=null; drawCommands=null; resolutionId=null; videoTexture=null;
     };
 }
 

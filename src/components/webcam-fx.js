@@ -28,21 +28,6 @@ export class WebcamFxControls extends React.Component {
     constructor(props) {
         super(props)
         this.handleChange.bind(this)
-
-        /*
-        {
-    enabled:false,
-    inputcorrection: { angle: 0, aspect: 1.38, scale: 0.39},
-    lens: { invF: 0.73, r1: 1.97, r2: 2.3 },
-    refcoords: [46, 490, 433, 323, 862, 322, 1260, 497],
-    // front left x,y
-    // back left x,y
-    // back right x,y
-    // front left x,y
-    // y is pixels from top
-    outputmapping: {x0: -9, x1: 306, y0: 0, y1: 200},
-}*/
-
         this.state = Object.assign({},this.props.settings.toolVideoFX)
     }
 
@@ -141,3 +126,56 @@ export class WebcamFxControls extends React.Component {
 WebcamFxControls = connect(
     (state)=>({settings:state.settings})
 )(WebcamFxControls);
+
+export class PerpectiveControls extends React.Component {
+    render(){
+        return <div className="perspectiveControls">aaa</div>
+    }
+}
+
+
+export class Coordinator extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { position: this.props.position.map(parseFloat) || [0, 0, 0, 0, 0, 0, 0, 0] }
+        this.handleDrag.bind(this)
+        this.handleStop.bind(this)
+    }
+
+    handleDrag(e, ui, index) {
+        let position = Object.assign({}, this.state.position);
+        position[index * 2] = position[index * 2] + ui.deltaX;
+        position[index * 2 + 1] = position[index * 2 + 1] + ui.deltaY;
+        this.setState({ position: position });
+
+        if (this.props.onChange)
+            this.props.onChange(position)
+    }
+
+    handleStop(e, ui, index) {
+        if (this.props.onStop)
+            this.props.onStop(this.state.position)
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({ position: nextProps.position.map(parseFloat) })
+    }
+
+    render() {
+
+        let dots = this.props.dots || ['red', 'green', 'blue', 'purple']
+        let dotSize = this.props.dotSize || 10;
+        let symbol = this.props.symbol || ((props) => { return <svg height="100%" width="100%" style={{ position: "absolute", left: 0, top: 0 }}><circle r="50%" cx="50%" cy="50%" fill={props.fill} stroke="white" strokeWidth="1" /></svg> })
+
+        return <div className="coordinator" style={{ width: this.props.width + "px", height: this.props.height + "px", position: 'relative', overflow: 'hidden', border: "1px solid #eee", ...this.props.style }}>
+            {dots.map((fill, i) => {
+                return <Draggable onStop={(e, ui) => { this.handleStop(e, ui, i) }} onDrag={(e, ui) => this.handleDrag(e, ui, i)} key={i} position={{ x: this.state.position[i * 2], y: this.state.position[i * 2 + 1] }} bounds="parent">
+                    <div className="symbol" style={{ position: "absolute", left: 0, top: 0, cursor: "move", marginTop: -dotSize / 2, marginLeft: -dotSize / 2, width: dotSize, height: dotSize }}>{symbol({ fill })}</div>
+                </Draggable>
+            })}
+        </div >
+    }
+}
+
+Coordinator = connect()(Coordinator);

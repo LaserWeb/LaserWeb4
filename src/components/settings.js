@@ -28,7 +28,7 @@ import { getSubset } from 'redux-localstorage-filter';
 import { Details } from './material-database'
 
 import webcamFxProcess from '../lib/webcam-fx'
-import { WebcamFxControls } from './webcam-fx';
+import { WebcamFxControls, PerpectiveControls } from './webcam-fx';
 
 export class ApplicationSnapshot extends React.Component {
 
@@ -313,7 +313,8 @@ class Settings extends React.Component {
 
                         </tr></tbody></table>
                         {(this.props.settings['toolVideoDevice'] !== null)? <p className="help-block">DoubleClick to take an snapshot.</p>: null}
-                        { isVideoFX ? <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess }/> :  <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
+                        { isVideoFX ? <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess } overlay={<PerpectiveControls/>}/> :  
+                                      <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
                         <hr/>
                         <WebcamFxControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>
                         <hr/>
