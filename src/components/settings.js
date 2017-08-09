@@ -19,7 +19,7 @@ import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBox
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
-import { VideoDeviceField, VideoPort, VideoResolutionField, ArucoMarker } from './webcam';
+import { VideoDeviceField, VideoPort, VideoResolutionField, ArucoMarker, VideoFeedButton } from './webcam';
 
 import { alert, prompt, confirm } from './laserweb';
 
@@ -315,6 +315,8 @@ class Settings extends React.Component {
                         {(this.props.settings['toolVideoDevice'] !== null)? <p className="help-block">DoubleClick to take an snapshot.</p>: null}
                         { isVideoFX ? <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess } overlay={<PerpectiveControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>}/> :  
                                       <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
+
+                        <VideoFeedButton/>
                         <hr/>
                         <WebcamFxControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>
                         <hr/>

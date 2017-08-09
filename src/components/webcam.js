@@ -347,3 +347,47 @@ TracerImageButton = connect(
         workspace:state.workspace
     })
 )(TracerImageButton);
+
+export const promisedVideo=(stream,attrs={})=>{
+    return new Promise( resolve => {
+        let video= document.createElement('video')
+            video.width=attrs.width || 0
+            video.height=attrs.height || 0;
+        let wait = ()=>{
+            if (video.readyState === video.HAVE_ENOUGH_DATA && window.videoCapture.isReady)
+                return resolve(video)
+            requestAnimationFrame(wait)
+        }
+        wait();
+        video.srcObject=stream;
+    })
+}
+
+export class VideoFeedButton extends React.Component {
+
+    constructor(props){
+        super(props)
+        this.handleClick=this.handleClick.bind(this)
+    }
+
+    handleClick(e){
+        let stream=window.videoCapture.getStream();
+        let attrs={tracer: Object.assign({alpha:50},this.props.workspace.tracer || {},{
+            dataURL: "stream:"+stream.id, 
+            name: stream.id, 
+            timestamp: (new Date()).getTime()
+        })};
+        this.props.dispatch(setWorkspaceAttrs(attrs));
+    }
+
+    render(){
+        return <button onClick={this.handleClick}>LiveFeed</button>
+    }
+}
+
+
+VideoFeedButton = connect(
+    (state)=>({
+        workspace:state.workspace
+    })
+)(VideoFeedButton);

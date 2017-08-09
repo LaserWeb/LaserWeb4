@@ -48,14 +48,14 @@ import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';
 
-import { VideoPort, TracerImageButton } from './webcam'
+import { VideoPort, TracerImageButton, promisedVideo } from './webcam'
 import { ImagePort, ImageEditorButton, promisedImage } from './image-filters'
 
 import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
-import { getVideoResolution } from '../lib/video-capture'
+import { getVideoResolution,  } from '../lib/video-capture'
 import { arucoProcess } from '../lib/omr.js';
 import { fxChain } from '../lib/webcam-fx.js';
 
@@ -754,35 +754,80 @@ class WorkspaceContent extends React.Component {
             if (this.tracerTimestamp !== this.props.workspace.tracer.timestamp){
                 this.tracerTimestamp = this.props.workspace.tracer.timestamp
                 this.tracerTexture=null;
+                this.tracerBuffer=null;
             }
                 
             if (!this.tracerTexture){
-                if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL && this.props.workspace.tracer.dataURL.indexOf("data:")!==false){
+                if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL){
+                    
+                    if (this.props.workspace.tracer.dataURL.indexOf("data:")>=0){
 
-                    promisedImage(this.props.workspace.tracer.dataURL).then(function(img){
-                            //this.tracerElement=img
-                            this.tracerTexture = this.drawCommands.createTexture({image: img, width: img.naturalWidth, height: img.naturalHeight});
-
-                            //this.tracerBuffer = this.drawCommands.createFrameBuffer(this.tracerElement.naturalWidth,this.tracerElement.naturalHeight);
+                        promisedImage(this.props.workspace.tracer.dataURL).then(function(img){
+                                this.tracerElement=img
+                                this.tracerTexture = this.drawCommands.createTexture({image: img, width: img.naturalWidth, height: img.naturalHeight});
+                                
+                            }.bind(this))
+                    } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
+                        
+                        promisedVideo(window.videoCapture.getStream(), getVideoResolution(this.props.settings.toolVideoResolution)).then(function(video){
+                            this.tracerElement=video
+                            this.tracerTexture = this.drawCommands.createTexture({image: video, width: video.width, height: video.height});
+                            this.tracerBuffer = this.drawCommands.createFrameBuffer(video.width,video.height);
                         }.bind(this))
-               }
+                        
+                    }
+                }
             }
         } 
 
         if (this.tracerTexture) {
             this.tracerScale= (Math.max(this.props.settings.machineWidth/this.tracerTexture.width, this.props.settings.machineHeight/this.tracerTexture.height));
+            
             let transform2d=[
                 this.tracerScale,0,0,
                 this.tracerScale,0,0
             ]
+            if (this.props.workspace.tracer.dataURL.indexOf("data:")>=0) {
+                this.drawCommands.image({
+                    texture: this.tracerTexture,
+                    perspective: this.camera.perspective, 
+                    transform2d,
+                    view: this.camera.view, 
+                    selected: false, alpha: this.props.workspace.tracer.alpha/100
+                })
+            } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
+                let params = this.props.settings.toolVideoFX
+                
+                this.tracerTexture.set({ image: this.tracerElement, width: this.tracerElement.width, height: this.tracerElement.height })
+                this.tracerBuffer.resize(this.tracerElement.width, this.tracerElement.height)
+                console.log(this.tracerTexture)
+                let videoTexture = fxChain(this.drawCommands,
+                [
+                    
+                      {name: 'webcamFX',  buffer: this.tracerBuffer, uniforms: { texture: this.tracerTexture, 
+                                                                inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
+                                                                lens: [params.lens.invF, params.lens.r1, params.lens.r2],
+                                                                refcoords: params.refcoords.map((v,i)=>{
+                                                                    return (i%2==0) ? v*this.tracerElement.width: v*this.tracerElement.height
+                                                                }),
+                                                                perspective: true,
+                                                                resolution: {x: this.tracerElement.width, y: this.tracerElement.height} } },  
+                     {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
+                                                                
+                                                                transform2d: transform2d,
+                                                                view: this.camera.view, 
+                                                                location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
+                                                                size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0], 
+                                                                selected: false, alpha: this.props.workspace.tracer.alpha/100
+                                                            }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
+
+                    
+                ]
+                , true)
+
+            }
             
-            this.drawCommands.image({
-                texture: this.tracerTexture,
-                perspective: this.camera.perspective, 
-                transform2d,
-                view: this.camera.view, 
-                selected: false, alpha: this.props.workspace.tracer.alpha/100
-            })
+            
         }
 
         /*
