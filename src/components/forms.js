@@ -179,12 +179,12 @@ export class SelectField extends React.Component {
 }
 
 
-export function ToggleField({object, field, description, units = "", setAttrs, dispatch, info, ...rest}) {
+export function ToggleField({object, field, description, units = "", setAttrs, dispatch, info, disabled=false, ...rest}) {
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <div >
-        <Toggle id={"toggle_" + object.id + "_" + field} defaultChecked={object[field] == true} onChange={e => dispatch(setAttrs({ [field]: e.target.checked }, object.id))} />
+        <Toggle disabled={disabled} id={"toggle_" + object.id + "_" + field} defaultChecked={object[field] == true} onChange={e => dispatch(setAttrs({ [field]: e.target.checked }, object.id))} />
         <label htmlFor={"toggle_" + object.id + "_" + field}>{description}</label> {info}
     </div>
 

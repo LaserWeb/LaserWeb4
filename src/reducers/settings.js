@@ -10,7 +10,9 @@ export const SETTINGS_VALIDATION_RULES = {
     machineWidth: 'numeric|min:100',
     machineHeight: 'numeric|min:100',
 
-    gcodeSMaxValue: 'required|numeric|min:1',
+    gcodeLaserIntensity: 'required',
+    gcodeSMinValue: 'required|numeric',
+    gcodeSMaxValue: 'required|numeric',
     gcodeMoveUnits: 'in:mm/s,mm/min',
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
@@ -102,6 +104,11 @@ export const SETTINGS_INITIALSTATE = {
     toolVideoLens: { a: 1, b: 1, F: 1, scale: 1 },
     toolVideoFov: { x: 1, y: 1 },
     toolVideoResolution: "720p(HD)",
+    
+    toolVideoOMR: false,
+    toolVideoOMROffsetX: 0,
+    toolVideoOMROffsetY: 0,
+    toolVideoOMRMarkerSize: 20,
 
     toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',
@@ -113,6 +120,9 @@ export const SETTINGS_INITIALSTATE = {
     gcodeHoming: "",
     gcodeToolOn: "",
     gcodeToolOff: "",
+    gcodeLaserIntensity: 'S',
+    gcodeLaserIntensitySeparateLine: false,
+    gcodeSMinValue: 0,
     gcodeSMaxValue: 1,
     gcodeCheckSizePower: 0,
     gcodeToolTestPower: 0,

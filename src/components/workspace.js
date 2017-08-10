@@ -55,6 +55,8 @@ import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
+import { arucoProcess } from '../lib/omr.js';
+
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
     let view = mat4.lookAt([], eye, center, up);
@@ -1366,7 +1368,7 @@ class Workspace extends React.Component {
                     </div>
                 </div>
 
-                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" />
+                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" useCanvas={this.props.settings.toolVideoOMR} canvasProcess={this.props.settings.toolVideoOMR ? arucoProcess: null} />
                 <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent" />
 
             </div>

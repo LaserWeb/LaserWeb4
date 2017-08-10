@@ -23,6 +23,7 @@ import Toggle from 'react-toggle';
 import { Label } from 'react-bootstrap'
 import { bindKeys, unbindKeys } from './keyboard'
 import Gamepad from 'gamepad.js';
+import { OmrJog } from './omr';
 
 var ovStep = 1;
 var ovLoop;
@@ -286,6 +287,11 @@ class Jog extends React.Component {
         setZero(axis);
     }
 
+    setPosition(pos) {
+        console.log('setPosition(' + JSON.stringify(pos) + ')');
+        setPosition(pos)
+    }
+
     gotoZero(axis) {
         console.log('gotoZero(' + axis + ')');
         gotoZero(axis);
@@ -293,7 +299,11 @@ class Jog extends React.Component {
 
     checkSize() {
         console.log('checkSize');
-        let feedrate = $('#jogfeedxy').val() * 60;
+        let units = this.props.settings.toolFeedUnits;
+        let feedrate, mult = 1;
+        if (units == 'mm/s') mult = 60;
+        feedrate = jQuery('#jogfeedxy').val() * mult;
+
         let gcode = this.props.gcode;
         
         //let linemoves = gcode.split(/g[13]/i);
@@ -821,9 +831,10 @@ class Jog extends React.Component {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td colSpan="5">
+                                        <td colSpan="5" className="hr" style={{textAlign:"left"}} >
                                             <LiveJogging {... this.state.liveJogging}
                                             onChange={(v) => this.setState({ liveJogging: { ...this.state.liveJogging, active: v } })} />
+                                            {this.props.settings.toolVideoOMR? <OmrJog onSetPosition={(pos) => this.setPosition(pos)} />:undefined}
                                         </td>
                                     </tr>
                                 </tbody>

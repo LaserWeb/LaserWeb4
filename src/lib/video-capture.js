@@ -136,6 +136,7 @@ export class VideoCapture {
         let video = document.createElement('video');
         video.width = width;
         video.height = height;
+        video.autoplay = true;
         video.addEventListener('canplaythrough', (e) => {
             if (video && video.readyState === 4) {
                 callback.apply(null, [video])
