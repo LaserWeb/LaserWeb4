@@ -748,7 +748,7 @@ class WorkspaceContent extends React.Component {
 
     drawTracerImage()
     {
-        
+        let videoSize = getVideoResolution(this.props.settings.toolVideoResolution)
         if (this.props.workspace.tracer){
             
             if (this.tracerTimestamp !== this.props.workspace.tracer.timestamp){
@@ -769,10 +769,10 @@ class WorkspaceContent extends React.Component {
                             }.bind(this))
                     } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
                         
-                        promisedVideo(window.videoCapture.getStream(), getVideoResolution(this.props.settings.toolVideoResolution)).then(function(video){
+                        promisedVideo(window.videoCapture.getStream(), videoSize).then(function(video){
                             this.tracerElement=video
-                            this.tracerTexture = this.drawCommands.createTexture({image: video, width: video.width, height: video.height});
-                            this.tracerBuffer = this.drawCommands.createFrameBuffer(video.width,video.height);
+                            this.tracerTexture = this.drawCommands.createTexture({image: video, width: videoSize.width, height: videoSize.height});
+                            this.tracerBuffer = this.drawCommands.createFrameBuffer(video.videoSize,video.videoSize);
                         }.bind(this))
                         
                     }
@@ -781,27 +781,27 @@ class WorkspaceContent extends React.Component {
         } 
 
         if (this.tracerTexture) {
-            this.tracerScale= (Math.max(this.props.settings.machineWidth/this.tracerTexture.width, this.props.settings.machineHeight/this.tracerTexture.height));
+           
+            this.tracerScale= 1
             
-            let transform2d=[
-                this.tracerScale,0,0,
-                this.tracerScale,0,0
-            ]
             if (this.props.workspace.tracer.dataURL.indexOf("data:")>=0) {
+              
                 this.drawCommands.image({
                     texture: this.tracerTexture,
                     perspective: this.camera.perspective, 
-                    transform2d,
+                    transform2d: [
+                        this.tracerScale,0,0,
+                        this.tracerScale,0,0
+                    ],
                     view: this.camera.view, 
                     selected: false, alpha: this.props.workspace.tracer.alpha/100
                 })
             } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
                 let params = this.props.settings.toolVideoFX
-                
-                this.tracerTexture.set({ image: this.tracerElement, width: this.tracerElement.width, height: this.tracerElement.height })
-                this.tracerBuffer.resize(this.tracerElement.width, this.tracerElement.height)
-                console.log(this.tracerTexture)
-                let videoTexture = fxChain(this.drawCommands,
+             
+                this.tracerTexture.set({ image: this.tracerElement, width: videoSize.width, height: videoSize.height })
+                this.tracerBuffer.resize(videoSize.width, videoSize.height)
+                fxChain(this.drawCommands,
                 [
                     
                       {name: 'webcamFX',  buffer: this.tracerBuffer, uniforms: { texture: this.tracerTexture, 
@@ -811,13 +811,16 @@ class WorkspaceContent extends React.Component {
                                                                     return (i%2==0) ? v*this.tracerElement.width: v*this.tracerElement.height
                                                                 }),
                                                                 perspective: true,
-                                                                resolution: {x: this.tracerElement.width, y: this.tracerElement.height} } },  
+                                                                resolution: {x: videoSize.width, y: videoSize.height} } },  
                      {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
-                                                                
-                                                                transform2d: transform2d,
+                                                                transform2d: [
+                                                                    this.tracerScale,0,0,
+                                                                    -this.tracerScale,0,videoSize.height*this.tracerScale
+                                                                ],
                                                                 view: this.camera.view, 
                                                                 location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
-                                                                size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0], 
+                                                                size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0],
+                                                                //size: [this.tracerTexture.width*0.31, this.tracerTexture.height*0.31], 
                                                                 selected: false, alpha: this.props.workspace.tracer.alpha/100
                                                             }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
 
