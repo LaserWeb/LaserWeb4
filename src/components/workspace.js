@@ -755,20 +755,19 @@ class WorkspaceContent extends React.Component {
                 this.tracerTimestamp = this.props.workspace.tracer.timestamp
                 this.tracerTexture=null;
                 this.tracerBuffer=null;
+                this.tracerInit=false
             }
                 
             if (!this.tracerTexture){
-                if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL){
-                    
+                if (this.props.workspace.tracer && this.props.workspace.tracer.dataURL && !this.tracerInit){
+                    this.tracerInit=true
                     if (this.props.workspace.tracer.dataURL.indexOf("data:")>=0){
-
                         promisedImage(this.props.workspace.tracer.dataURL).then(function(img){
                                 this.tracerElement=img
                                 this.tracerTexture = this.drawCommands.createTexture({image: img, width: img.naturalWidth, height: img.naturalHeight});
                                 
                             }.bind(this))
                     } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
-                        
                         promisedVideo(window.videoCapture.getStream(), videoSize).then(function(video){
                             this.tracerElement=video
                             this.tracerTexture = this.drawCommands.createTexture({image: video, width: videoSize.width, height: videoSize.height});
@@ -804,7 +803,7 @@ class WorkspaceContent extends React.Component {
                 fxChain(this.drawCommands,
                 [
                     
-                      {name: 'webcamFX',  buffer: this.tracerBuffer, uniforms: { texture: this.tracerTexture, 
+                        {name: 'webcamFX',  buffer: this.tracerBuffer, uniforms: { texture: this.tracerTexture, 
                                                                 inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
                                                                 lens: [params.lens.invF, params.lens.r1, params.lens.r2],
                                                                 refcoords: params.refcoords.map((v,i)=>{
@@ -812,7 +811,9 @@ class WorkspaceContent extends React.Component {
                                                                 }),
                                                                 perspective: true,
                                                                 resolution: {x: videoSize.width, y: videoSize.height} } },  
-                     {name: 'image', buffer: null, uniforms: {perspective: this.camera.perspective, 
+                       {name: 'image', buffer: null, uniforms: {
+                                                               //  texture: this.tracerTexture, 
+                                                                perspective: this.camera.perspective, 
                                                                 transform2d: [
                                                                     this.tracerScale,0,0,
                                                                     -this.tracerScale,0,videoSize.height*this.tracerScale
@@ -826,7 +827,7 @@ class WorkspaceContent extends React.Component {
 
                     
                 ]
-                , true)
+                , false)
 
             }
             

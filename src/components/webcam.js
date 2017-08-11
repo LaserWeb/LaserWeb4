@@ -353,6 +353,7 @@ export const promisedVideo=(stream,attrs={})=>{
         let video= document.createElement('video')
             video.width=attrs.width || 0
             video.height=attrs.height || 0;
+            video.autoplay=true;
         let wait = ()=>{
             if (video.readyState === video.HAVE_ENOUGH_DATA && window.videoCapture.isReady)
                 return resolve(video)
