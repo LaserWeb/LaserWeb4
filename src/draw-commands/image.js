@@ -45,7 +45,7 @@ export function image(drawCommands) {
         },
     });
     let data = drawCommands.createBuffer(new Float32Array([0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0]));
-    return ({ perspective, view, transform2d, texture, selected, alpha = 1 }) => {
+    return ({ perspective, view, transform2d, texture, selected, size, alpha = 1 }) => {
         let t = transform2d;
         let transform =
             mat4.multiply([], perspective,
@@ -54,7 +54,9 @@ export function image(drawCommands) {
                     t[2], t[3], 0, 0,
                     0, 0, 1, 0,
                     t[4], t[5], 0, 1]));
-        let size = [texture.width, texture.height];
+        
+        if (!size) size = [texture.width, texture.height];
+        
         drawCommands.execute({
             program,
             primitive: drawCommands.gl.TRIANGLES,

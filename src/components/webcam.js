@@ -212,13 +212,15 @@ export class VideoPort extends React.Component {
     }
     
     snapshot(e){
+        if (!this.props.snapshot) return
+            
         const display=ReactDOM.findDOMNode(this.refs['display'])
         let transfer=document.createElement("canvas");
             transfer.width=display.width; 
             transfer.height=display.height;
         let context=transfer.getContext('2d')
             context.drawImage(display,0,0);
-            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign({alpha:50},this.props.workspace.tracer || {},{ 
+            this.props.dispatch(setWorkspaceAttrs({underlay: Object.assign({alpha:50},this.props.workspace.underlay || {},{ 
                 name: "Webcam Snapshot", 
                 dataURL: transfer.toDataURL(), 
                 timestamp: (new Date()).getTime()
@@ -297,20 +299,20 @@ export class ArucoMarker extends React.Component {
     }
 }
 
-export class TracerImageButton extends React.Component {
+export class UnderlayImageButton extends React.Component {
     constructor(props){
         super(props)
-        this.loadTracer=this.loadTracer.bind(this)
-        this.removeTracer=this.removeTracer.bind(this)
-        this.alphaTracer=this.alphaTracer.bind(this)
+        this.loadUnderlay=this.loadUnderlay.bind(this)
+        this.removeUnderlay=this.removeUnderlay.bind(this)
+        this.alphaUnderlay=this.alphaUnderlay.bind(this)
     }
 
-    loadTracer(e){
+    loadUnderlay(e){
         if (!e.target.files.length) return;
         let file = e.target.files[0];
         let reader = new FileReader;
             reader.onload=()=>{
-                let attrs={tracer: Object.assign({alpha:50},this.props.workspace.tracer || {},{
+                let attrs={underlay: Object.assign({alpha:50},this.props.workspace.underlay || {},{
                     dataURL: reader.result, 
                     name: file.name, 
                     timestamp: (new Date()).getTime()
@@ -320,35 +322,35 @@ export class TracerImageButton extends React.Component {
             reader.readAsDataURL(file);
     }
 
-    removeTracer(){
-         this.props.dispatch(setWorkspaceAttrs({tracer: null}));
+    removeUnderlay(){
+         this.props.dispatch(setWorkspaceAttrs({underlay: null}));
     }
 
-    alphaTracer(e){
-        if (this.props.workspace.tracer)
-            this.props.dispatch(setWorkspaceAttrs({tracer: Object.assign(this.props.workspace.tracer, {alpha: e.target.value})}));
+    alphaUnderlay(e){
+        if (this.props.workspace.underlay)
+            this.props.dispatch(setWorkspaceAttrs({underlay: Object.assign(this.props.workspace.underlay, {alpha: e.target.value})}));
     }
 
     render(){
-        let filename = (this.props.workspace.tracer && this.props.workspace.tracer.name) ? this.props.workspace.tracer.name : undefined
-        let alpha = (this.props.workspace.tracer) ?  this.props.workspace.tracer.alpha : 50
+        let filename = (this.props.workspace.underlay && this.props.workspace.underlay.name) ? this.props.workspace.underlay.name : undefined
+        let alpha = (this.props.workspace.underlay) ?  this.props.workspace.underlay.alpha : 50
         return <div> <h5 className="truncate" title={filename}>Underlay Image <strong>{filename}</strong> </h5>
             <div className='input-group'>
-                <FileField style={{ cursor: 'pointer' }} className="input-group-btn" onChange={this.loadTracer} accept=".png,.jpg,.jpeg,.bmp">
+                <FileField style={{ cursor: 'pointer' }} className="input-group-btn" onChange={this.loadUnderlay} accept=".png,.jpg,.jpeg,.bmp">
                 <button title="Pick an image underlay" className="btn btn-primary "><i className="fa fa-fw fa-upload" /></button>
                 </FileField>
-                <input  class='form-control' disabled={!filename? true:undefined}  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaTracer} />
-                <span className='input-group-btn'><button title="Remove tracing image" className="btn btn-danger " disabled={!filename} onClick={this.removeTracer}><i className="fa fa-fw fa-trash" /></button></span>
+                <input  class='form-control' disabled={!filename? true:undefined}  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaUnderlay} />
+                <span className='input-group-btn'><button title="Remove tracing image" className="btn btn-danger " disabled={!filename} onClick={this.removeUnderlay}><i className="fa fa-fw fa-trash" /></button></span>
             </div>
        </div>
     }
 }
 
-TracerImageButton = connect(
+UnderlayImageButton = connect(
     (state)=>({
         workspace:state.workspace
     })
-)(TracerImageButton);
+)(UnderlayImageButton);
 
 export const promisedVideo=(stream,attrs={})=>{
     return new Promise( resolve => {
@@ -375,7 +377,7 @@ export class VideoFeedButton extends React.Component {
 
     handleClick(e){
         let stream=window.videoCapture.getStream();
-        let attrs={tracer: Object.assign({alpha:50},this.props.workspace.tracer || {},{
+        let attrs={underlay: Object.assign({alpha:50},this.props.workspace.underlay || {},{
             dataURL: "stream:"+stream.id, 
             name: stream.id, 
             timestamp: (new Date()).getTime()
@@ -384,7 +386,7 @@ export class VideoFeedButton extends React.Component {
     }
 
     render(){
-        return <button onClick={this.handleClick}>LiveFeed</button>
+        return <button className="btn btn-primary btn-xs" onClick={this.handleClick}>Underlay Webcam Feed</button>
     }
 }
 

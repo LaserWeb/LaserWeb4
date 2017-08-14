@@ -313,8 +313,8 @@ class Settings extends React.Component {
 
                         </tr></tbody></table>
                         {(this.props.settings['toolVideoDevice'] !== null)? <p className="help-block">DoubleClick to take an snapshot.</p>: null}
-                        { isVideoFX ? <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess } overlay={<PerpectiveControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>}/> :  
-                                      <VideoPort height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
+                        { isVideoFX ? <VideoPort snapshot height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess } overlay={<PerpectiveControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>}/> :  
+                                      <VideoPort snapshot height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
 
                         <VideoFeedButton/>
                         <hr/>
