@@ -781,10 +781,9 @@ class WorkspaceContent extends React.Component {
 
         if (this.tracerTexture) {
            
-            this.tracerScale= 1
+            this.tracerScale= (Math.max(this.props.settings.machineWidth/this.tracerTexture.width, this.props.settings.machineHeight/this.tracerTexture.height));
             
             if (this.props.workspace.tracer.dataURL.indexOf("data:")>=0) {
-              
                 this.drawCommands.image({
                     texture: this.tracerTexture,
                     perspective: this.camera.perspective, 
@@ -796,6 +795,10 @@ class WorkspaceContent extends React.Component {
                     selected: false, alpha: this.props.workspace.tracer.alpha/100
                 })
             } else if (this.props.workspace.tracer.dataURL.indexOf("stream:")>=0) {
+                
+                // @jorgerobles: forced scale to 1 to check the chrome window resize issue
+                this.tracerScale= 1
+
                 let params = this.props.settings.toolVideoFX
              
                 this.tracerTexture.set({ image: this.tracerElement, width: videoSize.width, height: videoSize.height })

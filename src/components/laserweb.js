@@ -148,7 +148,7 @@ class LaserWeb extends React.Component {
         if (!window.videoCapture) {
             const onNextFrame = (callback) => { setTimeout(() => { window.requestAnimationFrame(callback) }, 0) }
             onNextFrame(() => {
-                window.videoCapture = new VideoCapture()
+                window.videoCapture = new VideoCapture(this.props.dispatch)
                 window.videoCapture.scan(this.props.settings.toolVideoDevice, this.props.settings.toolVideoResolution, (obj) => { this.props.handleVideoStream(this.props.settings.toolVideoDevice, obj) })
             })
         }
@@ -196,6 +196,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        dispatch: dispatch,
         handleUndo: evt => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))

@@ -63,11 +63,12 @@ export const getVideoResolution = (resolution) => {
 }
 
 export class VideoCapture {
-    constructor() {
+    constructor(dispatch) {
         this.stream = undefined
         this.isReady = false;
         this.props = {}
         this.data = { stream: undefined, deviceId: null, resolutionId: DEFAULT_VIDEO_RESOLUTION, resolutions: [], devices: [] }
+        this.dispatch = dispatch || function(){}
     }
 
     createStream(props, callback = (stream) => { console.log(stream) }) {
@@ -92,19 +93,21 @@ export class VideoCapture {
 
             let that = this;
 
-            navigator.getUserMedia(constraints, (stream) => {
-                that.stream = stream;
-                that.isReady = true;
+            navigator.getUserMedia(constraints, function(stream){
+                this.stream = stream;
+                this.isReady = true;
+                this.dispatch({type: "VIDEOCAPTURE_START_STREAM", payload: stream.id})
                 callback(stream)
-            }, (err) => {
-                that.delCache();
+            }.bind(this), function(err){
+                this.delCache();
                 navigator.getUserMedia({ video: { deviceId: { exact: device } } }, (stream) => {
-                    that.stream = stream;
-                    that.isReady = true;
+                    this.stream = stream;
+                    this.isReady = true;
+                    this.dispatch({type: "VIDEOCAPTURE_START_STREAM", payload: stream.id})
                     callback(stream)
                 }, console.log)
 
-            })
+            }.bind(this))
         }
 
 
@@ -115,6 +118,7 @@ export class VideoCapture {
             this.isReady = false;
             this.stream.getTracks().forEach((track) => { track.stop(); this.stream.removeTrack(track) });
             window.URL.revokeObjectURL(this.stream);
+            this.dispatch({type: "VIDEOCAPTURE_STOP_STREAM", payload: this.stream.id})
             this.stream = undefined;
         }
     }
