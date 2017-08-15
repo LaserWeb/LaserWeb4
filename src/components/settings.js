@@ -316,7 +316,7 @@ class Settings extends React.Component {
                         { isVideoFX ? <VideoPort snapshot height={240} enabled={this.props.settings['toolVideoDevice'] !== null} useCanvas={true}  canvasProcess={ webcamFxProcess } overlay={<PerpectiveControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>}/> :  
                                       <VideoPort snapshot height={240} enabled={this.props.settings['toolVideoDevice'] !== null}  />}
 
-                        <VideoFeedButton/>
+                       
                         <hr/>
                         <WebcamFxControls onChange={v=>this.props.dispatch(setSettingsAttrs({toolVideoFX:v}))}/>
                         <hr/>

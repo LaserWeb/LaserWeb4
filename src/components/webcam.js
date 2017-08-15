@@ -15,7 +15,7 @@ import '../styles/webcam.css';
 import { DEFAULT_VIDEO_RESOLUTION, VIDEO_RESOLUTIONS, videoResolutionPromise, getSizeByVideoResolution, getVideoResolution } from '../lib/video-capture'
 
 import { openDataWindow } from '../lib/helpers';
-import { FileField } from './forms'
+import { FileField, Info } from './forms'
 import { setWorkspaceAttrs } from '../actions/workspace';
 
 const defaultProcess = ({canvas, video, settings}) =>{
@@ -334,13 +334,18 @@ export class UnderlayImageButton extends React.Component {
     render(){
         let filename = (this.props.workspace.underlay && this.props.workspace.underlay.name) ? this.props.workspace.underlay.name : undefined
         let alpha = (this.props.workspace.underlay) ?  this.props.workspace.underlay.alpha : 50
-        return <div> <h5 className="truncate" title={filename}>Underlay Image <strong>{filename}</strong> </h5>
+        let info = Info(<p className="help-block">Enables/Disables the use of webcam or still image feed to appear under the workspace, with the desired transparency</p>,"Workspace Feed")
+        return <div> <h5 className="truncate" title={filename}>Workspace Feed  {info} <strong>{filename}</strong></h5>
             <div className='input-group'>
-                <FileField style={{ cursor: 'pointer' }} className="input-group-btn" onChange={this.loadUnderlay} accept=".png,.jpg,.jpeg,.bmp">
-                <button title="Pick an image underlay" className="btn btn-primary "><i className="fa fa-fw fa-upload" /></button>
-                </FileField>
+            <span className='input-group-btn'>
+                <VideoFeedButton className=" btn btn-success" enabled={this.props.settings['toolVideoDevice']}/>
+                <FileField style={{ cursor: 'pointer' }}  onChange={this.loadUnderlay} accept=".png,.jpg,.jpeg,.bmp">
+                <button title="Pick a Workspace Image" className="btn btn-primary "><i className="fa fa-fw fa-upload" /></button>
+                </FileField>    
+            </span>
                 <input  class='form-control' disabled={!filename? true:undefined}  type="range" value={alpha} step="10" min="10" max="100" is glyphicon="eye-close" onChange={this.alphaUnderlay} />
-                <span className='input-group-btn'><button title="Remove tracing image" className="btn btn-danger " disabled={!filename} onClick={this.removeUnderlay}><i className="fa fa-fw fa-trash" /></button></span>
+                <span className='input-group-btn'>
+                    <button title="Remove workspace image" className="btn btn-danger " disabled={!filename} onClick={this.removeUnderlay}><i className="fa fa-fw fa-trash" /></button></span>
             </div>
        </div>
     }
@@ -348,7 +353,8 @@ export class UnderlayImageButton extends React.Component {
 
 UnderlayImageButton = connect(
     (state)=>({
-        workspace:state.workspace
+        workspace:state.workspace,
+        settings:state.settings
     })
 )(UnderlayImageButton);
 
@@ -386,7 +392,7 @@ export class VideoFeedButton extends React.Component {
     }
 
     render(){
-        return <button className="btn btn-primary btn-xs" onClick={this.handleClick}>Underlay Webcam Feed</button>
+        return <button disabled={!this.props.enabled} className={this.props.className} onClick={this.handleClick}><Icon name="video-camera"/></button>
     }
 }
 

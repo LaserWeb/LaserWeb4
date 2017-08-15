@@ -57,7 +57,7 @@ export class WebcamFxControls extends React.Component {
     render() {
 
         return <div className="WebcamFxControls">
-            <ToggleField  {... { object: this.props.settings.toolVideoFX, field: 'enabled', onChange: (v)=> {this.handleChange(null, 'enabled',v)}, description: <div>Activate Camera feed FX <Label bsStyle="warning">Experimental!</Label></div>, info: Info(<p className="help-block">
+            <ToggleField  {... { object: this.props.settings.toolVideoFX, field: 'enabled', onChange: (v)=> {this.handleChange(null, 'enabled',v)}, description: <div>Activate Workspace Feed FX <Label bsStyle="warning">Experimental!</Label></div>, info: Info(<p className="help-block">
                         Enables camera feed transformation/corrections, and embedding on workspace.
                         </p>,"Camera feed FX"), disabled:!this.props.settings['toolVideoDevice'] }} />
 

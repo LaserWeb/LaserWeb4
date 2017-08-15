@@ -710,7 +710,8 @@ class WorkspaceContent extends React.Component {
                 }
             }
 
-            gl.viewport(0, 0, canvas.width, canvas.height);
+            //gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.viewport(0, 0, this.props.width, this.props.height);
             if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary)
                 gl.clearColor(.8, .8, .8, 1);
             else
@@ -728,23 +729,6 @@ class WorkspaceContent extends React.Component {
         };
         draw();
     }
-
-    /* initUnderlayImage()
-    {
-        this.underlayTexture = this.drawCommands.createTexture({width:0, height:0});
-        this.underlayBuffer = this.drawCommands.createFrameBuffer(0,0);
-
-        if (this.props.underlay) {
-            console.log(this.props.underlay)
-           
-            this.underlaySize = getVideoResolution(this.props.settings.toolVideoResolution)
-            this.underlayElement = document.createElement('video');
-            
-            this.underlayTexture = this.drawCommands.createTexture(this.underlaySize.width, this.underlaySize.height);
-            this.underlayBuffer = this.drawCommands.createFrameBuffer(this.underlaySize.width, this.underlaySize.height);
-           
-        }
-    } */
 
     drawUnderlayImage()
     {
@@ -804,35 +788,46 @@ class WorkspaceContent extends React.Component {
                 if (this.props.settings.toolVideoFX && this.props.settings.toolVideoFX.enabled){
 
                     // @jorgerobles: forced scale to 1 to check the chrome window resize issue
-                    this.underlayScale= 1
+                    //this.underlayScale= 1
                     
                     fxChain(this.drawCommands,
                         [
                             
-                                {name: 'webcamFX',  buffer: this.underlayBuffer, uniforms: { texture: this.underlayTexture, 
-                                                                        inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
-                                                                        lens: [params.lens.invF, params.lens.r1, params.lens.r2],
-                                                                        refcoords: params.refcoords.map((v,i)=>{
-                                                                            return (i%2==0) ? v*this.underlayElement.width: v*this.underlayElement.height
-                                                                        }),
-                                                                        perspective: true,
-                                                                        resolution: {x: videoSize.width, y: videoSize.height} } },  
-                               {name: 'image', buffer: null, uniforms: {
-                                                                      
-                                                                        perspective: this.camera.perspective, 
-                                                                        transform2d: [
-                                                                            this.underlayScale,0,0,
-                                                                            -this.underlayScale,0,videoSize.height*this.underlayScale
-                                                                        ],
-                                                                        view: this.camera.view, 
-                                                                        //location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
-                                                                        //size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0],
-                                                                        selected: false, alpha: this.props.workspace.underlay.alpha/100
-                                                                    }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
-        
+                             {name: 'webcamFX',  buffer: this.underlayBuffer, uniforms: { texture: this.underlayTexture, 
+                                                                    inputcorrection: [params.inputcorrection.angle, params.inputcorrection.aspect, params.inputcorrection.scale ],
+                                                                    lens: [params.lens.invF, params.lens.r1, params.lens.r2],
+                                                                    refcoords: params.refcoords.map((v,i)=>{
+                                                                        return (i%2==0) ? v*this.underlayElement.width: v*this.underlayElement.height
+                                                                    }),
+                                                                    perspective: true,
+                                                                    resolution: {x: this.props.width, y: this.props.height} } },  
+                            
+                           /*  {name: 'image', buffer: this.underlayBuffer, uniforms: {
+                                texture: this.underlayTexture,
+                                perspective: this.camera.perspective, 
+                                transform2d: [
+                                    1,0,0,1,0,0
+                                ],
+                                view: this.camera.view, 
+                                selected: false, alpha: 1
+                            }},  */
+                            
+                             {name: 'image', buffer: null, uniforms: {
+                                                                    
+                                                                    perspective: this.camera.perspective, 
+                                                                    transform2d: [
+                                                                        this.underlayScale,0,0,
+                                                                        -this.underlayScale,0,videoSize.height*this.underlayScale
+                                                                    ],
+                                                                    view: this.camera.view, 
+                                                                    //location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
+                                                                    //size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0],
+                                                                    selected: false, alpha: this.props.workspace.underlay.alpha/100
+                                                                }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
+    
                             
                         ]
-                        , false)
+                        , true)
                 } else {
                         fxChain(this.drawCommands,
                         [
@@ -844,9 +839,6 @@ class WorkspaceContent extends React.Component {
                                                                             this.underlayScale,0,0
                                                                         ],
                                                                         view: this.camera.view, 
-                                                                        location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
-                                                                        size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0],
-                                                                        //size: [this.underlayTexture.width*0.31, this.underlayTexture.height*0.31], 
                                                                         selected: false, alpha: this.props.workspace.underlay.alpha/100
                                                                     }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
         
@@ -876,7 +868,7 @@ class WorkspaceContent extends React.Component {
             gl.clearDepth(1);
         }
 
-        if (this.props.workspace.showUnderlay && this.props.workspace.underlay)
+        if (this.props.workspace.underlay && this.props.workspace.underlay.dataURL)
             this.drawUnderlayImage()
 
         this.grid.draw(this.drawCommands, {
@@ -1479,13 +1471,10 @@ class Workspace extends React.Component {
                                     </tr>
                                 }
                                 <tr>
-                                    <td>Show Webcam</td>
+                                    <td>Show Floating Webcam</td>
                                     <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
                                 </tr>
-                                <tr>
-                                    <td>Show Underlay</td>
-                                    <td><input checked={workspace.showUnderlay} disabled={!enableUnderlay} onChange={setShowUnderlay} type="checkbox" /></td>
-                                </tr>
+                               
                                 <tr>
                                     <td>Show Raster Preview</td>
                                     <td><input checked={workspace.showRasterPreview} onChange={setRasterPreview} type="checkbox" /></td>
