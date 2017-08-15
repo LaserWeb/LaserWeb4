@@ -768,6 +768,9 @@ class WorkspaceContent extends React.Component {
             this.underlayScale= (Math.max(this.props.settings.machineWidth/this.underlayTexture.width, this.props.settings.machineHeight/this.underlayTexture.height));
             
             if (this.props.workspace.underlay.dataURL.indexOf("data:")>=0) {
+
+               
+
                 this.drawCommands.image({
                     texture: this.underlayTexture,
                     perspective: this.camera.perspective, 
@@ -786,10 +789,7 @@ class WorkspaceContent extends React.Component {
                 this.underlayBuffer.resize(videoSize.width, videoSize.height)
                 
                 if (this.props.settings.toolVideoFX && this.props.settings.toolVideoFX.enabled){
-
-                    // @jorgerobles: forced scale to 1 to check the chrome window resize issue
-                    //this.underlayScale= 1
-                    
+                   
                     fxChain(this.drawCommands,
                         [
                             
@@ -802,26 +802,15 @@ class WorkspaceContent extends React.Component {
                                                                     perspective: true,
                                                                     resolution: {x: videoSize.width, y: videoSize.height} } },
                             
-                           /*  {name: 'image', buffer: this.underlayBuffer, uniforms: {
-                                texture: this.underlayTexture,
-                                perspective: this.camera.perspective, 
-                                transform2d: [
-                                    1,0,0,1,0,0
-                                ],
-                                view: this.camera.view, 
-                                selected: false, alpha: 1
-                            }},  */
-                            
+                        
                              {name: 'image', buffer: null, uniforms: {
                                                                     
                                                                     perspective: this.camera.perspective, 
                                                                     transform2d: [
-                                                                        this.underlayScale,0,0,
-                                                                        -this.underlayScale,0,videoSize.height*this.underlayScale
+                                                                        this.props.settings.machineWidth/this.underlayTexture.width,0,0,
+                                                                        -this.props.settings.machineHeight/this.underlayTexture.height,0,videoSize.height*this.underlayScale
                                                                     ],
                                                                     view: this.camera.view, 
-                                                                    //location: [params.outputmapping.x0, params.outputmapping.y0, 0], 
-                                                                    //size: [params.outputmapping.x1 - params.outputmapping.x0, params.outputmapping.y1 - params.outputmapping.y0],
                                                                     selected: false, alpha: this.props.workspace.underlay.alpha/100
                                                                 }}  // DRAWS THE RESULT BUFFER ONTO IMAGE  
     
