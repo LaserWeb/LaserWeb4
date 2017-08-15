@@ -800,7 +800,7 @@ class WorkspaceContent extends React.Component {
                                                                         return (i%2==0) ? v*this.underlayElement.width: v*this.underlayElement.height
                                                                     }),
                                                                     perspective: true,
-                                                                    resolution: {x: this.props.width, y: this.props.height} } },  
+                                                                    resolution: {x: videoSize.width, y: videoSize.height} } },
                             
                            /*  {name: 'image', buffer: this.underlayBuffer, uniforms: {
                                 texture: this.underlayTexture,

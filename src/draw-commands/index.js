@@ -123,6 +123,8 @@ export class DrawCommands {
             texture,
             resize(width, height) {
                 this.texture.set({ width, height });
+                this.width=width; 
+                this.height=height;
             },
             destroy() {
                 this.drawCommands.gl.deleteFramebuffer(this.frameBuffer);
@@ -139,10 +141,14 @@ export class DrawCommands {
         let oldbuffer = this.gl.getParameter(this.gl.FRAMEBUFFER_BINDING);
         let oldviewport;
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer.frameBuffer);
-        if (useviewport) oldviewport = this.gl.getParameter(this.gl.VIEWPORT)
+        if (useviewport) {
+            oldviewport = this.gl.getParameter(this.gl.VIEWPORT)
+            this.gl.viewport(0, 0, frameBuffer.width, frameBuffer.height);
+        }
         next();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, oldbuffer);
-        if (useviewport) this.gl.viewport(...oldviewport)
+        if (useviewport) 
+            this.gl.viewport(...oldviewport)
     }
 
     compile({ vert, frag, attrs }) {
