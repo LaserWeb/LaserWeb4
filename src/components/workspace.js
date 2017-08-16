@@ -808,7 +808,7 @@ class WorkspaceContent extends React.Component {
                                                                     perspective: this.camera.perspective, 
                                                                     transform2d: [
                                                                         this.props.settings.machineWidth/this.underlayTexture.width,0,0,
-                                                                        -this.props.settings.machineHeight/this.underlayTexture.height,0,videoSize.height*this.underlayScale
+                                                                        -this.props.settings.machineHeight/this.underlayTexture.height,0,videoSize.height*(this.props.settings.machineHeight/this.underlayTexture.height)
                                                                     ],
                                                                     view: this.camera.view, 
                                                                     selected: false, alpha: this.props.workspace.underlay.alpha/100
