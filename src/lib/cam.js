@@ -20,7 +20,7 @@ import { mat3, vec2 } from 'gl-matrix';
 
 import { diff, offset, cPathsToClipperPaths, cPathsToCamPaths, clipperBounds, clipperPathsToCPaths, clipperToCppScale } from './mesh';
 
-require('script!web-cam-cpp');
+require('script-loader!web-cam-cpp');
 
 export function dist(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
