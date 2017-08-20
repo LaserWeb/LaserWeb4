@@ -1,6 +1,6 @@
 import { setAttrs, add, remove } from '../actions/object'
 import { OPERATION_DEFAULTS } from '../reducers/operation'
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 
 export const setOperationAttrs = setAttrs('operation');
 export const addOperation = add('operation',OPERATION_DEFAULTS);
@@ -33,7 +33,7 @@ export function spreadOperationField(id, field)
 }
 
 export function operationLatheTurnAdd(id, attrs) {
-    return { type: 'OPERATION_LATHE_TURN_ADD', payload: { id, attrs: { ...attrs, id: uuid.v4() } } };
+    return { type: 'OPERATION_LATHE_TURN_ADD', payload: { id, attrs: { ...attrs, id: uuidv4() } } };
 }
 
 export const operationLatheTurnSetAttrs = setAttrs('operation_lathe_turn');

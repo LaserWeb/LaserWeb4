@@ -1,7 +1,7 @@
 "use strict";
 
 import { mat2d, mat3, vec3 } from 'gl-matrix';
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 import Snap from 'snapsvg';
 
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
@@ -62,7 +62,7 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
+function loadSvg(state, settings, { file, content }, id = uuidv4()) {
     let { parser, tags, attrs = {} } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
@@ -104,7 +104,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             let combinedMat = mat2d.mul([], parentMat, localMat);
             let c = {
                 ...DOCUMENT_INITIALSTATE,
-                id: uuid.v4(),
+                id: uuidv4(),
                 type: child.name,
                 name: child.name + ': ' + child.attrs.id,
                 isRoot: false,
@@ -232,7 +232,7 @@ function processImage(doc, settings, context) {
     return doc;
 }
 
-function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
+function loadImage(state, settings, { file, content, context }, id = uuidv4()) {
     state = state.slice();
     let scale = 25.4 / settings.dpiBitmap;
     let doc = {
@@ -253,7 +253,7 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
     return state;
 }
 
-function replaceImage(state, settings, { file, content, context }, id = uuid.v4()) {
+function replaceImage(state, settings, { file, content, context }, id = uuidv4()) {
     return state.map((doc, index, docs) => {
         if (doc.name === file.name)
             return Object.assign(doc, { dataURL: content });
@@ -261,7 +261,7 @@ function replaceImage(state, settings, { file, content, context }, id = uuid.v4(
     })
 }
 
-function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
+function loadDxf(state, settings, { file, content }, id = uuidv4()) {
     state = state.slice();
     let docFile = {
         ...DOCUMENT_INITIALSTATE,

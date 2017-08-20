@@ -2,7 +2,7 @@
 import omit from 'object.omit'
 import { deepMerge, sendAsFile } from "../lib/helpers"
 import generateName from 'sillyname'
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 
 import { actionTypes } from 'redux-localstorage'
 
@@ -28,7 +28,7 @@ function generateInteger(min, max) {
 
 const GROUP_TEMPLATE = () => {
     return {
-        id: uuid.v4(),
+        id: uuidv4(),
         name: generateName(),
         notes: "",
         template: PRESET_TEMPLATE('Laser Cut'),
@@ -38,7 +38,7 @@ const GROUP_TEMPLATE = () => {
 
 const PRESET_TEMPLATE = (type, machineProfile = null) => {
     return {
-        id: uuid.v4(),
+        id: uuidv4(),
         name: "** " + generateName() + " **",
         notes: "",
         type: type,

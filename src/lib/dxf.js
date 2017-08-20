@@ -23,7 +23,7 @@
 
 "use strict";
 
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 import vectorizeText from 'vectorize-text';
 
 import { documents } from '../reducers/document'
@@ -45,7 +45,7 @@ export function processDXF(state, docFile, dxfTree) {
             if (!LayerLookup.has(entity.layer)) {
                 // Does layer exist?, if not then proceed
                 docLayer = {};
-                LayerLookup.set(entity.layer, uuid.v4())
+                LayerLookup.set(entity.layer, uuidv4())
                 docLayer.id = LayerLookup.get(entity.layer);
                 docLayer.name = 'LAYER: ' + entity.layer;
                 docLayer.type = 'LAYER';
