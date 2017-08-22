@@ -11,8 +11,8 @@
     "bundle-dev": "webpack --progress --colors",
     "bundle-prod": "webpack -p --progress --colors",
     "build-docs": "jsdoc -c ./jsdoc.json",
-    "installdev": "git submodule init && git submodule update --remote && npm install && npm update lw.comm-server",
-    "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
+    "installdev": "git submodule init && git submodule update --remote && yarn install && yarn upgrade lw.comm-server",
+    "golive": "git checkout gh-pages && git pull && git merge dev-es6 && yarn run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
   },
   "repository": {
     "type": "git",
