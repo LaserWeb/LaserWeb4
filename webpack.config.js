@@ -4,8 +4,6 @@ var path = require('path');
 var src_path = path.resolve('./src');
 var dist_path = path.resolve('./dist');
 
-var MergeJsonWebpackPlugin = require("merge-jsons-webpack-plugin")
-
 module.exports = {
     context: src_path,
     entry: [
@@ -59,22 +57,8 @@ module.exports = {
         ]
     },
     plugins: [
-        new MergeJsonWebpackPlugin({
-            "output": {
-                "groupBy": [
-                    {
-                        "pattern": "./src/data/lw.machines/machines/*.json",
-                        "fileName": "./src/data/machine-profiles.json"
-                    }
-                ]
-            }
-        }),
-        new webpack.WatchIgnorePlugin([
-            path.resolve('./src/data/machine-profiles.json')
-        ]),
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
-
     ],
     devServer: {
         contentBase: dist_path,
