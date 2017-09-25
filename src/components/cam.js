@@ -19,7 +19,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
-import { loadDocument, setDocumentAttrs } from '../actions/document';
+import { loadDocument, setDocumentAttrs, cloneDocumentSelected } from '../actions/document';
 import { setGcode, generatingGcode } from '../actions/gcode';
 import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
@@ -154,11 +154,13 @@ class Cam extends React.Component {
                                     <td>
                                         <label>Documents</label>
                                     </td>
-                                    <td>
-                                        <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
+                                    <td style={{display:"flex", justifyContent: "flex-end" }}>
+                                        
+                                        <FileField style={{   position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} settings={settings} documents={documents} operations={operations} /> : undefined}
-                                        </FileField>
+                                        </FileField>&nbsp;
+                                        {documents.length ? <Button  bsStyle="warning" bsSize="xsmall" disabled={!documents.some((i)=>(i.selected))} onClick={e=>{this.props.dispatch(cloneDocumentSelected())}} title="Clone selected"><Icon name="copy"/></Button>:undefined}
                                     </td>
                                 </tr>
                                 <tr>

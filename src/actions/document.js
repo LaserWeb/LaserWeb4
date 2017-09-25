@@ -28,3 +28,7 @@ export function loadDocument(file, content, modifiers = {}, context = undefined)
 export function removeDocumentSelected() {
     return { type: 'DOCUMENT_REMOVE_SELECTED' };
 }
+
+export function cloneDocumentSelected() {
+    return { type: 'DOCUMENT_CLONE_SELECTED' };
+}
