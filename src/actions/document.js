@@ -32,3 +32,11 @@ export function removeDocumentSelected() {
 export function cloneDocumentSelected() {
     return { type: 'DOCUMENT_CLONE_SELECTED' };
 }
+
+export function selectDocuments(meta){
+    return { type: 'DOCUMENT_SELECT_META', payload:{meta} };
+}
+
+export function colorDocumentSelected(color){
+    return { type: 'DOCUMENT_COLOR_SELECTED', payload:{color} };
+}

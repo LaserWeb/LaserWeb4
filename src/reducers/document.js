@@ -349,6 +349,12 @@ export function documents(state, action) {
                 state = reduceParents(state, action.payload.id, false, o => Object.assign({}, o, { selected: false }));
             return state;
         }
+
+        case 'DOCUMENT_SELECT_META': {
+            if (action.payload.meta===true || action.payload.meta===false){
+                return state.map((o)=>{ return Object.assign({},o,{selected: action.payload.meta})})
+            }
+        }
         case 'DOCUMENT_TOGGLE_VISIBLE': {
             let parent = state.find(o => o.id === action.payload.id);
             if (!parent)
@@ -382,12 +388,21 @@ export function documents(state, action) {
             return [...state,...clones];
         }
 
-        case "DOCUMENT_REMOVE_SELECTED":
+        case "DOCUMENT_REMOVE_SELECTED": {
             let ids = [];
             state.filter(d => d.selected).forEach((sel) => { ids = [...ids, ...getSubtreeIds(state, sel.id)]; })
             return state.filter(o => (!ids.includes(o.id))).map(parent => {
                 return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c))) })
             });
+        }
+
+        case "DOCUMENT_COLOR_SELECTED": {
+            return state.map((o)=>{
+                if (!o.selected) return o;
+                return Object.assign({},o,action.payload.color)
+            }) 
+            return state;
+        }
 
         case 'WORKSPACE_RESET':
             return [];
