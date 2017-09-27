@@ -683,3 +683,8 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 
 
 .hr {border-top: 1px solid rgba(0,0,0,0.1); margin-top:5px}
+
+.btn-toolbar-default {background-color: #eee; padding: 2px}
+.btn-colorPicker {display:inline-flex; align-items: top }
+.btn-colorPicker .btn {border-right:none}
+.btn-colorPicker input[type="color"] {margin: 0 2px 0 0}

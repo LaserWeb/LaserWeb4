@@ -1,7 +1,7 @@
 "use strict";
 
 import { mat2d, mat3, vec3 } from 'gl-matrix';
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 import Snap from 'snapsvg';
 
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
@@ -62,7 +62,7 @@ export function document(state, action) {
 
 const documentsForest = forest('document', document);
 
-function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
+function loadSvg(state, settings, { file, content }, id = uuidv4()) {
     let { parser, tags, attrs = {} } = content;
     state = state.slice();
     let pxPerInch = (settings.pxPerInch) ? +settings.pxPerInch : 96;
@@ -104,7 +104,7 @@ function loadSvg(state, settings, { file, content }, id = uuid.v4()) {
             let combinedMat = mat2d.mul([], parentMat, localMat);
             let c = {
                 ...DOCUMENT_INITIALSTATE,
-                id: uuid.v4(),
+                id: uuidv4(),
                 type: child.name,
                 name: child.name + ': ' + child.attrs.id,
                 isRoot: false,
@@ -232,7 +232,7 @@ function processImage(doc, settings, context) {
     return doc;
 }
 
-function loadImage(state, settings, { file, content, context }, id = uuid.v4()) {
+function loadImage(state, settings, { file, content, context }, id = uuidv4()) {
     state = state.slice();
     let scale = 25.4 / settings.dpiBitmap;
     let doc = {
@@ -253,7 +253,7 @@ function loadImage(state, settings, { file, content, context }, id = uuid.v4()) 
     return state;
 }
 
-function replaceImage(state, settings, { file, content, context }, id = uuid.v4()) {
+function replaceImage(state, settings, { file, content, context }, id = uuidv4()) {
     return state.map((doc, index, docs) => {
         if (doc.name === file.name)
             return Object.assign(doc, { dataURL: content });
@@ -261,7 +261,7 @@ function replaceImage(state, settings, { file, content, context }, id = uuid.v4(
     })
 }
 
-function loadDxf(state, settings, { file, content }, id = uuid.v4()) {
+function loadDxf(state, settings, { file, content }, id = uuidv4()) {
     state = state.slice();
     let docFile = {
         ...DOCUMENT_INITIALSTATE,
@@ -312,13 +312,33 @@ export function documentsLoad(state, settings, action) {
     }
 }
 
+export function cloneDocument(forest, rootId, renamer=(d)=>(d.name))
+{
+    let parent = forest.find(o => o.id === rootId);
+    let idMap={}
+    let docs=getSubtreeIds(forest, rootId).map((i,index)=>{
+            let o=forest.find(o => o.id === i)
+            if (o) {
+                idMap[o.id]=uuidv4()
+                return Object.assign({},o,{id: idMap[o.id], name: renamer(o,index), selected:false, isRoot: !index})
+            }
+        }).filter(e=>(e!==undefined)).map((item,index)=>{
+            item.children=item.children.map(c=>(idMap[c]));
+            return item;
+        })
+    
+    return docs;
+}
+
 export function documents(state, action) {
     state = documentsForest(state, action);
     switch (action.type) {
         case 'DOCUMENT_SELECT': {
             let ids = getSubtreeIds(state, action.payload.id);
             return state.map(o => Object.assign({}, o, { selected: ids.includes(o.id) }));
+            
         }
+
         case 'DOCUMENT_TOGGLE_SELECT': {
             let parent = state.find(o => o.id === action.payload.id);
             if (!parent)
@@ -328,6 +348,12 @@ export function documents(state, action) {
             if (!selected)
                 state = reduceParents(state, action.payload.id, false, o => Object.assign({}, o, { selected: false }));
             return state;
+        }
+
+        case 'DOCUMENT_SELECT_META': {
+            if (action.payload.meta===true || action.payload.meta===false){
+                return state.map((o)=>{ return Object.assign({},o,{selected: action.payload.meta})})
+            }
         }
         case 'DOCUMENT_TOGGLE_VISIBLE': {
             let parent = state.find(o => o.id === action.payload.id);
@@ -339,12 +365,44 @@ export function documents(state, action) {
                 state = reduceParents(state, action.payload.id, true, o => Object.assign({}, o, { visible: true }));
             return state;
         }
-        case "DOCUMENT_REMOVE_SELECTED":
+
+        case 'DOCUMENT_CLONE_SELECTED': {
+            let clones=[];
+            let tree=state.filter(d => d.selected).filter((d,index,t)=>{
+                return !t.find(i=>(i.selected && i.children.includes(d.id)));
+            })
+            const countOf=(name)=>{ return state.filter(d=>d.isRoot && (d.name.indexOf(name)>=0)).length;}
+
+            tree.forEach((sel) => {
+                let cloned=cloneDocument(state, sel.id,(d,index)=>{
+                    if (index) return d.name
+                    let re=/([^\(]+) \(([0-9]+)\)/gi
+                    return d.name.match(re) ?  d.name.replace(re,(str,p)=>{
+                        return `${p} (${countOf(p)})`
+                    }) : `${d.name} (${countOf(d.name)})`
+                })
+                if (cloned.length) 
+                    clones= [...clones,...cloned];
+            })
+
+            return [...state,...clones];
+        }
+
+        case "DOCUMENT_REMOVE_SELECTED": {
             let ids = [];
             state.filter(d => d.selected).forEach((sel) => { ids = [...ids, ...getSubtreeIds(state, sel.id)]; })
             return state.filter(o => (!ids.includes(o.id))).map(parent => {
                 return Object.assign({}, parent, { children: parent.children.filter(c => (!ids.includes(c))) })
             });
+        }
+
+        case "DOCUMENT_COLOR_SELECTED": {
+            return state.map((o)=>{
+                if (!o.selected) return o;
+                return Object.assign({},o,action.payload.color)
+            }) 
+            return state;
+        }
 
         case 'WORKSPACE_RESET':
             return [];

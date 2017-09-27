@@ -20,7 +20,7 @@ import ReactDOM from 'react-dom';
 
 import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
-import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected } from '../actions/document';
+import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected, cloneDocumentSelected } from '../actions/document';
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { setSettingsAttrs } from '../actions/settings';
 
@@ -618,6 +618,7 @@ class WorkspaceContent extends React.Component {
         super(props);
         this.bindings = [
             [['alt+del', 'meta+backspace'], this.removeSelected.bind(this)],
+            [['ctrl+d'], this.cloneSelected.bind(this)],
         ]
         this.drawDocsState = {};
         this.drawGcodeState = {};
@@ -655,6 +656,13 @@ class WorkspaceContent extends React.Component {
         if (this.props.mode === 'jog') return;
         if (this.props.documents.find((d) => (d.selected)))
             this.props.dispatch(removeDocumentSelected());
+    }
+
+    cloneSelected(e) {
+        e.preventDefault();
+        if (this.props.mode === 'jog') return;
+        if (this.props.documents.find((d) => (d.selected)))
+            this.props.dispatch(cloneDocumentSelected());
     }
 
     setCanvas(canvas) {

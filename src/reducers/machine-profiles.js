@@ -2,7 +2,12 @@
 import omit from 'object.omit'
 import {actionTypes} from 'redux-localstorage'
 
-export const MACHINEPROFILES_INITIALSTATE = require("../data/machine-profiles.json");
+export const MACHINEPROFILES_INITIALSTATE=((ctx)=>{
+    let keys = ctx.keys();
+    let values = keys.map(ctx);
+    return (Object.assign.apply(null,[{},...values]))
+})(require.context('../data/lw.machines/machines', true, /\.json$/gi))
+
 
 export const machineProfiles = (state = MACHINEPROFILES_INITIALSTATE, action, lock=/^\*/gi) => {
         switch (action.type) {

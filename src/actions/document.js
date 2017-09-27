@@ -28,3 +28,15 @@ export function loadDocument(file, content, modifiers = {}, context = undefined)
 export function removeDocumentSelected() {
     return { type: 'DOCUMENT_REMOVE_SELECTED' };
 }
+
+export function cloneDocumentSelected() {
+    return { type: 'DOCUMENT_CLONE_SELECTED' };
+}
+
+export function selectDocuments(meta){
+    return { type: 'DOCUMENT_SELECT_META', payload:{meta} };
+}
+
+export function colorDocumentSelected(color){
+    return { type: 'DOCUMENT_COLOR_SELECTED', payload:{color} };
+}
