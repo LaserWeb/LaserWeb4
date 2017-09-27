@@ -651,7 +651,7 @@ class Operation extends React.Component {
         this.remove = e => this.props.dispatch(removeOperation(this.props.op.id));
         this.moveUp = e => this.props.dispatch(moveOperation(this.props.op.id, -1));
         this.moveDn = e => this.props.dispatch(moveOperation(this.props.op.id, +1));
-        this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ type: type, ...attrs }, this.props.op.id))
+        this.preset = (type, attrs) => this.props.dispatch(setOperationAttrs({ ...attrs,type: type }, this.props.op.id))
         this.toggleDocs = e => this.props.dispatch(setOperationAttrs({ _docs_visible: !this.props.op._docs_visible }, this.props.op.id));
 
         this.documentsCount = null;
