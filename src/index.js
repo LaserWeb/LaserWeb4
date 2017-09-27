@@ -2,7 +2,7 @@ import React from 'react'
 import { render } from 'react-dom'
 import { compose, applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
-import logger from 'redux-logger';
+import { createLogger } from 'redux-logger';
 
 import persistState, {mergePersistedState} from 'redux-localstorage'
 import adapter from 'redux-localstorage/lib/adapters/localStorage';
@@ -42,7 +42,7 @@ export const setDebug=(b) => {
 }
 
 const middlewares=[];
-if (getDebug()) middlewares.push(logger({ collapsed: true }))
+if (getDebug()) middlewares.push(createLogger({ collapsed: true }))
 middlewares.push(globalstoreMiddleWare)
 
 const middleware = compose(
