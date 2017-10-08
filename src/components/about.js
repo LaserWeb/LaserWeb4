@@ -11,6 +11,7 @@ import Icon from './font-awesome'
 import marked from 'marked';
 import { version } from '../reducers/settings'
 import { confirm } from './laserweb'
+import { fetchRelease } from '../lib/releases';
 import { LOCALSTORAGE_KEY, getDebug, setDebug } from '../index'
 import Toggle from 'react-toggle'
 
@@ -45,6 +46,7 @@ class About extends React.Component {
                     <dt><Icon name="cubes"/> Frontend: {version}</dt><dd></dd><p/>
                     <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion}</dt><dd></dd><p/>
                   </dl>
+                  <Releases/>
                 <h3>Support Communities</h3>
                   <dl>
                     <dt><Icon name="users"/> <a href="https://github.com/LaserWeb">LaserWeb Github Organisation</a></dt>
@@ -145,3 +147,28 @@ Lifesaver = connect((store)=>({}),(dispatch) =>{
     }
   }
 )(Lifesaver)
+
+
+
+export class Releases extends React.Component {
+
+    constructor(props)
+    {
+        super(props);
+        this.state={}
+    }
+
+    componentDidMount() {
+        fetchRelease().then((release)=>{
+            this.setState(release);
+        })
+    }
+
+    render() {
+        return <div className="releases">
+            {this.state.tag_name ? <h4>Latest release: <a href={this.state.html_url} target="__blank">{this.state.tag_name}</a></h4>:undefined } 
+            {this.state.body ? <div dangerouslySetInnerHTML={{__html: marked(this.state.body)}}/>:undefined }
+        </div>
+    }
+
+}
