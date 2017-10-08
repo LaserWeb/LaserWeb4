@@ -104,3 +104,9 @@ export const captureConsole = () => {
 
 }
 
+export const strtr=(str,reps)=>{
+  Object.entries(reps).forEach((entry)=>{
+      str=str.replace(entry[0],entry[1])
+  })
+  return str;
+}

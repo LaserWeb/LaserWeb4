@@ -54,6 +54,7 @@ export const SETTINGS_INITIALSTATE = {
 
     __version: version,
     __selectedProfile: null,
+    __latestRelease: null,
 
     showMachine: false,
     machineWidth: 300,

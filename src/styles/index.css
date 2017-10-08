@@ -688,3 +688,11 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 .btn-colorPicker {display:inline-flex; align-items: top }
 .btn-colorPicker .btn {border-right:none}
 .btn-colorPicker input[type="color"] {margin: 0 2px 0 0}
+
+.releases > div {
+
+     max-height: 10em; width: 98%;
+     overflow-y: auto;
+     padding: 0.5em; margin: 1em 0 1em 0; border: 1px solid green; 
+     border-radius: 5px
+}

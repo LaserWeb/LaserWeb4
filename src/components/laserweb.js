@@ -44,6 +44,7 @@ import { fireMacroById } from '../actions/macros'
 import { GlobalStore } from '../index'
 
 import { VideoCapture } from '../lib/video-capture'
+import { fetchRelease } from '../lib/releases'
 
 import { DrawCommands } from '../draw-commands'
 
@@ -54,6 +55,8 @@ import 'vex-js/dist/css/vex.css';
 import 'vex-js/dist/css/vex-theme-default.css';
 
 import { version } from '../reducers/settings'
+
+import { setSettingsAttrs } from '../actions/settings'
 
 /**
  * LaserWeb main component (layout).
@@ -125,6 +128,15 @@ class LaserWeb extends React.Component {
             this.setupKeybindings();
             this.setupVideoCapture();
         }
+        fetchRelease().then(function(data){
+            if (this.props.settings.__latestRelease) {
+                if (Math.abs(new Date(data.created_at).getTime() - new Date(this.props.settings.__latestRelease).getTime()))
+                {
+                    alert(`New release (<a href="${data.html_url}" target="__blank">${data.tag_name}</a>) available`);
+                }
+            }
+            this.props.dispatch(setSettingsAttrs({__latestRelease: data.created_at}))
+        }.bind(this))
     }
 
     setupKeybindings(){
@@ -196,6 +208,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
+        dispatch,
         handleUndo: evt => {
             evt.preventDefault();
             dispatch(keyboardUndoAction(evt))
