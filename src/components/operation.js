@@ -528,7 +528,8 @@ export const OPERATION_FIELDS = {
     burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: { name: 'verboseGcode', label: 'Verbose GCode', units: '', input: ToggleInput },                      // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-    dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+    dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+    singleDirection: { name: 'singleDirection', label: 'Single Direction', units: '', input: ToggleInput },                          // lw.raster-to-gcode: Only Finstead F&B if true
     overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
 
     latheToolBackSide: { name: 'latheToolBackSide', label: 'Tool Back Side', input: ToggleInput },
@@ -575,6 +576,7 @@ export const OPERATION_TYPES = {
         allowTabs: false, tabFields: false, fields: [
             'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            'singleDirection',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
@@ -583,6 +585,7 @@ export const OPERATION_TYPES = {
             'name', 'filterFillColor', 'filterStrokeColor',
             'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            'singleDirection',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },

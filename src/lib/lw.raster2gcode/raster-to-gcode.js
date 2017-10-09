@@ -30,6 +30,8 @@ class RasterToGcode extends CanvasGrid {
             diagonal : false,          // Go diagonally (increase the distance between points)
             overscan : 0,              // Add some extra white space (in millimeters) before and after each line
 
+            singleDirection: false,
+
             precision: { X: 2, Y: 2, S: 4 }, // Number of decimals for each commands
 
             nonBlocking: true, // Use setTimeout to avoid blocking the UI
@@ -684,7 +686,8 @@ class RasterToGcode extends CanvasGrid {
             }
 
             // Toggle line state
-            reversed = ! reversed
+            if (!this.singleDirection)
+                reversed = ! reversed
 
             // Concat line
             this.gcode.push.apply(this.gcode, gcode)
