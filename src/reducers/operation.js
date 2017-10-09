@@ -56,6 +56,7 @@ export const OPERATION_INITIALSTATE = {
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
+    singleDirection: false, // lw.raster-to-gcode: if active does only left to right instead forth and back
     latheToolBackSide: false,
     latheRapidToDiameter: 0,
     latheRapidToZ: 0,
