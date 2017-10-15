@@ -144,16 +144,26 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
 }
 
+/* 
+    formats ["a","b"] as [{label:"a",value:"a"... }]
+    formats { "a": "b", "c":"d"} as [{label:"a", value: "b"},{label:"c":value:"d"}]
+    keeps   [{label:"a", value:"b"}]
+*/
 function selectOptions(arr) {
-    let result = [];
-    Object.entries(arr).forEach((item, i, obj) => {
-        let [value, label] = item;
-        if (Array.isArray(obj) && !isNaN(value)) value = label;
-        result.push({ value, label })
-    })
-    return result;
+    let result=[];
+    if (!Array.isArray(arr) && typeof arr === 'object') {
+        result=Object.entries(arr).map(item=>{ return {value:item[0],label:item[1]}});
+    } else {
+        arr.forEach(item=>{
+            if (typeof item === 'object' && item.hasOwnProperty('label') && item.hasOwnProperty('value')) {
+                result.push(item)
+            } else {
+                result.push({ value:item, label:item })
+            }
+        })
+    }
+    return result; 
 }
-
 export class SelectField extends React.Component {
 
 

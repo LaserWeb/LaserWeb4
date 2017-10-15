@@ -29,6 +29,12 @@ var firmware, fVersion, fDate;
 var xpos, ypos, zpos, apos;
 var xOffset, yOffset, zOffset, aOffset;
 
+const formatPorts=(data)=>{
+    return data.map((item)=>{
+       return { value: item.comName, label:item.manufacturer? `${item.manufacturer} @ ${item.comName}`: item.comName };
+    })
+}
+
 class Com extends React.Component {
 
     constructor(props) {
@@ -128,14 +134,10 @@ class Com extends React.Component {
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
-                let ports = new Array();
-                for (var i = 0; i < data.length; i++) {
-                    ports.push(data[i].comName);
-                }
-                that.setState({comPorts: ports});
-                dispatch(setSettingsAttrs({comPorts: ports}));
+                that.setState({comPorts: data});
+                dispatch(setSettingsAttrs({comPorts: data}));
                 //console.log('ports: ' + ports);
-                CommandHistory.write('Serial ports detected: ' + JSON.stringify(ports));
+                CommandHistory.write('Serial ports detected: ' + JSON.stringify(data));
             } else {
                 CommandHistory.error('No serial ports found on server!');
             }
@@ -506,7 +508,7 @@ class Com extends React.Component {
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
-                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: this.state.comPorts, defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
+                                <SelectField {...{ object: settings, field: 'connectPort', setAttrs: setSettingsAttrs, data: formatPorts(this.state.comPorts), defaultValue: '', description: 'USB / Serial Port', selectProps: { clearable: false } }} />
                                 <SelectField {...{ object: settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
                             </div>
                         </Collapse>
