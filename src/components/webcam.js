@@ -229,7 +229,7 @@ export class VideoPort extends React.Component {
 
     render() {
 
-        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}} onDoubleClick={this.snapshot}/> : <video ref="display" style={{width:"100%",height:"auto", background:"white"}} onDoubleClick={this.snapshot}/>
+        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}} onDoubleClick={this.snapshot}/> : <video ref="display" style={{width:"100%",height:"auto", background:"white"}} autoPlay onDoubleClick={this.snapshot}/>
         const overlay=this.props.overlay;
 
         if (this.props.draggable) {
