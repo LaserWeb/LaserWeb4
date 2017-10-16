@@ -36,7 +36,7 @@ export class VideoDeviceField extends React.Component {
     render() {
         return <FormGroup>
             <ControlLabel>{this.props.description}</ControlLabel>
-            <Select options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.handleSelection(v)} clearable={false} />
+            <Select disabled={this.props.disabled} options={this.state.devices} value={this.props.object[this.props.field]} onChange={(v) => this.handleSelection(v)} clearable={false} />
         </FormGroup>
     }
 
@@ -119,57 +119,80 @@ export class VideoPort extends React.Component {
     {
         return nextProps.settings.toolVideoDevice !== this.props.settings.toolVideoDevice ||
                nextProps.settings.toolVideoResolution !== this.props.settings.toolVideoResolution ||
-               nextProps.enabled !== this.props.enabled
+               nextProps.enabled !== this.props.enabled ||
+               nextProps.settings.toolWebcamUrl !== this.props.settings.toolWebcamUrl
                
     }
 
     enableVideo() {
         const selfNode = ReactDOM.findDOMNode(this);
         selfNode.style.pointerEvents = (this.props.enabled) ? 'all' : 'none';
-
+        
         let enable = () => {
-            if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
-                requestAnimationFrame(enable);
-
-            if (this.props.enabled) {
-                const stream = window.videoCapture.getStream();
-                const { width, height } = getVideoResolution(this.props.settings.toolVideoResolution)
-                if (this.props.useCanvas){
-                    const display=ReactDOM.findDOMNode(this.refs['display'])
-                    const myvideo=document.createElement('video')
-                          myvideo.autoplay=true;
-                          myvideo.width=width
-                          myvideo.height=height;
-                          display.width=width;
-                          display.height=height;
-
-                    if (myvideo.srcObject !== stream)
-                        myvideo.srcObject = stream
-
-                    const draw=function(){
-                        if (this.__mounted && display && this.props.enabled) {
-                            let context = display.getContext('2d');
-                                context.drawImage(myvideo, 0, 0);
-
-                            if (this.props.canvasProcess)
-                                this.props.canvasProcess(display, this.props.settings);
-                            
-                            requestAnimationFrame(draw)
+            if (this.props.settings.toolWebcamUrl) {
+                if (this.props.enabled){
+                    const imageFetch=()=>{
+                        clearTimeout(this.__timeout)
+                        if (this.__mounted && this.props.settings.toolWebcamUrl){
+                            const img=ReactDOM.findDOMNode(this.refs['display'])
+                                 
+                            let src=this.props.settings.toolWebcamUrl;
+                                src+=(src.indexOf('?')>=0)? '&':'?';
+                                src+='time='+(new Date().getTime()/1000)
+                                img.src= src;
+                                selfNode.style.display = 'block'
+                            this.__timeout=setTimeout(imageFetch,5000)
                         }
-                    }.bind(this);
-                    if (this.__mounted)
-                        draw();
+                    } 
+                    imageFetch();
                 } else {
-                    const myvideo=ReactDOM.findDOMNode(this.refs['display'])
-                          myvideo.srcObject=stream;
-                          myvideo.autoPlay=true;
-                          myvideo.width=width
-                          myvideo.height=height;
+                    selfNode.style.display = 'none'
                 }
-
-                selfNode.style.display = 'block'
             } else {
-                selfNode.style.display = 'none'
+
+                if (!(window.videoCapture && window.videoCapture.isReady) && this.props.enabled)
+                    requestAnimationFrame(enable);
+
+                if (this.props.enabled) {
+                    const stream = window.videoCapture.getStream();
+                    const { width, height } = getVideoResolution(this.props.settings.toolVideoResolution)
+                    if (this.props.useCanvas){
+                        const display=ReactDOM.findDOMNode(this.refs['display'])
+                        const myvideo=document.createElement('video')
+                            myvideo.autoplay=true;
+                            myvideo.width=width
+                            myvideo.height=height;
+                            display.width=width;
+                            display.height=height;
+
+                        if (myvideo.srcObject !== stream)
+                            myvideo.srcObject = stream
+
+                        const draw=function(){
+                            if (this.__mounted && display && this.props.enabled) {
+                                let context = display.getContext('2d');
+                                    context.drawImage(myvideo, 0, 0);
+
+                                if (this.props.canvasProcess)
+                                    this.props.canvasProcess(display, this.props.settings);
+                                
+                                requestAnimationFrame(draw)
+                            }
+                        }.bind(this);
+                        if (this.__mounted)
+                            draw();
+                    } else {
+                        const myvideo=ReactDOM.findDOMNode(this.refs['display'])
+                            myvideo.srcObject=stream;
+                            myvideo.autoPlay=true;
+                            myvideo.width=width
+                            myvideo.height=height;
+                    }
+
+                    selfNode.style.display = 'block'
+                } else {
+                    selfNode.style.display = 'none'
+                }
             }
 
         }
@@ -181,8 +204,14 @@ export class VideoPort extends React.Component {
     }
     
     render() {
-
-        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}}/> : <video ref="display" style={{width:"100%",height:"auto"}} autoPlay/>
+        let element;
+        if (this.props.useCanvas) {
+            element=<canvas ref="display" style={{width:"100%", height:"auto"}}/>
+        } else if (!this.props.settings.toolWebcamUrl.length) {
+            element = <video ref="display" style={{width:"100%",height:"auto"}} autoPlay/>
+        } else {
+            element = <img ref="display" style={{width:"100%",height:"auto"}} draggable="false"/>
+        }
        
         if (this.props.draggable) {
             return <Rnd

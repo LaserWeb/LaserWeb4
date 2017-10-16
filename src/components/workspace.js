@@ -1384,7 +1384,7 @@ class Workspace extends React.Component {
     }
 }
 Workspace = connect(
-    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: (state.settings.toolVideoDevice !== null) }),
+    state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: ((state.settings.toolVideoDevice !== null) || (!!state.settings.toolWebcamUrl)) }),
     dispatch => ({
         dispatch,
         setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
