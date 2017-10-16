@@ -4,8 +4,6 @@ var path = require('path');
 var src_path = path.resolve('./src');
 var dist_path = path.resolve('./dist');
 
-var MergeJsonWebpackPlugin = require("merge-jsons-webpack-plugin")
-
 module.exports = {
     context: src_path,
     entry: [
@@ -36,22 +34,22 @@ module.exports = {
                 loader: 'file-loader'
             }, {
                 test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'url?limit=10000&mimetype=application/font-woff'
+                loader: 'url-loader?limit=10000&mimetype=application/font-woff'
             }, {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'url?limit=10000&mimetype=application/octet-stream'
+                loader: 'url-loader?limit=10000&mimetype=application/octet-stream'
             }, {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'file'
+                loader: 'file-loader'
             }, {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'url?limit=10000&mimetype=image/svg+xml'
+                loader: 'url-loader?limit=10000&mimetype=image/svg+xml'
             }, {
                 test: /\.json$/,
-                loader: 'json'
+                loader: 'json-loader'
             }, {
                 test: /\.swf$/,
-                loader: "file?name=[path][name].[ext]"
+                loader: "file-loader?name=[path][name].[ext]"
             }, {
                 test: require.resolve('snapsvg'),
                 loader: 'imports-loader?this=>window,fix=>module.exports=0'
@@ -59,22 +57,8 @@ module.exports = {
         ]
     },
     plugins: [
-        new MergeJsonWebpackPlugin({
-            "output": {
-                "groupBy": [
-                    {
-                        "pattern": "./src/data/lw.machines/machines/*.json",
-                        "fileName": "./src/data/machine-profiles.json"
-                    }
-                ]
-            }
-        }),
-        new webpack.WatchIgnorePlugin([
-            path.resolve('./src/data/machine-profiles.json')
-        ]),
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
-
     ],
     devServer: {
         contentBase: dist_path,

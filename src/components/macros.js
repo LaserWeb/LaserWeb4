@@ -12,7 +12,7 @@ import { Button, FormControl, ButtonGroup, ButtonToolbar } from 'react-bootstrap
 
 import Validator from 'validatorjs';
 import { MACRO_VALIDATION_RULES } from '../reducers/macros'
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 
 export class Macros extends React.Component {
 
@@ -46,7 +46,7 @@ export class Macros extends React.Component {
         let errors = this.getErrors(macro);
 
         if (!errors && this.state.selected.length < 2) {
-            let id = (this.state.selected.length) ? this.state.selected[0] : uuid.v4();
+            let id = (this.state.selected.length) ? this.state.selected[0] : uuidv4();
             this.props.handleSet({ [id]: macro })
         } else {
             console.error(JSON.stringify(errors))

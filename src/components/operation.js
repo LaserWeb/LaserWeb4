@@ -16,7 +16,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import uuid from 'node-uuid';
+import uuidv4 from 'uuid/v4';
 
 import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField, operationLatheTurnAdd, operationLatheTurnRemove, operationLatheTurnSetAttrs } from '../actions/operation';
 import { selectDocument } from '../actions/document'
@@ -465,7 +465,7 @@ const checkLatheTurn = {
     },
 };
 
-const FieldContextMenu = (id = uuid.v4()) => {
+const FieldContextMenu = (id = uuidv4()) => {
     return ({ children, dispatch, op, field, settings }) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>

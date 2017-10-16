@@ -10,6 +10,8 @@ import Select from 'react-select'
 import { Tooltip, Overlay, OverlayTrigger, Popover, FormControl, InputGroup, ControlLabel, FormGroup, Checkbox, Button, Label } from 'react-bootstrap';
 import Icon from './font-awesome';
 
+import convert from 'color-convert'
+
 // <input> for text and number fields
 export class Input extends React.Component {
     componentWillMount() {
@@ -357,7 +359,120 @@ SelectField = connect()(SelectField);
 InputRangeField = connect()(InputRangeField);
 
 
-export function Info(content,title='Help',alignment='right') {
+export function Info(content,title='Help',alignment='right', trigger="focus") {
     let pop=<Popover id={"popover-positioned-"+alignment} title={title}>{content}</Popover>
-    return <OverlayTrigger trigger="focus" placement="right" overlay={pop}><Button bsSize="xsmall" bsStyle="link" style={{color:"blue", cursor:'pointer'}}><Icon name="question-circle"/></Button></OverlayTrigger>
+    return <OverlayTrigger trigger={trigger} placement="right" overlay={pop}><Button bsSize="xsmall" bsStyle="link" style={{color:"blue", cursor:'pointer'}}><Icon name="question-circle"/></Button></OverlayTrigger>
+}
+
+export class ColorPicker extends React.Component{
+    constructor(props){
+        super(props)
+        this.state={color:"#000000"}
+        this.handleClick=this.handleClick.bind(this)
+    }
+    handleClick(modifiers) {
+        if (this.props.onClick) {
+            if (modifiers.shiftKey) 
+                return this.props.onClick(null)
+
+            let value;
+            switch(this.props.to){
+                default:{
+                    value=[...convert.hex.rgb(this.state.color),1]
+                }
+            }
+            this.props.onClick(value)
+        }
+    }
+    render(){
+        return <div className={"btn-colorPicker "+(this.props.disabled?"disabled":"")}>
+            <ModButton bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
+                <Icon name={this.props.icon} />
+                <Icon name={this.props.icon} data-event="shiftKey" data-eventClassName='btn-danger' />
+            </ModButton>
+            <input disabled={this.props.disabled} type="color" value={this.state.color} onChange={e=>this.setState({color: e.target.value})}/>
+        </div>
+    }
+}
+
+export class ModButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { }
+        this.handleClick.bind(this)
+        this.onModKey.bind(this)
+        this.offModKey.bind(this)
+        this.state = {}
+        this.__mounted=false;
+    }
+
+    onModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+        
+    }
+
+    offModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+        
+    }
+
+    componentDidMount() {
+        this.__mounted=true;
+        document.addEventListener('keydown', this.onModKey.bind(this))
+        document.addEventListener('keyup', this.offModKey.bind(this))
+    }
+
+    componentWillUnmount() {
+        this.__mounted=false;
+        document.removeEventListener('keydown', this.onModKey.bind(this))
+        document.removeEventListener('keyup', this.offModKey.bind(this))
+    }
+
+    handleClick(e) {
+       if (this.props.onClick)
+            this.props.onClick(this.state)
+    }
+
+    render() {
+        let events=Object.entries(this.state).filter(e=>e[1]).map(e=>e[0]);
+        let child= this.props.children.filter(c=>(!c.props['data-event'] || events.includes(c.props['data-event']))).slice().pop();
+        let className = this.props.className;
+            if (child.props['data-eventClassName']) className += ' '+child.props['data-eventClassName']
+        
+        return (
+            <Button disabled={this.props.disabled} bsStyle={this.props.bsStyle} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{child}</Button>
+        )
+    }
+}
+
+export class SearchButton extends React.Component {
+
+    constructor(props)
+    {
+        super(props);
+        this.state={search: this.props.search}
+    }
+
+    componentWillReceiveProps(nextProps)
+    {
+        this.setState({search: nextProps.search})
+    }
+
+    render(){
+
+        let pop=<Popover id={"SearchButton_popover"} title={this.props.title || "Search"}><FormGroup>
+            <InputGroup>
+            <FormControl type="text" value={this.state.search||""} onChange={e=>{this.setState({search:e.target.value})}} />
+            <InputGroup.Button>
+                <Button bsStyle="primary" onClick={e=>{this.props.onSearch(this.state.search)}}><Icon name="search"/></Button>
+                <Button bsStyle="danger" onClick={e=>{this.props.onSearch(null)}}><Icon name="remove"/></Button>
+            </InputGroup.Button>
+            </InputGroup>
+        </FormGroup></Popover>
+
+        return <OverlayTrigger trigger="click" placement={this.props.placement || "top"} overlay={pop}><Button bsStyle={this.props.bsStyle} bsSize={this.props.bsSize}>{this.props.children}</Button></OverlayTrigger>
+        
+    }
 }

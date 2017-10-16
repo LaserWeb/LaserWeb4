@@ -6,7 +6,7 @@ This repository is a "development environment" - and no regular user would have 
 Releases are made available (almost) daily on https://github.com/LaserWeb/LaserWeb4-Binaries/
 
 ## Documentation
-For more documentation, go to [CNCpro.co](http://cncpro.co)
+For more documentation, go to the [Wiki](https://github.com/LaserWeb/LaserWeb4/wiki)
 
 ## Community
 Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.

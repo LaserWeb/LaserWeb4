@@ -38,7 +38,7 @@ import Icon from './font-awesome'
 import { alert, prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
-import { FileField } from './forms'
+import { FileField, Info, ColorPicker, SearchButton } from './forms'
 
 import { promisedImage, imageTagPromise } from './image-filters';
 
@@ -72,6 +72,12 @@ CAMValidator = connect((state) => { return { documents: state.documents.length }
 let __interval;
 
 class Cam extends React.Component {
+
+    constructor(props){
+        super(props);
+        this.state={filter:null}
+    }
+
     componentWillMount() {
         let that = this
         window.generateGcode = e => {
@@ -116,15 +122,19 @@ class Cam extends React.Component {
             nextProps.bounds !== this.props.bounds ||
             nextProps.gcode !== this.props.gcode ||    // Needed for saveGcode() to work
             nextProps.gcoding.percent !== this.props.gcoding.percent ||
-            nextProps.gcoding.enable !== this.props.gcoding.enable
+            nextProps.gcoding.enable !== this.props.gcoding.enable ||
+            nextState.filter !== this.state.filter
         );
     }
+
+    
 
     render() {
         let { settings, documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
-
+        let someSelected=documents.some((i)=>(i.selected));
+        
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div className="panel panel-danger" style={{ marginBottom: 0 }}>
@@ -152,27 +162,38 @@ class Cam extends React.Component {
                             <tbody>
                                 <tr>
                                     <td>
-                                        <label>Documents</label>
+                                        <label>Documents {Info(<small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>)}</label>
                                     </td>
-                                    <td>
-                                        <FileField style={{ float: 'right', position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
+                                    <td style={{display:"flex", justifyContent: "flex-end" }}>
+                                        
+                                        <FileField style={{   position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} settings={settings} documents={documents} operations={operations} /> : undefined}
-                                        </FileField>
+                                        </FileField>&nbsp;
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td colSpan='2'>
-                                        <small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>
-                                    </td>
-                                </tr>
+                               
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <Splitter style={{ flexShrink: 0 }} split="horizontal" initialSize={100} resizerStyle={{ marginTop: 2, marginBottom: 2 }} splitterId="cam-documents">
-                    <div style={{ overflowY: 'auto' }}>
-                        <Documents documents={documents} toggleExpanded={toggleDocumentExpanded} />
+                    <div style={{height:"100%", display:"flex", flexDirection:"column"}} >
+                        <div style={{ overflowY: 'auto', flexGrow:1 }}><Documents documents={documents} filter={this.state.filter} toggleExpanded={toggleDocumentExpanded} /></div>
+                        {documents.length ? <ButtonToolbar bsSize="xsmall" bsStyle="default">
+                            
+                            <ButtonGroup>
+                                <Button  bsStyle="info" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(true))}} title="Select all"><Icon name="cubes"/></Button>
+                                <Button  bsStyle="default" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(false))}} title="Select none"><Icon name="cubes"/></Button>
+                            </ButtonGroup>
+                            <Button  bsStyle="warning" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(cloneDocumentSelected())}} title="Clone selected"><Icon name="copy"/></Button>
+                            <Button  bsStyle="danger" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(removeDocumentSelected())}} title="Remove selected"><Icon name="trash"/></Button>
+                            <ButtonGroup>
+                                <ColorPicker to="rgba" icon="pencil" bsSize="xsmall" disabled={!someSelected} onClick={v=>this.props.dispatch(colorDocumentSelected({strokeColor:v||[0,0,0,1]}))}/>
+                                <ColorPicker to="rgba" icon="paint-brush" bsSize="xsmall" disabled={!someSelected} onClick={v=>this.props.dispatch(colorDocumentSelected({fillColor:v||[0,0,0,0]}))}/>
+                            </ButtonGroup>
+                            <SearchButton bsStyle="primary" bsSize="xsmall" search={this.state.filter} onSearch={filter=>{this.setState({filter})}} placement="bottom"><Icon name="search"/></SearchButton>
+                            </ButtonToolbar>:undefined}
                     </div>
                 </Splitter>
                 <Alert bsStyle="success" style={{ padding: "4px", marginBottom: 7 }}>

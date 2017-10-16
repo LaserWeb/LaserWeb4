@@ -188,12 +188,15 @@ const getSelectedParents=(documents)=>{
     return [...tree]
 }
 
-export function Documents({documents, toggleExpanded}) {
+export function Documents({documents, toggleExpanded, filter}) {
     let rowNumber = { value: 0 };
     return (
         <div style={{ touchAction: 'none' }}>
             {documents
-                .filter(document => document.isRoot)
+                .filter(document => !!filter || document.isRoot)
+                .filter(document => {
+                    return (document.name.indexOf(filter)>=0) || !filter
+                })
                 .map(document => (
                     <Subtree
                         key={document.id} objects={documents} object={document}
