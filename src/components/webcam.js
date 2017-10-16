@@ -182,7 +182,7 @@ export class VideoPort extends React.Component {
     
     render() {
 
-        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}}/> : <video ref="display" style={{width:"100%",height:"auto"}}/>
+        const element= (this.props.useCanvas) ? <canvas ref="display" style={{width:"100%", height:"auto"}}/> : <video ref="display" style={{width:"100%",height:"auto"}} autoPlay/>
        
         if (this.props.draggable) {
             return <Rnd
