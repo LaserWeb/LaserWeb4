@@ -124,6 +124,22 @@ class Jog extends React.Component {
                     }
                     
                 }.bind(this));
+                this.gamepad.on('hold','stick_axis_right',function(e){
+                    let now=new Date();
+                    if ((now.getTime()-time.getTime())>200){
+                        time = now;
+                        let [a,z] = e.value;
+                        let jogF = this.props.settings.jogFeedZ * ((this.props.settings.toolFeedUnits === 'mm/min') ? 1 : 60);
+                        let jogA = (Math.abs(a)>0.05) ?  ((a>0) ? +1:-1) : 0;
+                        let jogZ = (Math.abs(z)>0.05) ?  ((z>0) ? -1:+1) : 0;
+                        if (jogA){
+                            //not implemented
+                        }
+                        if (jogZ){
+                            jogTo(undefined, undefined, jogZ, true,  Math.floor(a)*jogF);
+                        }
+                    }
+                }.bind(this));
             } else {
                 this.gamepad.resume(); 
             }
