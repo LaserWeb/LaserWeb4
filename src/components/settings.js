@@ -379,8 +379,13 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(setSettingsAttrs(attrs, 'settings'))
         },
         handleDownload: (file, settings, action) => {
-            FileStorage.save(file, stringify(settings), "application/json",".json")
-            dispatch(action(settings));
+            try{
+                FileStorage.save(file, stringify(settings), "application/json",".json")
+                dispatch(action(settings));
+            } catch(e) {
+                FileStorage.save(file, JSON.stringify(settings), "application/json",".json")
+                dispatch(action(settings));
+            }
         },
         handleUpload: (file, action, onlyKeys) => {
             FileStorage.load(file, (file, result) => {
@@ -390,7 +395,7 @@ const mapDispatchToProps = (dispatch) => {
 
         handleStore: (name, settings, action) => {
             try {
-                LocalStorage.save(name, stringify(settings), "application/json")
+                LocalStorage.save(name, JSON.stringify(settings), "application/json")
             } catch (e) {
                 console.error(e);
                 alert(e)
