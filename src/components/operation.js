@@ -509,6 +509,7 @@ export const OPERATION_FIELDS = {
 
     plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY'), contextMenu: FieldContextMenu() },
+    rapidRate: { name: 'rapidRate', label: 'Rapid Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY') },
     toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },
@@ -573,7 +574,7 @@ export const OPERATION_TYPES = {
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Raster': {
         allowTabs: false, tabFields: false, fields: [
-            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'rapidRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
