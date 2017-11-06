@@ -74,11 +74,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 });
 
             }
-            if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F') {
-                raster += line + '\r\n';
-            } else {
-                raster += '; stripped: ' + line + '\r\n';
-            }
+            // Why?
+            // if (line[0] !== 'S' && line.substring(0, 4) !== 'G0 F') {
+            //     raster += line + '\r\n';
+            // } else {
+            //     raster += '; stripped: ' + line + '\r\n';
+            // }
+
+            raster += line + '\r\n';
         }
 
         raster += '\r\n\r\n';
@@ -180,7 +183,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     toolDiameter: op.laserDiameter,
                     beamRange: { min: 0, max: settings.gcodeSMaxValue },
                     beamPower: op.laserPowerRange, //Go go power rangeR!
-                    rapidRate: false,
+                    rapidRate: op.rapidRate,
                     feedRate,
                     offsets: { 
                         X: (docBounds.x1 + docBounds.x2 - w / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[4],
