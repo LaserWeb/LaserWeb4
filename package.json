@@ -53,6 +53,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-react": "^6.24.1",
     "bootstrap": "^3.3.7",
+    "chunk": "0.0.2",
     "clipper-lib": "^6.2.1",
     "color-convert": "^1.9.0",
     "css-loader": "^0.28.5",

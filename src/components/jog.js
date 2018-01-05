@@ -25,6 +25,9 @@ import { bindKeys, unbindKeys } from './keyboard'
 import Gamepad from 'gamepad.js';
 import { OmrJog } from './omr';
 
+import { parseGcode } from '../lib/tmpParseGcode';
+import chunk from 'chunk'
+
 var ovStep = 1;
 var ovLoop;
 var playing = false;
@@ -314,39 +317,26 @@ class Jog extends React.Component {
     }
 
     checkSize() {
-        console.log('checkSize');
+
         let units = this.props.settings.toolFeedUnits;
         let feedrate, mult = 1;
         if (units == 'mm/s') mult = 60;
         feedrate = jQuery('#jogfeedxy').val() * mult;
 
-        let gcode = this.props.gcode;
         
-        //let linemoves = gcode.split(/g[13]/i);
-        
-        let xArray = gcode.split(/x/i);
-        //alert(xArray.toString());
-        let xMin = 0;
-        let xMax = 0;
-        for (let i = 0; i < xArray.length; i++) {
-            if (parseFloat(xArray[i]) < xMin) {
-                xMin = parseFloat(xArray[i]);
-            }
-            if (parseFloat(xArray[i]) > xMax) {
-                xMax = parseFloat(xArray[i]);
-            }
-        }
-        let yArray = gcode.split(/y/i);
-        let yMin = 0;
-        let yMax = 0;
-        for (let i = 0; i < yArray.length; i++) {
-            if (parseFloat(yArray[i]) < yMin) {
-                yMin = parseFloat(yArray[i]);
-            }
-            if (parseFloat(yArray[i]) > yMax) {
-                yMax = parseFloat(yArray[i]);
-            }
-        }
+        let gcode = this.props.gcode
+
+        let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
+        let parsed=chunk(parseGcode(gcode),9);
+            parsed.forEach(([g,x,y])=>{
+                if (g && (x || y)){
+                    yMin=Math.max(yMin, y)
+                    xMin=Math.max(xMin, x)
+                    yMax=Math.min(yMax, y)
+                    xMax=Math.min(xMax, x)
+                }
+            }) 
+
         let power = this.props.settings.gcodeCheckSizePower / 100 * this.props.settings.gcodeSMaxValue;
         let moves = `
             G90\n
@@ -357,7 +347,10 @@ class Jog extends React.Component {
             G1 X` + xMin + ` Y` + yMax + `\n
             G1 X` + xMin + ` Y` + yMin + `\n
             G90\n`;
-        runCommand(moves);
+
+        console.warn(moves)
+        runCommand(moves)
+        
     }
 
     laserTest() {

@@ -626,6 +626,7 @@ export function runCommand(gcode) {
                 //CommandHistory.write('Running Command', CommandHistory.INFO);
                 //console.log('runCommand', gcode);
                 socket.emit('runCommand', gcode);
+                return true;
             }
         } else {
             CommandHistory.error('Machine is not connected!')
@@ -633,6 +634,7 @@ export function runCommand(gcode) {
     } else {
         CommandHistory.error('Server is not connected!')
     }
+    return false;
 }
 
 export function runJob(job) {
