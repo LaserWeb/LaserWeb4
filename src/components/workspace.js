@@ -263,6 +263,12 @@ class FloatingControls extends React.Component {
         this.setMaxX = v => {
             this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, v - this.bounds.x2, 0]));
         }
+        this.setZeroX = dir => {
+            var x = -this.bounds.x1;
+            if (dir)
+                x -= this.bounds.x2 - this.bounds.x1;
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, x, 0]));
+        }
         this.setSizeX = v => {
             if (v > 0 && this.bounds.x2 - this.bounds.x1 > 0) {
                 let s = v / (this.bounds.x2 - this.bounds.x1);
@@ -281,6 +287,12 @@ class FloatingControls extends React.Component {
         this.setMaxY = v => {
             this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, v - this.bounds.y2]));
         }
+        this.setZeroY = dir => {
+            var y = -this.bounds.y1;
+            if (dir)
+                y -= this.bounds.y2 - this.bounds.y1;
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, 0, y]));
+        }
         this.setSizeY = v => {
             if (v > 0 && this.bounds.y2 - this.bounds.y1 > 0) {
                 let s = v / (this.bounds.y2 - this.bounds.y1);
@@ -289,6 +301,14 @@ class FloatingControls extends React.Component {
                 else
                     this.scale(1, s);
             }
+        }
+        this.setCenterXY = v => {
+            let x = -this.bounds.x1;
+            let y = -this.bounds.y1;
+            let cx = (this.bounds.x2 - this.bounds.x1) / 2;
+            let cy = (this.bounds.y2 - this.bounds.y1) / 2;
+            this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, x - cx, y - cy]));
+
         }
 
         this.toolOptimize = (doc, scale, anchor = 'C') => {
@@ -399,6 +419,25 @@ class FloatingControls extends React.Component {
                                 <td>Size</td>
                                 <td></td>
                                 <td>Rot</td>
+                                <td rowSpan={3} className="origin-controls">
+                                    <table>
+                                    <tr>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(false); } }>&#x2198;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(false) }>&#x2193;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(false); } }>&#x2199;</button></td>
+                                    </tr>
+                                    <tr>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(true) }>&#x2192;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setCenterXY() }>+</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(false) }>&#x2190;</button></td>
+                                    </tr>
+                                    <tr>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(true); } }>&#x2197;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(true) }>&#x2191;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(true); } }>&#x2196;</button></td>
+                                    </tr>
+                                    </table>
+                                </td>
                             </tr>
                             <tr>
                                 <td><span className="label label-danger">X</span></td>
