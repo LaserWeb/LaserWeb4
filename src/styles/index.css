@@ -92,6 +92,12 @@ body, html, .full-height {
     width: 54px;
 }
 
+.origin-controls button {
+    margin: 2px;
+    width: 2em;
+    height: 2em;
+}
+
 /* Dock */
 
 #sidebar .dock {
