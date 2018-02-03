@@ -422,19 +422,19 @@ class FloatingControls extends React.Component {
                                 <td rowSpan={3} className="origin-controls">
                                     <table>
                                     <tr>
-                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(false); } }>&#x2198;</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(false) }>&#x2193;</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(false); } }>&#x2199;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(false); } } title="Align northwest of origin">&#x2198;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(false) } title="Align north of origin">&#x2193;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(false); } } title="Align northeast of origin">&#x2199;</button></td>
                                     </tr>
                                     <tr>
-                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(true) }>&#x2192;</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => this.setCenterXY() }>+</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(false) }>&#x2190;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(true) } title="Align west of origin">&#x2192;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setCenterXY() } title="Center on origin">+</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroX(false) } title="Align east of origin">&#x2190;</button></td>
                                     </tr>
                                     <tr>
-                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(true); } }>&#x2197;</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(true) }>&#x2191;</button></td>
-                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(true); } }>&#x2196;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(true); } } title="Align southwest of origin">&#x2197;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => this.setZeroY(true) } title="Align south of origin">&#x2191;</button></td>
+                                    <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(true); } } title="Align southeast of origin">&#x2196;</button></td>
                                     </tr>
                                     </table>
                                 </td>
