@@ -75,6 +75,9 @@ class Jog extends React.Component {
             
             machineZEnabled: machineZEnabled,
             machineAEnabled: machineAEnabled,
+
+            gcodeBounds:null,
+            warnings:null,
         };
         this.bindings=[
             [['ctrl+x'],this.escapeX.bind(this)],
@@ -102,6 +105,8 @@ class Jog extends React.Component {
 
     componentDidMount()
     {
+        this.checkGcodeBounds(this.props.gcode);
+
         bindKeys(this.bindings);
 
         if (this.props.settings.toolUseGamepad) {
@@ -351,6 +356,40 @@ class Jog extends React.Component {
         console.warn(moves)
         runCommand(moves)
         
+    }
+
+    componentWillReceiveProps(props)
+    {
+        this.checkGcodeBounds(props.gcode);
+    }
+
+    getGcodeBounds(gcode) {
+            let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
+            let parsed=chunk(parseGcode(gcode),9);
+                parsed.forEach(([g,x,y])=>{
+                    if (g && (x || y)){
+                        yMin=Math.max(yMin, y)
+                        xMin=Math.max(xMin, x)
+                        yMax=Math.min(yMax, y)
+                        xMax=Math.min(xMax, x)
+                    }
+                }) 
+
+            let bounds={xMin: Math.min(xMin,xMax), xMax: Math.max(xMin,xMax), yMin:Math.min(yMin,yMax) , yMax:Math.max(yMin,yMax)}
+                
+            return bounds
+
+    }
+
+    checkGcodeBounds(gcode){
+        let bounds=this.getGcodeBounds(gcode)
+        let {settings} = this.props
+        if (bounds && (
+            (bounds.xMax >settings.machineWidth) || (bounds.xMin < 0) ||
+            (bounds.yMax > settings.machineHeight) || (bounds.yMin < 0))) {
+                CommandHistory.warn("Warning: Gcode out of machine bounds, can lead to running work halt")
+                this.setState({'warnings':"Warning: Gcode out of machine bounds, can lead to running work halt"});
+            }
     }
 
     laserTest() {
@@ -621,7 +660,7 @@ class Jog extends React.Component {
                                       </button>
                                   </div>
                                   <div className="btn-group">
-                                      <button type='button' id="playBtn" className="btn btn-ctl btn-default" onClick={(e) => { this.runJob(e) }}>
+                                      <button type='button' id="playBtn" className={(this.state.warnings)? "btn btn-ctl btn-warning":"btn btn-ctl btn-default"} onClick={(e) => { this.runJob(e) }} title={this.state.warnings}>
                                           <span className="fa-stack fa-1x">
                                               <i id="playicon" className="fa fa-play fa-stack-1x"></i>
                                               <strong className="fa-stack-1x icon-top-text">run</strong>
