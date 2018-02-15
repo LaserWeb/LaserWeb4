@@ -327,30 +327,17 @@ class Jog extends React.Component {
         let feedrate, mult = 1;
         if (units == 'mm/s') mult = 60;
         feedrate = jQuery('#jogfeedxy').val() * mult;
-
         
-        let gcode = this.props.gcode
-
-        let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
-        let parsed=chunk(parseGcode(gcode),9);
-            parsed.forEach(([g,x,y])=>{
-                if (g && (x || y)){
-                    yMin=Math.max(yMin, y)
-                    xMin=Math.max(xMin, x)
-                    yMax=Math.min(yMax, y)
-                    xMax=Math.min(xMax, x)
-                }
-            }) 
-
+        let bounds=this.getGcodeBounds(this.props.gcode)
         let power = this.props.settings.gcodeCheckSizePower / 100 * this.props.settings.gcodeSMaxValue;
         let moves = `
             G90\n
-            G0 X` + xMin + ` Y` + yMin + ` F` + feedrate + `\n
+            G0 X` + bounds.xMin + ` Y` + bounds.yMin + ` F` + feedrate + `\n
             G1 F` + feedrate + ` S` + power + `\n
-            G1 X` + xMax + ` Y` + yMin + `\n
-            G1 X` + xMax + ` Y` + yMax + `\n
-            G1 X` + xMin + ` Y` + yMax + `\n
-            G1 X` + xMin + ` Y` + yMin + `\n
+            G1 X` + bounds.xMax + ` Y` + bounds.yMin + `\n
+            G1 X` + bounds.xMax + ` Y` + bounds.yMax + `\n
+            G1 X` + bounds.xMin + ` Y` + bounds.yMax + `\n
+            G1 X` + bounds.xMin + ` Y` + bounds.yMin + `\n
             G90\n`;
 
         console.warn(moves)
