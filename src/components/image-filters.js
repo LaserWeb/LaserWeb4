@@ -370,6 +370,10 @@ class ImageEditor extends React.Component
         
     }
 
+    handleDownload(e){
+        if (this.state.svg) sendAsFile(this.currentDocument.name+".svg",this.state.svg,'image/svg+xml');
+    }
+
     processImage()
     {
         if (!this.props.show) return false;
@@ -400,10 +404,14 @@ class ImageEditor extends React.Component
         
         return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Image Editor"
-                footer={this.state.working? "Working...." : (<div >
+                footer={this.state.working? "Working...." : (<div>
                     <Button bsStyle="warning" onClick={e=>this.handleFilters(e)}><Icon name="warning"/> Modify source image</Button>
-                    <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button>
-                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button></div>)}
+                    <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button> 
+                    <Button bsStyle="info" onClick={e=>this.handleDownload(e)} disabled={!this.state.svg}><Icon name="download"/> Download</Button>    
+                    <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button>
+                    
+                </div>)}
+                    
             >
             <div className="trace-image">
                 <div className="showroom checker">
