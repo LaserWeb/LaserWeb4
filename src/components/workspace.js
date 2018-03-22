@@ -785,8 +785,8 @@ class WorkspaceContent extends React.Component {
         this.grid.draw(this.drawCommands, {
             perspective: this.camera.perspective, view: this.camera.view,
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
-            minor: this.props.settings.toolGridMinorSpacing || 0.1,
-            major: this.props.settings.toolGridMajorSpacing || 1,
+            minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
+            major: Math.max(this.props.settings.toolGridMajorSpacing,1),
         });
         if (this.props.settings.showMachine)
             this.machineBounds.draw(this.drawCommands, {
@@ -923,8 +923,8 @@ class WorkspaceContent extends React.Component {
         this.grid.draw(this.drawCommands, {
             perspective: this.camera.perspective, view: this.camera.view,
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
-            minor: this.props.settings.toolGridMinorSpacing,
-            major: this.props.settings.toolGridMajorSpacing,
+            minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
+            major: Math.max(this.props.settings.toolGridMajorSpacing,1),
         });
         if (this.props.settings.showMachine)
             this.machineBounds.draw(this.drawCommands, {
