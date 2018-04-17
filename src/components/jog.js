@@ -84,7 +84,25 @@ class Jog extends React.Component {
             [['alt+right',toolUseNumpad?'num6':undefined],this.jogRight.bind(this)],
             [['alt+left',toolUseNumpad?'num4':undefined],this.jogLeft.bind(this)],
             [['alt+up',toolUseNumpad?'num8':undefined],this.jogUp.bind(this)],
-            [['alt+down',toolUseNumpad?'num2':undefined],this.jogDown.bind(this)]
+            [['alt+down',toolUseNumpad?'num2':undefined],this.jogDown.bind(this)],
+
+            //change step size
+            [['ctrl+alt+1'],(function(){this.changeStepsize(0.1)}).bind(this)],
+            [['ctrl+alt+2'],(function(){this.changeStepsize(1)}).bind(this)],
+            [['ctrl+alt+3'],(function(){this.changeStepsize(10)}).bind(this)],
+            [['ctrl+alt+4'],(function(){this.changeStepsize(100)}).bind(this)],
+            //home all/XYZ
+            [['ctrl+alt+h'],this.homeAll.bind(this)],
+            [['ctrl+alt+x'],(function(){this.home('x')}).bind(this)],
+            [['ctrl+alt+y'],(function(){this.home('y')}).bind(this)],
+            [['ctrl+alt+z'],(function(){this.home('z')}).bind(this)],
+            [['ctrl+alt+c'],this.checkSize.bind(this)],
+            //set zero XYZ
+            [['ctrl+alt+shift+x'],(function(){this.setZero('x')}).bind(this)],
+            [['ctrl+alt+shift+y'],(function(){this.setZero('y')}).bind(this)],
+            [['ctrl+alt+shift+z'],(function(){this.setZero('z')}).bind(this)],
+            //run job
+            [['ctrl+alt+shift+r'],this.runJob.bind(this)],
         ]
         if (machineZEnabled){
             this.bindings=[
