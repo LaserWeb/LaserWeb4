@@ -116,7 +116,7 @@ function grayscale(data, i, algorithm, shades) {
 
     // Shades of gray
     if (shades !== undefined) {
-        gray = parseInt(gray / shades) * shades
+        gray = Math.round(gray / shades) * shades
     }
 
     // Force integer
