@@ -122,7 +122,8 @@ export function getLaserCutGcode(props) {
                     gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n\r\n';
                 }
 
-                gcode += gcodeToolOn;
+                gcode += gcodeToolOn.split("$INTENSITY").join(laserOnS);
+                
                 for (let i = 1; i < selectedPath.length; ++i) {
                     if (i == 1 && gcodeLaserIntensitySeparateLine)
                         gcode += laserOnS + '\n';
