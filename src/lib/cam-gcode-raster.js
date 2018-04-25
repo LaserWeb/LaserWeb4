@@ -61,12 +61,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
     // POSTPROCESS GCODE;
     const postProcessing = (gc) => {
+
         let g = '';
         let raster = '';
-        
+
         let firstMove = gc.find((line)=>{
             return line.match(/^G[0-1]\s+[XYZ]/gi);
         })
+
         for (let line of gc) {
             if (op.useA) {
                 line = line.replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{ 
@@ -98,7 +100,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (firstMove) {
                 g+= `\r\n; First Move\r\n`;
-                g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'');
+                g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'')+'\r\n';
             }
 
             if (settings.machineZEnabled) {
@@ -107,8 +109,14 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 g += 'G0 Z' + zHeight.toFixed(settings.decimal || 3) + '\r\n';
             }
 
-            if (settings.gcodeToolOn && settings.gcodeToolOn.length)
-                g += `${settings.gcodeToolOn} \r\n`;
+            if (settings.gcodeToolOn && settings.gcodeToolOn.length){
+                if(settings.gcodeToolOn.indexOf("$INTENSITY") > -1){
+                    g += `${settings.gcodeToolOn.split("$INTENSITY").join(settings.gcodeLaserIntensity+settings.gcodeSMaxValue.toFixed(4))}\r\n`;
+                }else{
+                    g += `${settings.gcodeToolOn} \r\n`;
+                }
+                //g += `${settings.gcodeToolOn} \r\n`;
+            }
 
             g += raster;
 
@@ -192,6 +200,10 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     verboseG: op.verboseGcode,
                     diagonal: op.diagonal,
                     overscan: op.overScan,
+                    gcodeGenerator : settings.gcodeGenerator,
+                    gcodeToolOn : settings.gcodeToolOn,
+                    gcodeToolOff : settings.gcodeToolOff,
+                    gcodeLaserIntensity: settings.gcodeLaserIntensity,
                     nonBlocking: false,
                     milling: false,
                     filters: {

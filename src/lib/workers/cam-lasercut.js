@@ -21,6 +21,11 @@ onmessage = (event) => {
         self.close();
     };
 
-    getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
+    try{
+        getLaserCutGcodeFromOp.apply(this, [settings, opIndex, op, geometry, openGeometry, tabGeometry, showAlert, done, progress])
+    }catch(e){
+      console.error(e);
+      postMessage(JSON.stringify({ event: "onError", errors:[{ message:e, level:10 }]}));
+    }
 
 }
