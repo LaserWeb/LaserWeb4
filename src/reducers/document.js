@@ -98,7 +98,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
         ]
     }
 
-    function addChildren(parent, tag, parentMat) {
+    function addChildren(parent, tag, parentMat, precision = 0.1) {
         for (let child of tag.children) {
             let localMat = mat2dFromSnap(Snap(child.element).transform().localMatrix);
             let combinedMat = mat2d.mul([], parentMat, localMat);
@@ -120,7 +120,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 path.push(tx, ty);
             };
             if (child.name === 'path') {
-                let paths = pathStrToRawPaths(child.attrs.d, 25.4, 1, .1 * pxPerInch / 25.4, error => console.log(error));
+                let paths = pathStrToRawPaths(child.attrs.d, 25.4, 1, Math.max(precision,0.1) * pxPerInch / 25.4, error => console.log(error));
                 if (paths)
                     for (let path of paths) {
                         let p = [];
@@ -189,7 +189,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
         selected: false,
     };
     state.push(doc);
-    addChildren(doc, tags, [1, 0, 0, 1, 0, 0]);
+    addChildren(doc, tags, [1, 0, 0, 1, 0, 0], settings.gcodeCurvePrecision);
     return state;
 }
 
