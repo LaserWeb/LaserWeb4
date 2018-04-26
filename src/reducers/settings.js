@@ -121,6 +121,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeEnd: "M5          ; Switch tool offEnd\r\n",
     gcodeHoming: "",
+    gcodeGenerator: "default",
     gcodeToolOn: "",
     gcodeToolOff: "",
     gcodeLaserIntensity: 'S',

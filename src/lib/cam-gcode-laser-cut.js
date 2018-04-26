@@ -17,6 +17,7 @@
 
 import { dist, cut, fillPath, insideOutside, pocket, reduceCamPaths, separateTabs, vCarve } from './cam';
 import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh';
+import { getGenerator } from "./action2gcode/gcode-generator";
 
 // Convert laser cut paths to gcode.
 //      paths:          Array of CamPath
@@ -32,7 +33,7 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      gcodeToolOff:  Laser off (may be empty)
 //      gcodeSMaxValue: Max S value
 export function getLaserCutGcode(props) {
-    let { paths, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
+    let { paths, generator, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
         useA, aAxisDiameter,
         tabGeometry, gcodeToolOn, gcodeToolOff,
         gcodeLaserIntensity, gcodeLaserIntensitySeparateLine, gcodeSMinValue, gcodeSMaxValue,
@@ -59,7 +60,8 @@ export function getLaserCutGcode(props) {
                 lastX = roundedX;
                 lastY = adjustedY;
                 lastA = roundedA;
-                return 'G0 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal);
+              //return 'G0 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal);
+              return {x: x.toFixed(decimal), a: a.toFixed(decimal)};
             } else {
                 let dx = roundedX - lastX, dy = adjustedY - lastY, da = roundedA - lastA;
                 let travelTime = Math.sqrt(dx * dx + dy * dy) / cutFeed;
@@ -69,17 +71,20 @@ export function getLaserCutGcode(props) {
                 else if (da)
                     f = Math.abs(da) / travelTime;
                 else
-                    return '';
+                    return null;
+                    //return '';
                 lastX = roundedX;
                 lastY = adjustedY;
                 lastA = roundedA;
-                return 'G1 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal) + ' F' + f.toFixed(decimal);
+                return {x: x.toFixed(decimal), a: a.toFixed(decimal), f: f.toFixed(decimal)};
+                //return 'G1 X' + x.toFixed(decimal) + ' A' + a.toFixed(decimal) + ' F' + f.toFixed(decimal);
             }
         } else {
-            if (rapid)
+            return {x: x.toFixed(decimal), y: y.toFixed(decimal)};
+            /*if (rapid)
                 return 'G0 X' + x.toFixed(decimal) + ' Y' + y.toFixed(decimal);
             else
-                return 'G1 X' + x.toFixed(decimal) + ' Y' + y.toFixed(decimal);
+                return 'G1 X' + x.toFixed(decimal) + ' Y' + y.toFixed(decimal);*/
         }
     }
 
@@ -113,7 +118,7 @@ export function getLaserCutGcode(props) {
                     gcode += '; Skip tab\r\n';
                     continue;
                 }
-                gcode += convertPoint(selectedPath[0], true) + '\r\n';
+                gcode += generator.moveRapid(convertPoint(selectedPath[0], true)) + '\r\n';
 
                 if (useZ && !usedZposition) {
                     usedZposition = true;
@@ -122,20 +127,27 @@ export function getLaserCutGcode(props) {
                     gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n\r\n';
                 }
 
-                gcode += gcodeToolOn;
+                gcode += generator.toolOn(gcodeToolOn, {i:laserOnS});
+
                 for (let i = 1; i < selectedPath.length; ++i) {
                     if (i == 1 && gcodeLaserIntensitySeparateLine)
                         gcode += laserOnS + '\n';
-                    gcode += convertPoint(selectedPath[i], false);
+                    let action = convertPoint(selectedPath[i], false);
+                    //gcode += convertPoint(selectedPath[i], false);
                     if (i == 1 && !gcodeLaserIntensitySeparateLine)
-                        gcode += ' ' + laserOnS;
+                        action.i = laserOnS;
+                        //gcode += ' ' + laserOnS;
                     if (i == 1 && !useA)
-                        gcode += ' F' + cutFeed;
+                        action.f = cutFeed;
+                        //gcode += ' F' + cutFeed;
+                    gcode += generator.moveTool(action);
                     gcode += '\r\n';
                 }
-                gcode += gcodeToolOff;
+
+                gcode += generator.toolOff(gcodeToolOff, {i:laserOnS});
             }
         }
+
 
         if (useBlower) {
             if (useBlower.blowerOff) {
@@ -229,7 +241,10 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
 
     if (op.hookOperationStart.length) gcode += op.hookOperationStart;
 
+    let generator = getGenerator(settings.gcodeGenerator, settings);
+
     gcode += getLaserCutGcode({
+        generator: generator,
         paths: camPaths,
         scale: 1 / mmToClipperScale,
         offsetX: 0,

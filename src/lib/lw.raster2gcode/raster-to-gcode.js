@@ -1,4 +1,5 @@
 import CanvasGrid from './canvas-grid'
+import { getGenerator } from "../action2gcode/gcode-generator"
 
 // RasterToGcode class
 class RasterToGcode extends CanvasGrid {
@@ -31,6 +32,8 @@ class RasterToGcode extends CanvasGrid {
             overscan : 0,              // Add some extra white space (in millimeters) before and after each line
 
             precision: { X: 2, Y: 2, S: 4 }, // Number of decimals for each commands
+
+            gcodeGenerator: "default",
 
             nonBlocking: true, // Use setTimeout to avoid blocking the UI
 
@@ -98,10 +101,6 @@ class RasterToGcode extends CanvasGrid {
         // Output size in millimeters
         this.outputSize = { width : 0, height: 0 }
 
-        // G0 command
-        this.G1 = ['G', 1]
-        this.G0 = ['G', this.burnWhite ? 1 : 0]
-
         // Calculate beam offset
         this.beamOffset = this.toolDiameter * 1000 / 2000
 
@@ -164,6 +163,12 @@ class RasterToGcode extends CanvasGrid {
 
         // Defaults settings
         settings = settings || {}
+
+        this.generator = getGenerator(this.gcodeGenerator, this);
+
+        // G0 command
+        this.G1 = this.generator.moveTool;
+        this.G0 = this.burnWhite ? this.generator.moveTool : this.generator.moveRapid;
 
         // Register user callbacks
         this._registerUserCallbacks(settings)
@@ -252,29 +257,34 @@ class RasterToGcode extends CanvasGrid {
 
     // Compute and return a command, return null if not changed
     _command(name, value) {
+        //console.log("_command", value);
         // If the value argument is an object
         if (typeof value === 'object') {
             // Computed commands line
             let commands = Array.prototype.slice.call(arguments)
-            let command, line = []
+            let command, line = [], params = {};
 
             // for each command
-            for (var i = 0, il = commands.length; i < il; i++) {
+            for (var i = 1, il = commands.length; i < il; i++) {
                 command = this._command.apply(this, commands[i])
                 command && line.push(command)
+                command && (params[command[0].toLowerCase()] = command[1]);
             }
 
             // Return the line if not empty
-            return line.length ? line.join(' ') : null
+            let result = line.length ? name.call(this.generator, params, name == this.lastCommands["function"]).split("\r\n") : null;
+            this.lastCommands["function"] = name;
+            return result;
         }
 
         // Format the value
+        //console.log("value", value);
         value = value.toFixed(this.precision[name] || 0)
 
         // If the value was changed or if verbose mode on
         if (this.verboseG || value !== this.lastCommands[name]) {
-            this.lastCommands[name] = value
-            return name + value
+            this.lastCommands[name] = value;
+            return [name, value];
         }
 
         // No change
@@ -312,7 +322,7 @@ class RasterToGcode extends CanvasGrid {
         }
 
         // Commands
-        point.G = point.s ? ['G', 1] : this.G0
+        point.G = point.s ? this.G1 : this.G0
         point.X = (point.x * this.toolDiameter) + this.offsets.X
         point.Y = (point.y * this.toolDiameter) + this.offsets.Y
         point.S = this._mapPixelPower(point.s)
@@ -470,7 +480,7 @@ class RasterToGcode extends CanvasGrid {
 
         let addCommand = (...args) => {
             command = this._command(...args)
-            command && gcode.push(command)
+            command && Array.prototype.push.apply(gcode, command)
         }
 
         // Get first point
@@ -481,15 +491,15 @@ class RasterToGcode extends CanvasGrid {
 
         let pass = (passNum) => {
             // Move to start of the line
-            addCommand(['G', 0], ['Z', this.zSafe])
-            addCommand(['G', 0], ['X', point.X], ['Y', point.Y])
-            addCommand(['G', 0], ['Z', this.zSurface])
+            addCommand(this.generator.moveRapid, ['Z', this.zSafe])
+            addCommand(this.generator.moveRapid, ['X', point.X], ['Y', point.Y])
+            addCommand(this.generator.moveRapid, ['Z', this.zSurface])
 
             // For each point on the line
             while (point) {
                 if (point.S) {
                     if (plung) {
-                        addCommand(['G', 0], ['Z', this.zSurface])
+                        addCommand(this.generator.moveRapid, ['Z', this.zSurface])
                         plung = false
                     }
 
@@ -501,17 +511,17 @@ class RasterToGcode extends CanvasGrid {
                         Z = Math.max(Z, -zMax)
                     }
 
-                    addCommand(['G', 1], ['Z', this.zSurface + Z])
-                    addCommand(['G', 1], ['X', point.X], ['Y', point.Y])
+                    addCommand(this.generator.moveTool, ['Z', this.zSurface + Z])
+                    addCommand(this.generator.moveTool, ['X', point.X], ['Y', point.Y])
                 }
                 else {
                     if (plung) {
-                        addCommand(['G', 1], ['Z', this.zSurface])
+                        addCommand(this.generator.moveTool, ['Z', this.zSurface])
                         plung = false
                     }
 
-                    addCommand(['G', 0], ['Z', this.zSafe])
-                    addCommand(['G', 0], ['X', point.X], ['Y', point.Y])
+                    addCommand(this.generator.moveRapid, ['Z', this.zSafe])
+                    addCommand(this.generator.moveRapid, ['X', point.X], ['Y', point.Y])
                 }
 
                 if (point.lastWhite || point.lastColored) {
@@ -523,8 +533,8 @@ class RasterToGcode extends CanvasGrid {
             }
 
             // Move to Z safe
-            addCommand(['G', 1], ['Z', this.zSurface])
-            addCommand(['G', 0], ['Z', this.zSafe])
+            addCommand(this.generator.moveTool, ['Z', this.zSurface])
+            addCommand(this.generator.moveRapid, ['Z', this.zSafe])
         }
 
         for (var i = 1; i <= this.passes; i++) {
@@ -587,13 +597,14 @@ class RasterToGcode extends CanvasGrid {
 
         let addCommand = (...args) => {
             command = this._command(...args)
-            command && gcode.push(command)
+            command && Array.prototype.push.apply(gcode, command)
         }
 
         // Get first point
         point = this._getPoint(index)
 
         // Move to start of the line
+
         addCommand(this.G0, ['X', point.X], ['Y', point.Y], ['S', 0])
 
         // Get next point
@@ -602,6 +613,8 @@ class RasterToGcode extends CanvasGrid {
         // For each point on the line
         while (point) {
             // Burn to next point
+
+            //gcode.push(point.G.call(this.generator, {x: point.X.toFixed(this.precision["X"]), y: point.Y.toFixed(this.precision["Y"]), s:point.S.toFixed(this.precision["S"])}));
             addCommand(point.G, ['X', point.X], ['Y', point.Y], ['S', point.S])
 
             // Get next point

@@ -264,7 +264,8 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
-                        
+                        <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
+
                         <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Gcode Start', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows: 5, style: { resize: "vertical" } }} />
