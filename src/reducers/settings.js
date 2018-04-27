@@ -17,6 +17,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
     gcodeConcurrency: 'required|numeric|min:1|max:5',
+    gcodeCurvePrecision: 'required|numeric|min:0.1|max:2',
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
@@ -87,6 +88,7 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     forcePxPerInch: false,
     dpiBitmap: 300,
+    
 
     toolGridWidth: 500,
     toolGridHeight: 500,
@@ -130,6 +132,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeToolTestPower: 0,
     gcodeToolTestDuration: 0,
     gcodeConcurrency: 2,
+    gcodeCurvePrecision: 0.1,
 
     comServerVersion: 'not connected',
     comServerIP: 'localhost:8000',

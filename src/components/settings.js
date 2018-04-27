@@ -280,6 +280,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                         <h5 className="header">Gcode generation</h5>
                         <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', units: '' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', units: '' }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">Grid</h5>
