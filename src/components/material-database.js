@@ -745,15 +745,8 @@ export class MaterialPickerButton extends React.Component {
         document.removeEventListener('keyup', this.offModKey.bind(this))
     }
 
-
-
     handleClick(e) {
-        if (e.shiftKey) {
-            e.preventDefault();
-            this.handleNewPreset(this.props.operation)
-        } else {
-            this.setState({ showModal: true })
-        }
+        this.setState({ showModal: true })
     }
 
     handleApplyPreset(operationId) {
@@ -765,6 +758,56 @@ export class MaterialPickerButton extends React.Component {
         this.setState({ showModal: false });
     }
 
+    render() {
+        let closeModal = () => this.setState({ showModal: false });
+        let className = this.props.className;
+        //if (this.state.shiftKey) className += ' btn-warning'
+        return (
+            <Button title="Load from Material Database" bsStyle="danger" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
+                <MaterialDatabasePicker types={this.props.types} show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
+            </Button>
+        )
+    }
+}
+
+MaterialPickerButton = connect((state) => ({ groups: state.materialDatabase }), (dispatch) => ({ dispatch }))(MaterialPickerButton)
+
+
+export class MaterialSaveButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { showModal: false }
+        this.handleClick.bind(this)
+        this.onModKey.bind(this)
+        this.offModKey.bind(this)
+        this.state = {}
+        this.__mounted=false;
+    }
+
+    onModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    offModKey(e) {
+        let { shiftKey, metaKey, ctrlKey } = e
+        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+    }
+
+    componentDidMount() {
+        this.__mounted=true;
+    }
+
+    componentWillUnmount() {
+        this.__mounted=false;
+    }
+
+
+    handleClick(e) {
+        e.preventDefault();
+        this.handleNewPreset(this.props.operation)
+    }
+    
     handleNewPreset(operation) {
         let opts = this.props.groups.filter(group=>(!group._locked)).map((group)=>{ return {label: group.name, value: group.name}})
         choose("Operation grouping?", opts, DEFAULT_GROUPING_NAME, (grouping) => {
@@ -779,13 +822,13 @@ export class MaterialPickerButton extends React.Component {
     render() {
         let closeModal = () => this.setState({ showModal: false });
         let className = this.props.className;
-        if (this.state.shiftKey) className += ' btn-warning'
+        //if (this.state.shiftKey) className += ' btn-warning'
         return (
-            <Button bsStyle="primary" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
+            <Button title="Export to Material Database" bsStyle="primary" className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
                 <MaterialDatabasePicker types={this.props.types} show={this.state.showModal} onHide={closeModal} onApplyPreset={(operationId) => { this.handleApplyPreset(operationId) }} />
             </Button>
         )
     }
 }
 
-MaterialPickerButton = connect((state) => ({ groups: state.materialDatabase }), (dispatch) => ({ dispatch }))(MaterialPickerButton)
+MaterialSaveButton = connect((state) => ({ groups: state.materialDatabase }), (dispatch) => ({ dispatch }))(MaterialSaveButton)

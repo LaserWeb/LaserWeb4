@@ -29,7 +29,7 @@ import { selectedDocuments } from './document'
 import Toggle from 'react-toggle';
 import { isObject, getDescendantProp } from '../lib/helpers';
 
-import { MaterialPickerButton } from './material-database'
+import { MaterialPickerButton, MaterialSaveButton } from './material-database'
 
 import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
 import Icon from './font-awesome'
@@ -719,6 +719,7 @@ class Operation extends React.Component {
                         <div style={{ whiteSpace: 'nowrap' }}>
                             <select className="input-xs" value={op.type} onChange={this.setType}>{Object.keys(OPERATION_TYPES).map(type => <option key={type} disabled={!this.availableOps.includes(type)}>{type}</option>)}</select>
                             <MaterialPickerButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} types={this.availableOps}><i className="fa fa-magic"></i></MaterialPickerButton>
+                            <MaterialSaveButton className="btn btn-success btn-xs" onApplyPreset={this.preset} operation={op} types={this.availableOps}><i className="fa fa-floppy-o"></i></MaterialSaveButton>
                         </div>
                         <div className="btn-group">
                             <button className={"btn btn-warning btn-xs " + (op.enabled ? '' : 'btn-off')} onClick={this.toggleEnabled} title="Enable/Disable operation"><i className="fa fa-power-off"></i></button>
