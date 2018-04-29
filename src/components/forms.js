@@ -89,7 +89,7 @@ export class NumberField extends React.Component {
 
 
     render() {
-        let {object, field, description, units, setAttrs, dispatch, labelAddon, ...rest} = this.props;
+        let {object, field, description, units, setAttrs, dispatch, labelAddon, info, ...rest} = this.props;
 
         let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
         let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
@@ -98,21 +98,22 @@ export class NumberField extends React.Component {
 
 
         let input = <InputGroup>
-            {labelAddon ? <InputGroup.Addon>{description}</InputGroup.Addon> : undefined}
+            {labelAddon ? <InputGroup.Addon>{description}{info}</InputGroup.Addon> : undefined}
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
             {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
+            
         </InputGroup>;
 
 
         return <TooltipFormGroup validationState={errors ? "error" : undefined}
             validationContent={errors}
-            validationPlacement="right">{!labelAddon ? <ControlLabel>{description}</ControlLabel> : undefined}{input}</TooltipFormGroup>
+            validationPlacement="right">{!labelAddon ? <ControlLabel>{description}{info}</ControlLabel> : undefined}{input}</TooltipFormGroup>
 
     }
 }
 
-export function TextField({object, field, description, units = "", setAttrs, dispatch, labelAddon, ...rest}) {
+export function TextField({object, field, description, units = "", setAttrs, dispatch, labelAddon, info, ...rest}) {
     if (labelAddon !== false) 
         labelAddon = true;
     let isTextArea = typeof (rest.rows) != "undefined";
@@ -121,7 +122,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <InputGroup style={{ width: "100%" }}>
     
-        {(!isTextArea && labelAddon!==false) ? (<InputGroup.Addon>{description}</InputGroup.Addon>) : undefined}
+        {(!isTextArea && labelAddon!==false) ? (<InputGroup.Addon>{description}{info}</InputGroup.Addon>) : undefined}
         {(!isTextArea) ? (
             <FormControl
                 type="text"
@@ -142,7 +143,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
     return <TooltipFormGroup validationState={errors ? "error" : undefined}
         validationContent={errors}
-        validationPlacement="right">{!labelAddon || isTextArea ? <ControlLabel>{description}</ControlLabel> : undefined}{input}</TooltipFormGroup>
+        validationPlacement="right">{!labelAddon || isTextArea ? <ControlLabel>{description}{info}</ControlLabel> : undefined}{input}</TooltipFormGroup>
 
 }
 
@@ -171,13 +172,13 @@ export class SelectField extends React.Component {
 
     render() {
 
-        let {object, field, description, units = "", setAttrs, dispatch, data, blank, defaultValue, labelAddon = true, selectProps, ...rest} = this.props;
+        let {object, field, description, units = "", setAttrs, dispatch, data, blank, defaultValue, labelAddon = true, selectProps,info, ...rest} = this.props;
 
         let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
         let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
         let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
 
-        let label = labelAddon ? <InputGroup.Addon>{description}{units ? " (" + units + ")" : undefined}</InputGroup.Addon> : <ControlLabel>{description}{units ? " (" + units + ")" : undefined}</ControlLabel>
+        let label = labelAddon ? <InputGroup.Addon>{description}{units ? " (" + units + ")" : undefined}{info}</InputGroup.Addon> : <ControlLabel>{description}{units ? " (" + units + ")" : undefined}{info}</ControlLabel>
 
         let props = { ...selectProps, options: selectOptions(data), value: object[field] || defaultValue, onChange: (v) => dispatch(setAttrs({ [field]: v.value }, object.id)) }
 
