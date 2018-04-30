@@ -337,7 +337,7 @@ class RasterToGcode extends CanvasGrid {
                 point.X += this.beamOffset
                 point.Y -= this.beamOffset
             }
-            else if (point.last || point.lastColored) {
+            else if ((point.last || point.lastColored) && !point.firstColored) {
                 point.X -= this.beamOffset
                 point.Y += this.beamOffset
             }
@@ -350,7 +350,7 @@ class RasterToGcode extends CanvasGrid {
             if (point.first || point.lastWhite) {
                 point.X += this.beamOffset
             }
-            else if (point.last || point.lastColored) {
+            else if ((point.last || point.lastColored) && !point.firstColored) {
                 point.X -= this.beamOffset
             }
         }
@@ -638,9 +638,10 @@ class RasterToGcode extends CanvasGrid {
         let w = this.size.width
         let h = this.size.height
 
-        let reversed    = false
-        let lastWhite   = false
-        let lastColored = false
+        let reversed     = false
+        let lastWhite    = false
+        let firstColored = false
+        let lastColored  = false
 
         let computeCurrentLine = () => {
             // Reset current line
@@ -651,12 +652,13 @@ class RasterToGcode extends CanvasGrid {
 
             // For each pixel on the line
             for (x = 0; x <= w; x++) {
-                // Get pixel power
+                // Get pixel power [ 0 = white | 255 = black ]
                 s = p = this._getPixelPower(x, y, p)
 
-                // Is last white/colored pixel
-                lastWhite   = point && ! point.p && p
-                lastColored = point && point.p && ! p
+                // Is this the last white/colored pixel?
+                lastWhite    = point && point.p == 0 && p >  0 || !point
+                firstColored = point && point.lastWhite
+                lastColored  = point && point.p >  0 && p == 0
 
                 // Pixel color from last one on normal line
                 if (! reversed && point) {
@@ -667,8 +669,9 @@ class RasterToGcode extends CanvasGrid {
                 point = { x: x, y: y, s: s, p: p }
 
                 // Set last white/colored pixel
-                lastWhite   && (point.lastWhite   = true)
-                lastColored && (point.lastColored = true)
+                lastWhite    && (point.lastWhite    = true)
+                firstColored && (point.firstColored = true)
+                lastColored  && (point.lastColored  = true)
 
                 // Add point to current line
                 this.currentLine.push(point)
@@ -746,11 +749,12 @@ class RasterToGcode extends CanvasGrid {
         let w = this.size.width
         let h = this.size.height
 
-        let totalLines  = w + h - 1
-        let lineNum     = 0
-        let reversed    = false
-        let lastWhite   = false
-        let lastColored = false
+        let totalLines   = w + h - 1
+        let lineNum      = 0
+        let reversed     = false
+        let lastWhite    = false
+        let firstColored = false
+        let lastColored  = false
 
         let computeCurrentLine = (x, y) => {
             // Reset current line
@@ -773,12 +777,13 @@ class RasterToGcode extends CanvasGrid {
                     break
                 }
 
-                // Get pixel power
+                // Get pixel power [ 0 = white | 255 = black ]
                 s = p = this._getPixelPower(x, y, p)
 
-                // Is last white/colored pixel
-                lastWhite   = point && (! point.p && p)
-                lastColored = point && (point.p && ! p)
+                // Is this the last white/colored pixel?
+                lastWhite    = point && point.p == 0 && p >  0 || !point
+                firstColored = point && point.lastWhite
+                lastColored  = point && point.p >  0 && p == 0
 
                 // Pixel color from last one on normal line
                 if (! reversed && point) {
@@ -789,10 +794,11 @@ class RasterToGcode extends CanvasGrid {
                 point = { x: x, y: y, s: s, p: p }
 
                 // Set last white/colored pixel
-                lastWhite   && (point.lastWhite   = true)
-                lastColored && (point.lastColored = true)
+                lastWhite    && (point.lastWhite    = true)
+                firstColored && (point.firstColored = true)
+                lastColored  && (point.lastColored  = true)
 
-                // Add the new point
+                // Add point to current line
                 this.currentLine.push(point)
 
                 // Next coords
