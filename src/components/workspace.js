@@ -312,7 +312,7 @@ class FloatingControls extends React.Component {
         }
 
         this.toolOptimize = (doc, scale, anchor = 'C') => {
-            if (!scale) scale = 25.4 / this.props.settings.dpiBitmap;
+            if (!scale) scale = 1.0 / (this.props.settings.dpiBitmap / 25.4);
             if (doc.originalPixels) {
                 let targetwidth = doc.originalPixels[0] * scale;
                 let targetheight = doc.originalPixels[1] * scale;
