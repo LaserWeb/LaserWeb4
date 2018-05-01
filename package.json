@@ -61,7 +61,7 @@
     "flat": "^2.0.1",
     "floyd-steinberg": "^1.0.5",
     "font-awesome": "^4.6.3",
-    "gamepad.js": "github:neogeek/gamepad.js",
+    "gamepad.js": "git+https://github.com/neogeek/gamepad.js",
     "gl-matrix": "^2.3.2",
     "hhmmss": "^1.0.0",
     "imports-loader": "^0.7.1",
