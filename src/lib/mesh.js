@@ -134,7 +134,7 @@ function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, ale
 // Result is in mm. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
 function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
-    let factor = 1.0 / (pxPerInch / 25.4);
+    let factor = 2540 / (pxPerInch * 100);
     if (snapPath.length < 2 || snapPath[0].length != 3 || snapPath[0][0] != 'M') {
         alertFn('Path does not begin with M');
         return null;

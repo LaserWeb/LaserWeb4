@@ -234,7 +234,9 @@ function processImage(doc, settings, context) {
 
 function loadImage(state, settings, { file, content, context }, id = uuidv4()) {
     state = state.slice();
-    let scale = 1.0 / (settings.dpiBitmap / 25.4);
+    // One of the most important scaling factors as it affects image size,
+    // which affects the canvas size, which affects the raster GCode
+    let scale = 2540 / (settings.dpiBitmap * 100);
     let doc = {
         ...DOCUMENT_INITIALSTATE,
         id: id,
