@@ -234,7 +234,9 @@ function processImage(doc, settings, context) {
 
 function loadImage(state, settings, { file, content, context }, id = uuidv4()) {
     state = state.slice();
-    let scale = 25.4 / settings.dpiBitmap;
+    // One of the most important scaling factors as it affects image size,
+    // which affects the canvas size, which affects the raster GCode
+    let scale = 2540 / (settings.dpiBitmap * 100);
     let doc = {
         ...DOCUMENT_INITIALSTATE,
         id: id,
@@ -326,7 +328,7 @@ export function cloneDocument(forest, rootId, renamer=(d)=>(d.name))
             item.children=item.children.map(c=>(idMap[c]));
             return item;
         })
-    
+
     return docs;
 }
 
@@ -336,7 +338,7 @@ export function documents(state, action) {
         case 'DOCUMENT_SELECT': {
             let ids = getSubtreeIds(state, action.payload.id);
             return state.map(o => Object.assign({}, o, { selected: ids.includes(o.id) }));
-            
+
         }
 
         case 'DOCUMENT_TOGGLE_SELECT': {
@@ -381,7 +383,7 @@ export function documents(state, action) {
                         return `${p} (${countOf(p)})`
                     }) : `${d.name} (${countOf(d.name)})`
                 })
-                if (cloned.length) 
+                if (cloned.length)
                     clones= [...clones,...cloned];
             })
 
@@ -400,7 +402,7 @@ export function documents(state, action) {
             return state.map((o)=>{
                 if (!o.selected) return o;
                 return Object.assign({},o,action.payload.color)
-            }) 
+            })
             return state;
         }
 

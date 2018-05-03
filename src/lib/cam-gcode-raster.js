@@ -53,7 +53,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     let gcode = [];
 
     let axisAFactor = (op.useA && op.aAxisDiameter) ? Number( 360 / op.aAxisDiameter / Math.PI).toFixed(3) : 1;
-        
+
     let QE = new queue();
     QE.concurrency = 1;
     QE.timeout = 3600 * 1000
@@ -71,7 +71,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
         for (let line of gc) {
             if (op.useA) {
-                line = line.replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{ 
+                line = line.replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{
                     return "A"+(parseFloat(float)*axisAFactor).toFixed(3)
                 });
 
@@ -152,15 +152,17 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
             let feedRate = op.cutRate * (settings.toolFeedUnits === 'mm/s' ? 60 : 1);
             promisedImage(doc.dataURL).then((img) => {
 
-                
+
                 if (op.useA && op.aAxisDiameter && op.diagonal) feedRate = feedRate/Math.SQRT2
-               
-                let scale = 1/(25.4/settings.dpiBitmap)
+
+                let scale = 2540 / (settings.dpiBitmap * 100);
                 let docBounds = getImageBounds(doc.transform2d, img.width, img.height);
                 let imgBounds= getImageBounds(doc.transform2d, img.width*scale, img.height*scale);
 
-                let w = imgBounds.x2-imgBounds.x1
-                let h = imgBounds.y2-imgBounds.y1
+                // Canvas elements only support integer height/width sizes
+                // If there's at least half a pixel to render, include it in the canvas
+                let w = Math.round(imgBounds.x2-imgBounds.x1)
+                let h = Math.round(imgBounds.y2-imgBounds.y1)
 
                 let canvas = document.createElement('canvas')
                     canvas.width = w
@@ -168,9 +170,9 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
                 let ctx = canvas.getContext('2d')
                     /* Centering Transform */
-                    ctx.translate(w/2,h/2) 
+                    ctx.translate(w/2,h/2)
                     /* WCS correction */
-                    ctx.transform( -doc.transform2d[0]*scale, doc.transform2d[1]*scale, 
+                    ctx.transform( -doc.transform2d[0]*scale, doc.transform2d[1]*scale,
                                     doc.transform2d[2]*scale, -doc.transform2d[3]*scale,
                                     0, 0)
                     ctx.rotate((Math.PI / 180) * 180)
@@ -190,7 +192,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     beamPower: op.laserPowerRange, //Go go power rangeR!
                     rapidRate: false,
                     feedRate,
-                    offsets: { 
+                    offsets: {
                         X: (docBounds.x1 + docBounds.x2 - w / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[4],
                         Y: (docBounds.y1 + docBounds.y2 - h / settings.dpiBitmap * 25.4) / 2 + doc.transform2d[5],
                     },
@@ -242,7 +244,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
                     })
             })
-                
+
         })
 
     }

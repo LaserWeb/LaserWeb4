@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -88,7 +88,7 @@ function linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn) {
     return result;
 };
 
-// Get linear paths (snap format) from an SVG element. Calls alertFn with an 
+// Get linear paths (snap format) from an SVG element. Calls alertFn with an
 // error message and returns null if there's a problem.
 function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn) {
     let path = null;
@@ -134,7 +134,7 @@ function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, ale
 // Result is in mm. Returns multiple paths. Only supports linear paths.
 // Calls alertFn with an error message and returns null if there's a problem.
 function snapPathToRawPaths(snapPath, pxPerInch, alertFn) {
-    let factor = 25.4 / pxPerInch;
+    let factor = 2540 / (pxPerInch * 100);
     if (snapPath.length < 2 || snapPath[0].length != 3 || snapPath[0][0] != 'M') {
         alertFn('Path does not begin with M');
         return null;
