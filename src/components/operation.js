@@ -348,6 +348,8 @@ function checkFeedRateRange(axis) {
         },
         error: (v, settings) => {
             let { min, max } = Object.assign(SETTINGS_INITIALSTATE.machineFeedRange, settings.machineFeedRange)[axis];
+            if (isNaN(min) || isNan(max))
+                return 'Check settings/machine first!';
             return 'Must be in range [' + min + ' , ' + max + ']'
         }
     }
