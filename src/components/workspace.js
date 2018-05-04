@@ -310,7 +310,12 @@ class FloatingControls extends React.Component {
             this.props.dispatch(transform2dSelectedDocuments([1, 0, 0, 1, x - cx, y - cy]));
 
         }
-
+        this.flipLeftRight = v => {
+            this.scale(-1, 1)
+        }
+        this.flipTopBorrom = v => {
+            this.scale(1, -1)
+        }
         this.toolOptimize = (doc, scale, anchor = 'C') => {
             if (!scale) scale = 2540 / (this.props.settings.dpiBitmap * 100);
             if (doc.originalPixels) {
@@ -353,7 +358,7 @@ class FloatingControls extends React.Component {
                 if (doc.type == 'image' && doc.originalPixels) {
                     tools = <tfoot>
                         <tr>
-                            <td><Icon name="gear" /></td><td colSpan="6" >
+                            <td><Icon name="gear" /></td><td colSpan="7" >
                                 <ButtonGroup>
                                     <Button bsSize="xs" bsStyle="warning" onClick={(e) => this.toolOptimize(doc, this.props.settings.machineBeamDiameter, this.props.settings.toolImagePosition)}><Icon name="picture-o" /> Raster Opt.</Button>
                                     <Button bsSize="xs" bsStyle="danger" onClick={(e) => this.toolOptimize(doc, null, this.props.settings.toolImagePosition)}><Icon name="undo" /></Button>
@@ -449,10 +454,15 @@ class FloatingControls extends React.Component {
                                     &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
                                 </td>
                                 <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
-                                    <ButtonToolbar>
-                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon name="rotate-left" /></Button>
-                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, true)} bsStyle="info"><Icon name="rotate-right" /></Button>
-                                    </ButtonToolbar>
+                                    <ButtonGroup>
+                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon fw name="rotate-left"  /></Button>
+                                        <Button bsSize="xsmall" onClick={e => this.rotate(e, true )} bsStyle="info"><Icon fw name="rotate-right" /></Button>
+                                    </ButtonGroup>
+                                    <br />
+                                    <ButtonGroup>
+                                        <Button bsSize="xsmall" onClick={e => this.flipTopBorrom()} bsStyle="info"><Icon fw name="arrows-v" /></Button>
+                                        <Button bsSize="xsmall" onClick={e => this.flipLeftRight()} bsStyle="info"><Icon fw name="arrows-h" /></Button>
+                                    </ButtonGroup>
                                 </td>
                             </tr>
                             <tr>
