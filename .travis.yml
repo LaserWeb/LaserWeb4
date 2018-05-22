@@ -9,16 +9,29 @@ before_install:
   - npm run installdev
   - npm run bundle-dev
 
+
 after_success:
 
 addons:
   artifacts: true
 
+before_deploy:
+  - npm -g install asar
+  - asar pack dist ui.asar
+
 deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-  keep-history: true
-  local-dir: dist
-  on:
-    branch: dev-es6
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    keep-history: true
+    local-dir: dist
+    on:
+      branch: dev-es6
+  - provider: releases
+    api_key: 
+      secure: "UsaS9UZpg3UllUXily0MW/ikPG5QSnoJykiHkIzOCTvGofKDQt2n30XfP6KsHA54ldmSRlKuYz95qNB2K8booJku5iiwdkIf7/uUvJPPQ8qR/OGMOICs6h+vZZ9M5YhY8yI9auESJRK1fkfsxMHQLWzKpsJWAh/XE5WjYh3GRiTILjacVucRufww6cFbqdHwdUsc4+PuFxP/2SU9TDWgbrWL1A+RP9WT/3WQrNupwT9bIut/3h97NDjWldFMnTL2PubIVtgl+XMk4qP68ut6/gSue1nVjX2vqWNvlztMAJO27sxuxDAdMlK76S0Bm8fIxagUO8m7bGHNdd4wiC7gCVpuPPuNSlla257wrH5iLUi9frZ3Mgq5Dvd2BGxgTdbQbE2ZchXA/wm30rU7EXwK0pKjAsK3YlSP/Jn8l3Rwt8QBAJ1L2yTc7Ctqm2knL+jN0x/9W1I2VKxKE6ta73ZQK0YFmRxK7rhvB9UZftVorgn3PKtI9pjSVWN9QptgjefqbDtVEcpg8DATIxCyY21qoqiq18qVY5kjiu0QUo1cGrVPb4H79FqAsajnutqDJtcTHPYWFCc2EsFOTUFzKrIBd+oGdx3AQqVWBUzlFNE+nO1Bbi176ehENuuR3G/21WkokCnyjEQcZYCI2WuqcdM2/wrQ45+XYJqV4k1xZ592IeA="
+    file_glob: true
+    file: ui.asar
+    skip_cleanup: true
+    on:
+      branch: dev-es6
