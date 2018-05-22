@@ -8,13 +8,11 @@ before_install:
   - npm install
   - npm run installdev
   - npm run bundle-dev
-  - git describe --abbrev=0 --tags>VERSION
 addons:
   artifacts: true
 before_deploy:
   - npm -g install asar
   - asar pack dist ui.asar
-  - git tag -f "$(cat VERSION)"
 deploy:
 - provider: pages
   skip-cleanup: true
