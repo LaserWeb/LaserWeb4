@@ -106,7 +106,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 ...DOCUMENT_INITIALSTATE,
                 id: uuidv4(),
                 type: child.name,
-                name: child.name + ': ' + child.attrs.id,
+                name: child.name + ': ' + (child.attrs.title || child.attrs.id),
                 isRoot: false,
                 children: [],
                 selected: false,
