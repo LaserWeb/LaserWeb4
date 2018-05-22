@@ -1,37 +1,32 @@
 language: node_js
 node_js:
-  - "7"
+- '7'
 sudo: required
 dist: trusty
 before_install:
-  - sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
-  - npm install
-  - npm run installdev
-  - npm run bundle-dev
-
-
-after_success:
-
+- sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
+- npm install
+- npm run installdev
+- npm run bundle-dev
+after_success: 
 addons:
   artifacts: true
-
 before_deploy:
-  - npm -g install asar
-  - asar pack dist ui.asar
-
+- npm -g install asar
+- asar pack dist ui.asar
 deploy:
-  - provider: pages
-    skip-cleanup: true
-    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
-    keep-history: true
-    local-dir: dist
-    on:
-      branch: dev-es6
-  - provider: releases
-    api_key: 
-      secure: "UsaS9UZpg3UllUXily0MW/ikPG5QSnoJykiHkIzOCTvGofKDQt2n30XfP6KsHA54ldmSRlKuYz95qNB2K8booJku5iiwdkIf7/uUvJPPQ8qR/OGMOICs6h+vZZ9M5YhY8yI9auESJRK1fkfsxMHQLWzKpsJWAh/XE5WjYh3GRiTILjacVucRufww6cFbqdHwdUsc4+PuFxP/2SU9TDWgbrWL1A+RP9WT/3WQrNupwT9bIut/3h97NDjWldFMnTL2PubIVtgl+XMk4qP68ut6/gSue1nVjX2vqWNvlztMAJO27sxuxDAdMlK76S0Bm8fIxagUO8m7bGHNdd4wiC7gCVpuPPuNSlla257wrH5iLUi9frZ3Mgq5Dvd2BGxgTdbQbE2ZchXA/wm30rU7EXwK0pKjAsK3YlSP/Jn8l3Rwt8QBAJ1L2yTc7Ctqm2knL+jN0x/9W1I2VKxKE6ta73ZQK0YFmRxK7rhvB9UZftVorgn3PKtI9pjSVWN9QptgjefqbDtVEcpg8DATIxCyY21qoqiq18qVY5kjiu0QUo1cGrVPb4H79FqAsajnutqDJtcTHPYWFCc2EsFOTUFzKrIBd+oGdx3AQqVWBUzlFNE+nO1Bbi176ehENuuR3G/21WkokCnyjEQcZYCI2WuqcdM2/wrQ45+XYJqV4k1xZ592IeA="
-    file_glob: true
-    file: ui.asar
-    skip_cleanup: true
-    on:
-      branch: dev-es6
+- provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  local-dir: dist
+  on:
+    branch: dev-es6
+- provider: releases
+  api_key:
+    secure: Xa2aIga7tyQWfBYqGcnXyO/xUVreU0BTz9Bc8GljxsZJfWmWRKPFnnAonzbtmUf+YupGXtYHzbA+hvjm2ifbEkc7sNsa67FywDSh9TeY2ZpAAXgI1gkE4m3PX+OJlE7O0YPGSt7oQl0KcfN+SWR9P42yyok/WlKB+OI7fFgQv35zAk1Q4k3dleJp21pmepHtgK9ZJpv1BgpipQF2nPK2Om6QfS13DX7O8HBfHQpSmJEFpderUyxbYd9ikaIo3fOw1WbZecHu9Xc8tSUsc7ZOVQIxUKI0aKiwkLvJxtZapMMabNVPuYbiS0mAtUEXduDx4c4f8SxpzS1cTCkSOLliekg8oOjohNYKDBzC3rLIJq6eYXjFfuNFjEb/eSbv+sCUmbakSidxnph5LDnkdh3DPXnBtN229v7iLFyTwRqEwbhK/r5RP8yNc9r7ZlRFbGTQTWB2VBaJex2LvWqvD2LUzE9YsSVx19RN8Xda71rMC1FanTVcFjKnjh0xmUXlmxxB3hP3196+BlZqEhTqvypAfVEojH13YHhVYb6K8nfc43raWvN5YHxWTz8fW14jdA1qKNgEOfI8KsQmikKtSYbi6/t2jWYGLg180VaZCyvOMQr/P802MTXq2AjmNziHooRIULx1t+LDii38umXxV9EH4Vet5eJVg/7szu7tqTQ1PBY=
+  file_glob: true
+  file: ui.asar
+  skip_cleanup: true
+  on:
+    branch: dev-es6
