@@ -21,6 +21,7 @@ deploy:
   local-dir: dist
   on:
     branch: dev-es6
+    tags: true
 - provider: releases
   api_key:
     secure: Xa2aIga7tyQWfBYqGcnXyO/xUVreU0BTz9Bc8GljxsZJfWmWRKPFnnAonzbtmUf+YupGXtYHzbA+hvjm2ifbEkc7sNsa67FywDSh9TeY2ZpAAXgI1gkE4m3PX+OJlE7O0YPGSt7oQl0KcfN+SWR9P42yyok/WlKB+OI7fFgQv35zAk1Q4k3dleJp21pmepHtgK9ZJpv1BgpipQF2nPK2Om6QfS13DX7O8HBfHQpSmJEFpderUyxbYd9ikaIo3fOw1WbZecHu9Xc8tSUsc7ZOVQIxUKI0aKiwkLvJxtZapMMabNVPuYbiS0mAtUEXduDx4c4f8SxpzS1cTCkSOLliekg8oOjohNYKDBzC3rLIJq6eYXjFfuNFjEb/eSbv+sCUmbakSidxnph5LDnkdh3DPXnBtN229v7iLFyTwRqEwbhK/r5RP8yNc9r7ZlRFbGTQTWB2VBaJex2LvWqvD2LUzE9YsSVx19RN8Xda71rMC1FanTVcFjKnjh0xmUXlmxxB3hP3196+BlZqEhTqvypAfVEojH13YHhVYb6K8nfc43raWvN5YHxWTz8fW14jdA1qKNgEOfI8KsQmikKtSYbi6/t2jWYGLg180VaZCyvOMQr/P802MTXq2AjmNziHooRIULx1t+LDii38umXxV9EH4Vet5eJVg/7szu7tqTQ1PBY=
@@ -29,3 +30,4 @@ deploy:
   skip_cleanup: true
   on:
     branch: dev-es6
+    tags: true
