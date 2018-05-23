@@ -113,6 +113,7 @@
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
     "dxf-parser": "^0.4.8",
+    "hoek": "^5.0.3",
     "immutability-helper": "^2.0.0",
     "unicode": "^0.6.1",
     "vectorize-text": "^3.0.2"
