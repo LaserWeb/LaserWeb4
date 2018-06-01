@@ -375,8 +375,8 @@ class TagParser {
             }
         }
 
-        //this.tag.scale(scaleX, scaleY)
-        //this.tag.translate(-translateX, -translateY)
+        this.tag.translate(-translateX, -translateY)
+        this.tag.scale(scaleX, scaleY)
     }
 
     // Parse transform attribute and set transformations
