@@ -118,7 +118,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 //g += `${settings.gcodeToolOn} \r\n`;
             }
 
-            g += raster;
+            g += raster; //g += (raster.replace(/G1/gi,'\nM5;\nM3;\nG1').replace(/G0/gi,'M5;\nG0')); TOOL ON OFF?
 
             if (settings.gcodeToolOff && settings.gcodeToolOff.length)
                 g += `${settings.gcodeToolOff} \r\n`;
