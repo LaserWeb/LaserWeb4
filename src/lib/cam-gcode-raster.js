@@ -4,7 +4,7 @@ import { DOCUMENT_INITIALSTATE } from '../reducers/document'
 import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
 import { promisedImage } from '../components/image-filters.js';
-
+import { getGenerator } from "./action2gcode/gcode-generator"
 
 const getImageBounds=(t,w,h)=>{
     let tx = (x, y) => t[0] * x + t[2] * y;
@@ -58,6 +58,8 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
     QE.concurrency = 1;
     QE.timeout = 3600 * 1000
     QE.chunk = 100 / docsWithImages.length
+
+    var generator=getGenerator(settings.gcodeGenerator,settings)
 
     // POSTPROCESS GCODE;
     const postProcessing = (gc) => {
@@ -118,7 +120,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                 //g += `${settings.gcodeToolOn} \r\n`;
             }
 
-            g += raster; //g += (raster.replace(/G1/gi,'\nM5;\nM3;\nG1').replace(/G0/gi,'M5;\nG0')); TOOL ON OFF?
+            g += generator.postProcessRaster(raster); //g += (raster.replace(/G1/gi,'\nM5;\nM3;\nG1').replace(/G0/gi,'M5;\nG0')); TOOL ON OFF?
 
             if (settings.gcodeToolOff && settings.gcodeToolOff.length)
                 g += `${settings.gcodeToolOff} \r\n`;
