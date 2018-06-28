@@ -1,4 +1,5 @@
 import XRegExp from 'XRegExp'
+XRegExp.install('natives')
 // AbstractDriver class
 class AbstractGenerator {
   // Class constructor...
