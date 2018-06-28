@@ -1,4 +1,4 @@
-
+import XRegExp from 'XRegExp'
 // AbstractDriver class
 class AbstractGenerator {
   // Class constructor...
@@ -8,7 +8,7 @@ class AbstractGenerator {
 
   postProcessRaster(gcode){
     if (this.settings.gcodeToolOn && this.settings.gcodeToolOff){
-      return gcode.replace(new RegExp("G0(.*?)G1","gis"),'G0$1\n'+this.settings.gcodeToolOn+'\nG1').replace(new RegExp("G1(.*?)G0","gis"),'G1$1\n'+this.settings.gcodeToolOff+'\nG0')
+      return gcode.replace(new XRegExp("G0(.*?)G1","gis"),'G0$1\n'+this.settings.gcodeToolOn+'\nG1').replace(new XRegExp("G1(.*?)G0","gis"),'G1$1\n'+this.settings.gcodeToolOff+'\nG0')
     }
     return gcode;
   }

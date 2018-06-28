@@ -108,7 +108,8 @@
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.7.1",
     "webrtc-adapter": "^3.1.5",
-    "worker-loader": "^0.8.1"
+    "worker-loader": "^0.8.1",
+    "xregexp": "^4.2.0"
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
