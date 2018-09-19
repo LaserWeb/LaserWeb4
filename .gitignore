@@ -4,3 +4,4 @@ dist
 .vscode
 machine-profiles.json
 package-lock.json
+.idea
