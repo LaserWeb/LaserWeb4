@@ -69,7 +69,7 @@
     "keyboardjs": "^2.3.3",
     "lw.canvas-filters": "git+https://github.com/LaserWeb/lw.canvas-filters.git",
     "lw.canvas-grid": "git+https://github.com/LaserWeb/lw.canvas-grid.git",
-    "lw.comm-server": "git+https://github.com/LaserWeb/lw.comm-server.git",
+    "lw.comm-server": "git+https://github.com/thystonius/lw.comm-server.git#NodeJS_v10_Update",
     "lw.raster-to-gcode": "git+https://github.com/LaserWeb/lw.raster-to-gcode.git",
     "lw.svg-curves": "^0.1.0",
     "lw.svg-path": "^0.1.0",
