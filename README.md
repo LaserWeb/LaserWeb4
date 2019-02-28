@@ -9,7 +9,8 @@ Releases are made available on https://github.com/LaserWeb/LaserWeb4-Binaries/
 For more documentation, go to the [Wiki](https://github.com/LaserWeb/LaserWeb4/wiki) or our website https://laserweb.yurl.ch
 
 ## Community
-Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.
+Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb. 
+Since G+ will shut down shortly, we started to migrate the community to https://forum.makerforums.info/c/laserweb-cncweb.
 
 Please report confirmed bugs on the git [Issues tab](https://github.com/LaserWeb/LaserWeb4/issues).
 
