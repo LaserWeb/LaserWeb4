@@ -1,0 +1,17 @@
+2018-09-18 12:39:59  
+2018-09-18 12:39:59 ***************************************************************
+2018-09-18 12:39:59         ---- LaserWeb Comm Server 4.0.131 ----        
+2018-09-18 12:39:59 ***************************************************************
+2018-09-18 12:39:59   Use  http://192.168.14.100:8000 to connect this server.
+2018-09-18 12:39:59  
+2018-09-18 12:39:59 * Updates: 
+2018-09-18 12:39:59   Remember to check the commit log on
+2018-09-18 12:39:59   https://github.com/LaserWeb/lw.comm-server/commits/master
+2018-09-18 12:39:59   regularly, to know about updates and fixes, and then when ready
+2018-09-18 12:39:59   update accordingly by running git pull
+2018-09-18 12:39:59  
+2018-09-18 12:39:59 * Support: 
+2018-09-18 12:39:59   If you need help / support, come over to 
+2018-09-18 12:39:59   https://plus.google.com/communities/115879488566665599508
+2018-09-18 12:39:59 ***************************************************************
+2018-09-18 12:39:59  
