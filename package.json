@@ -106,7 +106,7 @@
     "vex-js": "^3.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^3.1.11",
+    "webpack-dev-server": "2.11.1",
     "webrtc-adapter": "^3.1.5",
     "worker-loader": "^0.8.1",
     "xregexp": "^4.2.4"
