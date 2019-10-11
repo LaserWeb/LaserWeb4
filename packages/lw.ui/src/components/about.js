@@ -32,7 +32,7 @@ class About extends React.Component {
         if (this.props.settings.__selectedProfile && this.props.profiles.hasOwnProperty(this.props.settings.__selectedProfile)){
           let aboutFile=this.props.profiles[this.props.settings.__selectedProfile].machineAbout
           if (aboutFile) {
-            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!../data/lw.machines/machines/'+aboutFile))}}></div>
+            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!lw.machines/machines/'+aboutFile))}}></div>
           }
         }
 
@@ -134,10 +134,10 @@ Lifesaver = connect((store)=>({}),(dispatch) =>{
             }
         },
         handleReset: () => {
-            confirm("All data will be zapped!", (b) => { 
+            confirm("All data will be zapped!", (b) => {
               if (b) {
                 window.localStorage.removeItem(LOCALSTORAGE_KEY)
-                location.reload(); 
+                location.reload();
               }
             })
         },
@@ -166,7 +166,7 @@ export class Releases extends React.Component {
 
     render() {
         return <div className="releases">
-            {this.state.tag_name ? <h4>Latest release: <a href={this.state.html_url} target="__blank">{this.state.tag_name}</a></h4>:undefined } 
+            {this.state.tag_name ? <h4>Latest release: <a href={this.state.html_url} target="__blank">{this.state.tag_name}</a></h4>:undefined }
             {this.state.body ? <div dangerouslySetInnerHTML={{__html: marked(this.state.body)}}/>:undefined }
         </div>
     }

@@ -1,0 +1,21 @@
+{
+  "name": "lw.machines",
+  "version": "0.0.0",
+  "description": "LaserWeb Machine profiles...",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LaserWeb/lw.machines.git"
+  },
+  "keywords": [
+    "laser",
+    "cnc",
+    "cam",
+    "..."
+  ],
+  "author": "Laserweb Dev Team",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/LaserWeb/lw.machines/issues"
+  },
+  "homepage": "https://github.com/LaserWeb/lw.machines#readme"
+}

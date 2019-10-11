@@ -1,0 +1,117 @@
+{
+  "*emblaser2": {
+    "machineLabel": "Emblaser 2",
+    "machineDescription": "Use this if you have an Emblaser 2 from Darkly Labs",
+    "machineAbout": "emblaser2.md",
+    "helpUrl": "https://darklylabs.zendesk.com/hc/en-us/community/topics/115000181507-Laserweb",
+    "tutorialsUrl": "https://darklylabs.zendesk.com/hc/en-us/categories/202585917-Tutorials",
+    "settings": {
+      "machineWidth": 500,
+      "machineHeight": 300,
+      "machineBeamDiameter": 0.2,
+      "machineOriginX": 0,
+      "machineOriginY": 0,
+      "machineFeedRange": {
+        "XY": {
+          "min": 100,
+          "max": 6000
+        },
+        "Z": {
+          "min": 1,
+          "max": 1250
+        },
+        "A": {
+          "min": 1,
+          "max": 50000
+        },
+        "S": {
+          "min": 0,
+          "max": 30000
+        }
+      },
+      "machineZEnabled": true,
+      "machineZMatThickness": 0,
+      "machineZToolOffset": 0,
+      "machineZStartHeight": "",
+      "machineBlowerEnabled": true,
+      "machineBlowerGcodeOn": "M08",
+      "machineBlowerGcodeOff": "M09",
+      "pxPerInch": 72,
+      "dpiBitmap": 72,
+      "toolSafetyLockDisabled": false,
+      "toolCncMode": false,
+      "toolImagePosition": "BL",
+      "toolUseNumpad": false,
+      "toolVideoDevice": null,
+      "toolVideoPerspective": {
+        "enabled": false,
+        "before": [
+          170.66666666666666,
+          384,
+          682.6666666666666,
+          384,
+          682.6666666666666,
+          96,
+          170.66666666666666,
+          96
+        ],
+        "after": [
+          170.66666666666666,
+          384,
+          682.6666666666666,
+          384,
+          682.6666666666666,
+          96,
+          170.66666666666666,
+          96
+        ]
+      },
+      "toolVideoLens": {
+        "a": 1,
+        "b": 1,
+        "F": 1,
+        "scale": 1
+      },
+      "toolVideoFov": {
+        "x": 1,
+        "y": 1
+      },
+      "toolVideoResolution": null,
+      "toolWebcamUrl": "",
+      "toolFeedUnits": "mm/min",
+      "toolTestSValue": 1,
+      "toolTestDuration": 0,
+      "gcodeStart": "G21\nG90\n",
+      "gcodeEnd": "M2\nG0Z50\nG0X0Y300\nM911G4P500M912G4P100M911G4P100M912G4P50M911G4P100M912",
+      "gcodeHoming": "G1Z60F1000S0\nG92Z50\nG28X0Y0\nM911G4P100M912G4P50M911G4P100M912",
+      "gcodeToolOn": "",
+      "gcodeToolOff": "",
+      "gcodeSMaxValue": 1,
+      "gcodeCheckSizePower": 1,
+      "gcodeToolTestPower": 50,
+      "gcodeToolTestDuration": 1000,
+      "connectVia": "USB",
+      "connectBaud": "115200",
+      "jogStepsize": 1,
+      "jogFeedXY": 6000,
+      "jogFeedZ": 1000,
+      "macros": {
+        "*GotoXY0": {
+          "label": "Goto XY zero",
+          "gcode": "G0 X0Y0",
+          "keybinding": "f1"
+        },
+        "*LaserOff": {
+          "label": "LASER OFF",
+          "gcode": "M5",
+          "keybinding": "f2"
+        }
+      },
+      "machineBottomLeftX": 0,
+      "machineBottomLeftY": 0,
+      "machineAEnabled": false,
+      "toolGridWidth": 500,
+      "toolGridHeight": 300
+    }
+  }
+}

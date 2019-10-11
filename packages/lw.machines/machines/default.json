@@ -1,0 +1,48 @@
+{
+  "*gen_grbl": {
+    "machineLabel": "Generic GRBL machine",
+    "machineDescription": "Use this if you have a GRBL machine",
+    "settings": {
+      "machineWidth": 300,
+      "machineHeight": 200,
+      "machineBeamDiameter": 0.2,
+      "toolSafetyLockDisabled": false,
+      "toolCncMode": false,
+      "toolImagePosition": "BL",
+      "toolUseNumpad": false,
+      "toolUseVideo": false,
+      "toolWebcamUrl": "",
+      "gcodeStart": "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\nM4 S0       ; Enable Laser/Spindle (0 power)\r\n",
+      "gcodeEnd": "M5          ; Disable Laser/Spindle\r\n",
+      "gcodeHoming": "$H",
+      "gcodeToolOn": "",
+      "gcodeToolOff": "",
+      "gcodeSMaxValue": 1000,
+      "toolGridWidth": 400,
+      "toolGridHeight": 300
+    }
+  },
+  "*gen_smoothie": {
+    "machineLabel": "Generic SMOOTHIE machine",
+    "machineDescription": "Use this if you have a SMOOTHIE machine",
+    "settings": {
+      "machineWidth": 300,
+      "machineHeight": 200,
+      "machineBeamDiameter": 0.2,
+      "toolSafetyLockDisabled": false,
+      "toolCncMode": false,
+      "toolImagePosition": "BL",
+      "toolUseNumpad": false,
+      "toolUseVideo": false,
+      "toolWebcamUrl": "",
+      "gcodeStart": "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
+      "gcodeEnd": "M2          ; End\r\n",
+      "gcodeHoming": "",
+      "gcodeToolOn": "",
+      "gcodeToolOff": "",
+      "gcodeSMaxValue": 1,
+      "toolGridWidth": 400,
+      "toolGridHeight": 300
+    }
+  }
+}
