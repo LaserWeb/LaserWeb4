@@ -10,8 +10,8 @@ import { OPERATION_INITIALSTATE } from './operation'
 
 import CommandHistory from '../components/command-history'
 
-export const MATERIALDB_INITIALSTATE = require("../data/lw.materials/material-database.json");
-export const MATERIALDB_SCHEMA = require("../data/lw.materials/material-database.spec.json");
+export const MATERIALDB_INITIALSTATE = require("lw.materials/material-database.json");
+export const MATERIALDB_SCHEMA = require("lw.materials/material-database.spec.json");
 
 import { confirm } from '../components/laserweb'
 import stringify from 'json-stringify-pretty-compact';
@@ -208,9 +208,9 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
             let preset_name = action.payload.preset.name || action.payload.name || ("** " + generateName() + " **");
             let existingPreset = grouping.presets.find((preset) => preset.name === preset_name);
             if (!existingPreset) {
-                
+
                 let attrs = Object.assign(
-                                PRESET_TEMPLATE(action.payload.preset.type), 
+                                PRESET_TEMPLATE(action.payload.preset.type),
                                 { name:  preset_name, params: omit(action.payload.preset,['id','documents'])}
                              );
                 CommandHistory.write(`Creating preset "${preset_name}" into grouping "${grouping.name}"`,CommandHistory.SUCCESS)
@@ -222,7 +222,7 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { 
+                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => {
                     return  (vendor._locked!==false) ? { ...vendor, _locked: true } : vendor
                 });
                 let currentState = action.payload.materialDatabase || []

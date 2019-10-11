@@ -1,0 +1,21 @@
+{
+  "name": "lw.materials",
+  "version": "0.0.0",
+  "description": "LaserWeb Material Database...",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LaserWeb/lw.materials.git"
+  },
+  "keywords": [
+    "laser",
+    "cnc",
+    "cam",
+    "..."
+  ],
+  "author": "Laserweb Dev Team",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/LaserWeb/lw.materials/issues"
+  },
+  "homepage": "https://github.com/LaserWeb/lw.materials#readme"
+}

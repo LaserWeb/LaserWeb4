@@ -1,0 +1,89 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {},
+    "id": "http://cncpro.co/specs/material-database.json",
+    "items": {
+        "id": "/items",
+        "properties": {
+            "id": {
+                "id": "/items/properties/id",
+                "type": "string"
+            },
+            "name": {
+                "id": "/items/properties/name",
+                "type": "string"
+            },
+            "notes": {
+                "id": "/items/properties/notes",
+                "type": ["string","null"]
+            },
+            "presets": {
+                "id": "/items/properties/presets",
+                "items": {
+                    "id": "/items/properties/presets/items",
+                    "properties": {
+                        "id": {
+                            "id": "/items/properties/presets/items/properties/id",
+                            "type": "string"
+                        },
+                        "machine_profile": {
+                            "id": "/items/properties/presets/items/properties/machine_profile",
+                            "type": ["string","null"]
+                        },
+                        "name": {
+                            "id": "/items/properties/presets/items/properties/name",
+                            "type": "string"
+                        },
+                        "notes": {
+                            "id": "/items/properties/presets/items/properties/notes",
+                            "type": ["string","null"]
+                        },
+                        "params": {
+                            "additionalProperties": true,
+                            "id": "/items/properties/presets/items/properties/params",
+                            "properties": {},
+                            "type": "object"
+                        },
+                        "type": {
+                            "id": "/items/properties/presets/items/properties/type",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "params",
+                        "type",
+                        "id"
+                    ],
+                    "type": "object"
+                },
+                "type": "array"
+            },
+            "template": {
+                "id": "/items/properties/template",
+                "properties": {
+                    "params": {
+                        "additionalProperties": true,
+                        "id": "/items/properties/template/properties/params",
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "type": {
+                        "id": "/items/properties/template/properties/type",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "params","type"
+                ],
+                "type": "object"
+            }
+        },
+        "required": [
+            "presets",
+            "id",
+            "template"
+        ],
+        "type": "object"
+    },
+    "type": "array"
+}
