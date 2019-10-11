@@ -1,0 +1,44 @@
+[
+    {
+        "id":"light_v_engrave", 
+        "name":"Light Vector Engraving",
+        "notes":"Just scribing",
+        "template":{    
+            "type": "Laser Fill Path",
+            "params":{
+                "laserPower":"30",
+                "passes":"1",
+                "cutRate":"1500"
+            }
+        },
+        "_locked":false,
+        "presets":[
+            {
+                "id":"baltic_plywood",
+                "machine_profile":null,
+                "name": "Baltic Birch Plywood",
+                "notes": null,
+			    "type": "Laser Fill Path",
+                "params":{
+                    "filterFillColor":"green",
+                    "laserPower":"40",
+                    "passes":"1",
+                    "cutRate":"2000"
+                }
+            },
+            {
+                "id":"cast_acrylic",
+                "machine_profile":null,
+                "name": "Cast Acrylic",
+                "notes": null,
+                "type": "Laser Fill Path",
+                "params":{
+                    "filterFillColor":"green",
+                    "laserPower":"20",
+                    "passes":"1",
+                    "cutRate":"1500"
+                }
+            }
+        ]
+    } 
+]
