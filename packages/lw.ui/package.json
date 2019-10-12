@@ -1,5 +1,5 @@
 {
-  "name": "laserweb",
+  "name": "lw.ui",
   "version": "4.0.997",
   "description": "LaserWeb",
   "main": "./src/index.js",
