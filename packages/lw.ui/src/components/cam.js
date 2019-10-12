@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Parser from '../lib/lw.svg-parser/parser';
+import { Parser } from 'lw.svg-parser';
 import DxfParser from 'dxf-parser';
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -128,14 +128,14 @@ class Cam extends React.Component {
         );
     }
 
-    
+
 
     render() {
         let { settings, documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
         let someSelected=documents.some((i)=>(i.selected));
-        
+
         return (
             <div style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div className="panel panel-danger" style={{ marginBottom: 0 }}>
@@ -166,14 +166,14 @@ class Cam extends React.Component {
                                         <label>Documents {Info(<small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>)}</label>
                                     </td>
                                     <td style={{display:"flex", justifyContent: "flex-end" }}>
-                                        
+
                                         <FileField style={{   position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} settings={settings} documents={documents} operations={operations} /> : undefined}
                                         </FileField>&nbsp;
                                     </td>
                                 </tr>
-                               
+
                             </tbody>
                         </table>
                     </div>
@@ -182,7 +182,7 @@ class Cam extends React.Component {
                     <div style={{height:"100%", display:"flex", flexDirection:"column"}} >
                         <div style={{ overflowY: 'auto', flexGrow:1 }}><Documents documents={documents} filter={this.state.filter} toggleExpanded={toggleDocumentExpanded} /></div>
                         {documents.length ? <ButtonToolbar bsSize="xsmall" bsStyle="default">
-                            
+
                             <ButtonGroup>
                                 <Button  bsStyle="info" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(true))}} title="Select all"><Icon name="cubes"/></Button>
                                 <Button  bsStyle="default" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(false))}} title="Select none"><Icon name="cubes"/></Button>

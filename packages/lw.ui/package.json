@@ -75,6 +75,7 @@
     "lw.materials": "0.0.0",
     "lw.raster-to-gcode": "git+https://github.com/LaserWeb/lw.raster-to-gcode.git",
     "lw.svg-curves": "^0.1.0",
+    "lw.svg-parser": "0.3.2",
     "lw.svg-path": "^0.1.0",
     "marked": "^0.3.9",
     "npm-run-all": "^4.1.5",
@@ -108,7 +109,7 @@
     "vex-js": "^3.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^3.1.11",
+    "webpack-dev-server": "2.11.1",
     "webrtc-adapter": "^3.1.5",
     "worker-loader": "^0.8.1",
     "xregexp": "^4.2.4"
