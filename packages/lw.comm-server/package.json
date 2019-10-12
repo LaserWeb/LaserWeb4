@@ -1,12 +1,15 @@
 {
   "name": "lw.comm-server",
-  "version": "4.0.136",
+  "version": "4.0.130",
   "license": "AGPL-3.0",
   "description": "Unified communications server for LaserWeb/CNCweb",
   "author": "github.com/LaserWeb",
   "contributors": [
-    "Claudio Prezzi <claudio.prezzi@gmail.com>",
-    "Peter van der Walt <peter.plaaswerf@gmail.com>"
+    "Peter van der Walt <peter.plaaswerf@gmail.com>",
+    "Sébastien Mischler <sebastien@onlfait.ch>",
+    "Todd Fleming <jscut.org>",
+    "Jorge Robles <jorge.diego.robles@gmail.com>",
+    "Claudio Prezzi <claudio.prezzi@gmail.com>"
   ],
   "repository": {
     "type": "git",
@@ -89,6 +92,9 @@
           "type": "file"
         }
       ]
+    },
+    "linux": {
+      "category": "Graphics"
     }
   }
 }

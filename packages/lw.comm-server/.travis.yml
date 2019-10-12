@@ -4,7 +4,18 @@ node_js:
 sudo: required
 dist: trusty
 before_install:
-  - sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
+  - sudo apt-get install --no-install-recommends -yqq icnsutils graphicsmagick xz-utils
+#  - sudo dpkg --add-architecture i386
+#  - sudo add-apt-repository ppa:ubuntu-wine/ppa -y
+#  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+#  - sudo apt-get update -qq
+#  - sudo dpkg --get-selections | grep postgres | sed 's#[[:blank:]]install##g' | while read -r line ; do sudo apt-mark hold $line; done
+#  - sudo apt-get dist-upgrade -yqq
+#  - sudo apt-get install --no-install-recommends -yqq wine1.8
+#  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+#  - echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
+#  - sudo apt-get update -qq
+#  - sudo apt-get install --no-install-recommends -yqq mono-devel ca-certificates-mono
   - cd ../
   - git clone https://github.com/LaserWeb/LaserWeb4.git
   - cd LaserWeb4
@@ -16,12 +27,15 @@ before_install:
   - npm install
   - ./node_modules/.bin/electron-rebuild
   - npm run dist
+#  - npm run distwinx64
 branches:
   only:
     - electron_bundler
 after_success:
   - rm -rf node_modules
   - rm -rf dist/linux-unpacked
+#  - rm -rf dist/win-unpacked
+#  - rm -rf dist/latest.yml
   - rm -rf app
 addons:
   artifacts: true

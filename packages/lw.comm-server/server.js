@@ -96,6 +96,17 @@ var xPos = 0.00, yPos = 0.00, zPos = 0.00, aPos = 0.00;
 var xOffset = 0.00, yOffset = 0.00, zOffset = 0.00, aOffset = 0.00;
 var has4thAxis = false;
 
+
+//Cartesian to Polar Transformation
+var W = 795;
+var X = 290;
+var Y = 240;
+var A = (Math.sqrt(Math.pow(X, 2) + Math.pow(Y, 2))).toFixed(config.posDecimals);
+var B = (Math.sqrt(Math.pow(W-X, 2) + Math.pow(Y, 2))).toFixed(config.posDecimals);
+var lastX = false, lastY = false;
+var polarTransformation = false;     // transform x/y to a/b for polargraph
+
+
 require('dns').lookup(require('os').hostname(), function (err, add, fam) {
     writeLog(chalk.green(' '), 0);
     writeLog(chalk.green('***************************************************************'), 0);
@@ -155,9 +166,14 @@ io.sockets.on('connection', function (appSocket) {
     connections.push(appSocket);
     writeLog(chalk.yellow('App connected! (id=' + connections.indexOf(appSocket) + ')'), 1);
 
+    if (isElectron()){
+        appSocket.emit('data', 'LaserWeb running as Electron App');
+        appSocket.emit('data', 'App path is ' + path.join(electronApp.getPath('userData')));
+    }
+
     // send supported interfaces
     appSocket.emit('interfaces', supportedInterfaces);
-    
+
     // check available ports
     serialport.list(function (err, ports) {
         portsList = ports;
@@ -190,7 +206,7 @@ io.sockets.on('connection', function (appSocket) {
     } else {
         appSocket.emit('connectStatus', 'Connect');
     }
-    
+
     appSocket.on('firstLoad', function () {
         writeLog(chalk.yellow('INFO: ') + chalk.blue('FirstLoad called'), 1);
         appSocket.emit('serverConfig', config);
@@ -374,7 +390,6 @@ io.sockets.on('connection', function (appSocket) {
                 });
 
                 parser.on('data', function (data) {
-                    //data = data.toString().trimStart();
                     writeLog('Recv: ' + data, 3);
                     if (data.indexOf('ok') === 0) { // Got an OK so we are clear to send
                         if (firmware === 'grbl') {
@@ -927,7 +942,7 @@ io.sockets.on('connection', function (appSocket) {
                     writeLog(chalk.yellow('INFO: ') + chalk.blue('Telnet connected to ' + connectedIp), 1);
                     isConnected = true;
                     connectedTo = connectedIp;
-                    
+
                     // Start interval for qCount messages to appSocket clients
 //                    queueCounter = setInterval(function () {
 //                        io.sockets.emit('qCount', gcodeQueue.length);
@@ -1326,7 +1341,7 @@ io.sockets.on('connection', function (appSocket) {
                 machineSocket = new WebSocket('ws://'+connectedIp+'/'); // connect to ESP websocket
                 io.sockets.emit('connectStatus', 'opening:' + connectedIp);
 
-                // ESP socket evnets -----------------------------------------------        
+                // ESP socket evnets -----------------------------------------------
                 machineSocket.on('open', function (e) {
                     io.sockets.emit('activeIP', connectedIp);
                     io.sockets.emit('connectStatus', 'opened:' + connectedIp);
@@ -1856,7 +1871,22 @@ io.sockets.on('connection', function (appSocket) {
                                 }
                             }
                         }
-                        //console.log(line);
+                        if (polarTransformation) {
+                            writeLog('Before: ' + tosend, 1);
+                            if (tosend.indexOf('X') >= 0) {
+                                lastX = parseFloat(tosend.substr(tosend.indexOf('X')+1));
+                            }
+                            if (tosend.indexOf('Y') >= 0) {
+                                lastY = parseFloat(tosend.substr(tosend.indexOf('Y')+1));
+                            }
+                            if (tosend.indexOf('X') >= 0 || tosend.indexOf('Y') >= 0) {
+                                var point = polarTransform(lastX, lastY);
+                                writeLog('polarTransform(' + lastX + ', ' + lastY + ') = ' + point.x + '/' + point.y, 1);
+                                tosend = tosend.replace('X'+lastX, 'X'+point.x);
+                                tosend = tosend.replace('Y'+lastY, 'Y'+point.y);
+                            }
+                            writeLog('After: ' + tosend, 1);
+                        }
                         addQ(tosend);
                     }
                 }
@@ -1867,10 +1897,10 @@ io.sockets.on('connection', function (appSocket) {
                         io.sockets.emit('qCount', gcodeQueue.length - queuePointer);
                     }, 500);
                     io.sockets.emit('runStatus', 'running');
-					
+
 					//NAB - Added to support action to run befor job starts
                     doJobAction(config.jobOnStart);
-					
+
                     send1Q();
                 }
             }
@@ -1879,6 +1909,11 @@ io.sockets.on('connection', function (appSocket) {
             io.sockets.emit('connectStatus', 'Connect');
             writeLog(chalk.red('ERROR: ') + chalk.blue('Machine connection not open!'), 1);
         }
+    });
+
+    appSocket.on('currentQueue', function (data) {
+        writeLog(chalk.red('Sending GCODE queue to Frontend'));
+        io.sockets.emit('gcodeQueue', gcodeQueue);
     });
 
     appSocket.on('runCommand', function (data) {
@@ -1890,6 +1925,21 @@ io.sockets.on('connection', function (appSocket) {
                     var line = data[i].split(';'); // Remove everything after ; = comment
                     var tosend = line[0].trim();
                     if (tosend.length > 0) {
+                        if(polarTransformation) {
+                            writeLog(tosend, 1);
+                            if (tosend.indexOf('X') >= 0) {
+                                lastX = parseFloat(tosend.substr(tosend.indexOf('X')+1));
+                            }
+                            if (tosend.indexOf('Y') >= 0) {
+                                lastY = parseFloat(tosend.substr(tosend.indexOf('Y')+1));
+                            }
+                            if (tosend.indexOf('X') >= 0 || tosend.indexOf('Y') >= 0) {
+                                var point = polarTransform(lastX, lastY);
+                                writeLog('polarTransform(' + lastX + ', ' + lastY + ') = ' + point.x + '/' + point.y, 1);
+                                tosend = tosend.replace('X'+lastX, 'X'+point.x);
+                                tosend = tosend.replace('Y'+lastY, 'Y'+point.y);
+                            }
+                        }
                         addQ(tosend);
                     }
                 }
@@ -1915,7 +1965,7 @@ io.sockets.on('connection', function (appSocket) {
             if (data.length > 2) {
                 feed = parseInt(data[2]);
                 if (feed) {
-                    feed = 'F' + feed;   
+                    feed = 'F' + feed;
                 }
             }
             if (dir && dist && feed) {
@@ -1962,7 +2012,7 @@ io.sockets.on('connection', function (appSocket) {
                     break;
                 }
             } else {
-                writeLog(chalk.red('ERROR: ') + chalk.blue('Invalid params!'), 1);    
+                writeLog(chalk.red('ERROR: ') + chalk.blue('Invalid params!'), 1);
             }
         } else {
             io.sockets.emit("connectStatus", 'closed');
@@ -2024,7 +2074,7 @@ io.sockets.on('connection', function (appSocket) {
                     break;
                 }
             } else {
-                writeLog(chalk.red('error') + chalk.blue('Invalid params!'), 1);    
+                writeLog(chalk.red('error') + chalk.blue('Invalid params!'), 1);
                 io.sockets.emit('data', 'Invalid jogTo() params!');
             }
         } else {
@@ -2320,7 +2370,7 @@ io.sockets.on('connection', function (appSocket) {
             writeLog(chalk.red('ERROR: ') + chalk.blue('Machine connection not open!'), 1);
         }
     });
-    
+
     appSocket.on('feedOverride', function (data) {
         if (isConnected) {
             switch (firmware) {
@@ -2765,10 +2815,10 @@ io.sockets.on('connection', function (appSocket) {
             blocked = false;
             paused = false;
             io.sockets.emit('runStatus', 'stopped');
-			
+
 			//NAB - Added to support action to run after job aborts
             doJobAction(config.jobOnAbort);
-			
+
         } else {
             io.sockets.emit("connectStatus", 'closed');
             io.sockets.emit('connectStatus', 'Connect');
@@ -2980,7 +3030,7 @@ io.sockets.on('connection', function (appSocket) {
             }
         }
     });
-    
+
     appSocket.on('clearAlarm', function (data) { // Clear Alarm
         if (isConnected) {
             data = parseInt(data);
@@ -3067,7 +3117,7 @@ io.sockets.on('connection', function (appSocket) {
             writeLog(chalk.red('ERROR: ') + chalk.blue('Machine connection not open!'), 1);
         }
     });
-    
+
     appSocket.on('resetMachine', function () {
         if (isConnected) {
             writeLog(chalk.red('Reset Machine'), 1);
@@ -3098,7 +3148,7 @@ io.sockets.on('connection', function (appSocket) {
             writeLog(chalk.red('ERROR: ') + chalk.blue('Machine connection not open!'), 1);
         }
     });
-    
+
     appSocket.on('closePort', function (data) { // Close machine port and dump queue
         if (isConnected) {
             switch (connectionType) {
@@ -3148,12 +3198,12 @@ io.sockets.on('connection', function (appSocket) {
             writeLog(chalk.red('ERROR: ') + chalk.blue('Machine connection not open!'), 1);
         }
     });
-    
+
     appSocket.on('disconnect', function () { // App disconnected
         let id = connections.indexOf(appSocket);
         writeLog(chalk.yellow('App disconnected! (id=' + id + ')'), 1);
         connections.splice(id, 1);
-    });    
+    });
 
 }); // End appSocket
 
@@ -3247,7 +3297,7 @@ function send1Q() {
                     gcodeLen = gcodeQueue[queuePointer].length;
                     if (gcodeLen < spaceLeft) {
                         // Add gcode to send buffer
-                        gcodeLine += gcodeQueue[queuePointer]; 
+                        gcodeLine += gcodeQueue[queuePointer];
                         queuePointer++;
                         spaceLeft -= gcodeLen;
                     } else {
@@ -3330,9 +3380,9 @@ function send1Q() {
             startTime = null;
             runningJob = null;
             io.sockets.emit('runStatus', 'finished');
-			
+
 			//NAB - Added to support action to run after job completes
-            doJobAction(config.jobOnFinish);			
+            doJobAction(config.jobOnFinish);
         }
     } else {
         io.sockets.emit("connectStatus", 'closed');
@@ -3395,10 +3445,86 @@ function doJobAction(action) {
 
     }
 
+
+}
+
+
+
+// Electron app
+const electron = require('electron');
+// Module to control application life.
+const electronApp = electron.app;
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
+var mainWindow = null;
+
+const shouldQuit = electronApp.makeSingleInstance((commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+if (shouldQuit) {
+  electronApp.quit();
+}
+
+// Create myWindow, load the rest of the app, etc...
+if (electronApp) {
+    // Module to create native browser window.
+    const BrowserWindow = electron.BrowserWindow;
+
+    function createWindow() {
+        // Create the browser window.
+        mainWindow = new BrowserWindow({width: 1200, height: 900, fullscreen: false, center: true, resizable: true, title: "LaserWeb", frame: true, autoHideMenuBar: true, icon: '/public/favicon.png' });
+
+        // and load the index.html of the app.
+        mainWindow.loadURL('http://127.0.0.1:' + config.webPort);
+
+        // Emitted when the window is closed.
+        mainWindow.on('closed', function () {
+            // Dereference the window object, usually you would store windows
+            // in an array if your app supports multi windows, this is the time
+            // when you should delete the corresponding element.
+            mainWindow = null;
+        });
+        mainWindow.once('ready-to-show', () => {
+          mainWindow.show()
+        })
+        mainWindow.maximize()
+        //mainWindow.webContents.openDevTools() // Enable when testing
+    };
+
+    electronApp.commandLine.appendSwitch("--ignore-gpu-blacklist");
+    electronApp.commandLine.appendSwitch("--disable-http-cache");
+    // This method will be called when Electron has finished
+    // initialization and is ready to create browser windows.
+    // Some APIs can only be used after this event occurs.
+
+
+    electronApp.on('ready', createWindow);
+
+    // Quit when all windows are closed.
+    electronApp.on('window-all-closed', function () {
+        // On OS X it is common for applications and their menu bar
+        // to stay active until the user quits explicitly with Cmd + Q
+        if (process.platform !== 'darwin') {
+            electronApp.quit();
+        }
+    });
+
+    electronApp.on('activate', function () {
+        // On OS X it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
+        if (mainWindow === null) {
+            createWindow();
+        }
+    });
 }
 
 }
 
-if (require.main === module) { 
-    exports.LWCommServer(config); 
+if (require.main === module) {
+    exports.LWCommServer(config);
 }
