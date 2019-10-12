@@ -1,0 +1,18 @@
+[Unit]
+Description=LaserWeb4 server
+
+[Service]
+ExecStart=/usr/bin/node /home/pi/lw.comm-server/server.js
+Restart=always
+RestartSec=10                       # Restart service after 10 seconds if node service crashes
+StandardOutput=syslog               # Output to syslog
+StandardError=syslog                # Output to syslog
+SyslogIdentifier=lw.comm-server
+WorkingDirectory=/home/pi/lw.comm-server
+User=pi
+#Group=<alternate group>
+Environment=NODE_ENV=production PORT=8000
+
+[Install]
+WantedBy=multi-user.target
+

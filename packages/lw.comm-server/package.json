@@ -1,0 +1,94 @@
+{
+  "name": "lw.comm-server",
+  "version": "4.0.136",
+  "license": "AGPL-3.0",
+  "description": "Unified communications server for LaserWeb/CNCweb",
+  "author": "github.com/LaserWeb",
+  "contributors": [
+    "Claudio Prezzi <claudio.prezzi@gmail.com>",
+    "Peter van der Walt <peter.plaaswerf@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LaserWeb/lw.comm-server.git"
+  },
+  "devDependencies": {
+    "copyfiles": "1.2.x",
+    "electron": "1.8.x",
+    "electron-builder": "14.5.x",
+    "electron-rebuild": "1.8.x",
+    "ncp": "2.0.x"
+  },
+  "dependencies": {
+    "chalk": "*",
+    "dotenv": "8.x",
+    "node": "^10.16.3",
+    "node-static": "*",
+    "request": "*",
+    "serialport": "7.x",
+    "socket.io": "1.7.x",
+    "ws": "^1.1.x"
+  },
+  "bugs": {
+    "url": "https://github.com/LaserWeb/lw.comm-server/issues"
+  },
+  "homepage": "https://github.com/LaserWeb/lw.comm-server#readme",
+  "main": "server.js",
+  "scripts": {
+    "start": "echo \"Please run 'npm run dist' to create a local installer, or run 'npm run nightlylinux' or 'npm run nightlywindows' to build distributable installers for each platform\" ",
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "update_lw4": "git rm app/ -r -f && cp ../LaserWeb4/dist/. app/ -r -u && git add app/",
+    "dist": "npm run copy && build",
+    "distmac": "npm run copy && build --mac ",
+    "distwinx86": "npm run copy && build --win --ia32 ",
+    "distwinx64": "npm run copy && build --win --x64",
+    "distlinx86": "npm run copy && build --linux --ia32 ",
+    "distlinx64": "npm run copy && build --linux --x64",
+    "copy": "ncp ../LaserWeb4/dist/ app/ --limit=6",
+    "nightlywindows": "cd ../LaserWeb4 && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distwinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win64/ && cd .. && npm run distwinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win32/ && cd ../../LaserWeb4-Binaries",
+    "nightlylinux": "cd ../LaserWeb4 && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distlinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux64/ && cd .. && npm run distlinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux32/ && cd ../../LaserWeb4-Binaries"
+  },
+  "keywords": [
+    "laserweb",
+    "cncweb",
+    "grbl",
+    "smoothieware",
+    "tinyg",
+    "usb",
+    "serial",
+    "ethernet",
+    "gateway",
+    "ESP8266"
+  ],
+  "build": {
+    "appId": "xyz.laserweb",
+    "productName": "LaserWeb",
+    "asar": true,
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "icon": "app/favicon.ico"
+    },
+    "mac": {
+      "icon": "build/icon.icns",
+      "category": "public.app-category.graphics-design"
+    },
+    "dmg": {
+      "icon": "build/icon.icns",
+      "contents": [
+        {
+          "x": 410,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 150,
+          "type": "file"
+        }
+      ]
+    }
+  }
+}
