@@ -1,12 +1,12 @@
 # Laserweb guide to contribution #
 
 ## Documentation
-For more documentation, go to [CNCpro.co](http://cncpro.co)
+For more documentation, go to [laserweb.yurl.ch](https://laserweb.yurl.ch)
 
 ## Community
-Check the [LaserWeb/CNCWeb Google+ community](https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.
+Please check [The Maker Forums](https://forum.makerforums.info/c/laserweb-cncweb) for discussion on LaserWeb / CNCweb.
 
-Other than that, this version is early, so check the [Issues tab](https://github.com/openhardwarecoza/LaserWeb4/issues) for "details".
+Other than that, this version is mostly stable and not actively developed at the moment.
 
 ## How to contribute ?
 
