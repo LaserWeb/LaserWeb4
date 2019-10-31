@@ -1,17 +1,8 @@
 # LaserWeb4
 
+Development is currently in the dev-es6 branch. Documentation is at [laserweb.yurl.ch]https://laserweb.yurl.ch)
 
-If you'd like Push access to the repo, please just ask @openhardwarecoza (:  
-
-Development is currently in the dev-es6 branch. Documentation is at [CNCpro.co]9http://cncpro.co)
-
-
-Please remember that this is a totally non profit open source project, all contributors and testers are volunteers who share a love of all things making. lasers included. That being said, if history has anything to say about it, this project should advance to a usable state very quickly. Check the LaserWeb/CNCWeb Google+ community (https://plus.google.com/u/0/communities/115879488566665599508) for updates on the progress of this iteration of Laserweb.
-
-Other than that, this is early, so check the Issues tab for "details"
-
-
-Head over https://github.com/openhardwarecoza/LaserWeb3/ instead if you'd like to use LaserWeb - We'll let you know when LW4 is ready for Prime Time 
+Please remember that this is a totally non profit open source project, all contributors and testers are volunteers who share a love of all things making. Lasers included. If you have questions or like to discuss about LaserWeb, please head over to the LaserWeb / CNCWeb community at https://forum.makerforums.info/c/laserweb-cncweb.
 
 
 # LaserWeb/CNCWeb
@@ -33,4 +24,4 @@ By using this software, the user accepts complete responsibility for each and ev
 
 ## Supported firmwares
 
-TBD - Smoothie of course. Grbl, Marlin, TinyG?
+Grbl, Smoothieware, Marlin, TinyG 
