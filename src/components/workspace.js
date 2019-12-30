@@ -426,6 +426,7 @@ class FloatingControls extends React.Component {
                                 <td>Rot</td>
                                 <td rowSpan={3} className="origin-controls">
                                     <table>
+                                    <tbody>
                                     <tr>
                                     <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(true); this.setZeroY(false); } } title="Align northwest of origin">&#x2198;</button></td>
                                     <td><button className="btn btn-xs" onClick={ e => this.setZeroY(false) } title="Align north of origin">&#x2193;</button></td>
@@ -441,6 +442,7 @@ class FloatingControls extends React.Component {
                                     <td><button className="btn btn-xs" onClick={ e => this.setZeroY(true) } title="Align south of origin">&#x2191;</button></td>
                                     <td><button className="btn btn-xs" onClick={ e => { this.setZeroX(false); this.setZeroY(true); } } title="Align southeast of origin">&#x2196;</button></td>
                                     </tr>
+                                    </tbody>
                                     </table>
                                 </td>
                             </tr>
