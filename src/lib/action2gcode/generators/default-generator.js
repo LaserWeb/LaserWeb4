@@ -34,6 +34,8 @@ class DefaultGenerator extends AbstractGenerator{
 
     if(params.hasOwnProperty("i"))
       gcode = gcode.split("$INTENSITY").join(params.i);
+    if(this.settings.gcodeToolPause)
+      gcode += `${this.settings.gcodeToolPause}\r\n`;
     return gcode;
   }
 

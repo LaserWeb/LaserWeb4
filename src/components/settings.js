@@ -270,6 +270,7 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Gcode End', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', rows: 5, style: { resize: "vertical" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeToolPause', setAttrs: setSettingsAttrs, description: 'Tool Pause(Dwell)', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', rows: 5, style: { resize: "vertical" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeLaserIntensity', setAttrs: setSettingsAttrs, description: 'Laser Intensity', style: { resize: "vertical" } }} />
                         <ToggleField {... { object: this.props.settings, field: 'gcodeLaserIntensitySeparateLine', setAttrs: setSettingsAttrs, description: 'Intensity Separate Line' }} />
@@ -283,7 +284,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', units: '', info: Info(<p className="help-block">
                         Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance
                         </p>,"Gcode Linearization Factor")} } />
-                        
+
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">Grid</h5>
@@ -294,17 +295,17 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
                         <hr/>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
-                        <hr/> 
+                        <hr/>
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
                         X <Label>4</Label> <Label>6</Label><br/>
                         Y <Label>2</Label> <Label>8</Label><br/>
                         Z <Label>+</Label> <Label>-</Label><br/>
                         A <Label>*</Label> <Label>/</Label>
                         </p>,"Jog using Numpad")}} />
-                        
+
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations' }} />
-                        
+
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
                         <hr/>
                         <p className="help-block">Enable Display cache. Disable animations.</p>
@@ -335,7 +336,7 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
 
-                        
+
                     </Panel>
 
                     <Panel collapsible header="Macros" bsStyle="info" eventKey="7">
