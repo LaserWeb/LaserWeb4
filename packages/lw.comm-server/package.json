@@ -40,16 +40,16 @@
   "scripts": {
     "start": "echo \"Please run 'npm run dist' to create a local installer, or run 'npm run nightlylinux' or 'npm run nightlywindows' to build distributable installers for each platform\" ",
     "test": "echo \"Error: no test specified\" && exit 0",
-    "update_lw4": "git rm app/ -r -f && cp ../LaserWeb4/dist/. app/ -r -u && git add app/",
+    "update_lw4": "git rm app/ -r -f && cp ../lw.ui/dist/. app/ -r -u && git add app/",
     "dist": "npm run copy && build",
     "distmac": "npm run copy && build --mac ",
     "distwinx86": "npm run copy && build --win --ia32 ",
     "distwinx64": "npm run copy && build --win --x64",
     "distlinx86": "npm run copy && build --linux --ia32 ",
     "distlinx64": "npm run copy && build --linux --x64",
-    "copy": "ncp ../LaserWeb4/dist/ app/ --limit=6",
-    "nightlywindows": "cd ../LaserWeb4 && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distwinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win64/ && cd .. && npm run distwinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win32/ && cd ../../LaserWeb4-Binaries",
-    "nightlylinux": "cd ../LaserWeb4 && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distlinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux64/ && cd .. && npm run distlinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux32/ && cd ../../LaserWeb4-Binaries"
+    "copy": "ncp ../lw.ui/dist/ app/ --limit=6",
+    "nightlywindows": "cd ../lw.ui && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distwinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win64/ && cd .. && npm run distwinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/win32/ && cd ../../LaserWeb4-Binaries",
+    "nightlylinux": "cd ../lw.ui && git checkout dev-es6 && git pull && npm run installdev && npm run bundle-dev && cd .. && cd lw.comm-server && git checkout electron_bundler && git pull && npm install && npm run distlinx64 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux64/ && cd .. && npm run distlinx86 && cd ./dist && mv *.exe ../../LaserWeb4-Binaries/linux32/ && cd ../../LaserWeb4-Binaries"
   },
   "keywords": [
     "laserweb",
