@@ -8,6 +8,18 @@ Releases are made available on https://github.com/LaserWeb/LaserWeb4-Binaries/
 ## Documentation
 For more documentation, go to the [Wiki](https://github.com/LaserWeb/LaserWeb4/wiki) or our website https://laserweb.yurl.ch
 
+## Docker
+You can run the app in Docker
+- build image:
+```
+docker build -t laserweb4 .
+```
+- run image:
+```
+docker run -it --rm -p 8000:8000 laserweb4
+```
+- connect to app: http://localhost:8000
+
 ## Community
 Please use the community forum on https://forum.makerforums.info/c/laserweb-cncweb for questions and support.
 Please only report confirmed bugs on the git [Issues tab](https://github.com/LaserWeb/LaserWeb4/issues).
