@@ -196,6 +196,14 @@ export class VideoCapture {
             let cameras = [];
             cameras.push({ label: "None", value: null })
             callback(cameras)
+            var lvd = document.getElementById("localvideodevices");
+            if (lvd) {
+              lvd.style.display = "none";
+            }
+            var ndv = document.getElementById("novideodevices");
+            if (ndv) {
+               ndv.style.display = "block";
+            }
         } else {
             let promise = navigator.mediaDevices.enumerateDevices();
             let that = this;
@@ -210,6 +218,14 @@ export class VideoCapture {
             }).catch(function (err) {
                 console.error(err.name + ": " + err.message);
             });
+            var lvd = document.getElementById("localvideodevices");
+            if (lvd) {
+              lvd.style.display = "block";
+            }
+            var ndv = document.getElementById("novideodevices");
+            if (ndv) {
+               ndv.style.display = "none";
+            }
         }
     }
 
