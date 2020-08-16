@@ -315,7 +315,7 @@ class Settings extends React.Component {
 
                         <div id="novideodevices" style={{ display: "none" }}>
                             <h5 className="header">Video Device List Unavailable</h5>
-                            <small className="help-block">This may be due to running over an insecure connection, blocking in browser preferences, or other 3rd party security protections.</small>
+                            <small className="help-block">This may be due to running over an insecure connection, blocking in browser preferences, or other privacy protections.</small>
                         </div>
 
                         <div id="localvideodevices">
