@@ -191,19 +191,42 @@ export class VideoCapture {
     }
 
     getDevices(callback) {
-        let promise = navigator.mediaDevices.enumerateDevices();
-        let that = this;
-        promise.then((devices) => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+            console.log("client camera enumeration not supported");
             let cameras = [];
-            devices.forEach((device) => {
-                if (device.kind == 'videoinput')
-                    cameras.push({ label: device.label.length ? device.label : device.deviceId, value: device.deviceId })
-            })
-            cameras.unshift({ label: "None", value: null })
+            cameras.push({ label: "None", value: null })
             callback(cameras)
-        }).catch(function (err) {
-            console.error(err.name + ": " + err.message);
-        });
+            var lvd = document.getElementById("localvideodevices");
+            if (lvd) {
+              lvd.style.display = "none";
+            }
+            var ndv = document.getElementById("novideodevices");
+            if (ndv) {
+               ndv.style.display = "block";
+            }
+        } else {
+            let promise = navigator.mediaDevices.enumerateDevices();
+            let that = this;
+            promise.then((devices) => {
+                let cameras = [];
+                devices.forEach((device) => {
+                    if (device.kind == 'videoinput')
+                        cameras.push({ label: device.label.length ? device.label : device.deviceId, value: device.deviceId })
+                })
+                cameras.unshift({ label: "None", value: null })
+                callback(cameras)
+            }).catch(function (err) {
+                console.error(err.name + ": " + err.message);
+            });
+            var lvd = document.getElementById("localvideodevices");
+            if (lvd) {
+              lvd.style.display = "block";
+            }
+            var ndv = document.getElementById("novideodevices");
+            if (ndv) {
+               ndv.style.display = "none";
+            }
+        }
     }
 
     scan(deviceId, resolutionId, callback) {
@@ -212,7 +235,7 @@ export class VideoCapture {
         this.getDevices((devices) => {
             console.log("devices found:" + JSON.stringify(devices))
             if (!deviceId) {
-                console.log("video disabled")
+                console.log("client video disabled")
                 this.data = { stream: undefined, deviceId: null, resolutionId: resolutionId || DEFAULT_VIDEO_RESOLUTION, resolutions: [], devices }
                 callback(this.data)
             } else if (deviceId && devices.map((device) => { return device.value }).includes(deviceId)) {
