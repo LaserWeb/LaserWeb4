@@ -58,6 +58,8 @@ class MarlinGenerator extends AbstractGenerator{
         gcode += `${this.settings.gcodeToolOn} ${params.i}\r\n`;
       }
     }
+    if(this.settings.gcodeToolPause && this.settings.gcodeToolPause.length > 0 && (params.hasOwnProperty("i") || params.hasOwnProperty("s")))
+      gcode += `${this.settings.gcodeToolPause}\r\n`;
 
     gcode += prefix;
 

@@ -70,7 +70,7 @@ export const SETTINGS_INITIALSTATE = {
         A: {min: 1, max:50000},
         S: {min: 0, max:30000},
     },
-    
+
     machineXYProbeOffset: 0,
 
     machineZEnabled: false,
@@ -88,7 +88,7 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     forcePxPerInch: false,
     dpiBitmap: 300,
-    
+
 
     toolGridWidth: 500,
     toolGridHeight: 500,
@@ -107,7 +107,7 @@ export const SETTINGS_INITIALSTATE = {
     toolVideoLens: { a: 1, b: 1, F: 1, scale: 1 },
     toolVideoFov: { x: 1, y: 1 },
     toolVideoResolution: "720p(HD)",
-    
+
     toolVideoOMR: false,
     toolVideoOMROffsetX: 0,
     toolVideoOMROffsetY: 0,
@@ -123,6 +123,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeHoming: "",
     gcodeGenerator: "default",
     gcodeToolOn: "",
+    gcodeToolPause: "",
     gcodeToolOff: "",
     gcodeLaserIntensity: 'S',
     gcodeLaserIntensitySeparateLine: false,
