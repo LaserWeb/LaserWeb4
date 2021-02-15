@@ -16,7 +16,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeMoveUnits: 'in:mm/s,mm/min',
     gcodeToolTestPower: 'required|numeric|min:0|max:100',
     gcodeToolTestDuration: 'required|numeric|min:0',
-    gcodeConcurrency: 'required|numeric|min:1|max:5',
+    gcodeConcurrency: 'required|numeric|min:1|max:15',
     gcodeCurvePrecision: 'required|numeric|min:0.1|max:2',
 
     machineZEnabled: 'boolean',
