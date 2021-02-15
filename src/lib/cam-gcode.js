@@ -57,6 +57,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     const workers = [];
     let jobIndex = 0;
 
+    let startCode = "";
+    let endCode = "";
+    let laserOps = false;
+    let millOps = false;
+
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = expandHookGCode(operations[opIndex]);
 
@@ -132,23 +137,33 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                     let { geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages } = preflight;
 
                     if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
-
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type === 'Laser Raster') {
-
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, (gcode)=>{jobDone(gcode,cb)}, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type === 'Laser Raster Merge') {
-
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         getLaserRasterMergeGcodeFromOp(settings, documentCacheHolder, opIndex, op, filteredDocIds, showAlert, (gcode) => { jobDone(gcode, cb) }, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type.substring(0, 5) === 'Mill ') {
-
+                        millOps = true;
+                        if (startCode === "") startCode = settings.gcodeMillStart;
+                        if (endCode === "") endCode = settings.gcodeMillEnd;
                         invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type.substring(0, 6) === 'Lathe ') {
-
+                        millOps = true;
+                        if (startCode === "") startCode = settings.gcodeMillStart;
+                        if (endCode === "") endCode = settings.gcodeMillEnd;
                         invokeWebWorker(require('worker-loader!./workers/cam-lathe.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else {
@@ -183,8 +198,12 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     QE.start((err) => {
         progress(100)
         let ellapsed=(new Date().getTime()-starttime)/1000;
+        if (laserOps && millOps) {
+            showAlert("Mixed operation types detected.","warning");
+            showAlert("Mixing Laser and Mill/Lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want!","danger");
+        }
         showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
-        done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
+        done(startCode + gcode.join('\r\n') + endCode);
     })
 
 

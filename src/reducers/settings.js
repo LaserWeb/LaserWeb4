@@ -119,7 +119,9 @@ export const SETTINGS_INITIALSTATE = {
     toolTestDuration: 0,
 
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeEnd: "M5          ; Switch tool offEnd\r\n",
+    gcodeMillStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
+    gcodeEnd: "M5          ; Switch tool off\r\n",
+    gcodeMillEnd: "M5          ; Switch tool off\r\n",
     gcodeHoming: "",
     gcodeGenerator: "default",
     gcodeToolOn: "",
