@@ -91,6 +91,7 @@ export const OPERATION_DEFAULTS = (state) => {
     if (!state) state = GlobalStore().getState()
     return {
         laserDiameter: state.settings.machineBeamDiameter,
+        lineDistance: state.settings.machineBeamDiameter,
         useBlower: state.settings.machineBlowerEnabled,
         startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
     }
