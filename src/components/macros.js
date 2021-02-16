@@ -95,6 +95,7 @@ export class Macros extends React.Component {
 
         let errors = this.getErrors(this.state);
 
+// style: { resize: "vertical", fontFamily: "monospace, monospace" } style={{resize: "vertical"}}  style="resize: vertical, fontFamily: monospace, monospace;"
         return (
             <div className="macros">
                 <small className="help-block">Append new key binding to Gcode. App must be reloaded to take effect</small>
@@ -107,7 +108,7 @@ export class Macros extends React.Component {
                 <ButtonGroup>
                     {this.metakeys.map((meta, i) => { return <Button key={i} bsSize="xsmall" bsStyle={(this.state.keybinding.indexOf(meta) !== -1) ? 'primary' : 'default'} onClick={(e) => this.handleMeta(e, meta)}>{meta}</Button> })}
                 </ButtonGroup>
-                <FormControl componentClass="textarea" ref="gcode" placeholder="Gcode" value={this.state.gcode} onChange={(e) => this.handleFormChange(e, 'gcode')} />
+                <FormControl style={{resize: "vertical", fontFamily: "monospace, monospace"}} componentClass="textarea" ref="gcode" placeholder="Gcode" value={this.state.gcode} onChange={(e) => this.handleFormChange(e, 'gcode')} />
                 <Button bsStyle="primary" disabled={(errors !== undefined) || this.state._locked} onClick={(e) => this.handleAppend(e)} style={{ float: "left" }} title={JSON.stringify(errors)}><Icon name="share" /> Set</Button>
                 <Button bsStyle="danger" disabled={this.state._locked} title={this.state._locked ? 'This is a locked macro' : undefined} onClick={(e) => this.handleRemove(e)} style={{ float: "right" }}><Icon name="trash" /> Remove</Button>
             </div>
