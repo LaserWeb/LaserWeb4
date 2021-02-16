@@ -251,8 +251,12 @@ class Settings extends React.Component {
                         <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist' }} />
                         <Collapse in={this.props.settings.machineBlowerEnabled}>
                             <div>
-                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode AA ON', rows: 5, style: { resize: "vertical" } }} />
-                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode AA OFF', rows: 5, style: { resize: "vertical" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist ON', info: Info(<p className="help-block">
+                                    Gcode commands to turn Air Assistance on during Laser operations.
+                                    </p>,"Air Assist Enable Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist OFF', info: Info(<p className="help-block">
+                                    Gcode commands to turn Air Assistance off during Laser operations.
+                                    </p>,"Air Assist Disable Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                             </div>
                         </Collapse>
                     </SettingsPanel>
@@ -272,10 +276,10 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Laser Gcode End', info: Info(<p className="help-block">
                             End Gcode.<br/>- Commands placed here will be executed at the end of the job.
                             </p>,"End Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', info: Info(<p className="help-block">
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Optional Mill / Lathe Gcode Start', info: Info(<p className="help-block">
                             Start Gcode for Mill jobs.<br/>- If left blank the laser start gcode will be used by default.
                             </p>,"Start Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', info: Info(<p className="help-block">
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Optional Mill / Lathe Gcode End', info: Info(<p className="help-block">
                             End Gcode for Mill jobs.<br/>- If left blank the laser end gcode will be used by default.
                             </p>,"End Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', info: Info(<p className="help-block">
@@ -332,7 +336,7 @@ class Settings extends React.Component {
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">
                             Controls how images are repositioned during raster optimisation.
                             </p>,"Raster optimisation placement") }} />
-                        <br/><br/><hr/>
+                        <br/><hr/>
                         <p className="help-block">Enable Display cache. Disable animations.</p>
                         <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache' }} />
                     </SettingsPanel>
