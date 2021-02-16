@@ -158,12 +158,16 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         millOps = true;
                         if (startCode === "") startCode = settings.gcodeMillStart;
                         if (endCode === "") endCode = settings.gcodeMillEnd;
+                        if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type.substring(0, 6) === 'Lathe ') {
                         millOps = true;
                         if (startCode === "") startCode = settings.gcodeMillStart;
                         if (endCode === "") endCode = settings.gcodeMillEnd;
+                        if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         invokeWebWorker(require('worker-loader!./workers/cam-lathe.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else {
@@ -199,8 +203,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         progress(100)
         let ellapsed=(new Date().getTime()-starttime)/1000;
         if (laserOps && millOps) {
-            showAlert("Mixed operation types detected.","warning");
-            showAlert("Mixing Laser and Mill/Lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want!","danger");
+            showAlert('<span className="help-block">Warning: Mixed operation types detected.</span><br/>Mixing laser and mill/lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want.',"warning");
         }
         showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
         done(startCode + gcode.join('\r\n') + endCode);

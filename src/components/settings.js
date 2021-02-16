@@ -266,25 +266,45 @@ class Settings extends React.Component {
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
                         <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
 
-                        <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Laser Gcode Start', rows: 5, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Laser Gcode End', rows: 3, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', rows: 5, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', rows: 3, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', rows: 5, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', rows: 3, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', rows: 3, style: { resize: "vertical" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeLaserIntensity', setAttrs: setSettingsAttrs, description: 'Laser Intensity', style: { resize: "vertical" } }} />
-                        <ToggleField {... { object: this.props.settings, field: 'gcodeLaserIntensitySeparateLine', setAttrs: setSettingsAttrs, description: 'Intensity Separate Line' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMinValue', setAttrs: setSettingsAttrs, description: 'PWM Min S value' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max S value' }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Laser Gcode Start', info: Info(<p className="help-block">
+                            Start Gcode<br/>- Commands placed here will be executed at the start of the job.
+                            </p>,"Start Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Laser Gcode End', info: Info(<p className="help-block">
+                            End Gcode.<br/>- Commands placed here will be executed at the end of the job.
+                            </p>,"End Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', info: Info(<p className="help-block">
+                            Start Gcode for Mill jobs.<br/>- If left blank the laser start gcode will be used by default.
+                            </p>,"Start Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', info: Info(<p className="help-block">
+                            End Gcode for Mill jobs.<br/>- If left blank the laser end gcode will be used by default.
+                            </p>,"End Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', info: Info(<p className="help-block">
+                            Code used to home the machine.
+                            </p>,"Homing Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', info: Info(<p className="help-block">
+                            Inserted before each active laser command block in the generated code.<br/>- Not used in Mill/Lathe operations.
+                            </p>,"Tool On Gcode for Laser"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', info: Info(<p className="help-block">
+                            Inserted after each active laser command block in the generated code.<br/>- Not used in Mill/Lathe operations.
+                            </p>,"Tool Off Gcode for Laser"), rows: 3, style:{ resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeLaserIntensity', setAttrs: setSettingsAttrs, description: 'Laser Intensity', info: Info(<p className="help-block">
+                            Tool power setting gcode command; the numeric power value will be appended to this prefix<br/>Eg: 'S' becomes 'S1000'.
+                            </p>,"Tool power setting command prefix"), style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <ToggleField {... { object: this.props.settings, field: 'gcodeLaserIntensitySeparateLine', setAttrs: setSettingsAttrs, description: 'Intensity Separate Line', info: Info(<p className="help-block">
+                            Place the intensity setting command on a seperate line in the generated code instead of being appended to the G1 movement command.
+                            </p>,"Tool power setting commands on separate line") }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMinValue', setAttrs: setSettingsAttrs, description: 'PWM Min value' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max value' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                         <h5 className="header">Gcode generation</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', units: '', info: Info(<p className="help-block">Increasing this can improve performance on large files with lots of operations, but requres a powerful host computer for maximum benefit.<br/>Should ideally match the number of threads on your machine -1</p>,"Gcode threads") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', units: '', info: Info(<p className="help-block">
-                        Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance
-                        </p>,"Gcode Linearization Factor")} } />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', info: Info(<p className="help-block">
+                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer for maximum benefit.<br/>Should ideally match the number of threads on your machine -1.
+                            </p>,"Gcode threads"), units: '' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', info: Info(<p className="help-block">
+                            Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance.<br/>
+                            </p>,"Gcode linearization factor"), units: ''} } />
                         
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
@@ -304,11 +324,15 @@ class Settings extends React.Component {
                         A <Label>*</Label> <Label>/</Label>
                         </p>,"Jog using Numpad")}} />
                         
-                        <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
-                        <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations' }} />
+                        <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">
+                            Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
+                        <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations',info: Info(<p className="help-block">
+                            Allows creation of operations in UI even when no documents are selected.<br/>Useful when preparing workspace templates for future use.</p>) }} />
                         
-                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position' }} />
-                        <hr/>
+                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">
+                            Controls how images are repositioned during raster optimisation.
+                            </p>,"Raster optimisation placement") }} />
+                        <br/><br/><hr/>
                         <p className="help-block">Enable Display cache. Disable animations.</p>
                         <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache' }} />
                     </SettingsPanel>

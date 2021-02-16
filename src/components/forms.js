@@ -207,7 +207,7 @@ export function ToggleField({object, field, description, units = "", setAttrs, d
 
 }
 
-export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
+export function QuadrantField({object, field, description, setAttrs, dispatch, info, ...rest}) {
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let radios = ["TL", "TR", "C", "BL", "BR"];
@@ -228,7 +228,7 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
     }
 
     let input = <div>
-        <label>{description}</label>
+        <label>{description}</label> {info}
         <svg className="quadrantField" width="65" height="65">
             <path className="bkg" d="M52.8,62.9H10.5c-5.5,0-10-4.5-10-10V10.5c0-5.5,4.5-10,10-10h42.3c5.5,0,10,4.5,10,10v42.3 C62.9,58.4,58.4,62.9,52.8,62.9z" />
             <g className={areaClass('TL')} onClick={onClick('TL')}><circle cx="11.8" cy="11.8" r="9.8" /><path id="XMLID_37_" d="M12.1,9.2h-1.7v7.4H8.5V9.2H6.7V7.4h5.5V9.2z" /><path id="XMLID_39_" d="M12.9,16.6V7.4h1.9v7.4h2.7v1.7H12.9z" /></g>
