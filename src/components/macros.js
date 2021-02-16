@@ -95,7 +95,6 @@ export class Macros extends React.Component {
 
         let errors = this.getErrors(this.state);
 
-// style: { resize: "vertical", fontFamily: "monospace, monospace" } style={{resize: "vertical"}}  style="resize: vertical, fontFamily: monospace, monospace;"
         return (
             <div className="macros">
                 <small className="help-block">Append new key binding to Gcode. App must be reloaded to take effect</small>
