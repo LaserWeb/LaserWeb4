@@ -370,9 +370,11 @@ class Jog extends React.Component {
 
     getGcodeBounds(gcode,decimals=3) {
             let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
+            let movementFound=false
             let parsed=chunk(parseGcode(gcode),9);
                 parsed.forEach(([g,x,y])=>{
                     if (g && (x || y)){
+                        movementFound=true;
                         yMin=parseFloat(Math.max(yMin, y)).toFixed(decimals)
                         xMin=parseFloat(Math.max(xMin, x)).toFixed(decimals)
                         yMax=parseFloat(Math.min(yMax, y)).toFixed(decimals)
@@ -382,17 +384,17 @@ class Jog extends React.Component {
 
             let bounds={xMin: Math.min(xMin,xMax), xMax: Math.max(xMin,xMax), yMin:Math.min(yMin,yMax) , yMax:Math.max(yMin,yMax)}
                 
-            return bounds
-
+            if (movementFound) return bounds;
+            else return;
     }
 
     checkGcodeBounds(gcode){
         let bounds=this.getGcodeBounds(gcode)
         let {settings} = this.props
         if (bounds && (
-            (bounds.xMax >settings.machineWidth) || (bounds.xMin < 0) ||
+            (bounds.xMax > settings.machineWidth) || (bounds.xMin < 0) ||
             (bounds.yMax > settings.machineHeight) || (bounds.yMin < 0))) {
-                CommandHistory.warn("Warning: Gcode out of machine bounds, can lead to running work halt")
+                CommandHistory.warn("Warning: Gcode out of machine bounds, can lead to running work halt" + "<br/> xMax=" + bounds.xMax + ", xMin=" + bounds.xMin + ", yMax=" + bounds.yMax + ", yMin=" + bounds.yMin)
                 this.setState({'warnings':"Warning: Gcode out of machine bounds, can lead to running work halt"});
             }
     }
