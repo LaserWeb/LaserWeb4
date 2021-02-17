@@ -224,29 +224,46 @@ class Settings extends React.Component {
                     </Panel>
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <h5 className="header">Dimensions</h5>
+                        <p className="help-block">The size of the machine work area.</p>
                         <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
+                        <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
+                                    Highlight the machine work area in the display.
+                                    </p>,"Show Work Area") }} />
                         <h5 className="header">Origin offsets</h5>
-                        <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', info: Info(<p className="help-block">
+                                    X and Y offsets for the machine work area relative to it's Home position.<br/>For a machine that homes to the top-right corner use negative values.
+                                    </p>,"Origin offsets"), units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), info: Info(<p className="help-block">
+                                    The diameter of the laser spot when cutting and marking.<br/>Used for the suggested width in laser cut, fill and raster operations.
+                                    </p>,"Laser beam diameter"), units: 'mm' }} />
+                        <ToggleField {...{ object: this.props.settings, field: 'machineBurnWhite', setAttrs: setSettingsAttrs, description: 'Burn White', info: Info(<p className="help-block">
+                                    Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.
+                                    </p>,"Reduce laser on/off cycling") }} />
                         <h5 className="header">Probe tool</h5>
+                        <p className="help-block">If you have a permanent probe tool you can enter it's offset from the beam focus here. Leave as '0' if you probe using the tool itself.</p>
                         <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Probe Offset', units: 'mm' }} />
                         <hr />
-                        <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Stablishes the feed range warning threshold for an axis." />
+                        <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Define maximum and minimum thresholds for movement speeds and tool power." />
                         <hr />
-                        <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage' }} />
+                        <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage', info: Info(<p className="help-block">
+                                    Full 3-Axis support.<br/>Use for milling and engraving machines, and lasers with a Z axis.
+                                    </p>,"Z-axis") }} />
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
-                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', labelAddon: false, units: 'mm' }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', info: Info(<p className="help-block">
+                                    Vertical offset for tool, usually zero but some machine co-ordinate systems may need this.
+                                    </p>,"Tool Z offset"), labelAddon: false, units: 'mm' }} />
                                 <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Start Height', labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
                         <hr />
-                        <ToggleField {... { object: this.props.settings, field: 'machineAEnabled', setAttrs: setSettingsAttrs, description: 'Machine A stage' }} />
+                        <ToggleField {... { object: this.props.settings, field: 'machineAEnabled', setAttrs: setSettingsAttrs, description: 'Machine A stage', info: Info(<p className="help-block">
+                                    Allows controlling and visualising machines and gcode which use 'A' as an additional rotational axis around the X plane.
+                                    </p>,"A-axis") }} />
                         <hr />
                         <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist' }} />
                         <Collapse in={this.props.settings.machineBlowerEnabled}>
@@ -312,14 +329,18 @@ class Settings extends React.Component {
                         
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
+
                         <h5 className="header">Grid</h5>
-                        <p className="help-block">Grid spacing requires app reload. Use with caution, will affect display performance</p>
+                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
+                        &nbsp;&nbsp;Grid spacing requires app reload. Use with caution, very large or dense grids will affect display performance.</small>
                         <NumberField {...{ object: this.props.settings, field: 'toolGridWidth', setAttrs: setSettingsAttrs, description: 'Grid Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridHeight', setAttrs: setSettingsAttrs, description: 'Grid Height', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Minor Spacing', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
                         <hr/>
-                        <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', selectProps: { clearable: false } }} />
+                        <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
+                            Use 'mm/s' or 'mm/min' when specifying feed rates in operations.<br/>The feedrate in the resulting GCode will always be in mm/min.
+                            </p>,"Feed rate units for interface"), selectProps: { clearable: false } }} />
                         <hr/> 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
                         X <Label>4</Label> <Label>6</Label><br/>
@@ -384,17 +405,16 @@ class Settings extends React.Component {
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
                         <table style={{ width: 100 + '%' }}><tbody>
                             <tr><td><strong>Settings</strong></td>
-                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /><hr /></td></tr>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr><br/>
                             <tr><td><strong>Machine Profiles</strong></td>
-                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /><hr /></td></tr>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /></td></tr><br/>
                             <tr><td><strong>Macros</strong></td>
-                                <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning">Reset</Button></td></tr>
+                                <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning" style={{float: "right"}}>Reset</Button></td></tr><br/>
                         </tbody></table>
 
-                        <h5 >Application Snapshot  <Label bsStyle="warning">Caution!</Label></h5>
-
-
-                        <small className="help-block">This dialog allows to save an entire snapshot of the current state of application.</small>
+                        <h5 className="header">Application Snapshot</h5>
+                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
+                        &nbsp;&nbsp;This dialog allows you to save or restore snapshots of the current application state, potentially overwriting existing settings and work.</small>
                         <ApplicationSnapshot />
                     </Panel>
                 </PanelGroup>
@@ -416,7 +436,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         handleResetMacros: () => {
-            confirm("Are you sure?", (data) => { if (data !== null) dispatch({ type: "MACROS_RESET" }) })
+            confirm("Are you sure? This will revert your macros to the machine default list.", (data) => { if (data !== null) dispatch({ type: "MACROS_RESET" }) })
 
         },
         handleSettingChange: (attrs) => {

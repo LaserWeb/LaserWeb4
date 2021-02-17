@@ -92,6 +92,7 @@ export const OPERATION_DEFAULTS = (state) => {
     return {
         laserDiameter: state.settings.machineBeamDiameter,
         lineDistance: state.settings.machineBeamDiameter,
+        burnWhite: state.settings.machineBurnWhite,
         useBlower: state.settings.machineBlowerEnabled,
         startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
     }
