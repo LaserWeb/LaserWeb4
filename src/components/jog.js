@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { PanelGroup, Panel, ProgressBar} from 'react-bootstrap';
 
 import { setSettingsAttrs } from '../actions/settings';
-import { setWorkspaceAttrs } from '../actions/workspace';
+import { xOffset, yOffset } from './com';
 
 import CommandHistory from './command-history';
 
@@ -369,34 +369,44 @@ class Jog extends React.Component {
     }
 
     getGcodeBounds(gcode,decimals=3) {
-            let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
+            let xMin=Number.MAX_VALUE, xMax=Number.MIN_VALUE, yMin=Number.MAX_VALUE, yMax=Number.MIN_VALUE;
             let movementFound=false
             let parsed=chunk(parseGcode(gcode),9);
                 parsed.forEach(([g,x,y])=>{
                     if (g && (x || y)){
                         movementFound=true;
-                        yMin=parseFloat(Math.max(yMin, y)).toFixed(decimals)
-                        xMin=parseFloat(Math.max(xMin, x)).toFixed(decimals)
-                        yMax=parseFloat(Math.min(yMax, y)).toFixed(decimals)
-                        xMax=parseFloat(Math.min(xMax, x)).toFixed(decimals)
+                        if (x < xMin) xMin = x;
+                        if (x > xMax) xMax = x;
+                        if (y < yMin) yMin = y;
+                        if (y > yMax) yMax = y;
                     }
-                }) 
+                })
 
-            let bounds={xMin: Math.min(xMin,xMax), xMax: Math.max(xMin,xMax), yMin:Math.min(yMin,yMax) , yMax:Math.max(yMin,yMax)}
-                
+            let bounds={xMin: parseFloat(xMin).toFixed(decimals), xMax: parseFloat(xMax).toFixed(decimals), yMin: parseFloat(yMin).toFixed(decimals) , yMax: parseFloat(yMax).toFixed(decimals)}
+
             if (movementFound) return bounds;
             else return;
     }
 
-    checkGcodeBounds(gcode){
-        let bounds=this.getGcodeBounds(gcode)
-        let {settings} = this.props
-        if (bounds && (
-            (bounds.xMax > settings.machineWidth) || (bounds.xMin < 0) ||
-            (bounds.yMax > settings.machineHeight) || (bounds.yMin < 0))) {
-                CommandHistory.warn("Warning: Gcode out of machine bounds, can lead to running work halt" + "<br/> xMax=" + bounds.xMax + ", xMin=" + bounds.xMin + ", yMax=" + bounds.yMax + ", yMin=" + bounds.yMin)
+    checkGcodeBounds(gcode,decimals=3){
+        let bounds=this.getGcodeBounds(gcode,decimals);
+        let {settings} = this.props;
+
+        let minWorkspaceX = settings.machineBottomLeftX - xOffset;
+        let maxWorkspaceX = settings.machineBottomLeftX + settings.machineWidth - xOffset;
+        let minWorkspaceY = settings.machineBottomLeftY - yOffset;
+        let maxWorkspaceY = settings.machineBottomLeftY + settings.machineHeight - yOffset;
+
+        if (bounds && xOffset && yOffset) {
+            if ((bounds.xMin < minWorkspaceX) || (bounds.xMax > maxWorkspaceX) || (bounds.yMin < minWorkspaceY) || (bounds.yMax > maxWorkspaceY)) {
+                CommandHistory.warn("Warning! Gcode out of machine bounds, can lead to running work halt." +
+                               "<br/>  Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax +
+                               "<br/>Machine bounds: Xmin= " + parseFloat(minWorkspaceX).toFixed(decimals) + ", Xmax= " + parseFloat(maxWorkspaceX).toFixed(decimals) + ", Ymin= " + parseFloat(minWorkspaceY).toFixed(decimals) + ", Ymax= " + parseFloat(maxWorkspaceY).toFixed(decimals));
                 this.setState({'warnings':"Warning: Gcode out of machine bounds, can lead to running work halt"});
+            } else {
+                CommandHistory.write("Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax);
             }
+        }
     }
 
     laserTest() {
