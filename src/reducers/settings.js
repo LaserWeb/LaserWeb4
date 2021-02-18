@@ -138,6 +138,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCurvePrecision: 0.1,
 
     comServerVersion: 'not connected',
+    comApiVersion: 'not connected',
     comServerIP: 'localhost:8000',
     comServerConnect: false,
     comInterfaces: [],
@@ -148,6 +149,8 @@ export const SETTINGS_INITIALSTATE = {
     connectPort: '',
     connectBaud: '115200',
     connectIP: '',
+    connectReset: false,
+    connectQuery: '',
 
     jogStepsize: 1,
     jogFeedXY: 1800,

@@ -44,7 +44,7 @@ class About extends React.Component {
                 <h3>Versions</h3>
                   <dl>
                     <dt><Icon name="cubes"/> Frontend: {version}</dt><dd></dd><p/>
-                    <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion}</dt><dd></dd><p/>
+                    <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion} (API: {this.props.settings.comApiVersion}) </dt><dd></dd><p/>
                   </dl>
                   <Releases/>
                 <h3>Support Communities</h3>

@@ -2,7 +2,8 @@ import React from 'react'
 import { connect } from 'react-redux';
 
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button, Glyphicon } from 'react-bootstrap';
-import { Input, TextField, NumberField, ToggleField, SelectField } from './forms';
+
+import { Input, TextField, NumberField, ToggleField, SelectField, Info } from './forms';
 import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
 import { setComAttrs } from '../actions/com';
@@ -29,10 +30,26 @@ var firmware, fVersion, fDate;
 var xpos, ypos, zpos, apos;
 var xOffset, yOffset, zOffset, aOffset;
 
+
 const formatPorts=(data)=>{
     return data.map((item)=>{
        return { value: item.comName, label:item.manufacturer? `${item.manufacturer} @ ${item.comName}`: item.comName };
     })
+}
+
+function compareVersion(v1, v2) {
+    if (typeof v1 !== 'string') return false;
+    if (typeof v2 !== 'string') return false;
+    v1 = v1.split('.');
+    v2 = v2.split('.');
+    const k = Math.min(v1.length, v2.length);
+    for (let i = 0; i < k; ++ i) {
+        v1[i] = parseInt(v1[i], 10);
+        v2[i] = parseInt(v2[i], 10);
+        if (v1[i] > v2[i]) return 1;
+        if (v1[i] < v2[i]) return -1;        
+    }
+    return v1.length == v2.length ? 0: (v1.length < v2.length ? -1 : 1);
 }
 
 class Com extends React.Component {
@@ -106,9 +123,11 @@ class Com extends React.Component {
         socket.on('serverConfig', function (data) {
             serverConnected = true;
             let serverVersion = data.serverVersion;
+            let apiVersion = data.apiVersion;
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+            dispatch(setSettingsAttrs({comApiVersion: apiVersion}));
             //CommandHistory.write('Server version: ' + serverVersion, CommandHistory.INFO);
-            console.log('serverVersion: ' + serverVersion);
+            console.log('serverVersion: ' + serverVersion + ', API: ' + apiVersion);
         });
 
         socket.on('interfaces', function(data) {
@@ -428,6 +447,7 @@ class Com extends React.Component {
             //console.log('Server connection closed');
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+            dispatch(setSettingsAttrs({comApiVersion: serverVersion}));
         });
 
         socket.on('error', function (data) {
@@ -444,6 +464,7 @@ class Com extends React.Component {
             socket.disconnect();
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
+            dispatch(setSettingsAttrs({comApiVersion: serverVersion}));
         }
     }
 
@@ -451,7 +472,14 @@ class Com extends React.Component {
         var connectVia = this.props.settings.connectVia;
         var connectPort = this.props.settings.connectPort.trim();
         var connectBaud = this.props.settings.connectBaud;
+        var connectReset = this.props.settings.connectReset;
+        var connectQuery = this.props.settings.connectQuery;
         var connectIP = this.props.settings.connectIP;
+        var comServerVersion = this.props.settings.comServerVersion;
+        var comApiVersion = this.props.settings.comApiVersion;
+
+        if (compareVersion(comApiVersion, "4.0.7") != 1) CommandHistory.write('Connected server version (' + comServerVersion + ') does not support firmware detection options.',CommandHistory.DANGER);
+
         switch (connectVia) {
             case 'USB':
                 if (!connectPort) {
@@ -462,24 +490,24 @@ class Com extends React.Component {
                     CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + 'baud', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud + ',' + connectReset + ',' + connectQuery);
                 break;
             case 'Telnet':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',' + connectReset + ',' + connectQuery);
                 break;
             case 'ESP8266':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP, CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP);
+                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',' + connectReset + ',' + connectQuery);
                 break;
         }
     }
@@ -504,7 +532,16 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
 
-                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="2" defaultExpanded={true}>
+                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={false}>
+                        <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: "Send reset when connecting", info: Info(<p className="help-block">
+                            Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
+                            </p>,"^X on Connect") }} />
+                        <TextField {...{ object: this.props.settings, field: 'connectQuery', setAttrs: setSettingsAttrs, description: 'Query String', info: Info(<p className="help-block">
+                            Option query command sent to machine once connected.<br/>eg. <strong>'$I'</strong> on Grbl can be used to show extended firmware information in the console when connecting.
+                            </p>,"Firmware Query String"), style: { fontFamily: "monospace, monospace" } }} />
+                    </Panel>
+
+                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="3" defaultExpanded={true}>
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
