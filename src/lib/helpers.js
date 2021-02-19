@@ -19,7 +19,9 @@ export function openDataWindow(data, mimetype='text/plain;charset=utf-8', target
         let blob = new Blob([data], {type: mimetype});
         let reader = new FileReader();
             reader.onloadend = function(e) {
-                window.open(reader.result,target);
+                let fileURL = reader.result,target;
+                var win = window.open();
+                win.document.write('<iframe src="' + fileURL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>')
             }
             reader.readAsDataURL(blob);
 }
