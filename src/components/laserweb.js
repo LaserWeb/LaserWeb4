@@ -66,7 +66,8 @@ import { setSettingsAttrs } from '../actions/settings'
  * @param {Object} props Component properties.
  */
 
-export const confirm = (message, callback) => {
+export const confirm = (message, callback, skip=false) => {
+    if (skip) return callback(true);
     vex.dialog.confirm({ message, callback })
 }
 

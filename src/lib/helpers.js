@@ -61,12 +61,17 @@ export function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }
 
+export function humanFileSize(size) {
+    var i = size == 0 ? 0 : Math.floor( Math.log(size) / Math.log(1024) );
+    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+};
+
 
 export const captureConsole = () => {
-  
+
   window.__capture=window.console;
   let captures=[];
-  
+
   window.console = {
     log(...args){
       captures.push({method:"log",args})
@@ -89,10 +94,10 @@ export const captureConsole = () => {
     window.console = window.__capture;
     if (keys === true) keys=['log','warn','error','info']
     if (keys.length){
-      
+
       captures.forEach(item => {
         if (keys.includes(item.method)) {
-          window.console[item.method].apply(null, item.args) 
+          window.console[item.method].apply(null, item.args)
         }
       })
     }

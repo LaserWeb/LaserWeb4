@@ -30,7 +30,7 @@ import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
-import { sendAsFile, appendExt, openDataWindow, captureConsole } from '../lib/helpers';
+import { sendAsFile, appendExt, openDataWindow, captureConsole, humanFileSize } from '../lib/helpers';
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
@@ -128,14 +128,14 @@ class Cam extends React.Component {
         );
     }
 
-    
+
 
     render() {
         let { settings, documents, operations, currentOperation, toggleDocumentExpanded, loadDocument, bounds } = this.props;
         let validator = ValidateSettings(false)
         let valid = validator.passes();
         let someSelected=documents.some((i)=>(i.selected));
-        
+
         return (
             <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div className="panel panel-danger" style={{ marginBottom: 0 }}>
@@ -166,14 +166,14 @@ class Cam extends React.Component {
                                         <label>Documents {Info(<small>Tip:  Hold <kbd>Ctrl</kbd> to click multiple documents</small>)}</label>
                                     </td>
                                     <td style={{display:"flex", justifyContent: "flex-end" }}>
-                                        
+
                                         <FileField style={{   position: 'relative', cursor: 'pointer' }} onChange={loadDocument} accept={DOCUMENT_FILETYPES}>
                                             <button title="Add a DXF/SVG/PNG/BMP/JPG document to the document tree" className="btn btn-xs btn-primary"><i className="fa fa-fw fa-folder-open" />Add Document</button>
                                             {(this.props.panes.visible) ? <NoDocumentsError camBounds={bounds} settings={settings} documents={documents} operations={operations} /> : undefined}
                                         </FileField>&nbsp;
                                     </td>
                                 </tr>
-                               
+
                             </tbody>
                         </table>
                     </div>
@@ -182,7 +182,7 @@ class Cam extends React.Component {
                     <div style={{height:"100%", display:"flex", flexDirection:"column"}} >
                         <div style={{ overflowY: 'auto', flexGrow:1 }}><Documents documents={documents} filter={this.state.filter} toggleExpanded={toggleDocumentExpanded} /></div>
                         {documents.length ? <ButtonToolbar bsSize="xsmall" bsStyle="default">
-                            
+
                             <ButtonGroup>
                                 <Button  bsStyle="info" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(true))}} title="Select all"><Icon name="cubes"/></Button>
                                 <Button  bsStyle="default" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(false))}} title="Select none"><Icon name="cubes"/></Button>
@@ -206,13 +206,13 @@ class Cam extends React.Component {
                                     <ButtonToolbar style={{ float: "right" }}>
                                         <button title="Generate G-Code from Operations below" className={"btn btn-xs btn-attention " + (this.props.dirty ? 'btn-warning' : 'btn-primary')} disabled={!valid || this.props.gcoding.enable} onClick={(e) => this.generateGcode(e)}><i className="fa fa-fw fa-industry" />&nbsp;Generate</button>
                                         <ButtonGroup>
-                                            <button title="View generated G-Code. Please disable popup blockers" className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
-                                            <button title="Export G-code to File" className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
+                                            <button title="View generated G-Code in a tab. Please disable popup blockers. Press [SHIFT] to avoid large file size confirmation and open in a new window." className="btn btn-info btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.viewGcode}><i className="fa fa-eye" /></button>
+                                            <button title="Export G-code to File. Press [SHIFT] to edit filename." className="btn btn-success btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.saveGcode}><i className="fa fa-floppy-o" /></button>
                                             <FileField onChange={this.props.loadGcode} disabled={!valid || this.props.gcoding.enable} accept=".gcode,.gc,.nc">
                                                 <button title="Load G-Code from File" className="btn btn-danger btn-xs" disabled={!valid || this.props.gcoding.enable} ><i className="fa fa-folder-open" /></button>
                                             </FileField>
                                         </ButtonGroup>
-                                        <button title="Clear" className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
+                                        <button title="Clear Current Gcode. Press [SHIFT] to avoid confirmation." className="btn btn-warning btn-xs" disabled={!valid || this.props.gcoding.enable} onClick={this.props.clearGcode}><i className="fa fa-trash" /></button>
                                     </ButtonToolbar>) : <GcodeProgress onStop={(e) => this.stopGcode(e)} />}</td>
                             </tr>
                         </tbody>
@@ -228,16 +228,17 @@ Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
         saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(appendExt(file, '.gcode'), state.gcode.content) }, !e.shiftKey) },
-        viewGcode: () => openDataWindow(state.gcode.content),
+        viewGcode: (e) => { if (state.gcode.content.length < 1048576) { openDataWindow(state.gcode.content); }
+            else {confirm("Size: " + humanFileSize(state.gcode.content.length) + ", viewing very large files can negatively affect browser performance. Are you sure?",  (data) => { if (data) openDataWindow(state.gcode.content); }, e.shiftKey) }},
     }),
     dispatch => ({
         dispatch,
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
-        clearGcode: () => {
-            dispatch(setGcode(""))
+        clearGcode: (e) => {
+            confirm("This will delete the currently loaded Gcode. Are you sure?", (data) => { if (data) dispatch(setGcode("")); }, e.shiftKey)
         },
         resetWorkspace: () => {
-            confirm("Are you sure?", (data) => { if (data) dispatch(resetWorkspace()); })
+            confirm("This will completely erase your workspace! Are you sure?", (data) => { if (data) dispatch(resetWorkspace()); })
         },
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors

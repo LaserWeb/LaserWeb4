@@ -43,6 +43,7 @@ export const OPERATION_INITIALSTATE = {
     useA: false,
     aAxisDiameter: 0,
     useBlower: false,
+    useFluid: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
     brightness: 0,          // lw.raster-to-gcode: Image brightness [-255 to +255]
     contrast: 0,            // lw.raster-to-gcode: Image contrast [-255 to +255]
@@ -94,6 +95,7 @@ export const OPERATION_DEFAULTS = (state) => {
         lineDistance: state.settings.machineBeamDiameter,
         burnWhite: state.settings.machineBurnWhite,
         useBlower: state.settings.machineBlowerEnabled,
+        useFluid: state.settings.machineFluidEnabled,
         startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
     }
 }

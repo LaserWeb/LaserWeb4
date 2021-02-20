@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -17,6 +17,8 @@
 
 import { getLaserRasterGcodeFromOp, getLaserRasterMergeGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
+import { humanFileSize } from './helpers';
+
 
 import { GlobalStore } from '../index'
 
@@ -25,7 +27,7 @@ import queue from 'queue';
 import hhmmss from 'hhmmss';
 
 export const expandHookGCode = (operation) =>{
-    let state = GlobalStore().getState(); 
+    let state = GlobalStore().getState();
     let macros = state.settings.macros || {};
     let op=Object.assign({},operation)
     let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
@@ -65,7 +67,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = expandHookGCode(operations[opIndex]);
 
-        const jobDone = (g, cb) => { 
+        const jobDone = (g, cb) => {
             if (g !== false) { gcode[opIndex]=g; };  cb();
         }
 
@@ -88,7 +90,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
             }
             workers.push(peasant)
-            
+
             peasant.postMessage(props)
 
         }
@@ -201,18 +203,23 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
-        let ellapsed=(new Date().getTime()-starttime)/1000;
+        let elapsed=(new Date().getTime()-starttime)/1000;
         if (laserOps && millOps) {
             showAlert('<span className="help-block">Warning: Mixed operation types detected.</span><br/>Mixing laser and mill/lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want.',"warning");
         }
-        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
-        done(startCode + gcode.join('\r\n') + endCode);
+        showAlert("Gcode generation complete, elapsed: " + hhmmss(elapsed) + String(Number(elapsed-Math.floor(elapsed)).toFixed(3)).substr(1), "info");
+        let fullGcode = startCode + gcode.join('\r\n') + endCode;
+        let codeSize = fullGcode.length;
+        let moveCount = 0, lineCount = 0;
+        if (codeSize > 0) {
+            moveCount = fullGcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
+            lineCount = fullGcode.split(/\r\n|\r|\n/).length;
+        }
+        showAlert("Size: " + codeSize + " (" + humanFileSize(codeSize) + "), Lines: " + lineCount + ", Moves: " + moveCount,"info");
+
+        done(fullGcode);
     })
-
-
 
     return QE;
 
 } // getGcode
-
-

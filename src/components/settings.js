@@ -231,9 +231,8 @@ class Settings extends React.Component {
                                     Highlight the machine work area in the display.
                                     </p>,"Show Work Area") }} />
                         <h5 className="header">Origin offsets</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', info: Info(<p className="help-block">
-                                    X and Y offsets for the machine work area relative to it's Home position.<br/>For a machine that homes to the top-right corner use negative values.
-                                    </p>,"Origin offsets"), units: 'mm' }} />
+                        <p className="help-block">X and Y offsets for the machine work area relative to the Home position.<br/>For a machine that homes to the top-right corner use negative values.</p>
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), info: Info(<p className="help-block">
@@ -243,7 +242,7 @@ class Settings extends React.Component {
                                     Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.
                                     </p>,"Reduce laser on/off cycling") }} />
                         <h5 className="header">Probe tool</h5>
-                        <p className="help-block">If you have a permanent probe tool you can enter it's offset from the beam focus here. Leave as '0' if you probe using the tool itself.</p>
+                        <p className="help-block">If you have a permanent probe tool you can enter it's offset from the beam focus here.<br/>Leave as '0' if you probe using the tool itself.</p>
                         <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Probe Offset', units: 'mm' }} />
                         <hr />
@@ -265,24 +264,41 @@ class Settings extends React.Component {
                                     Allows controlling and visualising machines and gcode which use 'A' as an additional rotational axis around the X plane.
                                     </p>,"A-axis") }} />
                         <hr />
-                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Air Assist' }} />
+                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Laser Cutting Air Assist', info: Info(<p className="help-block">
+                                    Gcode commands to start and stop air assistance during laser cutting operations.
+                                    </p>,"Air Assist Gcode") }} />
                         <Collapse in={this.props.settings.machineBlowerEnabled}>
                             <div>
-                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist ON', info: Info(<p className="help-block">
-                                    Gcode commands to turn Air Assistance on during Laser operations.
-                                    </p>,"Air Assist Enable Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist OFF', info: Info(<p className="help-block">
-                                    Gcode commands to turn Air Assistance off during Laser operations.
-                                    </p>,"Air Assist Disable Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist ON', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineBlowerGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode AirAssist OFF', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                            </div>
+                        </Collapse>
+                        <hr />
+                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Cut Cooling and Lubrication', info: Info(<p className="help-block">
+                                    Gcode commands to start and stop tool lubrication or cooling flow during milling or lathe operations.
+                                    </p>,"Lubrication and Cooling Gcode") }} />
+                        <Collapse in={this.props.settings.machineFluidEnabled}>
+                            <div>
+                                <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode Fluid ON', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode Fluid OFF', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                             </div>
                         </Collapse>
                     </SettingsPanel>
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
-                        <h5 className="header">SVG</h5>
+                        <h5 className="header">SVG import</h5>
                         <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
                         <ToggleField {...{ object: this.props.settings, field: 'forcePxPerInch', setAttrs: setSettingsAttrs, description: 'Force PX Per Inch' }} />
-                        <h5 className="header">BITMAPS (bmp, png, jpg)</h5>
+                        <h5 className="header">BITMAPS (bmp, png, jpg) import</h5>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
+                        <h5 className="header">Default filenames for saving</h5>
+                        <TextField {...{ object: this.props.settings, field: 'gcodeFilenameTemplate', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
+                            Default Gcode save filename.<br/><strong>.gcode</strong> will be appended to the filename as required.<br/>
+                            Do not use commas or slashes.<br/>Supports Java date/time formatting, see <a href="https://some.site.com/index">here</a> for more.
+                            </p>,"Gcode Default Filename"), rows: 1, style: { fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'jsonFilenameTemplate', setAttrs: setSettingsAttrs, description: 'JSON file suffix', info: Info(<p className="help-block">
+                            Default json (workspaces, data, settings, etc) filename addition.<br/>This text will be appended to the filename after the main name, and before the <strong>.json</strong> file extenson.<br/>
+                            Do not use commas or slashes.<br/>Supports Java date/time formatting, see <a href="https://some.site.com/index">here</a> for more.
+                            </p>,"Gcode Default Filename"), rows: 1, style: { fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
                         <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
@@ -293,20 +309,20 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Laser Gcode End', info: Info(<p className="help-block">
                             End Gcode.<br/>- Commands placed here will be executed at the end of the job.
                             </p>,"End Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Optional Mill / Lathe Gcode Start', info: Info(<p className="help-block">
-                            Start Gcode for Mill jobs.<br/>- If left blank the laser start gcode will be used by default.
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', info: Info(<p className="help-block">
+                            Optional: Alternative start gcode for mill or lathe jobs.<br/>- If left blank the laser start gcode will be used by default.
                             </p>,"Start Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Optional Mill / Lathe Gcode End', info: Info(<p className="help-block">
-                            End Gcode for Mill jobs.<br/>- If left blank the laser end gcode will be used by default.
+                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', info: Info(<p className="help-block">
+                            Optional: Alternative end gcode for mill or lathe jobs.<br/>- If left blank the laser end gcode will be used by default.
                             </p>,"End Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', info: Info(<p className="help-block">
                             Code used to home the machine.
                             </p>,"Homing Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON', info: Info(<p className="help-block">
-                            Inserted before each active laser command block in the generated code.<br/>- Not used in Mill/Lathe operations.
+                            Optional: Gcode commands to run before each powered laser cut sequence in the generated code.<br/>- Not used in Mill/Lathe operations.
                             </p>,"Tool On Gcode for Laser"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF', info: Info(<p className="help-block">
-                            Inserted after each active laser command block in the generated code.<br/>- Not used in Mill/Lathe operations.
+                            Optional: Gcode commands to run after each powered laser cut sequence in the generated code.<br/>- Not used in Mill/Lathe operations.
                             </p>,"Tool Off Gcode for Laser"), rows: 3, style:{ resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeLaserIntensity', setAttrs: setSettingsAttrs, description: 'Laser Intensity', info: Info(<p className="help-block">
                             Tool power setting gcode command; the numeric power value will be appended to this prefix<br/>Eg: 'S' becomes 'S1000'.
@@ -326,7 +342,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', info: Info(<p className="help-block">
                             Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance.<br/>
                             </p>,"Gcode linearization factor"), units: ''} } />
-                        
+
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
 
@@ -341,19 +357,19 @@ class Settings extends React.Component {
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
                             Use 'mm/s' or 'mm/min' when specifying feed rates in operations.<br/>The feedrate in the resulting GCode will always be in mm/min.
                             </p>,"Feed rate units for interface"), selectProps: { clearable: false } }} />
-                        <hr/> 
+                        <hr/>
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
                         X <Label>4</Label> <Label>6</Label><br/>
                         Y <Label>2</Label> <Label>8</Label><br/>
                         Z <Label>+</Label> <Label>-</Label><br/>
                         A <Label>*</Label> <Label>/</Label>
                         </p>,"Jog using Numpad")}} />
-                        
+
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">
                             Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
                         <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations',info: Info(<p className="help-block">
                             Allows creation of operations in UI even when no documents are selected.<br/>Useful when preparing workspace templates for future use.</p>) }} />
-                        
+
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">
                             Controls how images are repositioned during raster optimisation.
                             </p>,"Raster optimisation placement") }} />
@@ -395,7 +411,7 @@ class Settings extends React.Component {
                         <VideoPort height={240} enabled={(this.props.settings['toolVideoDevice'] !== null) || (this.props.settings['toolWebcamUrl'])} />
 
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} disabled={this.props.settings['toolVideoDevice'] !== null} />
-                        
+
                     </Panel>
 
                     <Panel collapsible header="Macros" bsStyle="info" eventKey="7">

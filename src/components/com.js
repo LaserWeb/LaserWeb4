@@ -146,7 +146,7 @@ class Com extends React.Component {
                 console.log('interfaces: ' + interfaces);
                 //CommandHistory.write('interfaces: ' + interfaces);
             } else {
-                CommandHistory.error('No supported interfaces found on server!')
+                CommandHistory.warn('No supported interfaces found on server!')
             }
         });
 
@@ -160,7 +160,7 @@ class Com extends React.Component {
                 //console.log('ports: ' + ports);
                 CommandHistory.write('Serial ports detected: ' + JSON.stringify(data));
             } else {
-                CommandHistory.error('No serial ports found on server!');
+                CommandHistory.warn('No serial ports found on server!');
             }
         });
 
