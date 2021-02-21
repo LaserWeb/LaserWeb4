@@ -31,6 +31,7 @@ import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile, appendExt, openDataWindow, captureConsole, humanFileSize } from '../lib/helpers';
+import { strftime } from '../lib/strftime.js'
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 
@@ -227,7 +228,7 @@ class Cam extends React.Component {
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
-        saveGcode: (e) => { prompt('Save as', 'gcode.gcode', (file) => { if (file !== null) sendAsFile(appendExt(file, '.gcode'), state.gcode.content) }, !e.shiftKey) },
+        saveGcode: (e) => { prompt('Save as', strftime(state.settings.gcodeFilename), (file) => { if (file !== null) sendAsFile(appendExt(file, state.settings.gcodeExtension), state.gcode.content) }, !e.shiftKey) },
         viewGcode: (e) => { if (state.gcode.content.length < 1048576) { openDataWindow(state.gcode.content); }
             else {confirm("Size: " + humanFileSize(state.gcode.content.length) + ", viewing very large files can negatively affect browser performance. Are you sure?",  (data) => { if (data) openDataWindow(state.gcode.content); }, e.shiftKey) }},
     }),

@@ -93,8 +93,9 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     forcePxPerInch: false,
     dpiBitmap: 300,
-    gcodeFilenameTemplate: "",
-    jsonFilenameTemplate: "",
+    gcodeFilename: "gcode",
+    gcodeExtension: ".gcode",
+    jsonFilename: "Laserweb-",
 
     toolGridWidth: 500,
     toolGridHeight: 500,

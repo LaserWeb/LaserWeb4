@@ -291,14 +291,20 @@ class Settings extends React.Component {
                         <h5 className="header">BITMAPS (bmp, png, jpg) import</h5>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
                         <h5 className="header">Default filenames for saving</h5>
-                        <TextField {...{ object: this.props.settings, field: 'gcodeFilenameTemplate', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
-                            Default Gcode save filename.<br/><strong>.gcode</strong> will be appended to the filename as required.<br/>
-                            Do not use commas or slashes.<br/>Supports Java date/time formatting, see <a href="https://some.site.com/index">here</a> for more.
-                            </p>,"Gcode Default Filename"), rows: 1, style: { fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'jsonFilenameTemplate', setAttrs: setSettingsAttrs, description: 'JSON file suffix', info: Info(<p className="help-block">
-                            Default json (workspaces, data, settings, etc) filename addition.<br/>This text will be appended to the filename after the main name, and before the <strong>.json</strong> file extenson.<br/>
-                            Do not use commas or slashes.<br/>Supports Java date/time formatting, see <a href="https://some.site.com/index">here</a> for more.
-                            </p>,"Gcode Default Filename"), rows: 1, style: { fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
+                            Supports <em>strftime()</em> alike date/time formatting; <a href="https://thdoan.github.io/strftime/">see <strong>this</strong> page for more</a>.<br/>
+                            The file type extension (eg. <strong>.gcode</strong>) will be appended to the filename as required.<br/>
+                            Do not use commas or slashes.
+                            </p>,"Gcode Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeExtension', setAttrs: setSettingsAttrs, description: 'Gcode file extension', info: Info(<p className="help-block">
+                            Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
+                            Do not use dots, commas or slashes.
+                            </p>,"Gcode Default File Extension"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'jsonFilename', setAttrs: setSettingsAttrs, description: 'JSON file suffix', info: Info(<p className="help-block">
+                            Default json (workspaces, profile, settings, etc) filename prefix.<br/>This text will start the filename, it will be followed by the file type, and the <strong>.json</strong> extenson.<br/>
+                            Allows for <em><a href="https://thdoan.github.io/strftime/">strftime()</a></em> formatting in the same manner as the Gcode filenames.<br/>
+                            Do not use commas or slashes.
+                            </p>,"Json Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
                         <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
@@ -337,7 +343,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                         <h5 className="header">Gcode generation</h5>
                         <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', info: Info(<p className="help-block">
-                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer for maximum benefit.<br/>Should ideally match the number of threads on your machine -1.
+                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer.<br/>Should generally match the number of CPU threads on your machine -1.
                             </p>,"Gcode threads"), units: '' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', info: Info(<p className="help-block">
                             Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance.<br/>
@@ -419,14 +425,19 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
-                        <table style={{ width: 100 + '%' }}><tbody>
-                            <tr><td><strong>Settings</strong></td>
-                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr><br/>
-                            <tr><td><strong>Machine Profiles</strong></td>
-                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /></td></tr><br/>
-                            <tr><td><strong>Macros</strong></td>
-                                <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning" style={{float: "right"}}>Reset</Button></td></tr><br/>
-                        </tbody></table>
+
+                        <section>
+                            <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr></tbody></table>
+                        </section><br/>
+                        <section>
+                            <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Machine Profiles</strong></td>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['machineProfiles']} label="Machine Profiles" saveName="laserweb-profiles.json" /></td></tr></tbody></table>
+                        </section><br/>
+                        <section>
+                            <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Macros</strong></td>
+                                <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning" style={{float: "right"}}>Reset</Button></td></tr></tbody></table>
+                        </section><br/>
 
                         <h5 className="header">Application Snapshot</h5>
                         <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
