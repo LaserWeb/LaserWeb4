@@ -96,6 +96,7 @@ export const OPERATION_DEFAULTS = (state) => {
         burnWhite: state.settings.machineBurnWhite,
         useBlower: state.settings.machineBlowerEnabled,
         useFluid: state.settings.machineFluidEnabled,
+        millRapidZ: isFinite(state.settings.machineRapidZ) ? state.settings.machineRapidZ : '',
         startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
     }
 }

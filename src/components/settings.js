@@ -254,9 +254,14 @@ class Settings extends React.Component {
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', info: Info(<p className="help-block">
-                                    Vertical offset for tool, usually zero but some machine co-ordinate systems may need this.
+                                    Vertical offset for tool, usually zero, but some machine co-ordinate systems or setups use this.
                                     </p>,"Tool Z offset"), labelAddon: false, units: 'mm' }} />
-                                <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Start Height', labelAddon: false, units: 'mm' }} />
+                                <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Laser Start Height', info: Info(<p className="help-block">
+                                    Set the machine default Z height for laser operations. This is usually zero, but can be set otherwise if desired, or if your firmware requires it.
+                                    </p>,"Default Z height for laser operations"), labelAddon: false, units: 'mm' }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineRapidZ', setAttrs: setSettingsAttrs, description: 'Mill rapid travel Z height', info: Info(<p className="help-block">
+                                    Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts. 
+                                    </p>,"Mill and Lathe rapid movement Z height"), labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
                         <hr />

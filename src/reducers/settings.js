@@ -79,6 +79,7 @@ export const SETTINGS_INITIALSTATE = {
     machineZMatThickness: 0,
     machineZToolOffset: 0,
     machineZStartHeight: '',
+    machineRapidZ: 2,
     machineZProbeOffset: 0,
 
     machineAEnabled: false,
