@@ -216,12 +216,12 @@ class Settings extends React.Component {
 
         return (
             <div className="form">
-
                 <PanelGroup>
                     <Panel header="Machine Profiles" bsStyle="primary" collapsible defaultExpanded={true} eventKey="0">
                         <MachineProfile onApply={this.props.handleApplyProfile} />
                         <MaterialDatabaseButton>Launch Material Database</MaterialDatabaseButton>
                     </Panel>
+
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <h5 className="header">Dimensions</h5>
                         <p className="help-block">The size of the machine work area.</p>
@@ -260,7 +260,7 @@ class Settings extends React.Component {
                                     Set the machine default Z height for laser operations. This is usually zero, but can be set otherwise if desired, or if your firmware requires it.
                                     </p>,"Default Z height for laser operations"), labelAddon: false, units: 'mm' }} />
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineRapidZ', setAttrs: setSettingsAttrs, description: 'Mill rapid travel Z height', info: Info(<p className="help-block">
-                                    Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts. 
+                                    Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts.
                                     </p>,"Mill and Lathe rapid movement Z height"), labelAddon: false, units: 'mm' }} />
                             </div>
                         </Collapse>
@@ -289,6 +289,7 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
                     </SettingsPanel>
+
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">SVG import</h5>
                         <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
@@ -311,9 +312,9 @@ class Settings extends React.Component {
                             Do not use commas or slashes.
                             </p>,"Json Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
+
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
                         <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
-
                         <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Laser Gcode Start', info: Info(<p className="help-block">
                             Start Gcode<br/>- Commands placed here will be executed at the start of the job.
                             </p>,"Start Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
@@ -347,16 +348,18 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
                         <h5 className="header">Gcode generation</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', info: Info(<p className="help-block">
-                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer.<br/>Should generally match the number of CPU threads on your machine -1.
-                            </p>,"Gcode threads"), units: '' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSegmentLength', setAttrs: setSettingsAttrs, description: 'Segment Length', info: Info(<p className="help-block">
+                            Minimum path segment length; imported (SVG) path segments shorter then this length will be combined.<br/>This improves Gcode generation performance and decreases code size for imported vectors with very fine resolution.
+                            </p>,"Path Segment Length"), units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', info: Info(<p className="help-block">
                             Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance.<br/>
                             </p>,"Gcode linearization factor"), units: ''} } />
-
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', info: Info(<p className="help-block">
+                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer.<br/>Should generally match the number of CPU threads on your machine -1.
+                            </p>,"Gcode threads"), units: '' }} />
                     </SettingsPanel>
-                    <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
 
+                    <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">Grid</h5>
                         <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
                         &nbsp;&nbsp;Grid spacing requires app reload. Use with caution, very large or dense grids will affect display performance.</small>
@@ -390,23 +393,18 @@ class Settings extends React.Component {
                     </SettingsPanel>
 
                     <Panel collapsible header="Camera" bsStyle="info" eventKey="6">
-
                         <div id="novideodevices" style={{ display: "none" }}>
                             <h5 className="header">Video Device List Unavailable</h5>
                             <small className="help-block">This may be due to running over an insecure connection, blocking in browser preferences, or other privacy protections.</small>
                         </div>
-
                         <div id="localvideodevices">
                             <table width="100%"><tbody><tr>
                                 <td width="45%"><VideoDeviceField {...{ object: this.props.settings, field: 'toolVideoDevice', setAttrs: setSettingsAttrs, description: 'Video Device', disabled: !!this.props.settings['toolWebcamUrl']}} /></td>
                                 <td width="45%"><VideoResolutionField {...{ object: this.props.settings, field: 'toolVideoResolution', setAttrs: setSettingsAttrs, deviceId: this.props.settings['toolVideoDevice'] }} /></td>
-
                             </tr></tbody></table>
-
                             <ToggleField  {... { object: this.props.settings, field: 'toolVideoOMR', setAttrs: setSettingsAttrs, description: 'Activate OMR', info: Info(<p className="help-block">
                             Enabling this, ARUCO markers will be recognized by floating camera port, allowing stock alignment. <Label bsStyle="warning">Experimental!</Label>
                             </p>,"Optical Mark Recognition"), disabled:!this.props.settings['toolVideoDevice'] }} />
-
                             <Collapse in={this.props.settings.toolVideoOMR}>
                                 <div>
                                     <NumberField {...{ object: this.props.settings, field: 'toolVideoOMROffsetX', setAttrs: setSettingsAttrs, description: 'Camera offset X', units:'mm'  }} />
@@ -416,13 +414,9 @@ class Settings extends React.Component {
                                 </div>
                             </Collapse>
                         </div>
-
                         <hr/>
-
                         <VideoPort height={240} enabled={(this.props.settings['toolVideoDevice'] !== null) || (this.props.settings['toolWebcamUrl'])} />
-
                         <TextField   {... { object: this.props.settings, field: 'toolWebcamUrl', setAttrs: setSettingsAttrs, description: 'Webcam Url' }} disabled={this.props.settings['toolVideoDevice'] !== null} />
-
                     </Panel>
 
                     <Panel collapsible header="Macros" bsStyle="info" eventKey="7">
@@ -430,7 +424,6 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
-
                         <section>
                             <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
                                 <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr></tbody></table>
@@ -443,7 +436,6 @@ class Settings extends React.Component {
                             <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Macros</strong></td>
                                 <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning" style={{float: "right"}}>Reset</Button></td></tr></tbody></table>
                         </section><br/>
-
                         <h5 className="header">Application Snapshot</h5>
                         <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
                         &nbsp;&nbsp;This dialog allows you to save or restore snapshots of the current application state, potentially overwriting existing settings and work.</small>

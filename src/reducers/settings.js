@@ -142,6 +142,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeToolTestPower: 0,
     gcodeToolTestDuration: 0,
     gcodeConcurrency: 2,
+    gcodeSegmentLength: 0,
     gcodeCurvePrecision: 0.1,
 
     comServerVersion: 'not connected',
