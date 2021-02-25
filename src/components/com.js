@@ -49,7 +49,7 @@ function compareVersion(v1, v2) {
         v1[i] = parseInt(v1[i], 10);
         v2[i] = parseInt(v2[i], 10);
         if (v1[i] > v2[i]) return 1;
-        if (v1[i] < v2[i]) return -1;        
+        if (v1[i] < v2[i]) return -1;
     }
     return v1.length == v2.length ? 0: (v1.length < v2.length ? -1 : 1);
 }
@@ -246,7 +246,10 @@ class Com extends React.Component {
 
         socket.on('runningJob', function (data) {
             CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
-            alert(data);
+            // When connecting to a server that is already running a job, do NOT pop up an alert with the Job data (Gcode) since a few MB from
+            //  a large job can hang the web browser as it loads.
+            //alert(data);
+            // This should probably have a 'Do you wish to load' confirmation, or maybe is buggy/not much use, since it is already commented out.
             //setGcode(data);
         });
 
@@ -337,7 +340,7 @@ class Com extends React.Component {
                 y=Number(y)
                 z=Number(z)
                 a=Number(a)
-              
+
             let posChanged = false;
             if ((xOffset !== x) && !isNaN(x)) {
                 xOffset = x;
