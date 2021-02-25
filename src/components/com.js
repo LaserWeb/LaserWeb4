@@ -245,12 +245,19 @@ class Com extends React.Component {
         });
 
         socket.on('runningJob', function (data) {
-            CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
-            // When connecting to a server that is already running a job, do NOT pop up an alert with the Job data (Gcode) since a few MB from
-            //  a large job can hang the web browser as it loads.
-            //alert(data);
-            // This should probably have a 'Do you wish to load' confirmation, or maybe is buggy/not much use, since it is already commented out.
+            CommandHistory.write('Running Job!', CommandHistory.WARN);
+            // When connecting to a server that is already running a job, do NOT always pop up an alert with the Job data (Gcode) since a few MB from
+            //  a large job can hang the web browser as it loads and displays. Only Popup an alert if it is short.
+            if (data.length < 512) {
+                CommandHistory.write(data, CommandHistory.STD);
+                alert(data);
+            } else {
+                CommandHistory.write('Running code size: ' + data.length + ', Current progress unavailable', CommandHistory.STD);
+                alert('A Job is Currently Running.<br/>It is ' + data.length + ' bytes long, Current progress is not available.');
+            }
             //setGcode(data);
+            // Do not get running gcode here, there is a seperate call to lw.comm.server 'getRunningJob' that could be used for this purpose.
+            // The user should be alerted first, since large data packets from the server can floor the browser while it is recieving and digesting them.
         });
 
         socket.on('runStatus', function (status) {
