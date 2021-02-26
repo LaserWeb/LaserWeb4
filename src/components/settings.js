@@ -239,7 +239,7 @@ class Settings extends React.Component {
                                     The diameter of the laser spot when cutting and marking.<br/>Used for the suggested width in laser cut, fill and raster operations.
                                     </p>,"Laser beam diameter"), units: 'mm' }} />
                         <ToggleField {...{ object: this.props.settings, field: 'machineBurnWhite', setAttrs: setSettingsAttrs, description: 'Burn White', info: Info(<p className="help-block">
-                                    Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.
+                                    Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.<br/>This can improve quality for high speed rastering using powerful lasers.
                                     </p>,"Reduce laser on/off cycling") }} />
                         <h5 className="header">Probe tool</h5>
                         <p className="help-block">If you have a permanent probe tool you can enter it's offset from the beam focus here.<br/>Leave as '0' if you probe using the tool itself.</p>
@@ -279,7 +279,7 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
                         <hr />
-                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Cut Cooling and Lubrication', info: Info(<p className="help-block">
+                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Cooling and Lubrication', info: Info(<p className="help-block">
                                     Gcode commands to start and stop tool lubrication or cooling flow during milling or lathe operations.
                                     </p>,"Lubrication and Cooling Gcode") }} />
                         <Collapse in={this.props.settings.machineFluidEnabled}>
@@ -303,7 +303,7 @@ class Settings extends React.Component {
                             Do not use commas or slashes.
                             </p>,"Gcode Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeExtension', setAttrs: setSettingsAttrs, description: 'Gcode file extension', info: Info(<p className="help-block">
-                            Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
+                            Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.gc</em>, <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
                             Do not use dots, commas or slashes.
                             </p>,"Gcode Default File Extension"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'jsonFilename', setAttrs: setSettingsAttrs, description: 'Laserweb file names', info: Info(<p className="help-block">

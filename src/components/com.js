@@ -544,15 +544,6 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
 
-                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={false}>
-                        <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: "Send reset when connecting", info: Info(<p className="help-block">
-                            Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
-                            </p>,"^X on Connect") }} />
-                        <TextField {...{ object: this.props.settings, field: 'connectQuery', setAttrs: setSettingsAttrs, description: 'Query String', info: Info(<p className="help-block">
-                            Option query command sent to machine once connected.<br/>eg. <strong>'$I'</strong> on Grbl can be used to show extended firmware information in the console when connecting.
-                            </p>,"Firmware Query String"), style: { fontFamily: "monospace, monospace" } }} />
-                    </Panel>
-
                     <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="3" defaultExpanded={true}>
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
@@ -571,6 +562,20 @@ class Com extends React.Component {
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
+
+                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={false}>
+                        <Collapse in={settings.connectVia == 'USB'}>
+                            <div>
+                                <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: ".   Send reset when connecting", info: Info(<p className="help-block">
+                                    Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
+                                    </p>,"^X on Connect") }} />
+                            </div>
+                        </Collapse>
+                        <TextField {...{ object: this.props.settings, field: 'connectQuery', setAttrs: setSettingsAttrs, description: 'Query String', info: Info(<p className="help-block">
+                            Option query command sent to machine once connected.<br/>eg. <strong>'$I'</strong> on Grbl can be used to show extended firmware information in the console when connecting.
+                            </p>,"Firmware Query String"), style: { fontFamily: "monospace, monospace" } }} />
+                    </Panel>
+
                 </PanelGroup>
             </div>
         )
