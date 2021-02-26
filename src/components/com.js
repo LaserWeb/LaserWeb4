@@ -250,10 +250,10 @@ class Com extends React.Component {
             //  a large job can hang the web browser as it loads and displays. Only Popup an alert if it is short.
             if (data.length < 512) {
                 CommandHistory.write(data, CommandHistory.STD);
-                alert(data);
+                alert('<strong>Server Busy:</strong><br/>' + data);
             } else {
-                CommandHistory.write('Running code size: ' + data.length + ', Current progress unavailable', CommandHistory.STD);
-                alert('A Job is Currently Running.<br/>It is ' + data.length + ' bytes long, Current progress is not available.');
+                CommandHistory.write('Size: ' + data.length + ', current progress unavailable', CommandHistory.STD);
+                alert('<strong>Server Busy:</strong><br/>Running job is ' + data.length + ' bytes long, Current progress is not available.');
             }
             //setGcode(data);
             // Do not get running gcode here, there is a seperate call to lw.comm.server 'getRunningJob' that could be used for this purpose.
