@@ -109,6 +109,9 @@ class Com extends React.Component {
             machineConnected = false;
             $('#connect').removeClass('disabled');
             $('#disconnect').addClass('disabled');
+            firmware = '';
+            fVersion = '';
+            fDate = '';
         });
 
 //        socket.on('open', function(data) {
@@ -181,7 +184,7 @@ class Com extends React.Component {
             if (data.length > 0) {
                 //set the actual port
             }
-            console.log('activePorts: ' + data);
+            console.log('activePorts: ' + JSON.stringify(data));
         });
 
         socket.on('activeBaudRate', function (data) {
@@ -219,12 +222,15 @@ class Com extends React.Component {
                 machineConnected = false;
                 $('#connect').removeClass('disabled');
                 $('#disconnect').addClass('disabled');
+                firmware = '';
+                fVersion = '';
+                fDate = '';
                 CommandHistory.error('Machine disconnected')
             }
         });
 
         socket.on('firmware', function (data) {
-            console.log('firmware: ' + data);
+            console.log('firmware: ' + JSON.stringify(data));
             serverConnected = true;
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
@@ -234,6 +240,7 @@ class Com extends React.Component {
             firmware = data.firmware;
             fVersion = data.version;
             fDate = data.date;
+            console.log('FOUND: firmware: ' + data.firmware + ', version' + data.version +', date:' + data.date);
             dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (firmware === 'grbl' && fVersion < '1.1e') {
@@ -535,8 +542,11 @@ class Com extends React.Component {
 
         return (
             <div style={{paddingTop: 2}}>
+                <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
+                <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
+
                 <PanelGroup>
-                    <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
+                    <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={(!serverConnected)}>
                         <TextField {...{ object: settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
                             <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
@@ -544,7 +554,7 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
 
-                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="3" defaultExpanded={true}>
+                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="3" defaultExpanded={(!machineConnected)}>
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
@@ -563,7 +573,7 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
 
-                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={false}>
+                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={(!firmware)}>
                         <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: ".   Send reset when connecting", info: Info(<p className="help-block">
                             Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
                             </p>,"^X on Connect") }} />
