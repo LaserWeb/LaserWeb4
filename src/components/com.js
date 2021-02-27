@@ -540,7 +540,7 @@ class Com extends React.Component {
         let {settings, dispatch} = this.props;
 
         return (
-            <div style={{paddingTop: 2}}>
+            <div style={{paddingTop: 6}}>
                 <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
                 <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
 
