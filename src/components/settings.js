@@ -306,7 +306,8 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi', info: Info(<p className="help-block">
                                     Default DPI setting to be used for imported bitmaps.
                                     </p>,"DPI Default") }} />
-                        <h5 className="header">Default filenames for saving</h5>
+                        <hr/>
+                        <h5 className="header">Filenames</h5>
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
                             The file type extension (eg. <strong>.gcode</strong>) will be appended to the filename as required.<br/>
@@ -319,7 +320,6 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'jsonFilename', setAttrs: setSettingsAttrs, description: 'Laserweb file names', info: Info(<p className="help-block">
                             Default json (workspaces, profile, settings, etc) filename prefix.<br/>This text will start the filename, it will be followed by the file type, and the <strong>.json</strong> extenson.<br/>
                             Allows for <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as the Gcode filenames.<br/>
-                            Additionally; You can use '<strong>%TYPE</strong>' which will be replaced by the file type; otherwise this will be automatically appended to the filename.<br/>
                             Do not use commas or slashes.
                             </p>,"Json Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
