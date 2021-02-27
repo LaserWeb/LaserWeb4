@@ -502,24 +502,24 @@ class Com extends React.Component {
                     CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectPort + ',' + connectBaud + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud + ',' + connectReset + ',"' + connectQuery + '"');
+                CommandHistory.write('Connecting Machine via USB/Serial, Port: ' + connectPort + ' @ ' + connectBaud + ' baud; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud + ',' + connectReset + ',' + connectQuery);
                 break;
             case 'Telnet':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP + ',' + connectReset + ',' + connectQuery);
+                CommandHistory.write('Connecting Machine via Telnet, IP: ' + connectIP + '; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset + ',' + connectQuery);
                 break;
             case 'ESP8266':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine @ ' + connectVia + ',' + connectIP + ', reset: ' + connectReset + ', query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP + ',' + connectReset + ',' + connectQuery);
+                CommandHistory.write('Connecting Machine via ESP Socket, IP: ' + connectIP + '; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset + ',' + connectQuery);
                 break;
         }
     }
