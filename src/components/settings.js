@@ -392,7 +392,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Minor Spacing', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
                         <hr/>
-                        <h5 className="header">UI</h5>
+                        <h5 className="header">Interface</h5>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
                             Use 'mm/s' or 'mm/min' when specifying feed rates in operations.<br/>The feedrate in the resulting GCode will always be in mm/min.
                             </p>,"Feed rate units for interface"), selectProps: { clearable: false } }} />
