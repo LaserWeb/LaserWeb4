@@ -240,7 +240,6 @@ class Com extends React.Component {
             firmware = data.firmware;
             fVersion = data.version;
             fDate = data.date;
-            console.log('FOUND: firmware: ' + data.firmware + ', version' + data.version +', date:' + data.date);
             dispatch(setComAttrs({ firmware: firmware, firmwareVersion: fVersion && fVersion.toString() }));
             CommandHistory.write('Firmware ' + firmware + ' ' + fVersion + ' detected', CommandHistory.SUCCESS);
             if (firmware === 'grbl' && fVersion < '1.1e') {
