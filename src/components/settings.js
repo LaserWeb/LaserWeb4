@@ -224,15 +224,17 @@ class Settings extends React.Component {
 
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
                         <h5 className="header">Dimensions</h5>
-                        <p className="help-block">The size of the machine work area.</p>
-                        <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm', info: Info(<p className="help-block">
+                                    The total width and height (X and Y) size of the machine work area
+                                    </p>,"Working Dimensions") }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
                         <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
                                     Highlight the machine work area in the display.
                                     </p>,"Show Work Area") }} />
                         <h5 className="header">Origin offsets</h5>
-                        <p className="help-block">X and Y offsets for the machine work area relative to the Home position.<br/>For a machine that homes to the top-right corner use negative values.</p>
-                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm', info: Info(<p className="help-block">
+                                    X and Y offsets for the machine work area relative to the Home position.<br/>For a machine that homes to the top-right corner use negative values.
+                                    </p>,"Working Area Offset") }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), info: Info(<p className="help-block">
@@ -242,8 +244,9 @@ class Settings extends React.Component {
                                     Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.<br/>This can improve quality for high speed rastering using powerful lasers.
                                     </p>,"Reduce laser on/off cycling") }} />
                         <h5 className="header">Probe tool</h5>
-                        <p className="help-block">If you have a permanent probe tool you can enter it's offset from the beam focus here.<br/>Leave as '0' if you probe using the tool itself.</p>
-                        <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' , info: Info(<p className="help-block">
+                                    If you have a permanent probe tool you can enter it's offsets from the beam focus here.<br/>Leave as '0' if you probe using the tool itself.
+                                    </p>,"Probe Offsets") }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Probe Offset', units: 'mm' }} />
                         <hr />
                         <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Define maximum and minimum thresholds for movement speeds and tool power." />
@@ -292,10 +295,17 @@ class Settings extends React.Component {
 
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
                         <h5 className="header">SVG import</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi' }} />
-                        <ToggleField {...{ object: this.props.settings, field: 'forcePxPerInch', setAttrs: setSettingsAttrs, description: 'Force PX Per Inch' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'pxPerInch', setAttrs: setSettingsAttrs, description: 'PX Per Inch', units: 'pxpi', info: Info(<p className="help-block">
+                                    If the Pixels/Inch value is not specified in the SVG file, assume this value<br/>
+                                    See <a href="https://wiki.inkscape.org/wiki/index.php/Units_In_Inkscape" target="_blank'"><strong>here</strong></a> for more.
+                                    </p>,"Default PxPi for SVG files") }} />
+                        <ToggleField {...{ object: this.props.settings, field: 'forcePxPerInch', setAttrs: setSettingsAttrs, description: 'Force PX Per Inch', info: Info(<p className="help-block">
+                                    If the PxPi value in the imported SVG file is causing it to appear badly scaled, override it here.
+                                    </p>,"Override PxPi") }} />
                         <h5 className="header">BITMAPS (bmp, png, jpg) import</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi', info: Info(<p className="help-block">
+                                    Default DPI setting to be used for imported bitmaps.
+                                    </p>,"DPI Default") }} />
                         <h5 className="header">Default filenames for saving</h5>
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
@@ -315,7 +325,10 @@ class Settings extends React.Component {
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
-                        <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', selectProps: { clearable: false } }} />
+                        <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', info: Info(<p className="help-block">
+                                    Some firmware (at present, only Marlin) requires different handling of gcode to set tool power during active moves,
+                                    use this option if you require it.
+                                    </p>,"Gcode Flavor"), selectProps: { clearable: false } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeStart', setAttrs: setSettingsAttrs, description: 'Laser Gcode Start', info: Info(<p className="help-block">
                             Start Gcode<br/>- Commands placed here will be executed at the start of the job.
                             </p>,"Start Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
@@ -343,11 +356,21 @@ class Settings extends React.Component {
                         <ToggleField {... { object: this.props.settings, field: 'gcodeLaserIntensitySeparateLine', setAttrs: setSettingsAttrs, description: 'Intensity Separate Line', info: Info(<p className="help-block">
                             Place the intensity setting command on a seperate line in the generated code instead of being appended to the G1 movement command.
                             </p>,"Tool power setting commands on separate line") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMinValue', setAttrs: setSettingsAttrs, description: 'PWM Min value' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max value' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', units: '%' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', units: '%' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', units: 'ms' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMinValue', setAttrs: setSettingsAttrs, description: 'PWM Min value', info: Info(<p className="help-block">
+                                    Minimum PWM value for the tool, corresponding to zero power.<br/>Typically 0, but some machines, especially gas lasers, may use other values.
+                                    </p>,"Minimum PWM") }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max value', info: Info(<p className="help-block">
+                                    Maximum PWM value for the tool, corresponding to 100% power.<br/>This may vary by firmware, typically 255 or 1024 etc.
+                                    </p>,"Maximum PWM") }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', info: Info(<p className="help-block">
+                                    Power level setting for the Tool Test, as a percentage of the total power range defined above.
+                                    </p>,"Test Power"), units: '%' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', info: Info(<p className="help-block">
+                                    Only run the tool test for this duration, if set to zero the test will run indefinately until cancelled by the user or a move command.
+                                    </p>,"Test Duration"), units: 'ms' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', info: Info(<p className="help-block">
+                                    Power level setting that will be applied while running a gcode size check.<br/>Note that size checking does not turn the tool on automatically, but it does override any existing power setting with this value.
+                                    </p>,"Size Check Power"), units: '%' }} />
                         <h5 className="header">Gcode generation</h5>
                         <NumberField {...{ object: this.props.settings, field: 'gcodeSegmentLength', setAttrs: setSettingsAttrs, description: 'Segment Length', info: Info(<p className="help-block">
                             Minimum path segment length; imported (SVG) path segments shorter then this length will be combined.<br/>This improves Gcode generation performance and decreases code size for imported vectors with very fine resolution.
@@ -369,10 +392,18 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Minor Spacing', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
                         <hr/>
+                        <h5 className="header">UI</h5>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
                             Use 'mm/s' or 'mm/min' when specifying feed rates in operations.<br/>The feedrate in the resulting GCode will always be in mm/min.
                             </p>,"Feed rate units for interface"), selectProps: { clearable: false } }} />
+                        <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations',info: Info(<p className="help-block">
+                            Allows creation of operations in UI even when no documents are selected.<br/>Useful when preparing workspace templates for future use.</p>) }} />
+                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">
+                            Controls how images are repositioned during raster optimisation.
+                            </p>,"Raster optimisation placement") }} />
+                        <br/>
                         <hr/>
+                        <h5 className="header">Control</h5>
                         <ToggleField {... { object: this.props.settings, field: 'toolUseNumpad', setAttrs: setSettingsAttrs, description: 'Use Numpad', info: Info(<p className="help-block">
                         X <Label>4</Label> <Label>6</Label><br/>
                         Y <Label>2</Label> <Label>8</Label><br/>
@@ -382,15 +413,12 @@ class Settings extends React.Component {
 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">
                             Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
-                        <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations',info: Info(<p className="help-block">
-                            Allows creation of operations in UI even when no documents are selected.<br/>Useful when preparing workspace templates for future use.</p>) }} />
-
-                        <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">
-                            Controls how images are repositioned during raster optimisation.
-                            </p>,"Raster optimisation placement") }} />
-                        <br/><hr/>
-                        <p className="help-block">Enable Display cache. Disable animations.</p>
-                        <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache' }} />
+                        <hr/>
+                        <h5 className="header">Performance</h5>
+                        <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache', info: Info(<p className="help-block">
+                            Disables continual update of the workspace display while idle.<br/>
+                            This can reduce idle CPU use in your browser, but some events (eg simulation progress) may not update the display immediately.
+                            </p>,"Cache display instead of continually redrawing") }} />
                     </SettingsPanel>
 
                     <Panel collapsible header="Camera" bsStyle="info" eventKey="6">
