@@ -466,6 +466,13 @@ class Com extends React.Component {
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
             dispatch(setSettingsAttrs({comApiVersion: serverVersion}));
+            $("#machineStatus").removeClass('badge-ok');
+            $("#machineStatus").addClass('badge-notify');
+            $("#machineStatus").removeClass('badge-warn');
+            $("#machineStatus").removeClass('badge-busy');
+            $('#machineStatus').html("Not Connected");
+            $('#connect').addClass('disabled');
+            $('#disconnect').addClass('disabled');
         });
 
         socket.on('error', function (data) {
@@ -479,10 +486,18 @@ class Com extends React.Component {
         let { dispatch } = this.props;
         if (socket) {
             CommandHistory.write('Disconnecting from server', CommandHistory.INFO);
+            console.log('Server Disconnected by user');
             socket.disconnect();
             let serverVersion = 'not connected';
             dispatch(setSettingsAttrs({comServerVersion: serverVersion}));
             dispatch(setSettingsAttrs({comApiVersion: serverVersion}));
+            $("#machineStatus").removeClass('badge-ok');
+            $("#machineStatus").addClass('badge-notify');
+            $("#machineStatus").removeClass('badge-warn');
+            $("#machineStatus").removeClass('badge-busy');
+            $('#machineStatus').html("Not Connected");
+            $('#connect').addClass('disabled');
+            $('#disconnect').addClass('disabled');
         }
     }
 
@@ -531,8 +546,20 @@ class Com extends React.Component {
     }
 
     handleDisconnectMachine() {
-        confirm("This will halt the current running job! Are you sure?", (data) => { if (data) {CommandHistory.write('Disconnecting Machine', CommandHistory.INFO); socket.emit('closePort');}}, !playing)
-    }
+        confirm("This will halt the current running job! Are you sure?", (data) => { if (data) {
+            CommandHistory.write('Disconnecting Machine', CommandHistory.INFO);
+            console.log('Machine Disconnected by user');
+            socket.emit('closePort');
+            playing = false;
+            paused = false;
+            runStatus('stopped');
+            $("#machineStatus").removeClass('badge-ok');
+            $("#machineStatus").addClass('badge-notify');
+            $("#machineStatus").removeClass('badge-warn');
+            $("#machineStatus").removeClass('badge-busy');
+            $('#machineStatus').html("Not Connected");
+            }}, ($('#machineStatus').html() != "Run")
+    )}
 
     render() {
         let {settings, dispatch} = this.props;
@@ -540,14 +567,13 @@ class Com extends React.Component {
         return (
             <div style={{paddingTop: 6}}>
                 <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
-                <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
 
                 <PanelGroup>
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={(!serverConnected)}>
                         <TextField {...{ object: settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
                         <ButtonGroup>
                             <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
-                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="disconnectS" bsClass="btn btn-xs btn-danger disabled" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
@@ -565,8 +591,8 @@ class Com extends React.Component {
                             </div>
                         </Collapse>
                         <ButtonGroup>
-                            <Button id="connect" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
-                            <Button id="disconnect" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
+                            <Button id="connect" bsClass="btn btn-xs btn-info disabled" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="disconnect" bsClass="btn btn-xs btn-danger disabled" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
                     </Panel>
 
