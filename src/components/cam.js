@@ -148,7 +148,7 @@ class Cam extends React.Component {
                                         <label>Workspace</label>
                                     </td>
                                     <td>
-                                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName={this.props.settings.jsonFilename + '-Workspace.json'} label="Workspace" className="well well-sm">
+                                        <ApplicationSnapshotToolbar loadButton saveButton stateKeys={['documents', 'operations', 'currentOperation', 'settings.toolFeedUnits']} saveName={strftime(settings.workspaceFilename + '.json')} label="Workspace" className="well well-sm">
                                             <Button bsSize="xsmall" bsStyle="warning" onClick={e => this.props.resetWorkspace(e)}>Reset <Icon name="trash" /></Button>
                                         </ApplicationSnapshotToolbar>
                                     </td>

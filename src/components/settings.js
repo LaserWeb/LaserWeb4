@@ -310,18 +310,17 @@ class Settings extends React.Component {
                         <h5 className="header">Filenames</h5>
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
-                            The file type extension (eg. <strong>.gcode</strong>) will be appended to the filename as required.<br/>
+                            The file extension defined below will be appended as required.<br/>
                             Do not use commas or slashes.
                             </p>,"Gcode Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeExtension', setAttrs: setSettingsAttrs, description: 'Gcode file extension', info: Info(<p className="help-block">
                             Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.gc</em>, <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
                             Do not use dots, commas or slashes.
                             </p>,"Gcode Default File Extension"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'jsonFilename', setAttrs: setSettingsAttrs, description: 'Laserweb file names', info: Info(<p className="help-block">
-                            Default json (workspaces, profile, settings, etc) filename prefix.<br/>This text will start the filename, it will be followed by the file type, and the <strong>.json</strong> extenson.<br/>
-                            Allows for <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as the Gcode filenames.<br/>
+                        <TextField {...{ object: this.props.settings, field: 'workspaceFilename', setAttrs: setSettingsAttrs, description: 'Workspace file name', info: Info(<p className="help-block">
+                            Allows for <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as the Gcode filenames, the <strong>.json</strong> extension will be appended.<br/>
                             Do not use commas or slashes.
-                            </p>,"Json Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
+                            </p>,"Workspace Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
