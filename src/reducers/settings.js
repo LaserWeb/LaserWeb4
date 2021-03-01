@@ -40,9 +40,9 @@ export const SETTINGS_VALIDATION_RULES = {
     jogFeedXY: 'numeric|min:0',
     jogFeedZ: 'numeric|min:0',
 
-    gcodeFilename: 'regex:/^[^;,\/]+$/',
-    gcodeExtension: 'regex:/^[^;,\/]+$/',
-    workspaceFilename: 'regex:/^[^;,\/]+$/'
+    gcodeFilename:     'regex:/^[^;,\*]+$/',
+    gcodeExtension:    'regex:/^[^;,\*\/]+$/',
+    workspaceFilename: 'regex:/^[^;,\*]+$/'
 }
 
 

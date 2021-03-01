@@ -415,9 +415,11 @@ class Settings extends React.Component {
                             Set to the travel speed of your machine for accurate simulation rates.<br/>
                             </p>,"Simulation G0 Travel Speed"), units: 'mm/min'} } />
                         <Collapse in={this.props.settings.machineAEnabled}>
-                            <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis Diameter', info: Info(<p className="help-block">
-                                Adjust simulation to account for the rotary diameter of the A axis.<br/>
-                                </p>,"Simulation Rotary Diameter"), units: 'mm'} } />
+                            <div>
+                                <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis Diameter', info: Info(<p className="help-block">
+                                    Adjust simulation to account for the rotary diameter of the A axis.<br/>
+                                    </p>,"Simulation Rotary Diameter"), units: 'mm'} } />
+                             </div>
                         </Collapse>
                         <NumberField {...{ object: this.props.settings, field: 'simBarWidth', setAttrs: setSettingsAttrs, description: 'Slider Width', info: Info(<p className="help-block">
                             The width of the simulator slider in the GUI, wider gives more precision at the expense of the console width.<br/>
