@@ -311,15 +311,12 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
                             The file extension defined below will be appended as required.<br/>
-                            Do not use commas or slashes.
                             </p>,"Gcode Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeExtension', setAttrs: setSettingsAttrs, description: 'Gcode file extension', info: Info(<p className="help-block">
                             Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.gc</em>, <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
-                            Do not use dots, commas or slashes.
                             </p>,"Gcode Default File Extension"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'workspaceFilename', setAttrs: setSettingsAttrs, description: 'Workspace file name', info: Info(<p className="help-block">
                             Allows for <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as the Gcode filenames, the <strong>.json</strong> extension will be appended.<br/>
-                            Do not use commas or slashes.
                             </p>,"Workspace Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
 
@@ -412,6 +409,19 @@ class Settings extends React.Component {
 
                         <ToggleField {... { object: this.props.settings, field: 'toolUseGamepad', setAttrs: setSettingsAttrs, description: 'Use Gamepad',info: Info(<p className="help-block">
                             Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
+                        <hr/>
+                        <h5 className="header">Simulator</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'simG0Rate', setAttrs: setSettingsAttrs, description: 'G0 Travel', info: Info(<p className="help-block">
+                            Set to the travel speed of your machine for accurate simulation rates.<br/>
+                            </p>,"Simulation G0 Travel Speed"), units: 'mm/min'} } />
+                        <Collapse in={this.props.settings.machineAEnabled}>
+                            <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis Diameter', info: Info(<p className="help-block">
+                                Adjust simulation to account for the rotary diameter of the A axis.<br/>
+                                </p>,"Simulation Rotary Diameter"), units: 'mm'} } />
+                        </Collapse>
+                        <NumberField {...{ object: this.props.settings, field: 'simBarWidth', setAttrs: setSettingsAttrs, description: 'Slider Width', info: Info(<p className="help-block">
+                            The width of the simulator slider in the GUI, wider gives more precision at the expense of the console width.<br/>
+                            </p>,"Simulatior Slider Width"), units: 'em'} } />
                         <hr/>
                         <h5 className="header">Performance</h5>
                         <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache', info: Info(<p className="help-block">

@@ -26,6 +26,10 @@ export const SETTINGS_VALIDATION_RULES = {
 
     machineAEnabled: 'boolean',
 
+    simG0Rate: 'numeric|min:0.01',
+    simRotaryDiameter: 'numeric|min:0',
+    simBarWidth: 'numeric|min:2',
+
     toolGridWidth: 'numeric|min:100',
     toolGridHeight: 'numeric|min:100',
     toolImagePosition: 'in:TL,TR,C,BL,BR',
@@ -36,6 +40,9 @@ export const SETTINGS_VALIDATION_RULES = {
     jogFeedXY: 'numeric|min:0',
     jogFeedZ: 'numeric|min:0',
 
+    gcodeFilename: 'regex:/^[^;,\/]+$/',
+    gcodeExtension: 'regex:/^[^;,\/]+$/',
+    workspaceFilename: 'regex:/^[^;,\/]+$/'
 }
 
 
@@ -97,6 +104,10 @@ export const SETTINGS_INITIALSTATE = {
     gcodeFilename: "gcode",
     gcodeExtension: ".gcode",
     workspaceFilename: "Laserweb-Workspace",
+
+    simG0Rate: 1000,
+    simRotaryDiameter: 10,
+    simBarWidth: 22,
 
     toolGridWidth: 500,
     toolGridHeight: 500,
