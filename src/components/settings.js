@@ -422,8 +422,8 @@ class Settings extends React.Component {
                              </div>
                         </Collapse>
                         <NumberField {...{ object: this.props.settings, field: 'simBarWidth', setAttrs: setSettingsAttrs, description: 'Slider Width', info: Info(<p className="help-block">
-                            The width of the simulator slider in the GUI, wider gives more precision at the expense of the console width.<br/>
-                            </p>,"Simulatior Slider Width"), units: 'em'} } />
+                            The width of the simulator slider in the GUI, wider gives more precision.<br/>
+                            </p>,"Simulator Slider Width"), units: 'em'} } />
                         <hr/>
                         <h5 className="header">Performance</h5>
                         <ToggleField {... { object: this.props.settings, field: 'toolDisplayCache', setAttrs: setSettingsAttrs, description: 'Display Cache', info: Info(<p className="help-block">

@@ -1346,8 +1346,17 @@ class Workspace extends React.Component {
     }
 
     toggleSim() {
-        // TODO: query the sim slider and toggle visibility
-        $.noop();
+        let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
+        if (totalSecs > 0) {
+          let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
+          let secs = totalSecs % 60;
+          let mins = Math.floor(totalSecs / 60) % 60;
+          let hrs = Math.floor(totalSecs / 3600);
+          let duty = Math.floor(activeSecs / totalSecs * 100)
+          if (hrs > 0) CommandHistory.write('Estimated job run time: ' + hrs + 'h, ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%', CommandHistory.INFO);
+          else CommandHistory.write('Estimated job run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%', CommandHistory.INFO);
+          console.log('Simulated total gcode run time: ' + totalSecs + ' seconds; active: ' + activeSecs + 's');
+        } // else console.log('Cannot estimate run time since no job is loaded');
     }
 
     render() {
