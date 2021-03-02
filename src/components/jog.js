@@ -399,12 +399,12 @@ class Jog extends React.Component {
 
         if (bounds && xOffset && yOffset) {
             if ((bounds.xMin < minWorkspaceX) || (bounds.xMax > maxWorkspaceX) || (bounds.yMin < minWorkspaceY) || (bounds.yMax > maxWorkspaceY)) {
-                CommandHistory.warn("Warning! Gcode out of machine bounds, can lead to running work halt." +
+                CommandHistory.write("Warning! Gcode out of machine bounds, can lead to running work halt." +
                                "<br/>  Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax +
-                               "<br/>Machine bounds: Xmin= " + parseFloat(minWorkspaceX).toFixed(decimals) + ", Xmax= " + parseFloat(maxWorkspaceX).toFixed(decimals) + ", Ymin= " + parseFloat(minWorkspaceY).toFixed(decimals) + ", Ymax= " + parseFloat(maxWorkspaceY).toFixed(decimals));
+                               "<br/>Machine bounds: Xmin= " + parseFloat(minWorkspaceX).toFixed(decimals) + ", Xmax= " + parseFloat(maxWorkspaceX).toFixed(decimals) + ", Ymin= " + parseFloat(minWorkspaceY).toFixed(decimals) + ", Ymax= " + parseFloat(maxWorkspaceY).toFixed(decimals), CommandHistory.DANGER);
                 this.setState({'warnings':"Warning: Gcode out of machine bounds, can lead to running work halt"});
             } else {
-                CommandHistory.write("Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax);
+                CommandHistory.write("Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax, CommandHistory.INFO);
             }
         }
     }

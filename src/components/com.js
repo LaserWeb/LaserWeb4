@@ -372,7 +372,7 @@ class Com extends React.Component {
                 posChanged = true;
             }
             if (posChanged) {
-                CommandHistory.write('Workspace Offset: X= ' + xOffset + ', Y= ' + yOffset + ', Z= ' + zOffset + ', A= ' + aOffset);
+                CommandHistory.write('Workspace Offset: X= ' + xOffset + ', Y= ' + yOffset + ', Z= ' + zOffset + ', A= ' + aOffset, CommandHistory.INFO);
                 dispatch(setWorkspaceAttrs({ workOffsetX: +xOffset, workOffsetY: +yOffset }));
             }
         });
@@ -599,7 +599,7 @@ class Com extends React.Component {
                     <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={(!firmware)}>
                         <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: ".   Send reset when connecting", info: Info(<p className="help-block">
                             Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
-                            </p>,"^X on Connect") }} />
+                            </p>,"^X on Connect"), style: { float: "right", clear: "right" } }} />
                         <TextField {...{ object: this.props.settings, field: 'connectQuery', setAttrs: setSettingsAttrs, description: 'Query String', info: Info(<p className="help-block">
                             Optional query command sent to machine once connected.<br/>eg. <strong>'$I'</strong> on Grbl can be used to show extended firmware information in the console when connecting.
                             </p>,"Firmware Query String"), style: { fontFamily: "monospace, monospace" } }} />
