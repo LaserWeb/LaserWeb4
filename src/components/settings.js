@@ -223,19 +223,19 @@ class Settings extends React.Component {
                     </Panel>
 
                     <SettingsPanel collapsible header="Machine" eventKey="1" bsStyle="info" errors={this.state.errors} >
-                        <h5 className="header">Dimensions</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Machine Width', units: 'mm', info: Info(<p className="help-block">
+                        <h5 className="header">Machine Dimensions</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'machineWidth', setAttrs: setSettingsAttrs, description: 'Width', units: 'mm', info: Info(<p className="help-block">
                                     The total width and height (X and Y) size of the machine work area
                                     </p>,"Working Dimensions") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Machine Height', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Height', units: 'mm' }} />
                         <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
                                     Highlight the machine work area in the display.
                                     </p>,"Show Work Area") }} />
-                        <h5 className="header">Origin offsets</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Machine Left X', units: 'mm', info: Info(<p className="help-block">
+                        <h5 className="header">Machine Origin offsets</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Left X', units: 'mm', info: Info(<p className="help-block">
                                     X and Y offsets for the machine work area relative to the Home position.<br/>For a machine that homes to the top-right corner use negative values.
                                     </p>,"Working Area Offset") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Machine Bottom Y', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftY', setAttrs: setSettingsAttrs, description: 'Bottom Y', units: 'mm' }} />
                         <h5 className="header">Tool head</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBeamDiameter', setAttrs: setSettingsAttrs, description: (<span>Beam <abbr title="Diameter">&Oslash;</abbr></span>), info: Info(<p className="help-block">
                                     The diameter of the laser spot when cutting and marking.<br/>Used for the suggested width in laser cut, fill and raster operations.
@@ -243,11 +243,13 @@ class Settings extends React.Component {
                         <ToggleField {...{ object: this.props.settings, field: 'machineBurnWhite', setAttrs: setSettingsAttrs, description: 'Burn White', info: Info(<p className="help-block">
                                     Do not use 'G0' rapid movement for white (blank) areas when rastering, use 'G1 S0' instead.<br/>This can improve quality for high speed rastering using powerful lasers.
                                     </p>,"Reduce laser on/off cycling") }} />
-                        <h5 className="header">Probe tool</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Probe Offset', units: 'mm' , info: Info(<p className="help-block">
-                                    If you have a permanent probe tool you can enter it's offsets from the beam focus here.<br/>Leave as '0' if you probe using the tool itself.
+                        <h5 className="header">Probe Tool Offsets</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'machineXYProbeOffset', setAttrs: setSettingsAttrs, description: 'X/Y Offset', units: 'mm' , info: Info(<p className="help-block">
+                                    The XY offset from the probe center to the probe contact surface.<br/>Typically set to the radius of your probing tool.
                                     </p>,"Probe Offsets") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Probe Offset', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'machineZProbeOffset', setAttrs: setSettingsAttrs, description: 'Z Offset', units: 'mm' , info: Info(<p className="help-block">
+                                    Vertical offset for the probing tool.<br/>Leave as '0' if you probe using the tool itself.
+                                    </p>,"Probe Offsets") }} />
                         <hr />
                         <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Define maximum and minimum thresholds for movement speeds and tool power." />
                         <hr />
@@ -257,10 +259,10 @@ class Settings extends React.Component {
                         <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', info: Info(<p className="help-block">
-                                    Vertical offset for tool, usually zero, but some machine co-ordinate systems or setups use this.
+                                    Vertical offset for tool, if required. Usually zero.
                                     </p>,"Tool Z offset"), labelAddon: false, units: 'mm' }} />
-                                <TextField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Laser Start Height', info: Info(<p className="help-block">
-                                    Set the machine default Z height for laser operations. This is usually zero, but can be set otherwise if desired, or if your firmware requires it.
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Laser Start Height', info: Info(<p className="help-block">
+                                    Set the machine default Z height for laser operations.
                                     </p>,"Default Z height for laser operations"), labelAddon: false, units: 'mm' }} />
                                 <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineRapidZ', setAttrs: setSettingsAttrs, description: 'Mill rapid travel Z height', info: Info(<p className="help-block">
                                     Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts.
@@ -282,7 +284,7 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
                         <hr />
-                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Cooling and Lubrication', info: Info(<p className="help-block">
+                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Fluid Assist', info: Info(<p className="help-block">
                                     Gcode commands to start and stop tool lubrication or cooling flow during milling or lathe operations.
                                     </p>,"Lubrication and Cooling Gcode") }} />
                         <Collapse in={this.props.settings.machineFluidEnabled}>
@@ -358,25 +360,27 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'gcodeSMaxValue', setAttrs: setSettingsAttrs, description: 'PWM Max value', info: Info(<p className="help-block">
                                     Maximum PWM value for the tool, corresponding to 100% power.<br/>This may vary by firmware, typically 255 or 1024 etc.
                                     </p>,"Maximum PWM") }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Tool Test Power', info: Info(<p className="help-block">
+                        <h5 className="header">Tool Test</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestPower', setAttrs: setSettingsAttrs, description: 'Power', info: Info(<p className="help-block">
                                     Power level setting for the Tool Test, as a percentage of the total power range defined above.
                                     </p>,"Test Power"), units: '%' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Tool Test duration', info: Info(<p className="help-block">
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeToolTestDuration', setAttrs: setSettingsAttrs, description: 'Duration', info: Info(<p className="help-block">
                                     Only run the tool test for this duration, if set to zero the test will run indefinately until cancelled by the user or a move command.
                                     </p>,"Test Duration"), units: 'ms' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Check-Size Power', info: Info(<p className="help-block">
+                        <h5 className="header">Size Checking</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCheckSizePower', setAttrs: setSettingsAttrs, description: 'Power', info: Info(<p className="help-block">
                                     Power level setting that will be applied while running a gcode size check.<br/>Note that size checking does not turn the tool on automatically, but it does override any existing power setting with this value.
                                     </p>,"Size Check Power"), units: '%' }} />
                         <h5 className="header">Gcode generation</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeSegmentLength', setAttrs: setSettingsAttrs, description: 'Segment Length', info: Info(<p className="help-block">
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeSegmentLength', setAttrs: setSettingsAttrs, description: 'Segment', info: Info(<p className="help-block">
                             Minimum path segment length; imported (SVG) path segments shorter then this length will be combined.<br/>This improves Gcode generation performance and decreases code size for imported vectors with very fine resolution.
                             </p>,"Path Segment Length"), units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Gcode Curve Linearization factor', info: Info(<p className="help-block">
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeCurvePrecision', setAttrs: setSettingsAttrs, description: 'Curve Linearization', info: Info(<p className="help-block">
                             Enter from 0.1 (Ultra High Precision - Slow) to 2.0 (Low Precision - Fast) to achieve different levels of curve to gcode performance.<br/>
                             </p>,"Gcode linearization factor"), units: ''} } />
-                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'Gcode Generation threads', info: Info(<p className="help-block">
-                            Increasing this can improve performance on large files with lots of operations, but requires a powerful host computer.<br/>Should generally match the number of CPU threads on your machine -1.
-                            </p>,"Gcode threads"), units: '' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'gcodeConcurrency', setAttrs: setSettingsAttrs, description: 'CPU Threads', info: Info(<p className="help-block">
+                            Increasing this can improve gcode generation performance on large files with lots of individual operations.
+                            </p>,"Gcode Generation Threads"), units: '' }} />
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
@@ -385,8 +389,8 @@ class Settings extends React.Component {
                         &nbsp;&nbsp;Grid spacing requires app reload. Use with caution, very large or dense grids will affect display performance.</small>
                         <NumberField {...{ object: this.props.settings, field: 'toolGridWidth', setAttrs: setSettingsAttrs, description: 'Grid Width', units: 'mm' }} />
                         <NumberField {...{ object: this.props.settings, field: 'toolGridHeight', setAttrs: setSettingsAttrs, description: 'Grid Height', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Minor Spacing', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Grid Major Spacing', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Minor Spacing', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Major Spacing', units: 'mm' }} />
                         <hr/>
                         <h5 className="header">Interface</h5>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
@@ -411,18 +415,18 @@ class Settings extends React.Component {
                             Gamepad for jogging. Use analog left stick (XY) or right stick (Z) to move on Jog tab.</p>) }} />
                         <hr/>
                         <h5 className="header">Simulator</h5>
-                        <NumberField {...{ object: this.props.settings, field: 'simG0Rate', setAttrs: setSettingsAttrs, description: 'G0 Travel', info: Info(<p className="help-block">
+                        <NumberField {...{ object: this.props.settings, field: 'simG0Rate', setAttrs: setSettingsAttrs, description: 'G0 speed', info: Info(<p className="help-block">
                             Set to the travel speed of your machine for accurate simulation rates.<br/>
                             </p>,"Simulation G0 Travel Speed"), units: 'mm/min'} } />
                         <Collapse in={this.props.settings.machineAEnabled}>
                             <div>
-                                <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis Diameter', info: Info(<p className="help-block">
+                                <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis<br>Diameter', info: Info(<p className="help-block">
                                     Adjust simulation to account for the rotary diameter of the A axis.<br/>
-                                    </p>,"Simulation Rotary Diameter"), units: 'mm'} } />
+                                    </p>,"Simulation A Axis Rotary Diameter"), units: 'mm'} } />
                              </div>
                         </Collapse>
                         <NumberField {...{ object: this.props.settings, field: 'simBarWidth', setAttrs: setSettingsAttrs, description: 'Slider Width', info: Info(<p className="help-block">
-                            The width of the simulator slider in the GUI, wider gives more precision.<br/>
+                            The width of the simulator slider in the GUI, this can give more precision at the expense of reducing the console width.<br/>
                             </p>,"Simulator Slider Width"), units: 'em'} } />
                         <hr/>
                         <h5 className="header">Performance</h5>

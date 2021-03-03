@@ -85,7 +85,7 @@ export const SETTINGS_INITIALSTATE = {
     machineZEnabled: false,
     machineZMatThickness: 0,
     machineZToolOffset: 0,
-    machineZStartHeight: '',
+    machineZStartHeight: 0,
     machineRapidZ: 2,
     machineZProbeOffset: 0,
 
@@ -138,9 +138,9 @@ export const SETTINGS_INITIALSTATE = {
     toolTestDuration: 0,
 
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
-    gcodeMillStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
+    gcodeMillStart: "",
     gcodeEnd: "M5          ; Switch tool off\r\n",
-    gcodeMillEnd: "M5          ; Switch tool off\r\n",
+    gcodeMillEnd: "",
     gcodeHoming: "",
     gcodeGenerator: "default",
     gcodeToolOn: "",
