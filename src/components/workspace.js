@@ -818,7 +818,7 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.ONE, gl.ONE);
             this.props.laserPreview.draw(
                 this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter,
-                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.simRotaryDiameter);
+                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
             gl.blendEquation(gl.FUNC_ADD);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
@@ -826,7 +826,7 @@ class WorkspaceContent extends React.Component {
             let draw = () => {
                 this.props.gcodePreview.draw(
                     this.drawCommands, this.camera.perspective, this.camera.view,
-                    this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.simRotaryDiameter);
+                    this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
             };
             cacheDrawing(draw, this.drawGcodeState, {
                 drawCommands: this.drawCommands,
@@ -834,7 +834,7 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, view: this.camera.view,
                 g0Rate: this.props.settings.simG0Rate,
                 simTime: this.props.workspace.simTime,
-                rotaryDiameter: this.props.settings.simRotaryDiameter,
+                rotaryDiameter: this.props.settings.machineAAxisDiameter,
                 arrayVersion: this.props.gcodePreview.arrayVersion,
             });
         }
@@ -864,8 +864,8 @@ class WorkspaceContent extends React.Component {
             if (this.props.workspace.showGcode || this.props.workspace.showLaser) {
                 minX = Math.min(minX, this.props.gcodePreview.minX - this.props.settings.machineBeamDiameter);
                 maxX = Math.max(maxX, this.props.gcodePreview.maxX + this.props.settings.machineBeamDiameter);
-                minY = Math.min(minY, this.props.gcodePreview.minY + this.props.gcodePreview.minA * this.props.settings.simRotaryDiameter * Math.PI / 360 - this.props.settings.machineBeamDiameter);
-                maxY = Math.max(maxY, this.props.gcodePreview.maxY + this.props.gcodePreview.maxA * this.props.settings.simRotaryDiameter * Math.PI / 360 + this.props.settings.machineBeamDiameter);
+                minY = Math.min(minY, this.props.gcodePreview.minY + this.props.gcodePreview.minA * this.props.settings.machineAAxisDiameter * Math.PI / 360 - this.props.settings.machineBeamDiameter);
+                maxY = Math.max(maxY, this.props.gcodePreview.maxY + this.props.gcodePreview.maxA * this.props.settings.machineAAxisDiameter * Math.PI / 360 + this.props.settings.machineBeamDiameter);
             }
         }
 
@@ -889,11 +889,11 @@ class WorkspaceContent extends React.Component {
 
             let perspective = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
             let sx = 2 / (maxX - minX);
-            let sy = 2 / Math.PI / this.props.settings.simRotaryDiameter;
+            let sy = 2 / Math.PI / this.props.settings.machineAAxisDiameter;
             let band = (minY, maxY, f) => {
                 let n = 0;
-                for (let i = Math.floor(minY / Math.PI / this.props.settings.simRotaryDiameter); ; ++i) {
-                    let y = i * Math.PI * this.props.settings.simRotaryDiameter;
+                for (let i = Math.floor(minY / Math.PI / this.props.settings.machineAAxisDiameter); ; ++i) {
+                    let y = i * Math.PI * this.props.settings.machineAAxisDiameter;
                     if (y >= maxY)
                         break;
                     let view = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, -minX * sx - 1, -y * sy - 1, 0, 1];
@@ -913,7 +913,7 @@ class WorkspaceContent extends React.Component {
                             gl.blendFunc(gl.ONE, gl.ONE);
                             this.props.laserPreview.draw(
                                 this.drawCommands, perspective, view, this.props.settings.machineBeamDiameter,
-                                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.simRotaryDiameter);
+                                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
                             gl.blendEquation(gl.FUNC_ADD);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                         });
@@ -925,7 +925,7 @@ class WorkspaceContent extends React.Component {
                         view => {
                             this.props.gcodePreview.draw(
                                 this.drawCommands, perspective, view,
-                                this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.simRotaryDiameter);
+                                this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
                         });
                 }
             }
@@ -943,10 +943,10 @@ class WorkspaceContent extends React.Component {
                 perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
             });
 
-        if (this.props.settings.simRotaryDiameter > 0) {
+        if (this.props.settings.machineAAxisDiameter > 0) {
             gl.enable(gl.DEPTH_TEST);
             this.cylImageMesh = this.cylImageMesh || new CylImageMesh();
-            this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.settings.simRotaryDiameter, 360, this.rotaryFrameBuffer.texture);
+            this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.settings.machineAAxisDiameter, 360, this.rotaryFrameBuffer.texture);
             gl.disable(gl.DEPTH_TEST);
         }
 

@@ -28,7 +28,6 @@ export const SETTINGS_VALIDATION_RULES = {
     machineAAxisDiameter: 'numeric|min:0.01',
 
     simG0Rate: 'numeric|min:0.01',
-    simRotaryDiameter: 'numeric|min:0',
     simBarWidth: 'numeric|min:2',
 
     toolGridWidth: 'numeric|min:100',
@@ -108,7 +107,6 @@ export const SETTINGS_INITIALSTATE = {
     workspaceFilename: "Laserweb-Workspace",
 
     simG0Rate: 1000,
-    simRotaryDiameter: 10,
     simBarWidth: 22,
 
     toolGridWidth: 500,
