@@ -253,27 +253,6 @@ class Settings extends React.Component {
                         <hr />
                         <MachineFeedRanges minValue={1} maxValue={Infinity} axis={['XY', 'Z', 'A', 'S']} object={this.props.settings} field={'machineFeedRange'} setAttrs={setSettingsAttrs} description="Define maximum and minimum thresholds for movement speeds and tool power." />
                         <hr />
-                        <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage', info: Info(<p className="help-block">
-                                    Full 3-Axis support.<br/>Use for milling and engraving machines, and lasers with a Z axis.
-                                    </p>,"Z-axis") }} />
-                        <Collapse in={this.props.settings.machineZEnabled}>
-                            <div>
-                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Offset', info: Info(<p className="help-block">
-                                    Vertical offset for tool, if required. Usually zero.
-                                    </p>,"Tool Z offset"), labelAddon: false, units: 'mm' }} />
-                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Default Laser Start Height', info: Info(<p className="help-block">
-                                    Set the machine default Z height for laser operations.
-                                    </p>,"Default Z height for laser operations"), labelAddon: false, units: 'mm' }} />
-                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineRapidZ', setAttrs: setSettingsAttrs, description: 'Mill rapid travel Z height', info: Info(<p className="help-block">
-                                    Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts.
-                                    </p>,"Mill and Lathe rapid movement Z height"), labelAddon: false, units: 'mm' }} />
-                            </div>
-                        </Collapse>
-                        <hr />
-                        <ToggleField {... { object: this.props.settings, field: 'machineAEnabled', setAttrs: setSettingsAttrs, description: 'Machine A stage', info: Info(<p className="help-block">
-                                    Allows controlling and visualising machines and gcode which use 'A' as an additional rotational axis around the X plane.
-                                    </p>,"A-axis") }} />
-                        <hr />
                         <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineBlowerEnabled', setAttrs: setSettingsAttrs, description: 'Laser Cutting Air Assist', info: Info(<p className="help-block">
                                     Gcode commands to start and stop air assistance during laser cutting operations.
                                     </p>,"Air Assist Gcode") }} />
@@ -284,15 +263,43 @@ class Settings extends React.Component {
                             </div>
                         </Collapse>
                         <hr />
-                        <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Fluid Assist', info: Info(<p className="help-block">
-                                    Gcode commands to start and stop tool lubrication or cooling flow during milling or lathe operations.
-                                    </p>,"Lubrication and Cooling Gcode") }} />
-                        <Collapse in={this.props.settings.machineFluidEnabled}>
+                        <ToggleField {... { object: this.props.settings, field: 'machineZEnabled', setAttrs: setSettingsAttrs, description: 'Machine Z stage', info: Info(<p className="help-block">
+                                    Full 3-Axis support.<br/>Use for milling and engraving machines, and lasers with a Z axis.
+                                    </p>,"Z-axis") }} />
+                        <Collapse in={this.props.settings.machineZEnabled}>
                             <div>
-                                <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode Fluid ON', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                                <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode Fluid OFF', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZToolOffset', setAttrs: setSettingsAttrs, description: 'Tool Z Offset', info: Info(<p className="help-block">
+                                    Vertical offset for tool, if required.
+                                    </p>,"Tool Z offset"), labelAddon: false, units: 'mm' }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineZStartHeight', setAttrs: setSettingsAttrs, description: 'Laser Default Start Height', info: Info(<p className="help-block">
+                                    Set the machine default Z height for laser operations.
+                                    </p>,"Default Z height for laser operations"), labelAddon: false, units: 'mm' }} />
+                                <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineRapidZ', setAttrs: setSettingsAttrs, description: 'Mill Rapid Travel Z Height', info: Info(<p className="help-block">
+                                    Defines the default vertical clearance given to the workpiece when rapidly traversing between individual mill cuts.
+                                    </p>,"Mill and Lathe rapid movement Z height"), labelAddon: false, units: 'mm' }} />
+                                <ToggleField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineFluidEnabled', setAttrs: setSettingsAttrs, description: 'Mill Fluid Assist', info: Info(<p className="help-block">
+                                            Gcode commands to start and stop tool lubrication or cooling flow during milling or lathe operations.
+                                            </p>,"Lubrication and Cooling Gcode") }} />
+                                <Collapse in={this.props.settings.machineFluidEnabled}>
+                                    <div>
+                                        <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOn', setAttrs: setSettingsAttrs, description: 'Gcode Fluid ON', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                        <TextField {...{ object: this.props.settings, field: 'machineFluidGcodeOff', setAttrs: setSettingsAttrs, description: 'Gcode Fluid OFF', rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                    </div>
+                                </Collapse>
                             </div>
                         </Collapse>
+                        <hr />
+                        <ToggleField {... { object: this.props.settings, field: 'machineAEnabled', setAttrs: setSettingsAttrs, description: 'Machine A stage', info: Info(<p className="help-block">
+                                    Allows controlling and visualising machines and gcode which use 'A' as an additional rotational axis around the X plane.
+                                    </p>,"A-axis") }} />
+                            <Collapse in={this.props.settings.machineAEnabled}>
+                                <div>
+                                    <NumberField {...{ errors: this.state.errors, object: this.props.settings, field: 'machineAAxisDiameter', setAttrs: setSettingsAttrs, description: 'A Axis diameter', info: Info(<p className="help-block">
+                                        Default diameter for the A Axis, used to calculate A axis rotation angle during laser cutting and rastering.<br/>Not used in Mill or Lathe operations.
+                                        </p>,"Mill and Lathe rapid movement Z height"), labelAddon: false, units: 'mm' }} />
+                                </div>
+                            </Collapse>
+
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="File Settings" eventKey="2" bsStyle="info" errors={this.state.errors}>
@@ -333,12 +340,16 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeEnd', setAttrs: setSettingsAttrs, description: 'Laser Gcode End', info: Info(<p className="help-block">
                             End Gcode.<br/>- Commands placed here will be executed at the end of the job.
                             </p>,"End Gcode for Laser Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', info: Info(<p className="help-block">
-                            Optional: Alternative start gcode for mill or lathe jobs.<br/>- If left blank the laser start gcode will be used by default.
-                            </p>,"Start Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', info: Info(<p className="help-block">
-                            Optional: Alternative end gcode for mill or lathe jobs.<br/>- If left blank the laser end gcode will be used by default.
-                            </p>,"End Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <Collapse in={this.props.settings.machineZEnabled}>
+                            <div>
+                                <TextField {...{ object: this.props.settings, field: 'gcodeMillStart', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode Start', info: Info(<p className="help-block">
+                                    Optional: Alternative start gcode for mill or lathe jobs.<br/>- If left blank the laser start gcode will be used by default.
+                                    </p>,"Start Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                                <TextField {...{ object: this.props.settings, field: 'gcodeMillEnd', setAttrs: setSettingsAttrs, description: 'Mill / Lathe Gcode End', info: Info(<p className="help-block">
+                                    Optional: Alternative end gcode for mill or lathe jobs.<br/>- If left blank the laser end gcode will be used by default.
+                                    </p>,"End Gcode for Mill and Lathe Operations"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                            </div>
+                        </Collapse>
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Gcode Homing', info: Info(<p className="help-block">
                             Code used to home the machine.
                             </p>,"Homing Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
@@ -420,13 +431,13 @@ class Settings extends React.Component {
                             </p>,"Simulation G0 Travel Speed"), units: 'mm/min'} } />
                         <Collapse in={this.props.settings.machineAEnabled}>
                             <div>
-                                <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis<br>Diameter', info: Info(<p className="help-block">
+                                <NumberField {...{ object: this.props.settings, field: 'simRotaryDiameter', setAttrs: setSettingsAttrs, description: 'A Axis Diameter', info: Info(<p className="help-block">
                                     Adjust simulation to account for the rotary diameter of the A axis.<br/>
                                     </p>,"Simulation A Axis Rotary Diameter"), units: 'mm'} } />
                              </div>
                         </Collapse>
                         <NumberField {...{ object: this.props.settings, field: 'simBarWidth', setAttrs: setSettingsAttrs, description: 'Slider Width', info: Info(<p className="help-block">
-                            The width of the simulator slider in the GUI, this can give more precision at the expense of reducing the console width.<br/>
+                            Changes the width of the simulator slider in the GUI, this can give more simulator precision at the expense of reducing the console width.<br/>
                             </p>,"Simulator Slider Width"), units: 'em'} } />
                         <hr/>
                         <h5 className="header">Performance</h5>

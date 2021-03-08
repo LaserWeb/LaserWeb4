@@ -98,6 +98,7 @@ export const OPERATION_DEFAULTS = (state) => {
         useFluid: state.settings.machineFluidEnabled,
         millRapidZ: isFinite(state.settings.machineRapidZ) ? state.settings.machineRapidZ : '',
         startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
+        aAxisDiameter: isFinite(state.settings.machineAAxisDiameter) ? state.settings.machineAAxisDiameter : '',
         segmentLength:  state.settings.gcodeSegmentLength,
     }
 }

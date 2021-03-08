@@ -25,6 +25,7 @@ export const SETTINGS_VALIDATION_RULES = {
     machineZToolOffset: 'numeric',
 
     machineAEnabled: 'boolean',
+    machineAAxisDiameter: 'numeric|min:0.01',
 
     simG0Rate: 'numeric|min:0.01',
     simRotaryDiameter: 'numeric|min:0',
@@ -90,6 +91,7 @@ export const SETTINGS_INITIALSTATE = {
     machineZProbeOffset: 0,
 
     machineAEnabled: false,
+    machineAAxisDiameter: 10,
 
     machineBlowerEnabled: false,
     machineBlowerGcodeOn: '',
