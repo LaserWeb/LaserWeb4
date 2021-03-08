@@ -68,7 +68,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         let raster = '';
 
         let firstMove = gc.find((line)=>{
-            return line.match(/^G[0-1]\s+[XYZ]/gi);
+            return line.match(/^G[0-1]\s+[XYZA]/gi);
         })
 
         for (let line of gc) {
@@ -102,7 +102,13 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (firstMove) {
                 g+= `\r\n; First Move\r\n`;
-                g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'')+'\r\n';
+                if (op.useA) {
+                  g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'').replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{
+                      return "A"+(parseFloat(float)*axisAFactor).toFixed(3)
+                  }) + '\r\n';
+                } else {
+                  g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'') + '\r\n';
+                }
             }
 
             if (settings.machineZEnabled) {
