@@ -96,7 +96,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOn) {
-                    g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+                    g += settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
                 }
             }
 
@@ -133,7 +133,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOff) {
-                    g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+                    g += settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
                 }
             }
 
