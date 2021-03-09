@@ -51,12 +51,12 @@ class About extends React.Component {
                   <dl>
                     <dt><Icon name="users"/> <a href="https://github.com/LaserWeb">LaserWeb Github Organisation</a></dt>
                     <dd><small>- developer community</small></dd><p/>
-                    <dt><Icon name="users"/> <a href="https://plus.google.com/communities/115879488566665599508">LaserWeb G+ Community</a></dt>
+                    <dt><Icon name="users"/> <a href="https://forum.makerforums.info/c/laserweb-cncweb/">LaserWeb Community on MakerForums</a></dt>
                     <dd><small>- support Community for this software itself</small></dd><p/>
-                    <dt><Icon name="users"/> <a href="https://plus.google.com/communities/118113483589382049502">K40 Laser G+ Community</a></dt>
+                    <dt><Icon name="users"/> <a href="https://forum.makerforums.info/c/k40/">K40 Laser MakerForum Community</a></dt>
                     <dd><small>- support community for popular K40 CO2 Lasers</small></dd><p/>
-                    <dt><Icon name="users"/> <a href="https://plus.google.com/communities/109476961016291692936">Eleksmaker G+ Community</a></dt>
-                    <dd><small>- support community for chinese diode engravers</small></dd><p/>
+                    <dt><Icon name="users"/> <a href="https://forum.makerforums.info/">All MakerForums Communities</a></dt>
+                    <dd><small>- support communities for Makers</small></dd><p/>
                   </dl>
                 <h3>Developers</h3>
                   <dl>
@@ -134,10 +134,10 @@ Lifesaver = connect((store)=>({}),(dispatch) =>{
             }
         },
         handleReset: () => {
-            confirm("All data will be zapped!", (b) => { 
+            confirm("All data will be zapped!", (b) => {
               if (b) {
                 window.localStorage.removeItem(LOCALSTORAGE_KEY)
-                location.reload(); 
+                location.reload();
               }
             })
         },
@@ -166,7 +166,7 @@ export class Releases extends React.Component {
 
     render() {
         return <div className="releases">
-            {this.state.tag_name ? <h4>Latest release: <a href={this.state.html_url} target="__blank">{this.state.tag_name}</a></h4>:undefined } 
+            {this.state.tag_name ? <h4>Latest release: <a href={this.state.html_url} target="__blank">{this.state.tag_name}</a></h4>:undefined }
             {this.state.body ? <div dangerouslySetInnerHTML={{__html: marked(this.state.body)}}/>:undefined }
         </div>
     }
