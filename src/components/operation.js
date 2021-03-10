@@ -751,7 +751,7 @@ class Operation extends React.Component {
                         <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                             <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                                 <thead>
-                                    <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
+                                    <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small></center></td></tr>
                                 </thead>
                                 <tbody style={{ display: op._docs_visible ? 'block' : 'none' }}>
                                     {op.documents.map(id => {
@@ -765,6 +765,20 @@ class Operation extends React.Component {
                         </div>
                     </div>
                 );
+              else rows.push(
+                    <div key="nodocs" style={{ display: 'table-row' }}>
+                      <div style={leftStyle} />
+                      <div style={{ display: 'table-cell' }} />
+                      <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                          <table style={{ width: '100%', border: '2px dashed #ccc' }}>
+                              <thead>
+                                  <tr><td colSpan='3'><center><small>This operation does not use a Document source</small></center></td></tr>
+                              </thead>
+                          </table>
+                      </div>
+                    </div>
+                );
+
             rows.push(
                 <div key="attrs" style={{ display: 'table-row' }}>
                     <div style={leftStyle} />
