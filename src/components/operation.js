@@ -360,11 +360,11 @@ const ifUseA = {
 };
 
 const checkZHeight = {
-    check: (v, settings) => settings.machineZEnabled && v && !isNaN(v),
+    check: (v, settings) => settings.machineZEnabled && !isNaN(v),
     error: (v, settings, op) => {
         if (!op.type.match(/^Laser/)) return false;
         if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
-        return 'Has to be a number'
+        return 'Has to be a number';
     }
 }
 
@@ -512,7 +512,7 @@ export const OPERATION_FIELDS = {
     millRapidZ: { name: 'millRapidZ', label: 'Rapid Z', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu() },
     millStartZ: { name: 'millStartZ', label: 'Start Z', units: 'mm', input: NumberInput, ...checkMillStartZ, contextMenu: FieldContextMenu() },
     millEndZ: { name: 'millEndZ', label: 'End Z', units: 'mm', input: NumberInput, ...checkMillEndZ, contextMenu: FieldContextMenu() },
-    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
+    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
     segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0, contextMenu: FieldContextMenu() },
     ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },
 
