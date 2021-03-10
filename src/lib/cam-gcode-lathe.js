@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -87,7 +87,7 @@ function latheConvFaceTurn(gen, showAlert, props) {
     let {
         latheToolBackSide, latheRapidToDiameter, latheRapidToZ, latheStartZ, latheRoughingFeed,
         latheRoughingDepth, latheFinishFeed, latheFinishDepth, latheFinishExtraPasses, latheFace,
-        latheFaceEndDiameter, latheTurns } = props;
+        latheFaceEndDiameter, latheTurns, fluidOn, fluidOff } = props;
 
     if (latheRapidToDiameter <= 0) return showAlert('latheRapidToDiameter <= 0', 'danger');
     if (latheStartZ > latheRapidToZ) return showAlert('latheStartZ > latheRapidToZ', 'danger');
@@ -123,7 +123,14 @@ function latheConvFaceTurn(gen, showAlert, props) {
         '\r\n; latheFinishExtraPasses:  ' + latheFinishExtraPasses +
         '\r\n; latheFace:               ' + latheFace +
         '\r\n; latheFaceEndDiameter:    ' + latheFaceEndDiameter + ' mm' +
-        '';
+        '\r\n; Fluid:                   ';
+
+    if (fluidOn || fluidOff) {
+            gen.gcode += 'true';
+        } else {
+            gen.gcode += 'false';
+        };
+    gen.gcode += '';
 
     if (latheTurns.length) {
         gen.gcode += '\r\n; turns:';
@@ -141,6 +148,7 @@ function latheConvFaceTurn(gen, showAlert, props) {
 
     if (latheFace) {
         gen.gcode += '\n; Face roughing\n';
+        if (fluidOn) gen.gcode += `${fluidOn}; Enable Fluid assist\n`;
         let z = latheRapidToZ;
         while (true) {
             let nextZ = Math.max(z - latheRoughingDepth, latheStartZ + latheFinishDepth);
@@ -165,11 +173,13 @@ function latheConvFaceTurn(gen, showAlert, props) {
             gen.rapidXDia(latheRapidToDiameter, latheToolBackSide);
         }
         latheRapidToZ = Math.min(z + latheRoughingDepth, latheRapidToZ);
+        if (fluidOff) gen.gcode += `${fluidOff}; Disable Fluid assist\n`;
         gen.rapidZ(latheRapidToZ);
     }
 
     if (latheTurns.length) {
         gen.gcode += '\n; Turn roughing\n';
+        if (fluidOn) gen.gcode += `${fluidOn}; Enable Fluid assist\n`;
         let turnRapidToDiameter = latheRapidToDiameter;
         let startX = turnRapidToDiameter - latheRoughingDepth;
         while (true) {
@@ -214,6 +224,7 @@ function latheConvFaceTurn(gen, showAlert, props) {
             gen.moveZ(z, latheFinishFeed);
         }
         gen.moveXDia(latheRapidToDiameter, latheToolBackSide, latheFinishFeed);
+        if (fluidOff) gen.gcode += `${fluidOff}; Disable Fluid assist\n`;
         gen.rapidZ(latheRapidToZ);
     } // if(latheTurns.length)
 
@@ -229,6 +240,10 @@ export function getLatheGcodeFromOp(settings, opIndex, op, geometry, openGeometr
         '';
     if (op.hookOperationStart.length)
         gen.gcode += op.hookOperationStart;
+    if (op.useFluid) {
+        op.fluidOn = settings.machineFluidGcodeOn;
+        op.fluidOff = settings.machineFluidGcodeOff;
+    }
     if (op.type === 'Lathe Conv Face/Turn')
         latheConvFaceTurn(gen, showAlert, op);
     if (op.hookOperationEnd.length)
