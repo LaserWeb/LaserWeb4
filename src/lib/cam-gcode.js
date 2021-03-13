@@ -54,6 +54,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     QE.timeout = 3600 * 1000;
     QE.concurrency = settings.gcodeConcurrency || 1;
 
+    console.log('Concurrency: ' + QE.concurrency)
+
     const gcode = Array(operations.length);
     const gauge = Array(operations.length*2).fill(0)
     const workers = [];
@@ -63,6 +65,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     let endCode = "";
     let laserOps = false;
     let millOps = false;
+
+    console.log('Queueing ' + operations.length + ' operation(s)');
 
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = expandHookGCode(operations[opIndex]);
@@ -90,7 +94,6 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
             }
             workers.push(peasant)
-
             peasant.postMessage(props)
 
         }
@@ -133,11 +136,11 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         }
 
         if (op.enabled) QE.push((cb) => {
-            console.log(op.type + "->" + jobIndex)
+            console.log('Queueing Preflight: ' + op.type + "->" + opIndex);
             preflightPromise(settings, documents, opIndex, op, workers)
                 .then((preflight) => {
                     let { geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages } = preflight;
-
+                    console.log('Queueing Worker: ' + op.type + "->" + opIndex);
                     if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
                         laserOps = true;
                         if (startCode === "") startCode = settings.gcodeStart;
@@ -193,6 +196,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         jobIndex++
         let p = parseInt(jobIndex * QE.chunk)
         progress(p);
+        console.log('Completed a Worker: ' + jobIndex + ' of ' + QE.total);
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
