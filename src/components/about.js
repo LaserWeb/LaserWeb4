@@ -35,12 +35,17 @@ import Toggle from 'react-toggle'
           let logoFile=this.props.profiles[this.props.settings.__selectedProfile].machineLogo
           let aboutFile=this.props.profiles[this.props.settings.__selectedProfile].machineAbout
           if (logoFile) {
-            machineLogo=<img style={{ width: 66 + '%', borderRadius: 20, }} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
+            machineLogo=<img style={{ width: 66 + '%', borderRadius: 14, }} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
+          } else {
+            machineLogo=<img style={{ width: 66 + '%', borderRadius: 14, }} src={require('../lw-logo.png')} alt="Logo"/>
           }
           if (aboutFile) {
             machineAbout=<div dangerouslySetInnerHTML={{__html: require('string-loader!../data/lw.machines/machines/'+aboutFile) + '<hr/>'}}></div>
           }
+        } else {
+          machineLogo=<img style={{ width: 66 + '%', borderRadius: 14, }} src={require('../lw-logo.png')} alt="Logo"/>
         }
+
 
         return (
             <div>
