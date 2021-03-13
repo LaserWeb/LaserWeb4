@@ -21,6 +21,7 @@ export const SETTINGS_VALIDATION_RULES = {
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
+    machineMillEnabled: 'boolean',
     machineFluidEnabled: 'boolean',
     machineZToolOffset: 'numeric',
 
@@ -83,7 +84,7 @@ export const SETTINGS_INITIALSTATE = {
     machineXYProbeOffset: 0,
 
     machineZEnabled: false,
-    machineZMatThickness: 0,
+    machineMillEnabled: false,
     machineZToolOffset: 0,
     machineZStartHeight: 0,
     machineRapidZ: 2,
@@ -113,8 +114,6 @@ export const SETTINGS_INITIALSTATE = {
     toolGridHeight: 500,
     toolGridMinorSpacing: 10,
     toolGridMajorSpacing: 50,
-    toolSafetyLockDisabled: true,
-    toolCncMode: false,
     toolImagePosition: "BL",
     toolUseNumpad: false,
     toolDisplayCache: false,
