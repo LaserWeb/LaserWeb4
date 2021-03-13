@@ -13,6 +13,7 @@ module.exports = {
         path: dist_path,
         filename: 'index.js'
     },
+    node: { "fs": "empty" },
     module: {
         loaders: [
             {
@@ -47,6 +48,15 @@ module.exports = {
             }, {
                 test: /\.json$/,
                 loader: 'json-loader'
+            }, {
+                test: /\.wasm$/,
+                loader: "file-loader",
+                options: {
+                    publicPath: "dist/"
+                }
+            }, {
+                test: /\.md$/,
+                loader: "markdown-loader",
             }, {
                 test: /\.swf$/,
                 loader: "file-loader?name=[path][name].[ext]"

@@ -21,27 +21,34 @@ import Toggle from 'react-toggle'
  * @extends module:react~React~Component
  * @param {Object} props Component properties.
  */
-class About extends React.Component {
+
+ class About extends React.Component {
     /**
      * Render the component.
      * @return {String}
      */
     render() {
 
+        let machineLogo;
         let machineAbout;
         if (this.props.settings.__selectedProfile && this.props.profiles.hasOwnProperty(this.props.settings.__selectedProfile)){
+          let logoFile=this.props.profiles[this.props.settings.__selectedProfile].machineLogo
           let aboutFile=this.props.profiles[this.props.settings.__selectedProfile].machineAbout
+          if (logoFile) {
+            machineLogo=<img style={{ width: 66 + '%', borderRadius: 20, }} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
+          }
           if (aboutFile) {
-            machineAbout=<div dangerouslySetInnerHTML={{__html: marked(require('raw-loader!../data/lw.machines/machines/'+aboutFile))}}></div>
+            machineAbout=<div dangerouslySetInnerHTML={{__html: require('string-loader!../data/lw.machines/machines/'+aboutFile) + '<hr/>'}}></div>
           }
         }
 
         return (
             <div>
 
-                {machineAbout}
+            {machineLogo}
+            {machineAbout}
 
-                <h3>Versions</h3>
+                <h3>LaserWeb Versions</h3>
                   <dl>
                     <dt><Icon name="cubes"/> Frontend: {version}</dt><dd></dd><p/>
                     <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion} (API: {this.props.settings.comApiVersion}) </dt><dd></dd><p/>
