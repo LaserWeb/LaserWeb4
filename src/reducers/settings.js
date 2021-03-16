@@ -133,8 +133,6 @@ export const SETTINGS_INITIALSTATE = {
 
     toolWebcamUrl: "",
     toolFeedUnits: 'mm/min',
-    toolTestSValue: 1,
-    toolTestDuration: 0,
 
     gcodeStart: "G21         ; Set units to mm\r\nG90         ; Absolute positioning\r\n",
     gcodeMillStart: "",
