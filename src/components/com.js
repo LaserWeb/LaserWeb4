@@ -147,9 +147,10 @@ class Com extends React.Component {
                 that.setState({comInterfaces: interfaces});
                 dispatch(setSettingsAttrs({comInterfaces: interfaces}));
                 console.log('interfaces: ' + interfaces);
-                //CommandHistory.write('interfaces: ' + interfaces);
+                CommandHistory.write('Interfaces: ' + interfaces);
             } else {
-                CommandHistory.warn('No supported interfaces found on server!')
+                console.log('server sent empty interfaces list');
+                CommandHistory.write('No supported interfaces found on server')
             }
         });
 
@@ -158,12 +159,17 @@ class Com extends React.Component {
             $('#connectS').addClass('disabled');
             $('#disconnectS').removeClass('disabled');
             if (data.length > 0) {
+                let ports = new Array();
+                for (var i = 0; i < data.length; i++) {
+                      ports.push(data[i].comName);
+                }
                 that.setState({comPorts: data});
                 dispatch(setSettingsAttrs({comPorts: data}));
-                //console.log('ports: ' + ports);
-                CommandHistory.write('Serial ports detected: ' + JSON.stringify(data));
+                console.log('ports: ' + JSON.stringify(data));
+                CommandHistory.write('Serial ports detected: ' + ports);
             } else {
-                CommandHistory.warn('No serial ports found on server!');
+                console.log('server sent empty serial ports list');
+                CommandHistory.write('No serial ports found on server');
             }
         });
 
