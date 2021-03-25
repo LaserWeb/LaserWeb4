@@ -7,7 +7,7 @@ var dist_path = path.resolve('./dist');
 module.exports = {
     context: src_path,
     entry: [
-        'webpack-dev-server/client?http://0.0.0.0:8080', 'webpack/hot/only-dev-server', 'babel-polyfill', './index.js'
+        'babel-polyfill', './index.js'
     ],
     output: {
         path: dist_path,
@@ -56,7 +56,7 @@ module.exports = {
                 }
             }, {
                 test: /\.md$/,
-                loader: "markdown-loader",
+                loader: "markdown-loader"
             }, {
                 test: /\.swf$/,
                 loader: "file-loader?name=[path][name].[ext]"
@@ -70,11 +70,5 @@ module.exports = {
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
     ],
-    devServer: {
-        contentBase: dist_path,
-        inline: false,
-        hot: true,
-        host: 'localhost' // originally 0.0.0.0
-    },
     devtool: 'source-map'
 };
