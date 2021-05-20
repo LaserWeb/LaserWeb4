@@ -207,20 +207,24 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
+        let fullGcode = '';
         let elapsed=(new Date().getTime()-starttime)/1000;
         if (laserOps && millOps) {
             showAlert('<span className="help-block">Warning: Mixed operation types detected.</span><br/>Mixing laser and mill/lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want.',"warning");
         }
         showAlert("Gcode generation complete, elapsed: " + hhmmss(elapsed) + String(Number(elapsed-Math.floor(elapsed)).toFixed(3)).substr(1), "info");
-        let fullGcode = startCode + gcode.join('\r\n') + endCode;
-        let codeSize = fullGcode.length;
-        let moveCount = 0, lineCount = 0;
-        if (codeSize > 0) {
-            moveCount = fullGcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
-            lineCount = fullGcode.split(/\r\n|\r|\n/).length;
+        if (gcode.join() === "" ) {
+            showAlert("Empty Gcode! Either there was an error during generation or the user cancelled generation.", "warning");
+        } else {
+            fullGcode = startCode + gcode.join('\r\n') + endCode;
+            let codeSize = fullGcode.length;
+            let moveCount = 0, lineCount = 0;
+            if (codeSize > 0) {
+                moveCount = fullGcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
+                lineCount = fullGcode.split(/\r\n|\r|\n/).length;
+            }
+            showAlert("Size: " + codeSize + " (" + humanFileSize(codeSize) + "), Lines: " + lineCount + ", Moves: " + moveCount,"info");
         }
-        showAlert("Size: " + codeSize + " (" + humanFileSize(codeSize) + "), Lines: " + lineCount + ", Moves: " + moveCount,"info");
-
         done(fullGcode);
     })
 
