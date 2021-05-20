@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import { Helper as dxfHelper} from 'dxf';
 import Parser from '../lib/lw.svg-parser/parser';
-import DxfParser from 'dxf-parser';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
@@ -94,8 +94,8 @@ class Cam extends React.Component {
                 (msg, level) => { CommandHistory.write(msg, level); },
                 (gcode) => {
                     clearInterval(__interval)
-                    that.props.dispatch(setGcode(gcode));
                     that.props.dispatch(generatingGcode(false))
+                    that.props.dispatch(setGcode(gcode));
                 },
                 (threads) => {
                     percent = ((Array.isArray(threads)) ? (threads.reduce((a, b) => a + b, 0) / threads.length) : threads).toFixed(2);
@@ -113,7 +113,10 @@ class Cam extends React.Component {
     }
 
     stopGcode(e) {
-        if (this.QE) { this.QE.end(); }
+        if (this.QE) {
+            this.QE.end();
+            console.log('User interrupted Gcode generation')
+         }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -261,7 +264,7 @@ Cam = connect(
                                 if (errors.length)
                                     CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", errors, 3)
 
-                                //onsole.log('loadDocument: imageTagPromise');
+                                //console.log('loadDocument: imageTagPromise');
                                 imageTagPromise(tags).then((tags) => {
                                     console.log('loadDocument: dispatch');
                                     dispatch(loadDocument(file, { parser, tags }, modifiers));
@@ -280,8 +283,10 @@ Cam = connect(
                 }
                 else if (file.name.substr(-4).toLowerCase() === '.dxf') {
                     reader.onload = () => {
-                        var parser = new DxfParser();
-                        var dxfTree = parser.parseSync(reader.result);
+                        var helper = new dxfHelper(reader.result);
+                        var dxfTree = helper.toPolylines();
+                        // console.log('Imported dfxTree:');
+                        // console.log(dxfTree);
                         dispatch(loadDocument(file, dxfTree, modifiers));
                     }
                     reader.readAsText(file);
