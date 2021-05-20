@@ -72,7 +72,7 @@ class Jog extends React.Component {
             isPlaying: playing,
             isPaused: paused,
             isM0: m0,
-            
+
             machineZEnabled: machineZEnabled,
             machineAEnabled: machineAEnabled,
 
@@ -106,19 +106,19 @@ class Jog extends React.Component {
         ]
         if (machineZEnabled){
             this.bindings=[
-                ...this.bindings,    
+                ...this.bindings,
                 [['ctrl+alt+up',toolUseNumpad?'numadd':undefined],this.jogZUp.bind(this)],
                 [['ctrl+alt+down',toolUseNumpad?'numsubtract':undefined],this.jogZDown.bind(this)]
             ]
         }
         if (machineAEnabled){
             this.bindings=[
-                ...this.bindings,   
+                ...this.bindings,
                 [['ctrl+alt+left',toolUseNumpad?'nummultiply':undefined],this.jogAplus.bind(this)],
                 [['ctrl+alt+right',toolUseNumpad?'numdivide':undefined],this.jogAminus.bind(this)]
             ]
         }
-        
+
     }
 
     componentDidMount()
@@ -148,7 +148,7 @@ class Jog extends React.Component {
                         let jogS =  Math.floor(Math.max(Math.abs(x), Math.abs(y))*jogF);
                         jogTo(jogX, jogY, undefined, true, jogS);
                     }
-                    
+
                 }.bind(this));
                 this.gamepad.on('hold','stick_axis_right',function(e){
                     let now=new Date();
@@ -167,7 +167,7 @@ class Jog extends React.Component {
                     }
                 }.bind(this));
             } else {
-                this.gamepad.resume(); 
+                this.gamepad.resume();
             }
         } else {
             if (this.gamepad) {
@@ -345,7 +345,7 @@ class Jog extends React.Component {
         let feedrate, mult = 1;
         if (units == 'mm/s') mult = 60;
         feedrate = jQuery('#jogfeedxy').val() * mult;
-        
+
         let bounds=this.getGcodeBounds(this.props.gcode)
         let power = this.props.settings.gcodeCheckSizePower / 100 * this.props.settings.gcodeSMaxValue;
         let moves = `
@@ -358,9 +358,8 @@ class Jog extends React.Component {
             G1 X` + bounds.xMin + ` Y` + bounds.yMin + `\n
             G90\n`;
 
-        console.warn(moves)
+        console.log('Sending check size Gcode:\n' + moves)
         runCommand(moves)
-        
     }
 
     componentWillReceiveProps(props)
@@ -369,7 +368,7 @@ class Jog extends React.Component {
     }
 
     getGcodeBounds(gcode,decimals=3) {
-            let xMin=Number.MAX_VALUE, xMax=Number.MIN_VALUE, yMin=Number.MAX_VALUE, yMax=Number.MIN_VALUE;
+            let xMin=Number.MAX_VALUE, xMax=-Number.MAX_VALUE, yMin=Number.MAX_VALUE, yMax=-Number.MAX_VALUE
             let movementFound=false
             let parsed=chunk(parseGcode(gcode),9);
                 parsed.forEach(([g,x,y])=>{
@@ -384,7 +383,10 @@ class Jog extends React.Component {
 
             let bounds={xMin: parseFloat(xMin).toFixed(decimals), xMax: parseFloat(xMax).toFixed(decimals), yMin: parseFloat(yMin).toFixed(decimals) , yMax: parseFloat(yMax).toFixed(decimals)}
 
-            if (movementFound) return bounds;
+            if (movementFound) {
+              console.log('Gcode bounds: Xmin= ' + bounds.xMin + ', Xmax= ' + bounds.xMax + ', Ymin= ' + bounds.yMin + ', Ymax= ' + bounds.yMax)
+              return bounds;
+            }
             else return;
     }
 
