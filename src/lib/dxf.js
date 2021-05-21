@@ -31,6 +31,8 @@ import { addDocumentChild } from '../actions/document'
 
 import { confirm, prompt, alert } from '../components/laserweb'
 
+import convert from 'color-convert'
+
 const debugShape = [0, 0, 0, 0];
 
 export function processDXF(state, docFile, dxfTree) {
@@ -40,19 +42,19 @@ export function processDXF(state, docFile, dxfTree) {
 
     for (i = 0; i < dxfTree.polylines.length; i++) {
         polyline = dxfTree.polylines[i];
-        // the DXF parser does not return layer info, just colors.
-        // Layers are not really used in commercial dxf's.
-        // Instead 'layer' the imported paths by color
-        let layerID = byteToHex(polyline.rgb[0]) + byteToHex(polyline.rgb[1]) + byteToHex(polyline.rgb[2]);
+        // Colors are used in place of layers in DXF's by convention, the DXF helper does not return layer info.
+        let layerID = convert.rgb.hex(polyline.rgb);
+        let layerKey = convert.rgb.keyword(polyline.rgb);
+        // Force white lines (a common default for dxf's) to become black when displayed.
+        if ((polyline.rgb[0] == 255) && (polyline.rgb[1] == 255) && (polyline.rgb[2] == 255)) polyline.rgb = [0,0,0,1]
 
         if (!LayerLookup.has(layerID)) {
             // console.log("New layer: " + layerID)
             docLayer = {};
             LayerLookup.set(layerID, uuidv4())
             docLayer.id = LayerLookup.get(layerID);
-            docLayer.name = 'Color: #' + layerID;
+            docLayer.name = layerKey + ' (#' + layerID + ')';
             docLayer.type = 'LAYER';
-            docLayer.color = (polyline.rgb[2]*65536)+(polyline.rgb[2]*256)+polyline.rgb[0];
 
             state = documents(state, addDocumentChild(docFile.id, docLayer));
             state = drawPolyLine(state, polyline, docLayer, i);
@@ -74,6 +76,7 @@ function drawPolyLine(state, polyline, docLayer, index) {
 
     let rawPaths = [];
     let p = [];
+    let canvasColor = [polyline.rgb[0]/255, polyline.rgb[1]/255, polyline.rgb[2]/255, 1];
 
     for (let i = 0; i < polyline.vertices.length; i++) {
             let vertex = {};
@@ -85,23 +88,12 @@ function drawPolyLine(state, polyline, docLayer, index) {
         rawPaths = rawPaths.concat(p);
 
     if (rawPaths.length) {
-        polyline.rgb[3] = 1; // add alpha channel to rgb value returned by dxf parser
-        // Force white lines (a common default for dxf's) to become black
-        if ((polyline.rgb[0] == 255) && (polyline.rgb[1] == 255) && (polyline.rgb[2] == 255)) polyline.rgb = [0,0,0,1]
         docEntity.rawPaths = [];
         docEntity.rawPaths[0] = rawPaths;
         docEntity.transform2d = [1, 0, 0, 1, 0, 0];
-        docEntity.strokeColor = polyline.rgb;
+        docEntity.strokeColor = canvasColor;
         docEntity.fillColor = [0, 0, 0, 0];
         state = documents(state, addDocumentChild(docLayer.id, docEntity));
     }
     return state;
 }
-
-function byteToHex(byte) {
-  var hex = Number(byte).toString(16);
-  if (hex.length < 2) {
-       hex = "0" + hex;
-  }
-  return hex;
-};
