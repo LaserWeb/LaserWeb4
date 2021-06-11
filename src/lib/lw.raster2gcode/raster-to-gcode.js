@@ -28,6 +28,7 @@ class RasterToGcode extends CanvasGrid {
             joinPixel: true,           // Join consecutive pixels with same intensity
             burnWhite: true,           // [true = G1 S0 | false = G0] on inner white pixels
             verboseG : false,          // Output verbose GCode (print each commands)
+            vertical : false,          // Go vertically / reverse diagonal
             diagonal : false,          // Go diagonally (increase the distance between points)
             overscan : 0,              // Add some extra white space (in millimeters) before and after each line
 
@@ -184,11 +185,20 @@ class RasterToGcode extends CanvasGrid {
         this._addHeader()
 
         // Scan type ?
-        if (this.diagonal) {
-            this._scanDiagonally(nonBlocking)
-        }
-        else {
-            this._scanHorizontally(nonBlocking)
+        if (this.vertical) {
+          if (this.diagonal) {
+              this._scanDiagonallyBack(nonBlocking)
+          }
+          else {
+              this._scanVertically(nonBlocking)
+          }
+        } else {
+          if (this.diagonal) {
+              this._scanDiagonally(nonBlocking)
+          }
+          else {
+              this._scanHorizontally(nonBlocking)
+          }
         }
 
         if (! nonBlocking) {
@@ -226,7 +236,7 @@ class RasterToGcode extends CanvasGrid {
         }
 
         // Print activated options
-        let options = ['smoothing', 'trimLine', 'joinPixel', 'burnWhite', 'verboseG', 'diagonal']
+        let options = ['smoothing', 'trimLine', 'joinPixel', 'burnWhite', 'verboseG', 'vertical', 'diagonal']
 
         for (var i = options.length - 1; i >= 0; i--) {
             if (! this[options[i]]) {
@@ -328,30 +338,61 @@ class RasterToGcode extends CanvasGrid {
         point.S = this._mapPixelPower(point.s)
 
         // Offsets
-        if (this.diagonal) {
-            // Vertical offset
-            point.Y += this.toolDiameter
+        if (this.vertical) {
+            if (this.diagonal) {
+                // tool offset
+                point.Y += this.toolDiameter
+                point.X += this.toolDiameter
 
-            // Horizontal offset
-            if (point.first || point.lastWhite) {
-                point.X += this.beamOffset
-                point.Y -= this.beamOffset
+                // Diagonal offsets
+                if (point.first || point.lastWhite) {
+                    point.X -= this.beamOffset
+                    point.Y -= this.beamOffset
+                }
+                else if ((point.last || point.lastColored) && !point.firstColored) {
+                    point.X += this.beamOffset
+                    point.Y += this.beamOffset
+                }
             }
-            else if ((point.last || point.lastColored) && !point.firstColored) {
-                point.X -= this.beamOffset
+            else {
+                // Horizontal offset
+                point.X += this.beamOffset
+
+                // vertical offset
+                if (point.first || point.lastWhite) {
+                    point.Y += this.beamOffset
+                }
+                else if ((point.last || point.lastColored) && !point.firstColored) {
+                    point.Y -= this.beamOffset
+                }
+            }
+        } else {
+            if (this.diagonal) {
+                // tool offset
+                point.Y += this.toolDiameter
+                //point.X -= this.toolDiameter
+
+                // diagonal offsets
+                if (point.first || point.lastWhite) {
+                    point.X += this.beamOffset
+                    point.Y -= this.beamOffset
+                }
+                else if ((point.last || point.lastColored) && !point.firstColored) {
+                    point.X -= this.beamOffset
+                    point.Y += this.beamOffset
+                }
+            }
+            else {
+                // Vertical offset
                 point.Y += this.beamOffset
-            }
-        }
-        else {
-            // Vertical offset
-            point.Y += this.beamOffset
 
-            // Horizontal offset
-            if (point.first || point.lastWhite) {
-                point.X += this.beamOffset
-            }
-            else if ((point.last || point.lastColored) && !point.firstColored) {
-                point.X -= this.beamOffset
+                // Horizontal offset
+                if (point.first || point.lastWhite) {
+                    point.X += this.beamOffset
+                }
+                else if ((point.last || point.lastColored) && !point.firstColored) {
+                    point.X -= this.beamOffset
+                }
             }
         }
 
@@ -415,7 +456,7 @@ class RasterToGcode extends CanvasGrid {
     // Add extra white pixels at the ends
     _overscanCurrentLine(reversed) {
         // Number of pixels to add on each side
-        let pixels = this.overscan / this.ppm.x
+        let pixels = this.overscan / this.ppm.x * this.scaleRatio.x
 
         // Get first/last point
         let firstPoint = this.currentLine[0]
@@ -428,18 +469,30 @@ class RasterToGcode extends CanvasGrid {
         // Reversed line ?
         reversed ? (lastPoint.s = 0) : (firstPoint.s = 0)
 
-        // Create left/right points
-        let rightPoint = { x: lastPoint.x + pixels , y: lastPoint.y , s: 0, p: 0 }
-        let leftPoint  = { x: firstPoint.x - pixels, y: firstPoint.y, s: 0, p: 0 }
-
-        if (this.diagonal) {
-            leftPoint.y  += pixels
-            rightPoint.y -= pixels
+        // create start/end points
+        let startPoint = {}
+        let endPoint = {}
+        if (this.vertical) {
+            if (this.diagonal) {
+                startPoint  = { x: firstPoint.x + pixels, y: firstPoint.y + pixels, s: 0, p: 0 }
+                endPoint = { x: lastPoint.x - pixels, y: lastPoint.y - pixels , s: 0, p: 0 }
+            } else {
+                startPoint  = { x: firstPoint.x, y: firstPoint.y - pixels, s: 0, p: 0 }
+                endPoint = { x: lastPoint.x, y: lastPoint.y + pixels , s: 0, p: 0 }
+            }
+        } else {
+            if (this.diagonal) {
+                startPoint  = { x: firstPoint.x - pixels, y: firstPoint.y + pixels, s: 0, p: 0 }
+                endPoint = { x: lastPoint.x + pixels , y: lastPoint.y - pixels, s: 0, p: 0 }
+            } else {
+                startPoint  = { x: firstPoint.x - pixels, y: firstPoint.y, s: 0, p: 0 }
+                endPoint = { x: lastPoint.x + pixels , y: lastPoint.y , s: 0, p: 0 }
+            }
         }
 
-        // Add left/right points to current line
-        this.currentLine.unshift(leftPoint)
-        this.currentLine.push(rightPoint)
+        // Add start/end points to current line
+        this.currentLine.unshift(startPoint)
+        this.currentLine.push(endPoint)
     }
 
     // Process current line and return an array of GCode text lines
@@ -741,6 +794,117 @@ class RasterToGcode extends CanvasGrid {
         processNextLine()
     }
 
+    // Parse vertically
+    _scanVertically(nonBlocking) {
+        // Init loop vars
+        let x = 0, y = 0
+        let s, p, point, gcode
+        let w = this.size.width
+        let h = this.size.height
+
+        let reversed     = false
+        let lastWhite    = false
+        let firstColored = false
+        let lastColored  = false
+
+        let computeCurrentLine = () => {
+            // Reset current line
+            this.currentLine = []
+
+            // Reset point object
+            point = null
+
+            // For each pixel on the line
+            for (y = 0; y <= h; y++) {
+                // Get pixel power [ 0 = white | 255 = black ]
+                s = p = this._getPixelPower(x, y, p)
+
+                // Is this the last white/colored pixel?
+                lastWhite    = point && point.p == 0 && p >  0 || !point
+                firstColored = point && point.lastWhite
+                lastColored  = point && point.p >  0 && p == 0
+
+                // Pixel color from last one on normal line
+                if (! reversed && point) {
+                    s = point.p
+                }
+
+                // Create point object
+                point = { x: x, y: y, s: s, p: p }
+
+                // Set last white/colored pixel
+                lastWhite    && (point.lastWhite    = true)
+                firstColored && (point.firstColored = true)
+                lastColored  && (point.lastColored  = true)
+
+                // Add point to current line
+                this.currentLine.push(point)
+            }
+        }
+
+        let percent     = 0
+        let lastPercent = 0
+
+        let processCurrentLine = () => {
+            // Process pixels line
+            gcode = this._processCurrentLine(reversed)
+
+            // Call progress callback
+            percent = Math.round((x / h) * 100)
+
+            if (percent > lastPercent) {
+                this._onProgress({ gcode, percent })
+            }
+
+            lastPercent = percent
+
+            // Skip empty gcode line
+            if (! gcode) {
+                return
+            }
+
+            // Toggle line state
+            reversed = ! reversed
+
+            // Concat line
+            this.gcode.push.apply(this.gcode, gcode)
+        }
+
+        let processNextLine = () => {
+            // Aborted ?
+            if (! this.running) {
+                return this._onAbort()
+            }
+
+            // Process line...
+            computeCurrentLine()
+            processCurrentLine()
+
+            x++
+
+            if (x < w) {
+                if (nonBlocking) {
+                    setTimeout(processNextLine, 0)
+                }
+                else {
+                    processNextLine()
+                }
+            }
+            else {
+                if (this.milling) {
+                    this.gcodes.forEach(gcode => {
+                        this.gcode.push.apply(this.gcode, gcode)
+                    })
+                }
+
+                this._onDone({ gcode: this.gcode })
+                this.running = false
+            }
+        }
+
+        processNextLine()
+    }
+
     // Parse diagonally
     _scanDiagonally(nonBlocking) {
         // Init loop vars
@@ -842,6 +1006,7 @@ class RasterToGcode extends CanvasGrid {
             }
 
             // Process line...
+            //console.log('R: Computing Line: ' + lineNum + ', X= '+ x + ', Y=' + y + ', W= '+ w + ', H=' + h)
             computeCurrentLine(x, y)
             processCurrentLine()
 
@@ -854,6 +1019,137 @@ class RasterToGcode extends CanvasGrid {
             }
 
             if (y < h && x < w) {
+                if (nonBlocking) {
+                    setTimeout(processNextLine, 0)
+                }
+                else {
+                    processNextLine()
+                }
+            }
+            else {
+                this._onDone({ gcode: this.gcode })
+                this.running = false
+            }
+        }
+
+        processNextLine()
+    }
+
+    // Parse reverse diagonally
+    _scanDiagonallyBack(nonBlocking) {
+        // Init loop vars
+        let s, p, point, gcode
+        let w = this.size.width
+        let h = this.size.height
+        let x = w, y = 0
+
+
+        let totalLines   = w + h - 1
+        let lineNum      = 0
+        let reversed     = false
+        let lastWhite    = false
+        let firstColored = false
+        let lastColored  = false
+
+        let computeCurrentLine = (x, y) => {
+            // Reset current line
+            this.currentLine = []
+
+            // Reset point object
+            point = null
+
+            // Increment line num
+            lineNum++
+
+            while(true) {
+                // Y limit reached !
+                if (y < -1 || y == h) {
+                    break
+                }
+
+                // X limit reached !
+                if (x < 0 || x > w) {
+                    break
+                }
+
+                // Get pixel power [ 0 = white | 255 = black ]
+                s = p = this._getPixelPower(x, y, p)
+
+                // Is this the last white/colored pixel?
+                lastWhite    = point && point.p == 0 && p >  0 || !point
+                firstColored = point && point.lastWhite
+                lastColored  = point && point.p >  0 && p == 0
+
+                // Pixel color from last one on normal line
+                if (! reversed && point) {
+                    s = point.p
+                }
+
+                // Create point object
+                point = { x: x, y: y, s: s, p: p }
+
+                // Set last white/colored pixel
+                lastWhite    && (point.lastWhite    = true)
+                firstColored && (point.firstColored = true)
+                lastColored  && (point.lastColored  = true)
+
+                // Add point to current line
+                this.currentLine.push(point)
+
+                // Next coords
+                x--
+                y--
+            }
+        }
+
+        let percent     = 0
+        let lastPercent = 0
+
+        let processCurrentLine = () => {
+            // Process pixels line
+            gcode = this._processCurrentLine(reversed)
+
+            // Call progress callback
+            percent = Math.round((lineNum / totalLines) * 100)
+
+            if (percent > lastPercent) {
+                this._onProgress({ gcode, percent })
+            }
+
+            lastPercent = percent
+
+            // Skip empty gcode line
+            if (! gcode) {
+                return
+            }
+
+            // Toggle line state
+            reversed = ! reversed
+
+            // Concat line
+            this.gcode.push.apply(this.gcode, gcode)
+        }
+
+        let processNextLine = () => {
+            // Aborted ?
+            if (! this.running) {
+                return this._onAbort()
+            }
+
+            // Process line...
+            //console.log('R: Computing Line: ' + lineNum + ', X= '+ x + ', Y=' + y + ', W= '+ w + ', H=' + h)
+            computeCurrentLine(x, y)
+            processCurrentLine()
+
+            if (x === w) y++
+            else x--
+
+            if (y === h) {
+                x--
+                y--
+            }
+
+            if (y < h && x > 0) {
                 if (nonBlocking) {
                     setTimeout(processNextLine, 0)
                 }

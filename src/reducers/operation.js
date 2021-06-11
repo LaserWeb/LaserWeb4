@@ -55,6 +55,7 @@ export const OPERATION_INITIALSTATE = {
     joinPixel: true,        // lw.raster-to-gcode: Join consecutive pixels with same intensity
     burnWhite: true,        // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
+    vertical: false,        // lw.raster-to-gcode: Go vertically / reverse diagonal
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
     latheToolBackSide: false,
