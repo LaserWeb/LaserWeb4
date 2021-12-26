@@ -31,7 +31,7 @@ var xOffset, yOffset, zOffset, aOffset;
 
 const formatPorts=(data)=>{
     return data.map((item)=>{
-       return { value: item.comName, label:item.manufacturer? `${item.manufacturer} @ ${item.comName}`: item.comName };
+       return { value: item.path, label:item.manufacturer? `${item.manufacturer} @ ${item.path}`: item.path };
     })
 }
 

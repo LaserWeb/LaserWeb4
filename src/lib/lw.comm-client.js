@@ -41,7 +41,7 @@ export function initSocket(server) {
         $('#syncstatus').html('Socket Init');
         var options = $("#port");
         for (var i = 0; i < data.length; i++) {
-            options.append($("<option />").val(data[i].comName).text(data[i].comName));
+            options.append($("<option />").val(data[i].path).text(data[i].path));
         }
         $('#connect').removeClass('disabled');
         // Might as well pre-select the last-used port and buffer
