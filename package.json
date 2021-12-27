@@ -98,7 +98,7 @@
     "sillyname": "^0.1.0",
     "slug": "^0.9.4",
     "snapsvg": "^0.5.1",
-    "socket.io-client": "^1.7.3",
+    "socket.io-client": "4.x",
     "style-loader": "^0.18.2",
     "url-loader": "^0.5.9",
     "uuid": "^3.3.3",
