@@ -171,6 +171,10 @@ export function initSocket(server) {
         //console.log('runningJob' + data);
     });
 
+    socket.on('runningJobStatus', function (data) {
+        console.log('Server Reports: ' + data);
+    });
+
     socket.on('qCount', function (data) {
         data = parseInt(data);
         $('#queueCnt').html('Queued: ' + data);

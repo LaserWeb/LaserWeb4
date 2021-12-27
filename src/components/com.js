@@ -225,8 +225,13 @@ class Com extends React.Component {
 
         socket.on('runningJob', function (data) {
             CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
-            alert(data);
+            //alert(data);
             //setGcode(data);
+        });
+
+        socket.on('runningJobStatus', function (data) {
+            CommandHistory.write('Server reports: ' + data, CommandHistory.STD);
+            alert(data);
         });
 
         socket.on('runStatus', function (status) {
