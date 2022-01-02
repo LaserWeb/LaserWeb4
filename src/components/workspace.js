@@ -1434,7 +1434,7 @@ class Workspace extends React.Component {
                     </div>
                 </div>
 
-                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" useCanvas={this.props.settings.toolVideoOMR} canvasProcess={this.props.settings.toolVideoOMR ? arucoProcess: null} />
+                <VideoPort width={320} enabled={enableVideo && workspace.showWebcam} draggable="parent" useCanvas={this.props.settings.toolVideoOMR} canvasProcess={this.props.settings.toolVideoOMR ? arucoProcess: null} />
                 <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent" />
 
             </div>
