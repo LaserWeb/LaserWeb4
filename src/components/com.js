@@ -31,7 +31,7 @@ var xOffset, yOffset, zOffset, aOffset;
 
 const formatPorts=(data)=>{
     return data.map((item)=>{
-       return { value: item.comName, label:item.manufacturer? `${item.manufacturer} @ ${item.comName}`: item.comName };
+       return { value: item.path, label:item.manufacturer? `${item.manufacturer} @ ${item.path}`: item.path };
     })
 }
 
@@ -136,9 +136,14 @@ class Com extends React.Component {
             if (data.length > 0) {
                 that.setState({comPorts: data});
                 dispatch(setSettingsAttrs({comPorts: data}));
+                let ports = new Array();
+                for (var i = 0; i < data.length; i++) {
+                      ports.push(data[i].path);
+                }
                 //console.log('ports: ' + ports);
-                CommandHistory.write('Serial ports detected: ' + JSON.stringify(data));
+                //CommandHistory.write('Serial ports detected: ' + ports);
             } else {
+                console.log('server sent empty serial ports list');
                 CommandHistory.error('No serial ports found on server!');
             }
         });
@@ -225,8 +230,13 @@ class Com extends React.Component {
 
         socket.on('runningJob', function (data) {
             CommandHistory.write('runningJob(' + data.length + ')', CommandHistory.WARN);
-            alert(data);
+            //alert(data);
             //setGcode(data);
+        });
+
+        socket.on('runningJobStatus', function (data) {
+            CommandHistory.write('Server reports: ' + data, CommandHistory.STD);
+            alert(data);
         });
 
         socket.on('runStatus', function (status) {
