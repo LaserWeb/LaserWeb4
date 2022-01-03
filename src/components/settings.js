@@ -327,13 +327,16 @@ class Settings extends React.Component {
                         <h5 className="header">Filenames</h5>
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
+                            eg: <em>gcode-%y%m%d-%H%M</em><br/>
                             The file extension defined below will be appended as required.<br/>
                             </p>,"Gcode Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeExtension', setAttrs: setSettingsAttrs, description: 'Gcode file extension', info: Info(<p className="help-block">
                             Define the default extension added to Gcode filenames, eg <em>.gcode</em> (default), <em>.gc</em>, <em>.nc</em>, <em>.tap</em>, <em>.cnc</em> etc.<br/>
                             </p>,"Gcode Default File Extension"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'workspaceFilename', setAttrs: setSettingsAttrs, description: 'Workspace file name', info: Info(<p className="help-block">
-                            Allows for <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as the Gcode filenames, the <strong>.json</strong> extension will be appended.<br/>
+                            Supports <em><a href="https://thdoan.github.io/strftime/" target="_blank">strftime()</a></em> formatting in the same manner as for Gcode filenames.<br/>
+                            eg: <em>Laserweb-Workspace-%y%m%d-%H%M</em><br/>
+                            The <strong>.json</strong> extension will be appended as required.<br/>
                             </p>,"Workspace Default Filename"), rows: 1, style: { resize: "none", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
 
