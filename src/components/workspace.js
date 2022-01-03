@@ -1296,6 +1296,7 @@ class Workspace extends React.Component {
         };
         this.zoomMachine = this.zoomMachine.bind(this);
         this.zoomDoc = this.zoomDoc.bind(this);
+        this.zoomGcode = this.zoomGcode.bind(this);
         this.toggleSim = this.toggleSim.bind(this);
     }
 
@@ -1345,6 +1346,13 @@ class Workspace extends React.Component {
             this.props.dispatch(zoomArea(bounds.x1, bounds.y1, bounds.x2, bounds.y2));
     }
 
+    zoomGcode() {
+        if (this.gcodePreview.array) {
+	    this.props.dispatch(zoomArea(this.gcodePreview.minX, this.gcodePreview.minY, this.gcodePreview.maxX, this.gcodePreview.maxY));
+        }
+    }
+
+
     toggleSim() {
         let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
         if (totalSecs > 0) {
@@ -1378,8 +1386,9 @@ class Workspace extends React.Component {
                             <tbody>
                                 <tr>
                                     <td colSpan='2'>
-                                        <button className='btn btn-default' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
-                                        <button className='btn btn-default' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                        <button className='btn btn-default' title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>M</button>
+                                        <button className='btn btn-default' title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>D</button>
+                                        <button className='btn btn-default' title='Scale view to Generated Gcode' nClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>G</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1414,7 +1423,7 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <table style={{ marginLeft: 10 }}>
+                        <table style={{ marginLeft: 10, height: "fit-content"}}>
                             <tbody>
                               <tr>
                                 <td>
