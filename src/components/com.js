@@ -35,7 +35,7 @@ export { xOffset, yOffset }
 
 const formatPorts=(data)=>{
     return data.map((item)=>{
-       return { value: item.comName, label:item.manufacturer? `${item.manufacturer} @ ${item.comName}`: item.comName };
+       return { value: item.path, label:item.manufacturer? `${item.manufacturer} @ ${item.path}`: item.path };
     })
 }
 
@@ -161,7 +161,7 @@ class Com extends React.Component {
             if (data.length > 0) {
                 let ports = new Array();
                 for (var i = 0; i < data.length; i++) {
-                      ports.push(data[i].comName);
+                      ports.push(data[i].path);
                 }
                 that.setState({comPorts: data});
                 dispatch(setSettingsAttrs({comPorts: data}));
@@ -270,6 +270,11 @@ class Com extends React.Component {
             //setGcode(data);
             // Do not get running gcode here, there is a seperate call to lw.comm.server 'getRunningJob' that could be used for this purpose.
             // The user should be alerted first, since large data packets from the server can floor the browser while it is recieving and digesting them.
+        });
+
+        socket.on('runningJobStatus', function (data) {
+            CommandHistory.write('Server reports: ' + data, CommandHistory.STD);
+            alert(data);
         });
 
         socket.on('runStatus', function (status) {
