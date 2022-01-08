@@ -553,6 +553,10 @@ class Com extends React.Component {
                 CommandHistory.write('Connecting Machine via ESP Socket, IP: ' + connectIP + '; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
                 socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset + ',' + connectQuery);
                 break;
+            case 'Default':
+                CommandHistory.write('Connecting Machine via default method: ' + '<WORK IN PROGRESS>', CommandHistory.INFO);
+                socket.emit('connectTo', connectVia);
+                break;
         }
     }
 
@@ -596,7 +600,7 @@ class Com extends React.Component {
                                 <SelectField {...{ object: settings, field: 'connectBaud', setAttrs: setSettingsAttrs, data: ['250000', '230400', '115200', '57600', '38400', '19200', '9600'], defaultValue: '115200', description: 'Baudrate', selectProps: { clearable: false } }} />
                             </div>
                         </Collapse>
-                        <Collapse in={settings.connectVia != 'USB'}>
+                        <Collapse in={settings.connectVia != 'USB' && settings.connectVia != 'Default'}>
                             <div>
                                 <TextField {...{ object: settings, field: 'connectIP', setAttrs: setSettingsAttrs, description: 'Machine IP' }} />
                             </div>
