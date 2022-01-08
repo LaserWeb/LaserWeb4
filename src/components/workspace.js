@@ -1042,7 +1042,7 @@ class WorkspaceContent extends React.Component {
     zoom(pageX, pageY, amount) {
         let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
         let camera = this.props.camera;
-        let newFovy = Math.max(.1, Math.min(Math.PI - .1, camera.fovy * amount));
+        let newFovy = Math.max(.02, Math.min(Math.PI - .02, camera.fovy * amount));
         let oldScale = vec3.distance(camera.eye, camera.center) * Math.tan(camera.fovy / 2) / (r.height / 2);
         let newScale = vec3.distance(camera.eye, camera.center) * Math.tan(newFovy / 2) / (r.height / 2);
         let dx = Math.round(pageX - (r.left + r.right) / 2) * (newScale - oldScale);
