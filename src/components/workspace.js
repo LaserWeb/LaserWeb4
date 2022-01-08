@@ -455,7 +455,8 @@ class FloatingControls extends React.Component {
                                 <td rowSpan={2}>
                                     &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
                                 </td>
-                                <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
+                                <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="angle" step="any" tabIndex="10" />
+                                    <span style={{ fontSize: '120%', fontWeight: 'bold' }}>&nbsp;&deg;</span><br />
                                     <ButtonGroup>
                                         <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon fw name="rotate-left"  /></Button>
                                         <Button bsSize="xsmall" onClick={e => this.rotate(e, true )} bsStyle="info"><Icon fw name="rotate-right" /></Button>

@@ -89,7 +89,11 @@ body, html, .full-height {
 }
 
 .floating-controls input[type="number"] {
-    width: 54px;
+    width: 5em;
+}
+
+.floating-controls input[type="angle"] {
+    width: 3em;
 }
 
 .origin-controls button {
