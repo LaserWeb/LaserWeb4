@@ -1342,13 +1342,18 @@ class Workspace extends React.Component {
             }
         }
 
-        if (found)
-            this.props.dispatch(zoomArea(bounds.x1, bounds.y1, bounds.x2, bounds.y2));
+        if (found) {
+            let marginX = (bounds.x2 - bounds.x1) / 50;
+            let marginY = (bounds.y2 - bounds.y1) / 50;
+            this.props.dispatch(zoomArea(bounds.x1 - marginX, bounds.y1 - marginY, bounds.x2 + marginX, bounds.y2 + marginY));
+        }
     }
 
     zoomGcode() {
         if (this.gcodePreview.array) {
-	    this.props.dispatch(zoomArea(this.gcodePreview.minX, this.gcodePreview.minY, this.gcodePreview.maxX, this.gcodePreview.maxY));
+            let marginX = (this.gcodePreview.maxX - this.gcodePreview.minX) / 50;
+            let marginY = (this.gcodePreview.maxY - this.gcodePreview.minY) / 50;
+            this.props.dispatch(zoomArea(this.gcodePreview.minX - marginX, this.gcodePreview.minY - marginY, this.gcodePreview.maxX + marginX, this.gcodePreview.maxY + marginY));
         }
     }
 
