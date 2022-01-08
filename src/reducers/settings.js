@@ -166,7 +166,6 @@ export const SETTINGS_INITIALSTATE = {
     connectBaud: '115200',
     connectIP: '',
     connectReset: false,
-    connectQuery: '',
 
     jogStepsize: 1,
     jogFeedXY: 1800,

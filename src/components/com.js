@@ -517,7 +517,6 @@ class Com extends React.Component {
         var connectPort = this.props.settings.connectPort.trim();
         var connectBaud = this.props.settings.connectBaud;
         var connectReset = this.props.settings.connectReset;
-        var connectQuery = this.props.settings.connectQuery;
         var connectIP = this.props.settings.connectIP;
         var comServerVersion = this.props.settings.comServerVersion;
         var comApiVersion = this.props.settings.comApiVersion;
@@ -534,24 +533,24 @@ class Com extends React.Component {
                     CommandHistory.write('Could not connect! -> please select baudrate', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine via USB/Serial, Port: ' + connectPort + ' @ ' + connectBaud + ' baud; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud + ',' + connectReset + ',' + connectQuery);
+                CommandHistory.write('Connecting Machine via USB/Serial, Port: ' + connectPort + ' @ ' + connectBaud + ' baud; reset on connect: ' + connectReset, CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectPort + ',' + connectBaud + ',' + connectReset);
                 break;
             case 'Telnet':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine via Telnet, IP: ' + connectIP + '; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset + ',' + connectQuery);
+                CommandHistory.write('Connecting Machine via Telnet, IP: ' + connectIP + '; reset on connect: ' + connectReset, CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset);
                 break;
             case 'ESP8266':
                 if (!connectIP) {
                     CommandHistory.write('Could not connect! -> please enter IP address', CommandHistory.DANGER);
                     break;
                 }
-                CommandHistory.write('Connecting Machine via ESP Socket, IP: ' + connectIP + '; reset on connect: ' + connectReset + ', Query: "' + connectQuery+ '"', CommandHistory.INFO);
-                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset + ',' + connectQuery);
+                CommandHistory.write('Connecting Machine via ESP Socket, IP: ' + connectIP + '; reset on connect: ' + connectReset, CommandHistory.INFO);
+                socket.emit('connectTo', connectVia + ',' + connectIP + ',null,' + connectReset);
                 break;
             case 'Default':
                 CommandHistory.write('Connecting Machine via default method: ' + '<WORK IN PROGRESS>', CommandHistory.INFO);
@@ -609,15 +608,9 @@ class Com extends React.Component {
                             <Button id="connect" bsClass="btn btn-xs btn-info disabled" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger disabled" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
-                    </Panel>
-
-                    <Panel collapsible header="Firmware Detection" bsStyle="primary" eventKey="2" defaultExpanded={(!firmware)}>
                         <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: ".   Send reset when connecting", info: Info(<p className="help-block">
                             Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
                             </p>,"^X on Connect"), style: { float: "right", clear: "right" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'connectQuery', setAttrs: setSettingsAttrs, description: 'Query String', info: Info(<p className="help-block">
-                            Optional query command sent to machine once connected.<br/>eg. <strong>'$I'</strong> on Grbl can be used to show extended firmware information in the console when connecting.
-                            </p>,"Firmware Query String"), style: { fontFamily: "monospace, monospace" } }} />
                     </Panel>
 
                 </PanelGroup>
