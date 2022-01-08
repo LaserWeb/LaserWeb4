@@ -1388,7 +1388,7 @@ class Workspace extends React.Component {
                                     <td colSpan='2'>
                                         <button className='btn btn-default' title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>M</button>
                                         <button className='btn btn-default' title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>D</button>
-                                        <button className='btn btn-default' title='Scale view to Generated Gcode' nClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>G</button>
+                                        <button className='btn btn-default' title='Scale view to Generated Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>G</button>
                                     </td>
                                 </tr>
                                 <tr>
