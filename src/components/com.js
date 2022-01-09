@@ -604,13 +604,11 @@ class Com extends React.Component {
                                 <TextField {...{ object: settings, field: 'connectIP', setAttrs: setSettingsAttrs, description: 'Machine IP' }} />
                             </div>
                         </Collapse>
+                        <SelectField {...{ object: settings, field: 'connectReset', setAttrs: setSettingsAttrs, data: ['true', 'false', 'default'], defaultValue: 'default', description: '^X on Connect', selectProps: { clearable: false } }} />
                         <ButtonGroup>
                             <Button id="connect" bsClass="btn btn-xs btn-info disabled"   onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger disabled" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
-                        <div style={{ marginTop: '15px' }}>
-                            <SelectField {...{ object: settings, field: 'connectReset', setAttrs: setSettingsAttrs, data: ['true', 'false', 'default'], defaultValue: 'default', description: '^X on Connect', selectProps: { clearable: false } }} />
-                        </div>
                     </Panel>
 
                 </PanelGroup>
