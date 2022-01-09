@@ -56,6 +56,7 @@ import { LiveJogging } from './jog'
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
 import { arucoProcess } from '../lib/omr.js';
+import { humanFileSize } from '../lib/helpers';
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -1361,16 +1362,30 @@ class Workspace extends React.Component {
 
     toggleSim() {
         let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
+        let simSummary = 'No gcode loaded'
+        $('#gcode-info-panel').html("Analysing...");
+        this.forceUpdate();
         if (totalSecs > 0) {
           let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
           let secs = totalSecs % 60;
           let mins = Math.floor(totalSecs / 60) % 60;
           let hrs = Math.floor(totalSecs / 3600);
-          let duty = Math.floor(activeSecs / totalSecs * 100)
-          if (hrs > 0) CommandHistory.write('Estimated job run time: ' + hrs + 'h, ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%', CommandHistory.INFO);
-          else CommandHistory.write('Estimated job run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%', CommandHistory.INFO);
-          console.log('Simulated total gcode run time: ' + totalSecs + ' seconds; active: ' + activeSecs + 's');
+          let duty = Math.floor(activeSecs / totalSecs * 100);
+          let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
+          let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
+          if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%';
+          else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
+          simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
+          // CommandHistory.write(simSummary, CommandHistory.INFO);
+          // console.log(simSummary);
+          let codeSize = this.gcode.length;
+          let moveCount = 0;
+          if (codeSize > 0) {
+            moveCount = this.gcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
+          }
+          simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + moveCount;
         } // else console.log('Cannot estimate run time since no job is loaded');
+        $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
     }
 
     render() {
@@ -1447,10 +1462,9 @@ class Workspace extends React.Component {
                               </tr>
                               <tr>
                                 <td colSpan="2">
-                                    <h5>Gcode Details:</h5>
-                                    <div className='help-block'>
+                                    <pre  style={{ fontSize: '90%' }} className='help-block' id='gcode-info-panel'>
                                         No gcode loaded
-                                    </div>
+                                    </pre>
                                 </td>
                               </tr>
                             </tbody>
