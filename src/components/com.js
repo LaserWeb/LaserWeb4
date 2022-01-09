@@ -8,7 +8,7 @@ import { runStatus } from './jog.js';
 import { setSettingsAttrs } from '../actions/settings';
 import { setComAttrs } from '../actions/com';
 import { setWorkspaceAttrs } from '../actions/workspace';
-import { setGcode } from '../actions/gcode';
+// import { setGcode } from '../actions/gcode';
 import CommandHistory from './command-history';
 
 import { alert, prompt, confirm} from './laserweb';
