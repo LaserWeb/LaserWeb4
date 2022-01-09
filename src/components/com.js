@@ -16,7 +16,7 @@ import { alert, prompt, confirm} from './laserweb';
 import Icon from './font-awesome';
 
 import io from 'socket.io-client';
-var socket, connectVia;
+var socket, connectVia, connectReset;
 var serverConnected = false;
 var machineConnected = false;
 var jobStartTime = -1;
@@ -591,7 +591,7 @@ class Com extends React.Component {
                         </ButtonGroup>
                     </Panel>
 
-                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="3" defaultExpanded={(!machineConnected)}>
+                    <Panel collapsible header="Machine Connection" bsStyle="primary" eventKey="2" defaultExpanded={(!machineConnected)}>
                         <SelectField {...{ object: settings, field: 'connectVia', setAttrs: setSettingsAttrs, data: this.state.comInterfaces, defaultValue: '', description: 'Machine Connection', selectProps: { clearable: false } }} />
                         <Collapse in={settings.connectVia == 'USB'}>
                             <div>
@@ -605,12 +605,12 @@ class Com extends React.Component {
                             </div>
                         </Collapse>
                         <ButtonGroup>
-                            <Button id="connect" bsClass="btn btn-xs btn-info disabled" onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
+                            <Button id="connect" bsClass="btn btn-xs btn-info disabled"   onClick={(e)=>{this.handleConnectMachine(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnect" bsClass="btn btn-xs btn-danger disabled" onClick={(e)=>{this.handleDisconnectMachine(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
                         </ButtonGroup>
-                        <ToggleField {... { object: this.props.settings, field: 'connectReset', setAttrs: setSettingsAttrs, description: ".   Send reset when connecting", info: Info(<p className="help-block">
-                            Some controllers (eg. ESP32 and other recent chipsets) do not auto-reset when a new communications connection is made, preventing the server from detecting them.<br/>Selecting this will make the server send Ctrl-X (reset) automatically upon connecting so that the Firmware can be detected.
-                            </p>,"^X on Connect"), style: { float: "right", clear: "right" } }} />
+                        <div style={{ marginTop: '15px' }}>
+                            <SelectField {...{ object: settings, field: 'connectReset', setAttrs: setSettingsAttrs, data: ['true', 'false', 'default'], defaultValue: 'default', description: '^X on Connect', selectProps: { clearable: false } }} />
+                        </div>
                     </Panel>
 
                 </PanelGroup>

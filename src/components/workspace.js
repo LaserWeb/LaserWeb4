@@ -1392,9 +1392,8 @@ class Workspace extends React.Component {
                             <tbody>
                                 <tr>
                                     <td colSpan='2'>
-                                        <button className='btn btn-default' title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>M</button>
-                                        <button className='btn btn-default' title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>D</button>
-                                        <button className='btn btn-default' title='Scale view to Generated Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>G</button>
+                                        <button className='btn btn-default' title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1433,13 +1432,24 @@ class Workspace extends React.Component {
                             <tbody>
                               <tr>
                                 <td>
-                                    <button className='btn btn-default' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Sim</button>
+                                    <button className='btn btn-default' title='Scale view to Generated Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                </td>
+                                <td>
+                                    <button className='btn btn-default' title='Dump simulation results to log' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Sim Info</button>
                                 </td>
                               </tr>
                               <tr>
-                                <td>
+                                <td colSpan="2">
                                     <div className='input-group'>
                                         <input style={{ width: this.props.settings.simBarWidth + 'em' }} class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td colSpan="2">
+                                    <h5>Gcode Details:</h5>
+                                    <div className='help-block'>
+                                        No gcode loaded
                                     </div>
                                 </td>
                               </tr>

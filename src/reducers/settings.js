@@ -165,7 +165,7 @@ export const SETTINGS_INITIALSTATE = {
     connectPort: '',
     connectBaud: '115200',
     connectIP: '',
-    connectReset: false,
+    connectReset: 'default',
 
     jogStepsize: 1,
     jogFeedXY: 1800,
