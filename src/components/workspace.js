@@ -1362,7 +1362,7 @@ class Workspace extends React.Component {
 
     toggleSim() {
         let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
-        let simSummary = 'No gcode loaded'
+        let simSummary = 'No Gcode loaded'
         $('#gcode-info-panel').html("Analysing...");  // Doesnt seem to work, the panel doesnt update (no react refresh) until this function exits
         this.forceUpdate();                           // Better solution would be to start analysis in background
         if (totalSecs > 0) {
