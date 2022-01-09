@@ -217,13 +217,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
             showAlert("Empty Gcode! Either there was an error during generation or the user cancelled generation.", "warning");
         } else {
             fullGcode = startCode + gcode.join('\r\n') + endCode;
-            let codeSize = fullGcode.length;
-            let moveCount = 0, lineCount = 0;
-            if (codeSize > 0) {
-                moveCount = fullGcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
-                lineCount = fullGcode.split(/\r\n|\r|\n/).length;
-            }
-            showAlert("Size: " + codeSize + " (" + humanFileSize(codeSize) + "), Lines: " + lineCount + ", Moves: " + moveCount,"info");
+            showAlert("Generated Gcode size: " + fullGcode.length + " (" + humanFileSize(fullGcode.length) + ")", "info");
         }
         done(fullGcode);
     })

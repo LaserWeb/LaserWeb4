@@ -239,7 +239,7 @@ Cam = connect(
         dispatch,
         toggleDocumentExpanded: d => dispatch(setDocumentAttrs({ expanded: !d.expanded }, d.id)),
         clearGcode: (e) => {
-            confirm("This will delete the currently loaded Gcode. Are you sure?", (data) => { if (data) {$('#gcode-info-panel').html("No gcode loaded"); dispatch(setGcode(""))}; }, e.shiftKey)
+            confirm("This will delete the currently loaded Gcode. Are you sure?", (data) => { if (data) dispatch(setGcode("")); }, e.shiftKey)
         },
         resetWorkspace: () => {
             confirm("This will completely erase your workspace! Are you sure?", (data) => { if (data) dispatch(resetWorkspace()); })

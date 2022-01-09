@@ -1,3 +1,4 @@
+import { humanFileSize } from '../lib/helpers';
 
 export const GCODE_INITIALSTATE = {
     gcoding: { enable: false, percent: 0},
@@ -18,12 +19,20 @@ export function gcode(state = GCODE_INITIALSTATE, action) {
             }
         }
     }
-    if (action.type === 'GCODE_SET')
+    if (action.type === 'GCODE_SET') {
+        if (action.payload.length == 0) {
+            $('#gcode-info-panel').html("No Gcode loaded")
+        } else {
+            $('#gcode-info-panel').html("Gcode Loaded:\n" + humanFileSize(action.payload.length) )
+        }
         return { ...state, dirty: false , content: action.payload };
+    }
     else if (action.type === 'GCODE_GENERATION')
         return { ...state, gcoding: action.payload }
-    else if (action.type== 'WORKSPACE_RESET') 
+    else if (action.type== 'WORKSPACE_RESET') {
+        $('#gcode-info-panel').html("No Gcode loaded");
         return { ...state, dirty:false, content:''}
+    }
     else
         return state;
 }

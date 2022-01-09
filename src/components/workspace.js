@@ -1363,9 +1363,10 @@ class Workspace extends React.Component {
     toggleSim() {
         let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
         let simSummary = 'No gcode loaded'
-        $('#gcode-info-panel').html("Analysing...");
-        this.forceUpdate();
+        $('#gcode-info-panel').html("Analysing...");  // Doesnt seem to work, the panel doesnt update (no react refresh) until this function exits
+        this.forceUpdate();                           // Better solution would be to start analysis in background
         if (totalSecs > 0) {
+          // Use the dynamic (simulate) data for to generate run stats
           let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
           let secs = totalSecs % 60;
           let mins = Math.floor(totalSecs / 60) % 60;
@@ -1378,6 +1379,7 @@ class Workspace extends React.Component {
           simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
           // CommandHistory.write(simSummary, CommandHistory.INFO);
           // console.log(simSummary);
+          // Do a static analysis on the code for size and complexity
           let codeSize = this.gcode.length;
           let moveCount = 0;
           if (codeSize > 0) {
@@ -1448,7 +1450,7 @@ class Workspace extends React.Component {
                               <tr>
                                 <td>
                                     <button className='btn btn-default' title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
-                                    <button className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Simulation Data</button>
+                                    <button className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
                                 </td>
                                 <td>
                                 </td>
@@ -1462,8 +1464,8 @@ class Workspace extends React.Component {
                               </tr>
                               <tr>
                                 <td colSpan="2">
-                                    <pre  style={{ fontSize: '90%' }} className='help-block' id='gcode-info-panel'>
-                                        No gcode loaded
+                                    <pre  style={{ fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
+                                        No Gcode loaded
                                     </pre>
                                 </td>
                               </tr>
