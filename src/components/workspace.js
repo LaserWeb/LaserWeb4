@@ -1373,7 +1373,7 @@ class Workspace extends React.Component {
           let duty = Math.floor(activeSecs / totalSecs * 100);
           let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
           let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
-          if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%';
+          if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
           else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
           simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
           // CommandHistory.write(simSummary, CommandHistory.INFO);
@@ -1447,10 +1447,10 @@ class Workspace extends React.Component {
                             <tbody>
                               <tr>
                                 <td>
-                                    <button className='btn btn-default' title='Scale view to Generated Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                    <button className='btn btn-default' title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                    <button className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Simulation Data</button>
                                 </td>
                                 <td>
-                                    <button className='btn btn-default' title='Dump simulation results to log' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Sim Info</button>
                                 </td>
                               </tr>
                               <tr>
