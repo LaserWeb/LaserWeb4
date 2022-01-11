@@ -16,7 +16,7 @@ import CommandHistory from '../components/command-history'
 import { validate } from '../reducers/material-database'
 
 class MachineProfile extends React.Component {
-    
+
     constructor(props)
     {
         super(props);
@@ -24,12 +24,12 @@ class MachineProfile extends React.Component {
         this.handleSelect.bind(this);
         this.handleInput.bind(this);
         this.handleSave.bind(this);
-        
+
         let selected = this.props.settings.__selectedProfile || "";
-        
+
         this.state={selected: selected , newLabel: '', newSlug:''}
     }
-    
+
     handleApply(e) {
        let selected=this._getSelectedProfile()
        let profileId = this.state.selected
@@ -54,66 +54,73 @@ class MachineProfile extends React.Component {
        }
        return ;
     }
-    
+
     handleSelect(e){
         let value=e.target.value
         if (value) this.setState({selected: value});
-        
+
     }
-    
+
     handleDelete(e){
         this.props.dispatch(delMachineProfileId(this.state.selected));
         this.setState({selected: '', newLabel:'', newSlug:''})
     }
-    
+
     handleSave(e) {
         let currentProfile = this._getSelectedProfile();
         if (currentProfile) this.props.dispatch(addMachineProfile(this.state.selected, {...currentProfile, settings: this.props.settings}))
     }
-    
+
     handleAppend(e){
         if (this.state.newLabel.trim().length)
             this.props.dispatch(addMachineProfile(this.state.newSlug, {machineLabel: this.state.newLabel, settings: this.props.settings}))
-            
+
         this.setState({selected: this.state.newSlug})
-        
+
     }
-    
+
     handleInput(e){
         this.setState({newLabel: e.target.value, newSlug: slug(e.target.value)})
     }
-    
+
     _getSelectedProfile()
     {
         if(typeof this.props.profiles[this.state.selected]!=="undefined")
             return this.props.profiles[this.state.selected];
-        
+
         return undefined;
     }
 
     render(){
-        
         let profileOptions=[];
         let description;
         let selected;
+        let firmwareLogo;
         const disabledApply = !this.state.selected.length
         const disabledDelete= disabledApply || (this.props.profiles[this.state.selected] && this.props.profiles[this.state.selected]._locked)
-        
-        
+
+
         Object.keys(this.props.profiles).forEach((key) => {
             let profile=this.props.profiles[key];
             profileOptions.push(<option key={key} value={key} >{profile.machineLabel}</option>);
         });
-        
-        
+
         if (selected=this._getSelectedProfile()){
             let settings=stringify(this.props.profiles[this.state.selected].settings);
             let machinedesc=this.props.profiles[this.state.selected].machineDescription;
-            description=(<details><summary>{machinedesc? machinedesc : "Details" }</summary><pre>{settings}</pre></details>);
+            description=(<details title="Click to expand setting details"><summary>{machinedesc? machinedesc : "Details" }</summary><pre>{settings}</pre></details>);
+            let logoFile=this.props.profiles[this.state.selected].settings.firmwareLogo;
+            if (logoFile) {
+              firmwareLogo=<img style={{ width: '150px', borderRadius: 8, margin: '10px'}} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
+            }
+            let manURL=this.props.profiles[this.state.selected].settings.firmwareURL;
+            if (manURL) {
+                firmwareLogo=(<a href={ manURL } title={ manURL} target="_blank">{ firmwareLogo }</a>);
+            }
         }
-        
+
         return (
-            
+
                 <div>
                 <FormGroup controlId="formControlsSelect">
                     <h5>Apply predefined machine profile</h5>
@@ -122,50 +129,52 @@ class MachineProfile extends React.Component {
                       <option value="">Select a Machine Profile</option>
                       {profileOptions}
                     </FormControl>
-                    
+
                     <ButtonGroup>
                         <Button bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleApply(e)}} disabled={disabledApply} title="Applies selected profile"><Icon name="share" /> Apply</Button>
                         <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}} title="Updates selected profile with current configuration" disabled={disabledDelete}><Icon name="pencil" /> Update</Button>
                         <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} title="Delete selected profile" disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
                     </ButtonGroup>
                      <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
-                    {description}
+
+                    {firmwareLogo}
+                    <h5>{description}</h5>
                     </FormGroup>
-                    
+
                     <FormGroup controlId="formControlsAppend">
-                   
-                    <h5>New profile</h5>
+
+                    <h5>Create new profile</h5>
                     {this.state.newSlug ? (<small>Machine Id: <code>{this.state.newSlug}</code></small>):undefined}
                      <InputGroup>
-                        
+
                         <FormControl type="text" onChange={(e)=>{this.handleInput(e)}} ref="newLabel" value={this.state.newLabel}/>
                         <InputGroup.Button>
                         <Button bsClass="btn btn-success" disabled={!this.state.newLabel.trim().length} onClick={(e)=>{this.handleAppend(e)}}><Glyphicon glyph="plus-sign" /></Button>
                         </InputGroup.Button>
                      </InputGroup>
-                     
+
                     <small className="help-block">Use this dialog to add the current settings to a new profile.</small>
                 </FormGroup>
                 </div>
-            
-            
-           
-            
+
+
+
+
         )
-        
-        
+
+
     }
-    
-    
+
+
 }
- 
- 
+
+
 const mapStateToProps = (state) => {
   return {
     profiles: state.machineProfiles,
     settings: state.settings
   }
 };
- 
+
 export {MachineProfile}
 export default connect(mapStateToProps)(MachineProfile);
