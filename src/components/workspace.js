@@ -1390,7 +1390,7 @@ class Workspace extends React.Component {
           }
           simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + moveCount;
         } else if (codeSize > 0) {
-          simSummary += "Analysis failed. Check code before using. " + humanFileSize(codeSize)
+          simSummary = "Analysis failed. Check code before using. " + humanFileSize(codeSize)
         }
         $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
     }
