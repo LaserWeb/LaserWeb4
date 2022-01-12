@@ -197,7 +197,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     ppi: { x: settings.dpiBitmap, y: settings.dpiBitmap},
                     toolDiameter: op.laserDiameter,
                     beamRange: { min: 0, max: settings.gcodeSMaxValue },
-                    beamPower: op.laserPowerRange, //Go go power rangeR!
+                    beamPower: { min: op.laserPowerMin, max: op.laserPowerMax },
                     rapidRate: false,
                     feedRate,
                     offsets: {

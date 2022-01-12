@@ -484,6 +484,8 @@ class Settings extends React.Component {
                     </Panel>
 
                     <Panel collapsible header="Tools" bsStyle="danger" eventKey="8" >
+                        <div className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Danger!</Label><br/>
+                        Loading profiles and settings will overwrite your current settings, use the tools here with care.</div>
                         <section>
                             <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
                                 <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr></tbody></table>
@@ -497,8 +499,8 @@ class Settings extends React.Component {
                                 <td><Button bsSize="xsmall" onClick={e => this.props.handleResetMacros()} bsStyle="warning" style={{float: "right"}}>Reset</Button></td></tr></tbody></table>
                         </section><br/>
                         <h5 className="header">Application Snapshot</h5>
-                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
-                        &nbsp;&nbsp;This dialog allows you to save or restore snapshots of the current application state, potentially overwriting existing settings and work.</small>
+                        <small className="help-block">
+                        This dialog allows you to save or restore snapshots of the current application state. Use with care since this can overwrite any loaded work.</small>
                         <ApplicationSnapshot />
                     </Panel>
                 </PanelGroup>

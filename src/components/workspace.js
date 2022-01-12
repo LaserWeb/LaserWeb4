@@ -18,6 +18,9 @@ import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
+import '../styles/simbar.css';
+
+
 import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected, cloneDocumentSelected } from '../actions/document';
@@ -1365,6 +1368,7 @@ class Workspace extends React.Component {
         let simSummary = 'No Gcode loaded'
         $('#gcode-info-panel').html("Analysing...");  // Doesnt seem to work, the panel doesnt update (no react refresh) until this function exits
         this.forceUpdate();                           // Better solution would be to start analysis in background
+        let codeSize = this.gcode.length;
         if (totalSecs > 0) {
           // Use the dynamic (simulate) data for to generate run stats
           let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
@@ -1380,13 +1384,14 @@ class Workspace extends React.Component {
           // CommandHistory.write(simSummary, CommandHistory.INFO);
           // console.log(simSummary);
           // Do a static analysis on the code for size and complexity
-          let codeSize = this.gcode.length;
           let moveCount = 0;
           if (codeSize > 0) {
             moveCount = this.gcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
           }
           simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + moveCount;
-        } // else console.log('Cannot estimate run time since no job is loaded');
+        } else if (codeSize > 0) {
+          simSummary += "Analysis failed. Check code before using. " + humanFileSize(codeSize)
+        }
         $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
     }
 
@@ -1457,8 +1462,8 @@ class Workspace extends React.Component {
                               </tr>
                               <tr>
                                 <td colSpan="2">
-                                    <div className='input-group'>
-                                        <input style={{ width: this.props.settings.simBarWidth + 'em' }} class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
+                                    <div className='simbar'>
+                                        <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
                                     </div>
                                 </td>
                               </tr>

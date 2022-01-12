@@ -211,7 +211,7 @@ class Field extends React.Component {
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
 
         let Ctx = field.contextMenu;
-        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dotted blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
+        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{field.label}</span></Ctx>) : field.label;
 
         if (justControl) {
             return (
@@ -239,7 +239,7 @@ class Field extends React.Component {
 
         return (
             <GetBounds Type="tr">
-                <th width="30%">{label}</th>
+                <th width="50%">{label}</th>
                 <td>
                     <Input
                         {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
@@ -479,7 +479,7 @@ const FieldContextMenu = (id = uuidv4()) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
-        return <div title="Right click or press long to popup context menu"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+        return <div title="Right click or long press for options"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
 }
 
@@ -497,7 +497,8 @@ export const OPERATION_FIELDS = {
     direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput, contextMenu: FieldContextMenu() },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent, contextMenu: FieldContextMenu() },
-    laserPowerRange: { name: 'laserPowerRange', label: 'Laser Power Range', units: '%', input: RangeInput(0, 100), ...checkRange(0, 100), contextMenu: FieldContextMenu() },
+    laserPowerMin: { name: 'laserPowerMin', label: 'Laser Power Min', units: '%', input: NumberInput, ...checkRange(0, 100), contextMenu: FieldContextMenu() },
+    laserPowerMax: { name: 'laserPowerMax', label: 'Laser Power Max', units: '%', input: NumberInput, ...checkRange(0, 100), contextMenu: FieldContextMenu() },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
     lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput, contextMenu: FieldContextMenu() },
@@ -584,7 +585,7 @@ export const OPERATION_TYPES = {
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Raster': {
         allowTabs: false, tabFields: false, fields: [
-            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'name', 'laserPowerMin', 'laserPowerMax', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'vertical', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
@@ -592,7 +593,7 @@ export const OPERATION_TYPES = {
     'Laser Raster Merge': {
         allowTabs: false, tabFields: false, fields: [
             'name', 'filterFillColor', 'filterStrokeColor',
-            'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'laserPowerMin', 'laserPowerMax', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
             'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'vertical', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
