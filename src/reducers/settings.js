@@ -29,7 +29,7 @@ export const SETTINGS_VALIDATION_RULES = {
     machineAAxisDiameter: 'numeric|min:0.01',
 
     simG0Rate: 'numeric|min:0.01',
-    simBarWidth: 'numeric|min:2',
+    simBarWidth: 'numeric|min:12',
 
     toolGridWidth: 'numeric|min:100',
     toolGridHeight: 'numeric|min:100',
@@ -65,6 +65,9 @@ export const SETTINGS_INITIALSTATE = {
     __version: version,
     __selectedProfile: null,
     __latestRelease: null,
+
+    firmwareURL: null,
+    firmwareLogo: null,
 
     showMachine: false,
     machineWidth: 300,
@@ -103,9 +106,9 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     forcePxPerInch: false,
     dpiBitmap: 300,
-    gcodeFilename: "gcode",
+    gcodeFilename: "gcode-%y%m%d-%H%M",
     gcodeExtension: ".gcode",
-    workspaceFilename: "Laserweb-Workspace",
+    workspaceFilename: "Laserweb-Workspace-%y%m%d-%H%M",
 
     simG0Rate: 1000,
     simBarWidth: 22,
@@ -154,7 +157,7 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCurvePrecision: 0.1,
 
     comServerVersion: 'not connected',
-    comApiVersion: 'not connected',
+    comApiVersion: 'N/A',
     comServerIP: 'localhost:8000',
     comServerConnect: false,
     comInterfaces: [],

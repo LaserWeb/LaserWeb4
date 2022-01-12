@@ -212,7 +212,10 @@ class Settings extends React.Component {
 
 
         let isVideoDeviceSelected = Boolean(this.props.settings['toolVideoDevice'] && this.props.settings['toolVideoDevice'].length);
-
+        let settingsFileName = "laserweb-settings.json";
+        if (this.props.settings['__selectedProfile']) {
+            settingsFileName = "laserweb-settings-" + this.props.settings['__selectedProfile'].replace('*','default_')  + ".json";
+        }
 
         return (
             <div className="form">
@@ -364,12 +367,12 @@ class Settings extends React.Component {
                         <TextField {...{ object: this.props.settings, field: 'gcodeHoming', setAttrs: setSettingsAttrs, description: 'Homing Gcode', info: Info(<p className="help-block">
                             Code used to home the machine.
                             </p>,"Homing Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Tool ON Gcode', info: Info(<p className="help-block">
-                            Optional: Gcode commands to run before each powered laser cut sequence in the generated code.<br/>- Not used in Mill/Lathe operations.
-                            </p>,"Tool On Gcode for Laser"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
-                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Tool OFF Gcode', info: Info(<p className="help-block">
-                            Optional: Gcode commands to run after each powered laser cut sequence in the generated code.<br/>- Not used in Mill/Lathe operations.
-                            </p>,"Tool Off Gcode for Laser"), rows: 3, style:{ resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOn', setAttrs: setSettingsAttrs, description: 'Laser Tool ON Gcode', info: Info(<p className="help-block">
+                            Optional: Gcode commands to run before each powered laser cut sequence in the generated code.<br/>- Use for firmwares without safe laser modes.<br/>- Not used in Mill/Lathe operations.<br/>- The keyword <strong>$INTENSITY</strong> will be replaced by the calculated power value.
+                            </p>,"Laser Tool On Gcode"), rows: 3, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeToolOff', setAttrs: setSettingsAttrs, description: 'Laser Tool OFF Gcode', info: Info(<p className="help-block">
+                            Optional: Gcode commands to run after each powered laser cut sequence in the generated code.<br/>- Use for firmwares without safe laser modes.<br/>- Not used in Mill/Lathe operations.<br/><br/><strong>If your machine does not automatically switch off the laser when movement stops (safe laser mode) you must ensure this is set correctly!</strong>
+                            </p>,"Laser Tool Off Gcode"), rows: 3, style:{ resize: "vertical", fontFamily: "monospace, monospace" } }} />
                         <TextField {...{ object: this.props.settings, field: 'gcodeLaserIntensity', setAttrs: setSettingsAttrs, description: 'Laser Intensity Command', info: Info(<p className="help-block">
                             Tool power setting gcode command; the numeric power value will be appended to this prefix<br/>Eg: 'S' becomes 'S1000'.
                             </p>,"Tool power setting command prefix"), style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
@@ -488,7 +491,7 @@ class Settings extends React.Component {
                         Loading profiles and settings will overwrite your current settings, use the tools here with care.</div>
                         <section>
                             <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Settings</strong></td>
-                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName="laserweb-settings.json" /></td></tr></tbody></table>
+                                <td><ApplicationSnapshotToolbar loadButton saveButton stateKeys={['settings']} label="Settings" saveName={settingsFileName} /></td></tr></tbody></table>
                         </section><br/>
                         <section>
                             <table style={{ width: 100 + '%' }}><tbody><tr><td><strong>Machine Profiles</strong></td>
