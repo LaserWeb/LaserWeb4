@@ -135,7 +135,7 @@ class MachineProfile extends React.Component {
                         <Button bsClass="btn btn-xs btn-warning" onClick={(e)=>{this.handleSave(e)}} title="Updates selected profile with current configuration" disabled={disabledDelete}><Icon name="pencil" /> Update</Button>
                         <Button bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDelete(e)}} title="Delete selected profile" disabled={disabledDelete}><Glyphicon glyph="trash" /> Delete</Button>
                     </ButtonGroup>
-                     <small className="help-block">Use this dialog to apply predefined machine settings. This settings will override current settings. Use with caution.</small>
+                     <small className="help-block">Use this dialog to apply predefined machine settings. Applying new settings will overwrite the current settings. Use with caution.</small>
 
                     {firmwareLogo}
                     <h5 style={{ cursor: 'pointer' }}>{description}</h5>
@@ -146,7 +146,6 @@ class MachineProfile extends React.Component {
                     <h5>Create new profile</h5>
                     {this.state.newSlug ? (<small>Machine Id: <code>{this.state.newSlug}</code></small>):undefined}
                      <InputGroup>
-
                         <FormControl type="text" onChange={(e)=>{this.handleInput(e)}} ref="newLabel" value={this.state.newLabel}/>
                         <InputGroup.Button>
                         <Button bsClass="btn btn-success" disabled={!this.state.newLabel.trim().length} onClick={(e)=>{this.handleAppend(e)}}><Glyphicon glyph="plus-sign" /></Button>
