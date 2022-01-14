@@ -108,7 +108,7 @@ class MachineProfile extends React.Component {
         if (selected=this._getSelectedProfile()){
             let settings=stringify(this.props.profiles[this.state.selected].settings);
             let machinedesc=this.props.profiles[this.state.selected].machineDescription;
-            description=(<details title="Click to expand setting details"><summary>{machinedesc? machinedesc : "Show Details" }</summary><pre>{settings}</pre></details>);
+            description=(<details title="Click to expand setting details"><summary style={{ cursor: 'pointer', padding: '9.5px', fontSize: '13px', color: '#333', backgroundColor: '#f5f5f5', border: '1px solid #ccc', borderRadius: '4px' }}>{machinedesc? machinedesc : "Show Details" }</summary><pre>{settings}</pre></details>);
             let logoFile=this.props.profiles[this.state.selected].settings.firmwareLogo;
             if (logoFile) {
               firmwareLogo=<img style={{ width: '150px', borderRadius: 8, margin: '10px'}} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
@@ -138,7 +138,7 @@ class MachineProfile extends React.Component {
                      <small className="help-block">Use this dialog to apply predefined machine settings. Applying new settings will overwrite the current settings. Use with caution.</small>
 
                     {firmwareLogo}
-                    <h5 style={{ cursor: 'pointer' }}>{description}</h5>
+                    <h5>{description}</h5>
                     </FormGroup>
 
                     <FormGroup controlId="formControlsAppend">
