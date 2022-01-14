@@ -42,8 +42,12 @@ export function parseGcode(gcode) {
                 z = parse();
             else if (gcode[i] == 'A' || gcode[i] == 'a')
                 a = parse();
-            else if (gcode[i] == 'F' || gcode[i] == 'f')
+            else if (gcode[i] == 'F' || gcode[i] == 'f') {
                 f = parse();
+                if (isNaN(lastF))
+                    lastF = f;
+                console.log('ParseGcode: F: ' + ' :' + f);
+            }
             else if (gcode[i] == 'S' || gcode[i] == 's')
                 lastS = parse();
             else if (gcode[i] == 'T' || gcode[i] == 't')
