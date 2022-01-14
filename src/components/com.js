@@ -19,6 +19,7 @@ import io from 'socket.io-client';
 var socket, connectVia, connectReset;
 var serverConnected = false;
 var machineConnected = false;
+var jobLines = 0;
 var jobStartTime = -1;
 var accumulatedJobTime = 0;
 var playing = false;
@@ -257,24 +258,25 @@ class Com extends React.Component {
         });
 
         socket.on('runningJob', function (data) {
+            // returned boy older lw-comm-server, should no longer be used.
             CommandHistory.write('Running Job!', CommandHistory.WARN);
-            // When connecting to a server that is already running a job, do NOT always pop up an alert with the Job data (Gcode) since a few MB from
-            //  a large job can hang the web browser as it loads and displays. Only Popup an alert if it is short.
+            jobLines = job.split(/\r\n|\r|\n/).length
             if (data.length < 512) {
                 CommandHistory.write(data, CommandHistory.STD);
                 alert('<strong>Server Busy:</strong><br/>' + data);
             } else {
-                CommandHistory.write('Size: ' + data.length + ', current progress unavailable', CommandHistory.STD);
-                alert('<strong>Server Busy:</strong><br/>Running job is ' + data.length + ' bytes long, Current progress is not available.');
+                CommandHistory.write('Connected to busy server, Running job size: ' + data.length + ' bytes.', CommandHistory.STD);
+                alert('<strong>Server Busy:</strong><br/>Running job is ' + data.length + ' bytes long.');
             }
-            //setGcode(data);
-            // Do not get running gcode here, there is a seperate call to lw.comm.server 'getRunningJob' that could be used for this purpose.
-            // The user should be alerted first, since large data packets from the server can floor the browser while it is recieving and digesting them.
         });
 
         socket.on('runningJobStatus', function (data) {
-            CommandHistory.write('Server reports: ' + data, CommandHistory.STD);
-            alert(data);
+            // Recieved in response to a reconnect while the server is busy
+            CommandHistory.write('Reconnect; server reports: ' + data, CommandHistory.STD);
+            alert('<strong>Server Busy:</strong><br/>' + data);
+            // Look for the running job size in the response
+            let detail = data.split('done of ',2);
+            jobLines = parseInt(detail[1]) || 0;
         });
 
         socket.on('runStatus', function (status) {
@@ -440,10 +442,20 @@ class Com extends React.Component {
             $('#disconnect').removeClass('disabled');
             //console.log('qCount ' + data);
             data = parseInt(data);
-            $('#queueCnt').html('Queued: ' + data);
+            let queueState = 'Queue Empty'
+            if (data > 0) {
+                queueState = 'Job: ';
+                if (jobLines > 0) {
+                    let done = ((jobLines-data)/jobLines)*99.99;
+                    queueState += done.toFixed(1) + '% done, '
+                }
+                queueState += 'queue: ' + data;
+            }
+            $('#queueCnt').html(queueState);
             if (playing && data === 0) {
                 playing = false;
                 paused = false;
+                jobLines = 0;
                 runStatus('stopped');
                 $('#playicon').removeClass('fa-pause');
                 $('#playicon').addClass('fa-play');
@@ -566,6 +578,7 @@ class Com extends React.Component {
             socket.emit('closePort');
             playing = false;
             paused = false;
+            jobLines = 0;
             runStatus('stopped');
             $("#machineStatus").removeClass('badge-ok');
             $("#machineStatus").addClass('badge-notify');
@@ -580,7 +593,7 @@ class Com extends React.Component {
 
         return (
             <div style={{paddingTop: 6}}>
-                <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
+                <span className="badge badge-default badge-notify" title="Machine status" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
 
                 <PanelGroup>
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={(!serverConnected)}>
@@ -729,16 +742,21 @@ export function runCommand(gcode) {
 export function runJob(job) {
     if (serverConnected) {
         if (machineConnected){
-            if (job.length > 0) {
-                CommandHistory.write('Running Job', CommandHistory.INFO);
-                playing = true;
-                runStatus('running');
-                $('#playicon').removeClass('fa-play');
-                $('#playicon').addClass('fa-pause');
-                jobStartTime = new Date(Date.now());
-                socket.emit('runJob', job);
+            if (playing === false) {
+                if (job.length > 0) {
+                    CommandHistory.write('Running Job; ' + jobLines + ' lines', CommandHistory.INFO);
+                    playing = true;
+                    jobLines = job.split(/\r\n|\r|\n/).length
+                    runStatus('running');
+                    $('#playicon').removeClass('fa-play');
+                    $('#playicon').addClass('fa-pause');
+                    jobStartTime = new Date(Date.now());
+                    socket.emit('runJob', job);
+                } else {
+                    CommandHistory.error('Job empty!')
+                }
             } else {
-                CommandHistory.error('Job empty!')
+                CommandHistory.error('Machine is already busy!')
             }
         } else {
             CommandHistory.error('Machine is not connected!')
@@ -791,6 +809,7 @@ export function abortJob() {
             playing = false;
             paused = false;
             m0 = false;
+            jobLines = 0;
             runStatus('stopped');
             $('#playicon').removeClass('fa-pause');
             $('#playicon').addClass('fa-play');
