@@ -69,7 +69,10 @@ export const SETTINGS_INITIALSTATE = {
     firmwareURL: null,
     firmwareLogo: null,
 
-    showMachine: false,
+    showMachine: true,
+    workBedColor: "#f4fafa",
+    workSpaceColor: "#eaeaf8",
+
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,

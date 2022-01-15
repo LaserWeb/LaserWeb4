@@ -15,7 +15,7 @@ import MachineProfile from './machine-profiles';
 import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
-import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField, Info } from './forms';
+import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField, ColorPicker, Info } from './forms';
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
@@ -234,6 +234,15 @@ class Settings extends React.Component {
                         <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
                                     Highlight the machine work area in the display.
                                     </p>,"Show Work Area") }} />
+
+                        <h5 className="header">Colors
+                        <span style={{float: "right"}}>
+                            <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
+                            <ColorPicker to="hex" icon="bed" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
+                        </span>
+                        </h5>
+                        <br/>
+
                         <h5 className="header">Machine Origin offsets</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Left X', units: 'mm', info: Info(<p className="help-block">
                                     X and Y offsets for the machine work area relative to the Home position.<br/>For a machine that homes to the top-right corner use negative values.

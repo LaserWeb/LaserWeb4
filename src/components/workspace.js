@@ -60,6 +60,7 @@ import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
 import { arucoProcess } from '../lib/omr.js';
 import { humanFileSize } from '../lib/helpers';
+import convert from 'color-convert'
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -84,7 +85,7 @@ const MINOR_GRID_SPACING = 10;
 const CROSSHAIR = 5
 
 class LightenMachineBounds {
-    draw(drawCommands, { perspective, view, x, y, width, height }) {
+    draw(drawCommands, { perspective, view, x, y, width, height, bedColor }) {
         if (!this.triangles || this.x !== x || this.y !== y || this.width !== width || this.height !== height) {
             this.x = x;
             this.y = y;
@@ -98,7 +99,7 @@ class LightenMachineBounds {
             ];
             this.triangles = new Float32Array(a);
         }
-        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: bedColor, transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
@@ -769,10 +770,8 @@ class WorkspaceContent extends React.Component {
             }
 
             gl.viewport(0, 0, canvas.width, canvas.height);
-            if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary)
-                gl.clearColor(.8, .8, .8, 1);
-            else
-                gl.clearColor(1, 1, 1, 1);
+            let rgb = [...convert.hex.rgb(this.props.settings.workSpaceColor)];
+            gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
@@ -793,8 +792,9 @@ class WorkspaceContent extends React.Component {
 
         if (this.props.settings.showMachine) {
             gl.clearDepth(1);
+            let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
             this.lightenMachineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+		perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight, bedColor: [rgb[0]/255,rgb[1]/255,rgb[2]/255,1]
             });
             gl.clearDepth(1);
         }
@@ -889,7 +889,8 @@ class WorkspaceContent extends React.Component {
             this.rotaryFrameBuffer.resize(this.props.width, this.props.height);
 
         this.drawCommands.useFrameBuffer(this.rotaryFrameBuffer, () => {
-            gl.clearColor(1, 1, 1, 1);
+            let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
+            gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             let perspective = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -943,10 +944,6 @@ class WorkspaceContent extends React.Component {
             minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
             major: Math.max(this.props.settings.toolGridMajorSpacing,1),
         });
-        if (this.props.settings.showMachine)
-            this.machineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-            });
 
         if (this.props.settings.machineAAxisDiameter > 0) {
             gl.enable(gl.DEPTH_TEST);

@@ -102,7 +102,7 @@ export class NumberField extends React.Component {
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
             {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
-            
+
         </InputGroup>;
 
 
@@ -114,14 +114,14 @@ export class NumberField extends React.Component {
 }
 
 export function TextField({object, field, description, units = "", setAttrs, dispatch, labelAddon, info, ...rest}) {
-    if (labelAddon !== false) 
+    if (labelAddon !== false)
         labelAddon = true;
     let isTextArea = typeof (rest.rows) != "undefined";
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <InputGroup style={{ width: "100%" }}>
-    
+
         {(!isTextArea && labelAddon!==false) ? (<InputGroup.Addon>{description}{info}</InputGroup.Addon>) : undefined}
         {(!isTextArea) ? (
             <FormControl
@@ -147,7 +147,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
 }
 
-/* 
+/*
     formats ["a","b"] as [{label:"a",value:"a"... }]
     formats { "a": "b", "c":"d"} as [{label:"a", value: "b"},{label:"c":value:"d"}]
     keeps   [{label:"a", value:"b"}]
@@ -165,7 +165,7 @@ function selectOptions(arr) {
             }
         })
     }
-    return result; 
+    return result;
 }
 export class SelectField extends React.Component {
 
@@ -326,7 +326,7 @@ export class InputRangeField extends React.Component {
         let state = Object.assign(this.state, { [key]: parseFloat(v) })
             state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
             state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
-       
+
         this.props.onChangeValue(state);
         this.setState(state)
     }
@@ -338,7 +338,7 @@ export class InputRangeField extends React.Component {
                 this.props.onChangeValue(state);
                 this.setState(state)
         }
-            
+
     }
 
     render() {
@@ -368,19 +368,26 @@ export function Info(content,title='Help',alignment='right', trigger="focus") {
 export class ColorPicker extends React.Component{
     constructor(props){
         super(props)
-        this.state={color:"#000000"}
+	if (this.props.color) {
+            this.state={color: this.props.color}
+        } else {
+            this.state={color:"#000000"}
+        }
         this.handleClick=this.handleClick.bind(this)
     }
     handleClick(modifiers) {
         if (this.props.onClick) {
-            if (modifiers.shiftKey) 
+            if (modifiers.shiftKey)
                 return this.props.onClick(null)
 
             let value;
             switch(this.props.to){
-                default:{
+                case  "rgba":
                     value=[...convert.hex.rgb(this.state.color),1]
-                }
+                    break;
+                case "hex":
+                default:
+                    value=this.state.color
             }
             this.props.onClick(value)
         }
@@ -410,13 +417,13 @@ export class ModButton extends React.Component {
     onModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
         if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
-        
+
     }
 
     offModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
         if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
-        
+
     }
 
     componentDidMount() {
@@ -441,7 +448,7 @@ export class ModButton extends React.Component {
         let child= this.props.children.filter(c=>(!c.props['data-event'] || events.includes(c.props['data-event']))).slice().pop();
         let className = this.props.className;
             if (child.props['data-eventClassName']) className += ' '+child.props['data-eventClassName']
-        
+
         return (
             <Button disabled={this.props.disabled} bsStyle={this.props.bsStyle} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{child}</Button>
         )
@@ -474,6 +481,6 @@ export class SearchButton extends React.Component {
         </FormGroup></Popover>
 
         return <OverlayTrigger trigger="click" placement={this.props.placement || "top"} overlay={pop}><Button bsStyle={this.props.bsStyle} bsSize={this.props.bsSize}>{this.props.children}</Button></OverlayTrigger>
-        
+
     }
 }
