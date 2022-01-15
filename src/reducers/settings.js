@@ -76,7 +76,7 @@ export const SETTINGS_INITIALSTATE = {
     machineWidth: 300,
     machineHeight: 200,
     machineBeamDiameter: 0.2,
-    machineBurnWhite: true,
+    machineBurnWhite: false,
     machineBottomLeftX: 0,
     machineBottomLeftY: 0,
 
