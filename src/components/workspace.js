@@ -1437,10 +1437,12 @@ class Workspace extends React.Component {
                                         <td><input checked={workspace.showRotary} onChange={setShowRotary} type="checkbox" /></td>
                                     </tr>
                                 }
-                                <tr>
-                                    <td>Show Webcam</td>
-                                    <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
-                                </tr>
+                                {enableVideo &&
+                                    <tr>
+                                        <td>Show Webcam</td>
+                                        <td><input checked={workspace.showWebcam} onChange={setShowWebcam} type="checkbox" /></td>
+                                    </tr>
+                                }
                                 <tr>
                                     <td>Show Raster Preview</td>
                                     <td><input checked={workspace.showRasterPreview} onChange={setRasterPreview} type="checkbox" /></td>
