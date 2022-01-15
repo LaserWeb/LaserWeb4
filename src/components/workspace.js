@@ -1300,6 +1300,7 @@ class Workspace extends React.Component {
         this.zoomDoc = this.zoomDoc.bind(this);
         this.zoomGcode = this.zoomGcode.bind(this);
         this.toggleSim = this.toggleSim.bind(this);
+        this.toggleControls = this.toggleControls.bind(this); 
     }
 
     zoomMachine() {
@@ -1392,6 +1393,13 @@ class Workspace extends React.Component {
         $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
     }
 
+    toggleControls() {
+	    console.log('Toggling Controls');
+	    // hide the console and analyse button, set height to 42px
+	    // ..or 
+	    // show console and analyse button, set height to 'fit-content'
+    }
+
     render() {
         let { camera, gcode, workspace, settings, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
@@ -1407,12 +1415,13 @@ class Workspace extends React.Component {
                 </SetSize>
                 <div id="workspace-controls">
                     <div style={{ display: 'flex' }}>
-                        <table>
+                        <table style={{ flex: 'none' }}>
                             <tbody>
-                                <tr>
+                                <tr style={{ height: '42px'}} >
                                     <td colSpan='2'>
-                                        <button className='btn btn-default' title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
-                                        <button className='btn btn-default' title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                    	<button className='btn btn-default' style={{ width: 'fit-content' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-arrows-v"></i></button>
+                                        <button className='btn btn-default' style={{ marginLeft: '10px' }} title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' style={{ marginLeft: '10px' }} title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1449,11 +1458,11 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <table style={{ marginLeft: 10, height: "fit-content"}}>
+                        <table style={{ marginLeft: '10px', height: "fit-content"}}>
                             <tbody>
-                              <tr>
+                              <tr style={{ height: '42px'}} >
                                 <td>
-                                    <button className='btn btn-default' title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                    <button className='btn btn-default' style={{ marginRight: '10px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
                                     <button className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
                                 </td>
                                 <td>
