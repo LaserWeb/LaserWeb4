@@ -770,8 +770,14 @@ class WorkspaceContent extends React.Component {
             }
 
             gl.viewport(0, 0, canvas.width, canvas.height);
-            let rgb = [...convert.hex.rgb(this.props.settings.workSpaceColor)];
-            gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
+            if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary) {
+                let rgb = [...convert.hex.rgb(this.props.settings.workSpaceColor)];
+                gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
+            } else {
+                let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
+                gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
+            }
+
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
@@ -1301,6 +1307,7 @@ class Workspace extends React.Component {
         this.zoomGcode = this.zoomGcode.bind(this);
         this.toggleSim = this.toggleSim.bind(this);
         this.toggleControls = this.toggleControls.bind(this); 
+        this.showControls = true;
     }
 
     zoomMachine() {
@@ -1380,7 +1387,6 @@ class Workspace extends React.Component {
           else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
           simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
           // CommandHistory.write(simSummary, CommandHistory.INFO);
-          // console.log(simSummary);
           // Do a static analysis on the code for size and complexity
           let moveCount = 0;
           if (codeSize > 0) {
@@ -1394,10 +1400,16 @@ class Workspace extends React.Component {
     }
 
     toggleControls() {
-	    console.log('Toggling Controls');
-	    // hide the console and analyse button, set height to 42px
-	    // ..or 
-	    // show console and analyse button, set height to 'fit-content'
+        this.showControls = !this.showControls;
+        if (this.showControls) {
+            $('#workspace-controls').css('height','fit-content');
+            $('#analyse-button').css('display','inline-block');
+        $('#command-history').css('display','block');
+        } else {
+            $('#workspace-controls').css('height','42px');
+            $('#analyse-button').css('display','none');
+            $('#command-history').css('display','none');
+        }
     }
 
     render() {
@@ -1413,15 +1425,15 @@ class Workspace extends React.Component {
                 <SetSize id="workspace-top">
                     <WorkspaceContent gcodePreview={this.gcodePreview} laserPreview={this.laserPreview} />
                 </SetSize>
-                <div id="workspace-controls">
+                <div id="workspace-controls" style={{ height: 'fit-content' }}>
                     <div style={{ display: 'flex' }}>
                         <table style={{ flex: 'none' }}>
                             <tbody>
                                 <tr style={{ height: '42px'}} >
                                     <td colSpan='2'>
-                                    	<button className='btn btn-default' style={{ width: 'fit-content' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-arrows-v"></i></button>
-                                        <button className='btn btn-default' style={{ marginLeft: '10px' }} title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
-                                        <button className='btn btn-default' style={{ marginLeft: '10px' }} title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                        <button className='btn btn-default' style={{ paddingLeft: '0.2em', paddingRight: '0.2em' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-arrows-v"></i></button>
+                                        <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1458,12 +1470,12 @@ class Workspace extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <table style={{ marginLeft: '10px', height: "fit-content"}}>
+                        <table style={{ marginLeft: '4px', height: "fit-content"}}>
                             <tbody>
                               <tr style={{ height: '42px'}} >
                                 <td>
-                                    <button className='btn btn-default' style={{ marginRight: '10px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
-                                    <button className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
+                                    <button className='btn btn-default' style={{ marginRight: '4px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                    <button id='analyse-button' className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
                                 </td>
                                 <td>
                                 </td>
@@ -1477,7 +1489,7 @@ class Workspace extends React.Component {
                               </tr>
                               <tr>
                                 <td colSpan="2">
-                                    <pre  style={{ fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
+                                    <pre  style={{ padding: '5px', fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
                                         No Gcode loaded
                                     </pre>
                                 </td>

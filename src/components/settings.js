@@ -237,8 +237,10 @@ class Settings extends React.Component {
 
                         <h5 className="header">Colors
                         <span style={{float: "right"}}>
-                            <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
-                            <ColorPicker to="hex" icon="bed" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
+                            {this.props.settings.showMachine &&
+                                <ColorPicker to="hex" icon="square-o" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
+                            }
+                            <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
                         </span>
                         </h5>
                         <br/>
