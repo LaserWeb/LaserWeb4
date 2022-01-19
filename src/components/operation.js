@@ -905,7 +905,7 @@ class Operations extends React.Component {
         return (
             <div style={this.props.style}>
                 <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
-                    <b>Drag document(s) here to add</b>
+                    <b>Drag documents here from the list above to create gcode operations</b>
                     <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
                 <OperationToolbar />
