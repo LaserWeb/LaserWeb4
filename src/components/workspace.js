@@ -1431,7 +1431,7 @@ class Workspace extends React.Component {
                             <tbody>
                                 <tr style={{ height: '42px'}} >
                                     <td colSpan='2'>
-                                        <button className='btn btn-default' style={{ paddingLeft: '0.2em', paddingRight: '0.2em' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-arrows-v"></i></button>
+                                        <button className='btn btn-default' style={{ paddingLeft: '0.1em', paddingRight: '0.1em' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-bars"></i></button>
                                         <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
                                         <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
                                     </td>
