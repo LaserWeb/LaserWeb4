@@ -1269,7 +1269,7 @@ class WorkspaceContent extends React.Component {
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
-                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
+                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1), major: Math.max(this.props.settings.toolGridMajorSpacing,1) }} />
                     </Dom3d>
                 </Pointable>
 
