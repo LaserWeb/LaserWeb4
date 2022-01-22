@@ -6,6 +6,7 @@ import MarlinGenerator from "./generators/marlin-generator"
 export function getGenerator(gcodeGenerator, settings) {
   switch(gcodeGenerator){
     case "marlin" :
+    case "legacy-marlin" :
       return new MarlinGenerator(settings);
     case "default" :
     default :

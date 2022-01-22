@@ -355,7 +355,7 @@ class Settings extends React.Component {
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Gcode" eventKey="3" bsStyle="info" errors={this.state.errors}>
-                        <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'marlin'], defaultValue: 'default', description: 'GCode Generator', info: Info(<p className="help-block">
+                        <SelectField {...{ object: this.props.settings, field: 'gcodeGenerator', setAttrs: setSettingsAttrs, data: ['default', 'legacy-marlin'], defaultValue: 'default', description: 'GCode Generator', info: Info(<p className="help-block">
                                     Some firmware (at present, only Marlin) requires different handling of gcode to set tool power during active moves,
                                     use this option if you require it.
                                     </p>,"Gcode Flavor"), selectProps: { clearable: false } }} />
