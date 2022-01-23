@@ -383,7 +383,9 @@ export class ColorPicker extends React.Component{
             let value;
             switch(this.props.to){
                 case  "rgba":
-                    value=[...convert.hex.rgb(this.state.color),1]
+                    // Use float decimal (0-1) for rgb values because WebGL uses that
+                    let rgb = convert.hex.rgb(this.state.color);
+                    value=[rgb[0]/255, rgb[1]/255, rgb[2]/255, 1]
                     break;
                 case "hex":
                 default:
