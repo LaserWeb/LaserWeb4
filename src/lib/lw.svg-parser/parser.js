@@ -34,7 +34,7 @@ class Parser {
 
         // Tags list to includes/excludes
         this.parseTags = settings.includes || this.supportedTags
-        this.skipTags  = settings.excludes || ['#text', '#comment']  // silent (no warning)
+        this.skipTags  = settings.excludes || ['#text', '#comment', 'metadata']  // silent (no warning)
 
         // User onTag callback ?
         settings.onTag && this.onTag(settings.onTag, settings.onTagContext)
