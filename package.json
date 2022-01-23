@@ -119,7 +119,6 @@
     "markdown-loader": "^6.0.0",
     "object.omit": "^3.0.0",
     "string-loader": "0.0.1",
-    "unicode": "^9.0.0",
-    "vectorize-text": "^3.2.1"
+    "unicode": "^9.0.0"
   }
 }

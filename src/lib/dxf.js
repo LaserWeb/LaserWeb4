@@ -24,12 +24,9 @@
 "use strict";
 
 import uuidv4 from 'uuid/v4';
-import vectorizeText from 'vectorize-text';
 
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'
-
-import { confirm, prompt, alert } from '../components/laserweb'
 
 import convert from 'color-convert'
 
