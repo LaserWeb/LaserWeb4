@@ -252,7 +252,7 @@ Cam = connect(
                     reader.onload = () => {
                         const release = captureConsole()
 
-                        //console.log('loadDocument: construct Parser');
+                        //console.log('CAM.js: loadDocument: SVG constructing Parser');
                         let parser = new Parser({});
                         parser.parse(reader.result)
                             .then((tags) => {
@@ -266,7 +266,11 @@ Cam = connect(
 
                                 //console.log('loadDocument: imageTagPromise');
                                 imageTagPromise(tags).then((tags) => {
-                                    console.log('loadDocument: dispatch');
+                                    //console.log('loadDocument: SVG: dispatch:');
+                                    //console.log(':: file: ', file);
+                                    //console.log(':: parser: ', parser);
+                                    //console.log(':: tag: ', tags );
+                                    //console.log(':: modifiers: ', modifiers );
                                     dispatch(loadDocument(file, { parser, tags }, modifiers));
                                 })
                             })
@@ -287,6 +291,10 @@ Cam = connect(
                         var dxfTree = helper.toPolylines();
                         // console.log('Imported dfxTree:');
                         // console.log(dxfTree);
+                        //console.log('loadDocument: DXF: dispatch:');
+                        //console.log(':: file: ', file);
+                        //console.log(':: dxfTree: ', dxfTree );
+                        //console.log(':: modifiers: ', modifiers );
                         dispatch(loadDocument(file, dxfTree, modifiers));
                     }
                     reader.readAsText(file);

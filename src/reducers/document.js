@@ -9,6 +9,8 @@ import { forest, changedArray, object, getSubtreeIds, reduceSubtree, getParentId
 import { addDocument, addDocumentChild } from '../actions/document'
 import { pathStrToRawPaths, flipY, hasClosedRawPaths } from '../lib/mesh'
 import { processDXF } from '../lib/dxf'
+import { roundToPrecision } from '../lib/helpers'
+import convert from 'color-convert'
 
 import CommandHistory from '../components/command-history'
 import { alert } from '../components/laserweb'
@@ -76,12 +78,14 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
             pxPerInch = parser.document.viewBox.width / w;
     }
 
-    function getColor(c) {
-        let sc = Snap.color(c);
-        if (sc.r === -1 || sc.g === -1 || sc.b === -1)
-            return [0, 0, 0, 0];
-        else
-            return [sc.r / 255, sc.g / 255, sc.b / 255, 1];
+    function getColor(color, opacity, fallback) {
+        let snap = Snap.color(color);
+        if (snap.r === -1 || snap.g === -1 || snap.b === -1) {
+            let rgb = [...convert.hex.rgb(fallback)];
+            return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, opacity];
+        } else {
+            return [snap.r / 255, snap.g / 255, snap.b / 255, opacity];
+        }
     }
 
     function mat2dFromSnap(m) {
@@ -117,6 +121,8 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 let x = (combinedMat[0] * svgX + combinedMat[2] * svgY) / pxPerInch * 25.4 + combinedMat[4];
                 let y = (combinedMat[1] * svgX + combinedMat[3] * svgY) / pxPerInch * 25.4 + combinedMat[5];
                 let [tx, ty] = applyToPoint(attrs.transform2d || [1, 0, 0, 1, 0, 0], viewBoxDeltaX + x, viewBoxDeltaY - y)
+                tx = roundToPrecision(tx,settings.svgPrecision);
+                ty = roundToPrecision(ty,settings.svgPrecision);
                 path.push(tx, ty);
             };
             if (child.name === 'path') {
@@ -143,13 +149,8 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 allPositions.push(rawPaths);
                 c.rawPaths = rawPaths;
                 c.transform2d = [1, 0, 0, 1, 0, 0];
-                c.strokeColor = getColor(child.attrs.stroke);
-                c.fillColor = getColor(child.attrs.fill);
-                if (hasClosedRawPaths(rawPaths)) {
-                    if (!c.fillColor[3] && !c.strokeColor[3])
-                        c.fillColor[3] = .8;
-                } else if (!c.strokeColor[3])
-                    c.strokeColor[3] = .8;
+                c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor);
+                c.fillColor = getColor(child.attrs.fill, 0, "#808080");
             } else if (child.name === 'image') {
                 let element = child.element;
                 let dataURL = element.getAttribute('xlink:href');

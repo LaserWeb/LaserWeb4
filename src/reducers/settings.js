@@ -19,6 +19,8 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeConcurrency: 'required|numeric|min:1|max:15',
     gcodeCurvePrecision: 'required|numeric|min:0.1|max:2',
 
+    svgPrecision: 'numeric|min:0|max:16',
+
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
     machineMillEnabled: 'boolean',
@@ -109,6 +111,8 @@ export const SETTINGS_INITIALSTATE = {
     pxPerInch: 96,
     forcePxPerInch: false,
     dpiBitmap: 300,
+    svgPrecision: 4,
+    svgStrokeColor: "#c0c0c0",
     gcodeFilename: "gcode-%y%m%d-%H%M",
     gcodeExtension: ".gcode",
     workspaceFilename: "Laserweb-Workspace-%y%m%d-%H%M",

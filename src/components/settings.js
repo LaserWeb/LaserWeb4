@@ -333,7 +333,17 @@ class Settings extends React.Component {
                         <ToggleField {...{ object: this.props.settings, field: 'forcePxPerInch', setAttrs: setSettingsAttrs, description: 'Force PX Per Inch', info: Info(<p className="help-block">
                                     If the PxPi value in the imported SVG file is causing it to appear badly scaled, override it here.
                                     </p>,"Override PxPi") }} />
-                        <h5 className="header">BITMAPS (bmp, png, jpg) import</h5>
+                        <NumberField {...{ object: this.props.settings, field: 'svgPrecision', setAttrs: setSettingsAttrs, description: 'SVG precision', units: '', info: Info(<p className="help-block">
+                                    Specify how many decimal places the imported SVG paths should use.<br/>
+                                    Reduce this setting if imported SVG files show fill errors (incorrectly filled solids)<br/>
+                                    This is in workspace units calculated after applying DPI adjustments (eg; mm)
+                                    </p>,"Decimal resolution for imported SVG files") }} />
+                        <h5 className="header">Default path color
+                        <span style={{float: "right"}}>
+                            <ColorPicker to="hex" icon="pencil" bsSize="medium" color={this.props.settings.svgStrokeColor} onClick={v=>this.props.settings.svgStrokeColor=v}/>
+                        </span>
+                        </h5>
+                        <br/>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi', info: Info(<p className="help-block">
                                     Default DPI setting to be used for imported bitmaps.
                                     </p>,"DPI Default") }} />

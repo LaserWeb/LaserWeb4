@@ -66,6 +66,10 @@ export function humanFileSize(size) {
     return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
 };
 
+export const roundToPrecision = (value, decimals) => {
+  const pow = Math.pow(10, decimals);
+  return Math.round((value + Number.EPSILON) * pow) / pow;
+};
 
 export const captureConsole = () => {
 
