@@ -29,12 +29,13 @@ class Parser {
             'svg', 'g', 'defs', 'use',
             'line', 'polyline', 'polygon',
             'rect', 'circle', 'ellipse', 'path',
-            'title', 'desc', 'image', 'text'
+            'title', 'desc', 'image', 'text',
+            'flowroot', 'metadata'
         ]
 
         // Tags list to includes/excludes
         this.parseTags = settings.includes || this.supportedTags
-        this.skipTags  = settings.excludes || ['#text', '#comment', 'metadata']  // silent (no warning)
+        this.skipTags  = settings.excludes || ['#text', '#comment']  // silent (no warning)
 
         // User onTag callback ?
         settings.onTag && this.onTag(settings.onTag, settings.onTagContext)

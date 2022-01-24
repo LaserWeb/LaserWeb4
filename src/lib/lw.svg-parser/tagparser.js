@@ -545,6 +545,18 @@ class TagParser {
         return true
     }
 
+    _flowroot() {
+        // console.log(this.tag.element.textContent)
+        // Skipped tag
+        return false
+    }
+
+    _metadata() {
+        // console.log(this.tag.element.textContent)
+        // Skipped tag
+        return false
+    }
+
     _defs() {
         // Register all child element with an id attribute
         this.tag.element.childNodes.forEach(childNode => {
