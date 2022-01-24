@@ -201,6 +201,8 @@ h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
 
+.has-feedback .form-control {padding-right: 12px}
+
 .form-compact .form-group {
   font-size: 0.8em;
 }
