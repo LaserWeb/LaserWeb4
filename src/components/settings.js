@@ -343,7 +343,12 @@ class Settings extends React.Component {
                             <ColorPicker to="hex" icon="pencil" bsSize="medium" color={this.props.settings.svgStrokeColor} onClick={v=>this.props.settings.svgStrokeColor=v}/>
                         </span>
                         </h5>
-                        <br/>
+                        <NumberField {...{ object: this.props.settings, field: 'svgFillOpacity', setAttrs: setSettingsAttrs, description: 'Fill opacity', units: '%', info: Info(<p className="help-block">
+                                    Opacity for filled areas, allows paths concealed by fill to be seen, but fill can look less solid.<br/>
+                                    Only applies to the view in the Workspace, cutting operations ignore this.
+                                    </p>,"SVG Fill opacity") }} />
+                        <hr/>
+                        <h5 className="header">Images</h5>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi', info: Info(<p className="help-block">
                                     Default DPI setting to be used for imported bitmaps.
                                     </p>,"DPI Default") }} />

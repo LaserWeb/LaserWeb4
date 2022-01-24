@@ -150,7 +150,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 c.rawPaths = rawPaths;
                 c.transform2d = [1, 0, 0, 1, 0, 0];
                 c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor, 1);
-                c.fillColor = getColor(child.attrs.fill, 1, "#808080", 0);
+                c.fillColor = getColor(child.attrs.fill, settings.svgFillOpacity / 100, "#808080", 0);
             } else if (child.name === 'image') {
                 let element = child.element;
                 let dataURL = element.getAttribute('xlink:href');

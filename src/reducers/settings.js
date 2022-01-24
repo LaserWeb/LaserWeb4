@@ -20,6 +20,7 @@ export const SETTINGS_VALIDATION_RULES = {
     gcodeCurvePrecision: 'required|numeric|min:0.1|max:2',
 
     svgPrecision: 'numeric|min:0|max:16',
+    svgFillOpacity: 'numeric|min:0|max:100',
 
     machineZEnabled: 'boolean',
     machineBlowerEnabled: 'boolean',
@@ -113,6 +114,7 @@ export const SETTINGS_INITIALSTATE = {
     dpiBitmap: 300,
     svgPrecision: 4,
     svgStrokeColor: "#c0c0c0",
+    svgFillOpacity: "80",
     gcodeFilename: "gcode-%y%m%d-%H%M",
     gcodeExtension: ".gcode",
     workspaceFilename: "Laserweb-Workspace-%y%m%d-%H%M",
