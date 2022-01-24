@@ -395,12 +395,16 @@ export class ColorPicker extends React.Component{
         }
     }
     render(){
-        return <div className={"btn-colorPicker "+(this.props.disabled?"disabled":"")}>
-            <ModButton bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
-                <Icon name={this.props.icon} />
-                <Icon name={this.props.icon} data-event="shiftKey" data-eventClassName='btn-danger' />
-            </ModButton>
-            <input disabled={this.props.disabled} type="color" value={this.state.color} onChange={e=>this.setState({color: e.target.value})}/>
+        // Shift Modifier is not used in LW at present
+        //    <ModButton bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
+        //        <Icon name={this.props.icon} /></span>
+        //        <Icon name={this.props.icon} data-event="shiftKey" data-eventClassName='btn-danger' />
+        //    </ModButton>
+        return <div style={this.props.style} className={"btn-colorPicker "+(this.props.disabled?"disabled":"")}>
+            <Button bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
+                <span title="Apply selected color"><Icon name={this.props.icon} /></span>
+            </Button>
+            <input title="Select a color" disabled={this.props.disabled} type="color" value={this.state.color} onChange={e=>this.setState({color: e.target.value})}/>
         </div>
     }
 }

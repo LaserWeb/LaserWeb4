@@ -235,10 +235,10 @@ class Settings extends React.Component {
                                     Highlight the machine work area in the display.
                                     </p>,"Show Work Area") }} />
 
-                        <h5 className="header">Colors
+                        <h5 className="header">Colors  {Info(<p className="help-block">Select the colors used for the workspace background and machine bed, when shown.</p>,"Workspace display colors")}
                         <span style={{float: "right"}}>
                             {this.props.settings.showMachine &&
-                                <ColorPicker to="hex" icon="square-o" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
+                                <ColorPicker style={{paddingRight: '0.5em'}} to="hex" icon="square-o" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
                             }
                             <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
                         </span>
@@ -338,7 +338,7 @@ class Settings extends React.Component {
                                     Reduce this setting if imported SVG files show fill errors (incorrectly filled solids)<br/>
                                     This is in workspace units calculated after applying DPI adjustments (eg; mm)
                                     </p>,"Decimal resolution for imported SVG files") }} />
-                        <h5 className="header">Default path color
+                        <h5 className="header">Default path color {Info(<p className="help-block">This color will be used to display paths when they have no color defined in the file</p>,"Default stroke color")}
                         <span style={{float: "right"}}>
                             <ColorPicker to="hex" icon="pencil" bsSize="medium" color={this.props.settings.svgStrokeColor} onClick={v=>this.props.settings.svgStrokeColor=v}/>
                         </span>

@@ -78,11 +78,11 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
             pxPerInch = parser.document.viewBox.width / w;
     }
 
-    function getColor(color, opacity, fallback) {
+    function getColor(color, opacity, fcolor, fopacity) {
         let snap = Snap.color(color);
         if (snap.r === -1 || snap.g === -1 || snap.b === -1) {
-            let rgb = [...convert.hex.rgb(fallback)];
-            return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, opacity];
+            let rgb = [...convert.hex.rgb(fcolor)];
+            return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, fopacity];
         } else {
             return [snap.r / 255, snap.g / 255, snap.b / 255, opacity];
         }
@@ -149,8 +149,8 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 allPositions.push(rawPaths);
                 c.rawPaths = rawPaths;
                 c.transform2d = [1, 0, 0, 1, 0, 0];
-                c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor);
-                c.fillColor = getColor(child.attrs.fill, 0, "#808080");
+                c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor, 1);
+                c.fillColor = getColor(child.attrs.fill, 1, "#808080", 0);
             } else if (child.name === 'image') {
                 let element = child.element;
                 let dataURL = element.getAttribute('xlink:href');
