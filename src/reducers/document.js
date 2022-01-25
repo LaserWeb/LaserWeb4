@@ -151,6 +151,8 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 c.transform2d = [1, 0, 0, 1, 0, 0];
                 c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor, 1);
                 c.fillColor = getColor(child.attrs.fill, settings.svgFillOpacity / 100, "#808080", 0);
+                c.strokeColorHex = convert.rgb.hex(c.strokeColor.slice(0, 3).map(x => x * 255))
+                c.fillColorHex = convert.rgb.hex(c.fillColor.slice(0, 3).map(x => x * 255))
             } else if (child.name === 'image') {
                 let element = child.element;
                 let dataURL = element.getAttribute('xlink:href');
@@ -399,12 +401,21 @@ export function documents(state, action) {
             });
         }
 
+        case "DOCUMENT_SELECT_BY_COLOR":{
+            let colors = [];
+            state.filter(d => d.selected).forEach((sel) => { colors = [...colors, ...getSubtreeIds(state, sel.strokeColorHex)]; })
+            let uniqueColors = new Set(colors.filter((a) => a));
+            return state.map((o)=>{
+                if (uniqueColors.has(o.strokeColorHex)) o.selected = true
+                return o
+            })
+        }
+
         case "DOCUMENT_COLOR_SELECTED": {
             return state.map((o)=>{
                 if (!o.selected) return o;
                 return Object.assign({},o,action.payload.color)
             })
-            return state;
         }
 
         case 'WORKSPACE_RESET':

@@ -74,6 +74,7 @@ function drawPolyLine(state, polyline, docLayer, index) {
     let rawPaths = [];
     let p = [];
     let canvasColor = [polyline.rgb[0]/255, polyline.rgb[1]/255, polyline.rgb[2]/255, 1];
+    let canvasColorHex = convert.rgb.hex(polyline.rgb)
 
     for (let i = 0; i < polyline.vertices.length; i++) {
             let vertex = {};
@@ -89,7 +90,9 @@ function drawPolyLine(state, polyline, docLayer, index) {
         docEntity.rawPaths[0] = rawPaths;
         docEntity.transform2d = [1, 0, 0, 1, 0, 0];
         docEntity.strokeColor = canvasColor;
+        docEntity.strokeColorHex = canvasColorHex;
         docEntity.fillColor = [0, 0, 0, 0];
+        docEntity.fillColorHex = "000000";
         state = documents(state, addDocumentChild(docLayer.id, docEntity));
     }
     return state;

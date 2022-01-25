@@ -40,3 +40,7 @@ export function selectDocuments(meta){
 export function colorDocumentSelected(color){
     return { type: 'DOCUMENT_COLOR_SELECTED', payload:{color} };
 }
+
+export function selectDocumentsByColor(){
+    return { type: 'DOCUMENT_SELECT_BY_COLOR' };
+}
