@@ -41,6 +41,6 @@ export function colorDocumentSelected(color){
     return { type: 'DOCUMENT_COLOR_SELECTED', payload:{color} };
 }
 
-export function selectDocumentsByColor(){
-    return { type: 'DOCUMENT_SELECT_BY_COLOR' };
+export function selectDocumentsByColor(shiftKey){
+    return { type: 'DOCUMENT_SELECT_BY_COLOR', payload:{shiftKey}};
 }

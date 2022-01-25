@@ -192,7 +192,7 @@ class Cam extends React.Component {
                             <ButtonGroup>
                                 <Button  bsStyle="info" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(true))}} title="Select all"><Icon name="cubes"/></Button>
                                 <Button  bsStyle="default" bsSize="xsmall" onClick={e=>{this.props.dispatch(selectDocuments(false))}} title="Select none"><Icon name="cubes"/></Button>
-                                <Button  bsStyle="success" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(selectDocumentsByColor(modifiers= this,.props.shiftKey))}} title="Search for documents with the same path color as selected"><Icon name="eyedropper"/></Button>
+                                <Button  bsStyle="success" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(selectDocumentsByColor(e.shiftKey))}} title="Select all with matching path color(s), Press [SHIFT] to select by fill color"><Icon name="eyedropper"/></Button>
                             </ButtonGroup>
                             <Button  bsStyle="warning" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(cloneDocumentSelected())}} title="Clone selected"><Icon name="copy"/></Button>
                             <Button  bsStyle="danger" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(removeDocumentSelected())}} title="Remove selected"><Icon name="trash"/></Button>

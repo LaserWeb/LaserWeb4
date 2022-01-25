@@ -403,10 +403,15 @@ export function documents(state, action) {
 
         case "DOCUMENT_SELECT_BY_COLOR":{
             let colors = [];
-            state.filter(d => d.selected).forEach((sel) => { colors = [...colors, ...getSubtreeIds(state, sel.strokeColorHex)]; })
+            if ( !action.payload.shiftKey ) {
+                state.filter(d => d.selected).forEach((sel) => { colors = [...colors, ...getSubtreeIds(state, sel.strokeColorHex)]; })
+            } else {
+                state.filter(d => d.selected).forEach((sel) => { colors = [...colors, ...getSubtreeIds(state, sel.fillColorHex)]; })
+            }
             let uniqueColors = new Set(colors.filter((a) => a));
             return state.map((o)=>{
-                if (uniqueColors.has(o.strokeColorHex)) o.selected = true
+                if (uniqueColors.has(o.strokeColorHex) && !action.payload.shiftKey) o.selected = true
+                if (uniqueColors.has(o.fillColorHex) && action.payload.shiftKey) o.selected = true
                 return o
             })
         }
