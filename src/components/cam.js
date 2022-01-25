@@ -197,7 +197,7 @@ class Cam extends React.Component {
                             <Button  bsStyle="warning" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(cloneDocumentSelected())}} title="Clone selected"><Icon name="copy"/></Button>
                             <Button  bsStyle="danger" bsSize="xsmall" disabled={!someSelected} onClick={e=>{this.props.dispatch(removeDocumentSelected())}} title="Remove selected"><Icon name="trash"/></Button>
                             <SearchButton bsStyle="primary" bsSize="xsmall" search={this.state.filter} onSearch={filter=>{this.setState({filter})}} placement="bottom"><Icon name="search"/></SearchButton>
-                            <ButtonGroup>
+                            <ButtonGroup style={{ float: 'right' }}>
                                 <ColorPicker to="rgba" icon="pencil" bsSize="xsmall" disabled={!someSelected} onClick={v=>this.props.dispatch(colorDocumentSelected({strokeColor:v||[0,0,0,1], strokeColorHex: convert.rgb.hex(v.slice(0, 3).map(x => x * 255))||"000000" }))}/>
                                 <ColorPicker to="rgba" icon="paint-brush" bsSize="xsmall" disabled={!someSelected} onClick={v=>this.props.dispatch(colorDocumentSelected({fillColor:v||[0,0,0,0], fillColorHex: convert.rgb.hex(v.slice(0, 3).map(x => x * 255))||"000000" }))}/>
                             </ButtonGroup>

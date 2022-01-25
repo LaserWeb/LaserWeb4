@@ -345,7 +345,7 @@ class Settings extends React.Component {
                         </h5>
                         <NumberField {...{ object: this.props.settings, field: 'svgFillOpacity', setAttrs: setSettingsAttrs, description: 'Fill opacity', units: '%', info: Info(<p className="help-block">
                                     Opacity for filled areas, allows paths concealed by fill to be seen, but fill can look less solid.<br/>
-                                    Only applies to the view in the Workspace, cutting operations ignore this.
+                                    Only applies to the view in the Workspace and raster merges, cutting operations ignore opacity when calculating laser power.
                                     </p>,"SVG Fill opacity") }} />
                         <hr/>
                         <h5 className="header">Images</h5>

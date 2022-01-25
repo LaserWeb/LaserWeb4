@@ -114,7 +114,7 @@ export const SETTINGS_INITIALSTATE = {
     dpiBitmap: 300,
     svgPrecision: 4,
     svgStrokeColor: "#c0c0c0",
-    svgFillOpacity: "80",
+    svgFillOpacity: "100",
     gcodeFilename: "gcode-%y%m%d-%H%M",
     gcodeExtension: ".gcode",
     workspaceFilename: "Laserweb-Workspace-%y%m%d-%H%M",
