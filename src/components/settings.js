@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 
 import stringify from 'json-stringify-pretty-compact';
 import { FileStorage, LocalStorage } from '../lib/storages';
-import update from 'immutability-helper';
 import omit from 'object.omit';
 import Validator from 'validatorjs';
 

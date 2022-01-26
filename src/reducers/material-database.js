@@ -18,7 +18,6 @@ import stringify from 'json-stringify-pretty-compact';
 
 import Ajv from 'ajv';
 const ajv = new Ajv();
-      ajv.addMetaSchema(require('ajv/lib/refs/json-schema-draft-04.json'));
 
 export const validate = ajv.compile(MATERIALDB_SCHEMA);
 
@@ -208,9 +207,9 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
             let preset_name = action.payload.preset.name || action.payload.name || ("** " + generateName() + " **");
             let existingPreset = grouping.presets.find((preset) => preset.name === preset_name);
             if (!existingPreset) {
-                
+
                 let attrs = Object.assign(
-                                PRESET_TEMPLATE(action.payload.preset.type), 
+                                PRESET_TEMPLATE(action.payload.preset.type),
                                 { name:  preset_name, params: omit(action.payload.preset,['id','documents'])}
                              );
                 CommandHistory.write(`Creating preset "${preset_name}" into grouping "${grouping.name}"`,CommandHistory.SUCCESS)
@@ -222,7 +221,7 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
 
         case actionTypes.INIT:
             if (action.payload) {
-                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => { 
+                let lockedState = MATERIALDB_INITIALSTATE.slice().map((vendor) => {
                     return  (vendor._locked!==false) ? { ...vendor, _locked: true } : vendor
                 });
                 let currentState = action.payload.materialDatabase || []

@@ -39,7 +39,7 @@
   },
   "homepage": "https://laserweb.yurl.ch",
   "devDependencies": {
-    "ajv": "^5.2.1",
+    "ajv": "^6.12.6",
     "array-move": "^4.0.0",
     "aruco-marker": "^2.0.0",
     "babel-core": "^6.26.0",
@@ -103,14 +103,13 @@
     "validatorjs": "^3.17.1",
     "vex-js": "^3.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
-    "webpack": "^2.7.0",
-    "worker-loader": "^0.8.1",
+    "webpack": "^3.12.0",
+    "worker-loader": "^2.0.0",
     "xregexp": "^4.2.4"
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
-    "dxf": "^4.4.4",
-    "immutability-helper": "^2.9.1",
+    "dxf": "^4.6.1",
     "json-stringify-safe": "^5.0.1",
     "markdown-loader": "^6.0.0",
     "object.omit": "^3.0.0",
