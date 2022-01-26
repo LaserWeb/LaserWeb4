@@ -150,7 +150,7 @@ function loadSvg(state, settings, { file, content }, id = uuidv4()) {
                 c.rawPaths = rawPaths;
                 c.transform2d = [1, 0, 0, 1, 0, 0];
                 c.strokeColor = getColor(child.attrs.stroke, 1, settings.svgStrokeColor, 1);
-                c.fillColor = getColor(child.attrs.fill, settings.svgFillOpacity / 100, "#808080", 0);
+                c.fillColor = getColor(child.attrs.fill, settings.svgFillOpacity / 100, "none", 0);
                 c.strokeColorHex = convert.rgb.hex(c.strokeColor.slice(0, 3).map(x => x * 255))
                 c.fillColorHex = convert.rgb.hex(c.fillColor.slice(0, 3).map(x => x * 255))
             } else if (child.name === 'image') {
