@@ -3,4 +3,4 @@
 	url = https://github.com/easytarget-org/lw.machines.git
 [submodule "src/data/lw.materials"]
 	path = src/data/lw.materials
-	url = https://github.com/LaserWeb/lw.materials.git
+	url = https://github.com/easytarget-org/lw.materials.git
