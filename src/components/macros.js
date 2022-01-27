@@ -12,7 +12,7 @@ import { Button, FormControl, ButtonGroup, ButtonToolbar } from 'react-bootstrap
 
 import Validator from 'validatorjs';
 import { MACRO_VALIDATION_RULES } from '../reducers/macros'
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 export class Macros extends React.Component {
 

@@ -23,7 +23,7 @@
 
 "use strict";
 
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 import { documents } from '../reducers/document'
 import { addDocumentChild } from '../actions/document'

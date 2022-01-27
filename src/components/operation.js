@@ -16,7 +16,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField, operationLatheTurnAdd, operationLatheTurnRemove, operationLatheTurnSetAttrs } from '../actions/operation';
 import { selectDocument } from '../actions/document'

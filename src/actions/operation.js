@@ -1,6 +1,6 @@
 import { setAttrs, add, remove } from '../actions/object'
 import { OPERATION_DEFAULTS } from '../reducers/operation'
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 export const setOperationAttrs = setAttrs('operation');
 export const addOperation = add('operation',OPERATION_DEFAULTS);

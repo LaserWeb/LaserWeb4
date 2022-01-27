@@ -1,7 +1,7 @@
 "use strict";
 
 import { mat2d, mat3, vec3 } from 'gl-matrix';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import Snap from 'snapsvg';
 
 //import { forest, getSubtreeIds, object, reduceParents, reduceSubtree } from '../reducers/object'
