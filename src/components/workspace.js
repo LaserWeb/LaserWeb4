@@ -1445,7 +1445,7 @@ class Workspace extends React.Component {
                                     <td><input checked={workspace.showGcode} onChange={setShowGcode} type="checkbox" /></td>
                                 </tr>
                                 <tr>
-                                    <td>Show Laser</td>
+                                    <td>Show Tool</td>
                                     <td><input checked={workspace.showLaser} onChange={setShowLaser} type="checkbox" /></td>
                                 </tr>
                                 <tr>
@@ -1472,28 +1472,32 @@ class Workspace extends React.Component {
                         </table>
                         <table style={{ marginLeft: '4px', height: "fit-content"}}>
                             <tbody>
-                              <tr style={{ height: '42px'}} >
-                                <td>
-                                    <button className='btn btn-default' style={{ marginRight: '4px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
-                                    <button id='analyse-button' className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
-                                </td>
-                                <td>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colSpan="2">
-                                    <div className='simbar'>
-                                        <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
-                                    </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colSpan="2">
-                                    <pre  style={{ padding: '5px', fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
-                                        No Gcode loaded
-                                    </pre>
-                                </td>
-                              </tr>
+                                {(this.gcode.length > 0) &&
+                                    <tr style={{ height: '42px'}} >
+                                        <td>
+                                            <button className='btn btn-default' style={{ marginRight: '4px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                            <button id='analyse-button' className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                }
+                                {(this.gcode.length > 0) &&
+                                    <tr>
+                                        <td colSpan="2">
+                                            <div className='simbar'>
+                                                <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colSpan="2">
+                                        <pre  style={{ padding: '9px 10px 5px 10px', fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
+                                            No Gcode loaded
+                                        </pre>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                         <CommandHistory style={{ flexGrow: 1, marginLeft: 10 }} onCommandExec={runCommand} />
