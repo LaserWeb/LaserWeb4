@@ -101,7 +101,7 @@
     "url-loader": "^0.5.9",
     "uuid": "^8.3.2",
     "validatorjs": "^3.22.1",
-    "vex-js": "^3.1.0",
+    "vex-js": "^4.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^3.12.0",
     "worker-loader": "^2.0.0",

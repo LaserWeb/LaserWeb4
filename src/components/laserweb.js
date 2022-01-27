@@ -48,11 +48,11 @@ import { fetchRelease } from '../lib/releases'
 
 import { DrawCommands } from '../draw-commands'
 
-export const vex = require('vex-js/src/vex.js')
-try { vex.registerPlugin(require('vex-dialog/src/vex.dialog.js')) } catch (e) { }
-vex.defaultOptions.className = 'vex-theme-default'
+var vex = require('vex-js')
+vex.registerPlugin(require('vex-dialog'))
+vex.defaultOptions.className = 'vex-theme-os'
 import 'vex-js/dist/css/vex.css';
-import 'vex-js/dist/css/vex-theme-default.css';
+import 'vex-js/dist/css/vex-theme-os.css';
 
 import { version } from '../reducers/settings'
 
