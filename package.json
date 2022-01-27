@@ -57,7 +57,7 @@
     "clipper-lib": "^6.4.2",
     "color-convert": "^2.0.1",
     "css-loader": "^0.28.5",
-    "file-loader": "^0.11.2",
+    "file-loader": "^2.0.0",
     "flat": "^5.0.2",
     "floyd-steinberg": "^1.0.6",
     "font-awesome": "^4.7.0",
@@ -92,13 +92,12 @@
     "redux-localstorage": "^1.0.0-rc5",
     "redux-localstorage-filter": "^0.1.1",
     "redux-logger": "^3.0.6",
-    "script-loader": "^0.7.0",
     "sillyname": "^0.1.0",
     "slug": "^5.2.0",
     "snapsvg": "^0.5.1",
     "socket.io-client": "^4.4.1",
     "style-loader": "^0.18.2",
-    "url-loader": "^0.5.9",
+    "url-loader": "^1.1.2",
     "uuid": "^8.3.2",
     "validatorjs": "^3.22.1",
     "vex-js": "^4.1.0",
@@ -113,6 +112,7 @@
     "json-stringify-safe": "^5.0.1",
     "markdown-loader": "^6.0.0",
     "object.omit": "^3.0.0",
+    "script-loader": "^0.7.2",
     "string-loader": "0.0.1"
   }
 }
