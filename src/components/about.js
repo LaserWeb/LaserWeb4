@@ -31,7 +31,7 @@ import Toggle from 'react-toggle'
 
         return (
             <div>
-            <img style={{ width: 66 + '%', borderRadius: 14, }} src={require('../lw-logo.png')} alt="Logo"/>
+            <img style={{ width: 66 + '%', borderRadius: 14, }} src={require('../lw-logo.png').default} alt="Logo"/>
 
                 <h3>LaserWeb Versions</h3>
                   <dl>

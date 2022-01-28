@@ -111,7 +111,7 @@ class MachineProfile extends React.Component {
             description=(<details title="Click to expand setting details"><summary style={{ cursor: 'pointer', padding: '9.5px', fontSize: '13px', color: '#333', backgroundColor: '#f5f5f5', border: '1px solid #ccc', borderRadius: '4px' }}>{machinedesc? machinedesc : "Show Details" }</summary><pre>{settings}</pre></details>);
             let logoFile=this.props.profiles[this.state.selected].settings.firmwareLogo;
             if (logoFile) {
-              firmwareLogo=<img style={{ width: '150px', borderRadius: 8, margin: '10px'}} src={require('../data/lw.machines/machines/'+logoFile)} alt="Logo"/>
+              firmwareLogo=<img style={{ width: '150px', borderRadius: 8, margin: '10px'}} src={require('../data/lw.machines/machines/'+logoFile).default} alt="Logo"/>
             }
             let manURL=this.props.profiles[this.state.selected].settings.firmwareURL;
             if (manURL) {
