@@ -7,6 +7,7 @@ var dist_path = path.resolve('./dist');
 // https://webpack.js.org/migrate/3/#module-loaders-is-now-module-rules
 
 module.exports = {
+    mode: 'development',
     context: src_path,
     entry: [
         'babel-polyfill', './index.js'
@@ -115,9 +116,7 @@ module.exports = {
         {
             test: require.resolve('snapsvg/dist/snap.svg.js'),
             use: 'imports-loader?this=>window,fix=>module.exports=0'
-        }],
-        loaders: [
-        ]
+        }]
     },
     plugins: [
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),

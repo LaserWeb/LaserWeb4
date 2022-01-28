@@ -5,11 +5,11 @@
   "main": "./src/index.js",
   "scripts": {
     "start-server": "node node_modules/lw.comm-server/server.js",
-    "start-app": "webpack-dev-server --progress --colors --open",
-    "start-prod": "webpack-dev-server -p --progress --colors --open",
+    "start-app": "webpack-dev-server --progress --open",
+    "start-prod": "webpack-dev-server -p --progress --open",
     "start": "npm-run-all -p -r start-app start-server",
-    "bundle-dev": "webpack --progress --colors",
-    "bundle-prod": "webpack -p --progress --colors",
+    "bundle-dev": "webpack --progress ",
+    "bundle-prod": "webpack -p --progress ",
     "build-docs": "jsdoc -c ./jsdoc.json",
     "installdev": "git submodule init && git submodule update --remote && npm install && npm update lw.comm-server",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
@@ -102,7 +102,7 @@
     "validatorjs": "^3.22.1",
     "vex-js": "^4.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
-    "webpack": "^3.12.0",
+    "webpack": "^4.46.0",
     "worker-loader": "^2.0.0",
     "xregexp": "^5.1.0"
   },
@@ -113,6 +113,7 @@
     "markdown-loader": "^6.0.0",
     "object.omit": "^3.0.0",
     "script-loader": "^0.7.2",
-    "string-loader": "0.0.1"
+    "string-loader": "0.0.1",
+    "webpack-cli": "^4.9.2"
   }
 }
