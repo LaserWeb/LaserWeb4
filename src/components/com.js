@@ -25,7 +25,6 @@ var accumulatedJobTime = 0;
 var playing = false;
 var paused = false;
 var m0 = false;
-var queueEmptyCount = 0;
 var laserTestOn = false;
 var firmware, fVersion, fDate;
 var xpos, ypos, zpos, apos;
@@ -260,7 +259,7 @@ class Com extends React.Component {
         socket.on('runningJob', function (data) {
             // returned boy older lw-comm-server, should no longer be used.
             CommandHistory.write('Running Job!', CommandHistory.WARN);
-            jobLines = job.split(/\r\n|\r|\n/).length
+            jobLines = data.split(/\r\n|\r|\n/).length
             if (data.length < 512) {
                 CommandHistory.write(data, CommandHistory.STD);
                 alert('<strong>Server Busy:</strong><br/>' + data);
@@ -444,10 +443,10 @@ class Com extends React.Component {
             data = parseInt(data);
             let queueState = 'Queue Empty'
             if (data > 0) {
-                queueState = 'Job: ';
+                queueState = '';
                 if (jobLines > 0) {
-                    let done = ((jobLines-data)/jobLines)*99.99;
-                    queueState += done.toFixed(1) + '% done, '
+                    let done = ((jobLines-data)/jobLines)*99.9;
+                    queueState += done.toFixed(1) + '% sent, '
                 }
                 queueState += 'queue: ' + data;
             }
@@ -744,6 +743,7 @@ export function runJob(job) {
         if (machineConnected){
             if (playing === false) {
                 if (job.length > 0) {
+                    jobLines = job.split(/\r\n|\r|\n/).length
                     CommandHistory.write('Running Job; ' + jobLines + ' lines', CommandHistory.INFO);
                     playing = true;
                     jobLines = job.split(/\r\n|\r|\n/).length
