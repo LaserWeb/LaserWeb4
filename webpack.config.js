@@ -16,14 +16,13 @@ module.exports = {
         path: dist_path,
         filename: 'index.js'
     },
-    node: { "fs": "empty" },
     module: {
         rules: [{
             test: /\.js$/,
             exclude: /node_modules/,
             use: [{
                 loader: 'babel-loader',
-                query: {
+                options: {
                     presets: ['react'],
                     plugins: ['transform-es2015-destructuring', 'transform-es2015-parameters', 'transform-object-rest-spread', 'transform-es2015-modules-commonjs', 'react-hot-loader/babel']
                 }
@@ -112,20 +111,11 @@ module.exports = {
                     name: "[path][name].[ext]"
                 }
             }]
-        },
-        {
-            test: require.resolve('snapsvg/dist/snap.svg.js'),
-            use: 'imports-loader?this=>window,fix=>module.exports=0'
         }]
     },
     plugins: [
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
     ],
-    resolve: {
-        alias: {
-            snapsvg: 'snapsvg/dist/snap.svg.js',
-        },
-    },
     devtool: 'source-map'
 };

@@ -15,7 +15,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Snap from 'snapsvg';
+import Snap from 'snapsvg-cjs';
 
 const hide = [
     'LaserCut',
