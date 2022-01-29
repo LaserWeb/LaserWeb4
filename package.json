@@ -39,7 +39,7 @@
   },
   "homepage": "https://laserweb.yurl.ch",
   "devDependencies": {
-    "ajv": "^6.12.6",
+    "ajv": "^8.9.0",
     "array-move": "^4.0.0",
     "aruco-marker": "^2.0.0",
     "babel-core": "^6.26.0",
@@ -56,7 +56,7 @@
     "chunk": "^0.0.3",
     "clipper-lib": "^6.4.2",
     "color-convert": "^2.0.1",
-    "css-loader": "^3.6.0",
+    "css-loader": "^5.2.7",
     "file-loader": "^6.2.0",
     "flat": "^5.0.2",
     "floyd-steinberg": "^1.0.6",
