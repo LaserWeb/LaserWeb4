@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 const eventNames = [
@@ -71,9 +73,9 @@ export class AllowCapture extends React.Component {
             </div>
         );
     }
-};
+}
 AllowCapture.childContextTypes = {
-    allowCapture: React.PropTypes.any,
+    allowCapture: PropTypes.any,
 };
 
 export default class Capture extends React.Component {
@@ -97,7 +99,7 @@ export default class Capture extends React.Component {
             </Component>
         );
     }
-};
+}
 Capture.contextTypes = {
-    allowCapture: React.PropTypes.any,
+    allowCapture: PropTypes.any,
 };

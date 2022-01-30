@@ -215,9 +215,9 @@ export class VideoPort extends React.Component {
         }
 
         if (this.props.draggable) {
-            return <Rnd
+            return <Rnd style={{ zIndex: 800 }}
                 ref={c => { this.rnd = c; }}
-                initial={{
+                default={{
                     width: this.props.width || 320,
                     height: this.props.height || 240,
                 }}
@@ -227,7 +227,6 @@ export class VideoPort extends React.Component {
                 maxHeight={600}
                 lockAspectRatio={true}
                 bounds={this.props.draggable}
-                zIndex={800}
             >{element}</Rnd>
         } else {
             return <div>{element}</div>;

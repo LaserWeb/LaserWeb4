@@ -204,10 +204,10 @@ class GroupsPane extends React.Component {
                     </div>
                     <div className="listing">
                         {this.props.items.map((item, i) => {
-                            return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
+                            return <div id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
                                 <h5 title={item._locked ? "This grouping is locked. Will be reset on next application start." : undefined} >{item.name} {item._locked===true ? <Icon name="lock" /> : (item._locked===false ? <Icon name="gift" /> : undefined)}</h5>
                                 <small>{item.notes}</small>
-                            </heading>
+                            </div>
                         })}
                     </div>
 
@@ -807,7 +807,7 @@ export class MaterialSaveButton extends React.Component {
         e.preventDefault();
         this.handleNewPreset(this.props.operation)
     }
-    
+
     handleNewPreset(operation) {
         let opts = this.props.groups.filter(group=>(!group._locked)).map((group)=>{ return {label: group.name, value: group.name}})
         choose("Operation grouping?", opts, DEFAULT_GROUPING_NAME, (grouping) => {

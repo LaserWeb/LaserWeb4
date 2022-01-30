@@ -84,11 +84,11 @@ function RangeInput(minValue, maxValue) {
 
 function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: ',', clearable: true }, connector) {
     if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
-    return connect(connector)(React.createClass({
-        render: function () {
+    return connect(connector)(class extends React.Component {
+        render() {
             return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{ ...opts }} />
         }
-    }))
+    });
 
 }
 
