@@ -45,20 +45,15 @@ export const MATERIALDATABASE_VALIDATION_RULES = {
 
 
 export function ValidateMaterial(bool = true, rules = MATERIALDATABASE_VALIDATION_RULES, data = null) {
-
     if (!data)
         data = Object.assign({}, GlobalStore().getState().materialdatabase)
-
     let check = new Validator(data, rules);
-
     if (bool)
         return check.passes();
-
     return check;
 }
 
 function MaterialModal({ modal, className, header, footer, children, ...rest }) {
-
     return (
         <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
             <Modal.Header closeButton>
@@ -68,10 +63,8 @@ function MaterialModal({ modal, className, header, footer, children, ...rest }) 
                 {children}
             </Modal.Body>
             {footer ? <Modal.Footer>{footer}</Modal.Footer> : undefined}
-
         </Modal>
     )
-
 }
 
 let shouldShow = (operation, filter) => {
@@ -79,9 +72,7 @@ let shouldShow = (operation, filter) => {
         return true;
     if (filter === "*" || operation.machine_profile === null)
         return true;
-
     return filter.split(",").includes(operation.machine_profile)
-
 }
 
 
@@ -500,11 +491,11 @@ export class Details extends React.Component {
 
     render() {
         return <div className={"details " + (this.props.className ? this.props.className : "")} style={this.props.style}>
-            <heading>
+            <h5>
 
                 <div className="summary" onClick={() => this.setState({ open: !this.state.open })}><Icon name={this.state.open ? 'chevron-up' : 'chevron-down'} />&nbsp;{this.props.handler}</div>
                 {this.props.header}
-            </heading>
+            </h5>
             <Collapse in={this.state.open}>
                 <div className="content">{this.props.children}</div>
             </Collapse>
@@ -558,10 +549,10 @@ class MaterialDatabasePicker extends React.Component {
                 <div className="materialPicker">
                     {this.props.groups.map((item, i) => {
                         return <section key={i}>
-                            <heading>
+                            <h5>
                                 <h4>{item.name}</h4>
                                 <small>{item.notes}</small>
-                            </heading>
+                            </h5>
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
