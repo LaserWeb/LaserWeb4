@@ -234,10 +234,10 @@ export const materialDatabase = (state = MATERIALDB_INITIALSTATE, action) => {
                     return currentState;
                 } else {
                     let backup = stringify(currentState);
-                    confirm("Material Database corrupt/obsolete. Restoring. Ok download a backup, Cancel to continue.",function(data){
+                    confirm("Material Database is corrupt and cannot be loaded, reverting to default. Press Ok to save a copy of the corrupt data before it is reverted. Press Cancel to skip backup.",function(data){
                         if (data) sendAsFile('LaserWeb-MaterialDatabase-Backup.json',backup,'application/json')
                     })
-                    CommandHistory.error("Material Database corrupt/obsolete. Restoring.")
+                    CommandHistory.error("Material Database corrupt/obsolete. Restoring default.")
                     console.error(validate.errors);
                     return lockedState;
                 }
