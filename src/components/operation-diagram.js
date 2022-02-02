@@ -58,7 +58,7 @@ const types = {
 };
 
 export class OperationDiagram extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         fetch('cnctoolpath.svg')
             .then(resp => resp.text())
             .then(content => {

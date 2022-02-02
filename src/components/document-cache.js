@@ -36,11 +36,11 @@ export class DocumentCacheHolder extends React.Component {
         return { documentCacheHolder: this };
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.setDocuments(this.props.documents);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setDocuments(nextProps.documents);
     }
 

@@ -127,7 +127,7 @@ function ColorBox(v) {
 }
 
 class FilterInput extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChange = this.onChange.bind(this);
     }
 
@@ -179,7 +179,7 @@ function NoOperationsError(props) {
 }
 
 class Field extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChangeValue = this.onChangeValue.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onFocus = this.onFocus.bind(this);
@@ -252,7 +252,7 @@ class Field extends React.Component {
 };
 
 class Doc extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.remove = e => {
             this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.isTab, this.props.id));
         }
@@ -655,7 +655,7 @@ const traverseDocumentTypes = (ids, documents) => {
 
 class Operation extends React.Component {
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.setTypeString = e => this.props.dispatch(setOperationAttrs({ type: e }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
@@ -672,7 +672,7 @@ class Operation extends React.Component {
         this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
 
         if (nextProps.op.documents.length !== this.documentsCount) {
             this.documentsCount = nextProps.op.documents.length

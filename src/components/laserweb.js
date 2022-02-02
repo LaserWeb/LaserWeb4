@@ -100,7 +100,7 @@ const updateTitle=()=>{
 
 class LaserWeb extends React.Component {
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         updateTitle();
     }
 
@@ -108,7 +108,7 @@ class LaserWeb extends React.Component {
         return nextProps.documents !== this.props.documents;
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         try {
             let canvas = document.createElement('canvas');
             let gl = canvas.getContext('webgl', { alpha: true, depth: true, antialias: true, preserveDrawingBuffer: true });

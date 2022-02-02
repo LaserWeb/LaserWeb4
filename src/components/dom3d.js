@@ -49,7 +49,7 @@ function getCameraCSSMatrix(matrix) {
 };
 
 export class Dom3d extends React.Component {
-    componentWillUpdate(nextProps) {
+    UNSAFE_componentWillUpdate(nextProps) {
         if (!nextProps.camera)
             return;
         let camera = nextProps.camera;

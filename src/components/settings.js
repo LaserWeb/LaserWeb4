@@ -196,11 +196,11 @@ class Settings extends React.Component {
         return SETTINGS_VALIDATION_RULES;
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.setState({ errors: this.validate(this.props.settings, this.rules()) })
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setState({ errors: this.validate(nextProps.settings, this.rules()) })
     }
 

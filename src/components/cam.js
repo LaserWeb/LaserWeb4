@@ -82,7 +82,7 @@ class Cam extends React.Component {
         this.state={filter:null}
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         let that = this
         window.generateGcode = e => {
             let { settings, documents, operations } = that.props;

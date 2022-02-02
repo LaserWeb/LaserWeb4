@@ -209,7 +209,7 @@ class FloatingControls extends React.Component {
             drag: this.props.settings.uiFcDrag
         }
     }
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
 
         this.linkScaleChanged = e => {
             this.setState({ linkScale: e.target.checked });
@@ -682,7 +682,7 @@ class WorkspaceContent extends React.Component {
         this.drawSelDocsState = {};
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.pointers = [];
         this.lightenMachineBounds = new LightenMachineBounds();
         this.grid = new Grid();
@@ -966,7 +966,7 @@ class WorkspaceContent extends React.Component {
         this.__updating = true;
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setCamera(nextProps);
     }
 
@@ -1292,7 +1292,7 @@ WorkspaceContent = connect(
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.gcodePreview = new GcodePreview();
         this.laserPreview = new LaserPreview();
         this.setSimTime = e => {

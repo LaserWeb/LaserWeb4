@@ -484,7 +484,7 @@ export class Details extends React.Component {
         this.state = { open: this.props.open || false }
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.open !== undefined)
             this.setState({ ...this.state, open: nextProps.open || this.state.open })
     }

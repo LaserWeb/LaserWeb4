@@ -14,7 +14,7 @@ import convert from 'color-convert'
 
 // <input> for text and number fields
 export class Input extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChange = this.onChange.bind(this);
         this.setInput = this.setInput.bind(this);
     }
@@ -55,7 +55,7 @@ export class Input extends React.Component {
 };
 
 class TooltipFormGroup extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.handleBlur = this.handleBlur.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
         this.setState({ hasFocus: false })
@@ -469,7 +469,7 @@ export class SearchButton extends React.Component {
         this.state={search: this.props.search}
     }
 
-    componentWillReceiveProps(nextProps)
+    UNSAFE_componentWillReceiveProps(nextProps)
     {
         this.setState({search: nextProps.search})
     }

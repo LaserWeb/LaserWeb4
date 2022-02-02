@@ -362,7 +362,7 @@ class Jog extends React.Component {
         runCommand(moves)
     }
 
-    componentWillReceiveProps(props)
+    UNSAFE_componentWillReceiveProps(props)
     {
         this.checkGcodeBounds(props.gcode);
     }
@@ -985,7 +985,7 @@ export class LiveJogging extends React.Component {
         return liveJoggingState.active && !liveJoggingState.disabled;
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         liveJoggingState = { active: nextProps.active, hasHomed: nextProps.hasHomed, disabled: nextProps.disabled };
     }
 

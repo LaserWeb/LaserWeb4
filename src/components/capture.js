@@ -25,7 +25,7 @@ const eventNames = [
 ];
 
 export class AllowCapture extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.events = {};
         for (let n of eventNames) {
             this.events[n + 'Capture'] = e => {
@@ -79,7 +79,7 @@ AllowCapture.childContextTypes = {
 };
 
 export default class Capture extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onMouseDown = this.onMouseDown.bind(this);
     }
 

@@ -71,7 +71,7 @@ export class VideoResolutionField extends React.Component {
         window.videoCapture.refreshStream({ resolution: resolutionId }, (s) => { console.log('Resolution change: ' + resolutionId + ' [' + s.id + ']') })
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.deviceId !== this.props.deviceId) {
             this.getResolutions(nextProps.deviceId)
         }
