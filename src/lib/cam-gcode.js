@@ -106,7 +106,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 let filteredDocIds = [];
                 let docsWithImages = [];
 
-                let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
+                let preflightWorker = require('./workers/cam-preflight.worker.js');
                 let preflight = new preflightWorker()
                 preflight.onmessage = (e) => {
                     let data = e.data;
@@ -145,7 +145,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         laserOps = true;
                         if (startCode === "") startCode = settings.gcodeStart;
                         if (endCode === "") endCode = settings.gcodeEnd;
-                        invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        invokeWebWorker(require('./workers/cam-lasercut.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type === 'Laser Raster') {
                         laserOps = true;
@@ -165,7 +165,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (endCode === "") endCode = settings.gcodeMillEnd;
                         if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
                         if (endCode === "") endCode = settings.gcodeEnd;
-                        invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        invokeWebWorker(require('./workers/cam-mill.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type.substring(0, 6) === 'Lathe ') {
                         millOps = true;
@@ -173,7 +173,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                         if (endCode === "") endCode = settings.gcodeMillEnd;
                         if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
                         if (endCode === "") endCode = settings.gcodeEnd;
-                        invokeWebWorker(require('worker-loader!./workers/cam-lathe.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        invokeWebWorker(require('./workers/cam-lathe.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else {
                         showAlert("Unknown operation " + op.type, 'warning')

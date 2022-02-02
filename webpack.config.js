@@ -111,6 +111,16 @@ module.exports = {
                     name: "[path][name].[ext]"
                 }
             }]
+        },
+        {
+            test: /\.worker\.js$/,
+            use: [{
+                loader: "worker-loader",
+                options: {
+                    esModule: false,
+                    filename: "[contenthash].worker.js"
+                }
+            }]
         }]
     },
     plugins: [

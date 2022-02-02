@@ -238,7 +238,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                             pixels: rtg.pixels
                         }
 
-                        let rasterWorker = require('worker-loader!./workers/cam-raster.js')
+                        let rasterWorker = require('./workers/cam-raster.worker.js')
                         let r2g = new rasterWorker();
                         r2g.onmessage = function (event) {
                             if (event.data.event === 'onDone') {

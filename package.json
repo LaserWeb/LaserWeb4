@@ -100,7 +100,7 @@
     "vex-js": "^4.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^5.67.0",
-    "worker-loader": "^2.0.0",
+    "worker-loader": "^3.0.8",
     "xregexp": "^5.1.0"
   },
   "dependencies": {
