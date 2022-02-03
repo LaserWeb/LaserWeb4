@@ -3,7 +3,7 @@ import { humanFileSize } from '../lib/helpers';
 export const GCODE_INITIALSTATE = {
     gcoding: { enable: false, percent: 0},
     content: '',
-    dirty:false,
+    dirty: false,
 }
 
 export function gcode(state = GCODE_INITIALSTATE, action) {
@@ -31,7 +31,7 @@ export function gcode(state = GCODE_INITIALSTATE, action) {
         return { ...state, gcoding: action.payload }
     else if (action.type== 'WORKSPACE_RESET') {
         $('#gcode-info-panel').html("No Gcode loaded");
-        return { ...state, dirty:false, content:''}
+        return { ...state, dirty: false, content:''}
     }
     else
         return state;

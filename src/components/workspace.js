@@ -1486,7 +1486,7 @@ class Workspace extends React.Component {
                                     <tr>
                                         <td colSpan="2">
                                             <div className='simbar'>
-                                                <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} is glyphicon="transfer" />
+                                                <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} glyphicon="transfer" />
                                             </div>
                                         </td>
                                     </tr>
