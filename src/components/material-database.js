@@ -32,7 +32,12 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
-import { alert, prompt, confirm, vex } from './laserweb';
+import { alert, prompt, confirm } from './laserweb';
+
+var vex = require('vex-js')
+import 'vex-js/dist/css/vex.css';
+import 'vex-js/dist/css/vex-theme-os.css';
+
 
 import '../styles/material-database.css'
 
@@ -653,7 +658,11 @@ export class MaterialDatabaseButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
 
         return (
             <Button bsStyle="primary" block onClick={() => this.setState({ showModal: true })}>{this.props.children}<MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal} /></Button>
@@ -750,7 +759,11 @@ export class MaterialPickerButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         //if (this.state.shiftKey) className += ' btn-warning'
         return (
@@ -811,7 +824,11 @@ export class MaterialSaveButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         //if (this.state.shiftKey) className += ' btn-warning'
         return (

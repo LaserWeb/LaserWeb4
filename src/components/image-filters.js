@@ -174,7 +174,6 @@ export class ImageEditorButton extends React.Component {
         this.handleClick.bind(this)
         this.onModKey.bind(this)
         this.offModKey.bind(this)
-        this.state = {}
         this.__mounted=false;
     }
 
@@ -200,8 +199,6 @@ export class ImageEditorButton extends React.Component {
         document.removeEventListener('keyup', this.offModKey.bind(this))
     }
 
-
-
     handleClick(e) {
         if (e.shiftKey) {
             e.preventDefault();
@@ -211,12 +208,15 @@ export class ImageEditorButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         if (this.state.shiftKey) className += ' btn-warning'
         return (
             <Button bsStyle={this.props.bsStyle||'primary'} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
-                <ImageEditor show={this.state.showModal} onHide={closeModal}  />
+                <ImageEditor show={this.state.showModal} onHide={closeModal} />
             </Button>
         )
     }
