@@ -110,7 +110,6 @@
     "markdown-loader": "^8.0.0",
     "object.omit": "^3.0.0",
     "prop-types": "^15.8.1",
-    "react-codemod": "^5.4.3",
     "script-loader": "^0.7.2",
     "snapsvg-cjs": "^0.0.6",
     "string-loader": "0.0.1",
