@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
+const CompressionPlugin = require("compression-webpack-plugin");
 
 var src_path = path.resolve('./src');
 var dist_path = path.resolve('./dist');
@@ -129,6 +130,8 @@ module.exports = {
     plugins: [
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
+        new CompressionPlugin({
+            filename: "zip/[path][base].gz",
+        }),
     ],
-    devtool: 'source-map'
 };

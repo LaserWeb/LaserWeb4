@@ -8,8 +8,8 @@
     "start-app": "webpack-dev-server --progress --open",
     "start-prod": "webpack-dev-server -p --progress --open",
     "start": "npm-run-all -p -r start-app start-server",
-    "bundle-dev": "webpack --progress ",
-    "bundle-prod": "webpack -p --progress ",
+    "bundle-dev": "webpack --mode development --progress ",
+    "bundle-prod": "webpack --mode production --progress ",
     "build-docs": "jsdoc -c ./jsdoc.json",
     "installdev": "git submodule init && git submodule update --remote && npm install && npm update lw.comm-server",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
@@ -38,6 +38,7 @@
     "url": "https://github.com/LaserWeb/LaserWeb4/issues"
   },
   "homepage": "https://laserweb.yurl.ch",
+  "productionSourceMap": false,
   "devDependencies": {
     "ajv": "^8.9.0",
     "array-move": "^4.0.0",
@@ -56,6 +57,7 @@
     "chunk": "^0.0.3",
     "clipper-lib": "^6.4.2",
     "color-convert": "^2.0.1",
+    "compression-webpack-plugin": "^9.2.0",
     "css-loader": "^6.6.0",
     "file-loader": "^6.2.0",
     "flat": "^5.0.2",
