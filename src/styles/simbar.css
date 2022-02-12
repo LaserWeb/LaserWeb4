@@ -24,9 +24,9 @@
   box-shadow: 1px 1px 1px #828282;
   border: 1px solid #8A8A8A;
   height: 24px;
-  width: 6px;
+  width: 24px;
   border-radius: 4px;
-  background: #5C5C5C;
+  background: #DEDEDE;
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -10px;
@@ -49,9 +49,9 @@
   box-shadow: 1px 1px 1px #828282;
   border: 1px solid #8A8A8A;
   height: 24px;
-  width: 6px;
+  width: 24px;
   border-radius: 4px;
-  background: #5C5C5C;
+  background: #DEDEDE;
   cursor: pointer;
 }
 
@@ -81,9 +81,9 @@
   box-shadow: 1px 1px 1px #828282;
   border: 1px solid #8A8A8A;
   height: 24px;
-  width: 6px;
+  width: 24px;
   border-radius: 4px;
-  background: #5C5C5C;
+  background: #DEDEDE;
   cursor: pointer;
 }
 .simbar input[type=range]:focus::-ms-fill-lower {
