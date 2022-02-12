@@ -230,19 +230,6 @@ class Settings extends React.Component {
                                     The total width and height (X and Y) size of the machine work area
                                     </p>,"Working Dimensions") }} />
                         <NumberField {...{ object: this.props.settings, field: 'machineHeight', setAttrs: setSettingsAttrs, description: 'Height', units: 'mm' }} />
-                        <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
-                                    Highlight the machine work area in the display.
-                                    </p>,"Show Work Area") }} />
-
-                        <h5 className="header">Colors  {Info(<p className="help-block">Select the colors used for the workspace background and machine bed, when shown.</p>,"Workspace display colors")}
-                        <span style={{float: "right"}}>
-                            {this.props.settings.showMachine &&
-                                <ColorPicker style={{paddingRight: '0.5em'}} to="hex" icon="square-o" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
-                            }
-                            <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
-                        </span>
-                        </h5>
-                        <br/>
 
                         <h5 className="header">Machine Origin offsets</h5>
                         <NumberField {...{ object: this.props.settings, field: 'machineBottomLeftX', setAttrs: setSettingsAttrs, description: 'Left X', units: 'mm', info: Info(<p className="help-block">
@@ -435,18 +422,39 @@ class Settings extends React.Component {
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>
-                        <h5 className="header">Grid</h5>
-                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
-                        &nbsp;&nbsp;Grid spacing requires app reload. Use with caution, very large or dense grids will affect display performance.</small>
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridWidth', setAttrs: setSettingsAttrs, description: 'Grid Width', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridHeight', setAttrs: setSettingsAttrs, description: 'Grid Height', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Minor Spacing', units: 'mm' }} />
-                        <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Major Spacing', units: 'mm' }} />
-                        <hr/>
                         <h5 className="header">Interface</h5>
                         <SelectField {...{ object: this.props.settings, field: 'toolFeedUnits', setAttrs: setSettingsAttrs, data: ['mm/s', 'mm/min'], defaultValue: 'mm/min', description: 'Feed Units', info: Info(<p className="help-block">
                             Use 'mm/s' or 'mm/min' when specifying feed rates in operations.<br/>The feedrate in the resulting GCode will always be in mm/min.
                             </p>,"Feed rate units for interface"), selectProps: { clearable: false } }} />
+                        <ToggleField {...{ object: this.props.settings, field: 'showMachine', setAttrs: setSettingsAttrs, description: 'Show Machine', info: Info(<p className="help-block">
+                                    Highlight the machine work area in the display.
+                                    </p>,"Show Work Area") }} />
+
+                        <h5 className="header">Colors  {Info(<p className="help-block">Select the colors used for the workspace background and machine bed, when shown.</p>,"Workspace display colors")}
+                        <span style={{float: "right"}}>
+                            {this.props.settings.showMachine &&
+                                <ColorPicker style={{paddingRight: '0.5em'}} to="hex" icon="square-o" bsSize="medium" color={this.props.settings.workSpaceColor} onClick={v=>this.props.settings.workSpaceColor=v}/>
+                            }
+                            <ColorPicker to="hex" icon="th" bsSize="medium" color={this.props.settings.workBedColor} onClick={v=>this.props.settings.workBedColor=v}/>
+                        </span>
+                        </h5>
+                        <h5 className="header">Grid</h5>
+                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Caution!</Label>
+                        &nbsp;&nbsp;Very large or dense grids will affect display performance.</small>
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridWidth', setAttrs: setSettingsAttrs, description: 'Grid Width', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridHeight', setAttrs: setSettingsAttrs, description: 'Grid Height', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridMinorSpacing', setAttrs: setSettingsAttrs, description: 'Minor Spacing', units: 'mm' }} />
+                        <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Major Spacing', units: 'mm' }} />
+                        <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Important:</Label>
+                        &nbsp;&nbsp;Grid spacing and color changes require an application reload.</small>
+                        <div style={{textTransform: "uppercase", fontSize: "80%"}} >Colors  {Info(<p className="help-block">Select the colors used for the major grid labels.</p>,"Grid Colors")}
+                        <span style={{float: "right"}}>
+                            <ColorPicker style={{paddingRight: '0.5em'}} to="hex" icon="arrows-v" bsSize="medium" color={this.props.settings.toolGridYColor} onClick={v=>this.props.settings.toolGridYColor=v}/>
+                            <ColorPicker to="hex" icon="arrows-h" bsSize="medium" color={this.props.settings.toolGridXColor} onClick={v=>this.props.settings.toolGridXColor=v}/>
+                        </span>
+                        </div>
+                        <hr/>
+                        <h5 className="header">Workspace</h5>
                         <ToggleField {... { object: this.props.settings, field: 'toolCreateEmptyOps', setAttrs: setSettingsAttrs, description: 'Create Empty Operations',info: Info(<p className="help-block">
                             Allows creation of operations in UI even when no documents are selected.<br/>Useful when preparing workspace templates for future use.</p>) }} />
                         <QuadrantField {... { object: this.props.settings, field: 'toolImagePosition', setAttrs: setSettingsAttrs, description: 'Raster Image Position', info: Info(<p className="help-block">

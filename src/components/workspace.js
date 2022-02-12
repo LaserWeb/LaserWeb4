@@ -104,7 +104,7 @@ class LightenMachineBounds {
 };
 
 class Grid {
-    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING }) {
+    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING, xcolor, ycolor }) {
         if (!this.maingrid || !this.origin || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
@@ -145,25 +145,27 @@ class Grid {
         drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
         drawCommands.basic({ perspective, view, position: this.darkgrid, offset: 0, count: this.darkcount, color: [0.5, 0.5, 0.5, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // dark grid
 
-        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
-        drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
+        let rgbx = [...convert.hex.rgb(xcolor)];
+        let rgby = [...convert.hex.rgb(ycolor)];
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [rgbx[0]/255,rgbx[1]/255,rgbx[2]/255,1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES });
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [rgby[0]/255,rgby[1]/255,rgby[2]/255,1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES });
     }
 };
 
 function GridText(props) {
-    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
+    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height, xcolor, ycolor } = props;
     let size = Math.min(major / 3, 10)
     let a = [];
     for (let x = major; x <= width; x += major) {
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(x)} />);
-        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(-x)} />);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: xcolor }} label={String(x)} />);
+        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: xcolor }} label={String(-x)} />);
     }
-    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: '#CC0000' }}>X</Text3d>);
+    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: xcolor }}>X</Text3d>);
     for (let y = major; y <= height; y += major) {
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: '#00CC00' }} label={String(y)} />);
-        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: '#00CC00' }} label={String(-y)} />);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: ycolor }} label={String(y)} />);
+        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: ycolor }} label={String(-y)} />);
     }
-    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: '#00CC00' }}>Y</Text3d>);
+    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: ycolor }}>Y</Text3d>);
     return <div>{a}</div>;
 }
 
@@ -810,6 +812,8 @@ class WorkspaceContent extends React.Component {
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
             minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
             major: Math.max(this.props.settings.toolGridMajorSpacing,1),
+            xcolor: this.props.settings.toolGridXColor,
+            ycolor: this.props.settings.toolGridYColor,
         });
         if (this.props.settings.showMachine)
             this.machineBounds.draw(this.drawCommands, {
@@ -949,6 +953,8 @@ class WorkspaceContent extends React.Component {
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
             minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
             major: Math.max(this.props.settings.toolGridMajorSpacing,1),
+            xcolor: this.props.settings.toolGridXColor,
+            ycolor: this.props.settings.toolGridYColor,
         });
 
         if (this.props.settings.machineAAxisDiameter > 0) {
@@ -1243,6 +1249,7 @@ class WorkspaceContent extends React.Component {
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
             nextProps.settings.machineBottomLeftX !== this.props.settings.machineBottomLeftX || nextProps.settings.machineBottomLeftY !== this.props.settings.machineBottomLeftY ||
             nextProps.settings.toolGridWidth !== this.props.settings.toolGridWidth || nextProps.settings.toolGridHeight !== this.props.settings.toolGridHeight ||
+            nextProps.settings.toolGridXColor !== this.props.settings.toolGridXColor || nextProps.settings.toolGridYColor !== this.props.settings.toolGridYColor ||
             nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
@@ -1269,7 +1276,7 @@ class WorkspaceContent extends React.Component {
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
-                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1), major: Math.max(this.props.settings.toolGridMajorSpacing,1) }} />
+                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1), major: Math.max(this.props.settings.toolGridMajorSpacing,1), xcolor: this.props.settings.toolGridXColor, ycolor: this.props.settings.toolGridYColor }} />
                     </Dom3d>
                 </Pointable>
 
@@ -1306,7 +1313,7 @@ class Workspace extends React.Component {
         this.zoomDoc = this.zoomDoc.bind(this);
         this.zoomGcode = this.zoomGcode.bind(this);
         this.toggleSim = this.toggleSim.bind(this);
-        this.toggleControls = this.toggleControls.bind(this); 
+        this.toggleControls = this.toggleControls.bind(this);
         this.showControls = true;
     }
 

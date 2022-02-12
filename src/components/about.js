@@ -39,6 +39,11 @@ import Toggle from 'react-toggle'
                     <dt><Icon name="usb"/> Backend: {this.props.settings.comServerVersion} (API: {this.props.settings.comApiVersion}) </dt><dd></dd><p/>
                   </dl>
                   <Releases/>
+                <h3>Documentation</h3>
+                  <dl>
+                    <dt><Icon name="home"/> <a href="https://laserweb.yurl.ch/">LaserWeb Homepage</a></dt>
+                    <dd><small>- The home of LaserWeb</small></dd><p/>
+                  </dl>
                 <h3>Support</h3>
                   <dl>
                     <dt><Icon name="hashtag"/> <a href="https://forum.makerforums.info/c/laserweb-cncweb/">LaserWeb Community on MakerForums</a></dt>

@@ -126,6 +126,8 @@ export const SETTINGS_INITIALSTATE = {
     toolGridHeight: 500,
     toolGridMinorSpacing: 10,
     toolGridMajorSpacing: 50,
+    toolGridXColor: "#ff0000",
+    toolGridYColor: "#00ff00",
     toolImagePosition: "BL",
     toolUseNumpad: false,
     toolDisplayCache: false,
