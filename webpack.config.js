@@ -1,11 +1,8 @@
 var webpack = require('webpack');
 var path = require('path');
-const CompressionPlugin = require("compression-webpack-plugin");
 
 var src_path = path.resolve('./src');
 var dist_path = path.resolve('./dist');
-
-// https://webpack.js.org/migrate/3/#module-loaders-is-now-module-rules
 
 module.exports = {
     mode: 'development',
@@ -130,8 +127,5 @@ module.exports = {
     plugins: [
         new webpack.ProvidePlugin({$: 'jquery', jQuery: 'jquery'}),
         new webpack.HotModuleReplacementPlugin(),
-        new CompressionPlugin({
-            filename: "zip/[path][base].gz",
-        }),
     ],
 };
