@@ -1312,7 +1312,6 @@ class Workspace extends React.Component {
         this.zoomMachine = this.zoomMachine.bind(this);
         this.zoomDoc = this.zoomDoc.bind(this);
         this.zoomGcode = this.zoomGcode.bind(this);
-        this.toggleSim = this.toggleSim.bind(this);
         this.toggleControls = this.toggleControls.bind(this);
         this.showControls = true;
     }
@@ -1375,34 +1374,26 @@ class Workspace extends React.Component {
     }
 
 
-    toggleSim() {
+    updateSimDetails() {
         let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
         let simSummary = 'No Gcode loaded'
-        $('#gcode-info-panel').html("Analysing...");  // Doesnt seem to work, the panel doesnt update (no react refresh) until this function exits
-        this.forceUpdate();                           // Better solution would be to start analysis in background
         let codeSize = this.gcode.length;
         if (totalSecs > 0) {
-          // Use the dynamic (simulate) data for to generate run stats
-          let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
-          let secs = totalSecs % 60;
-          let mins = Math.floor(totalSecs / 60) % 60;
-          let hrs = Math.floor(totalSecs / 3600);
-          let duty = Math.floor(activeSecs / totalSecs * 100);
-          let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
-          let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
-          if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
-          else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
-          simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
-          // CommandHistory.write(simSummary, CommandHistory.INFO);
-          // Do a static analysis on the code for size and complexity
-          let moveCount = 0;
-          if (codeSize > 0) {
-            moveCount = this.gcode.split(/\n[gGxXyYzZaA]|\r[gGxXyYzZaA]/g).length;
-          }
-          simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + moveCount;
+            let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
+            let secs = totalSecs % 60;
+            let mins = Math.floor(totalSecs / 60) % 60;
+            let hrs = Math.floor(totalSecs / 3600);
+            let duty = Math.floor(activeSecs / totalSecs * 100);
+            let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
+            let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
+            if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
+            else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
+            simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
+            simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + this.gcodePreview.moves;
         } else if (codeSize > 0) {
-          simSummary = "Analysis failed. Check code before using. " + humanFileSize(codeSize)
+            simSummary = "Analysis failed. No tool operations. Check code before using. " + humanFileSize(codeSize)
         }
+        // CommandHistory.write(simSummary, CommandHistory.INFO);
         $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
     }
 
@@ -1426,6 +1417,8 @@ class Workspace extends React.Component {
             let parsedGcode = parseGcode(gcode);
             this.gcodePreview.setParsedGcode(parsedGcode);
             this.laserPreview.setParsedGcode(parsedGcode);
+            this.updateSimDetails();
+            workspace.simTime = 1e10;
         }
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
@@ -1482,10 +1475,7 @@ class Workspace extends React.Component {
                                 {(this.gcode.length > 0) &&
                                     <tr style={{ height: '42px'}} >
                                         <td>
-                                            <button className='btn btn-default' style={{ marginRight: '4px' }} title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
-                                            <button id='analyse-button' className='btn btn-default' title='Analyse current Gcode and show results' onClick={this.toggleSim}><i className="fa fa-fw fa-eye"></i>Analyse</button>
-                                        </td>
-                                        <td>
+                                            <button className='btn btn-default' title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
                                         </td>
                                     </tr>
                                 }
