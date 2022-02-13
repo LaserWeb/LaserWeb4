@@ -447,7 +447,7 @@ class Settings extends React.Component {
                         <NumberField {...{ object: this.props.settings, field: 'toolGridMajorSpacing', setAttrs: setSettingsAttrs, description: 'Major Spacing', units: 'mm' }} />
                         <small className="help-block"><Label bsStyle="warning" style={{float: "left"}}>Important:</Label>
                         &nbsp;&nbsp;Grid spacing and color changes require an application reload.</small>
-                        <div style={{textTransform: "uppercase", fontSize: "80%"}} >Colors  {Info(<p className="help-block">Select the colors used for the major grid labels.</p>,"Grid Colors")}
+                        <div style={{textTransform: "uppercase", fontSize: "80%"}} >Axis Colors {Info(<p className="help-block">Select the colors used for the major grid axis labels.</p>,"Grid Colors")}
                         <span style={{float: "right"}}>
                             <ColorPicker style={{paddingRight: '0.5em'}} to="hex" icon="arrows-v" bsSize="medium" color={this.props.settings.toolGridYColor} onClick={v=>this.props.settings.toolGridYColor=v}/>
                             <ColorPicker to="hex" icon="arrows-h" bsSize="medium" color={this.props.settings.toolGridXColor} onClick={v=>this.props.settings.toolGridXColor=v}/>

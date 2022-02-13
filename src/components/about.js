@@ -42,7 +42,7 @@ import Toggle from 'react-toggle'
                 <h3>Documentation</h3>
                   <dl>
                     <dt><Icon name="home"/> <a href="https://laserweb.yurl.ch/">LaserWeb Homepage</a></dt>
-                    <dd><small>- The home of LaserWeb</small></dd><p/>
+                    <dd><small>- Start Here</small></dd><p/>
                   </dl>
                 <h3>Support</h3>
                   <dl>
