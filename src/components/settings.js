@@ -333,12 +333,12 @@ class Settings extends React.Component {
                                     Opacity for filled areas, allows paths concealed by fill to be seen, but fill can look less solid.<br/>
                                     Only applies to the view in the Workspace and raster merges, cutting operations ignore opacity when calculating laser power.
                                     </p>,"SVG Fill opacity") }} />
-                        <hr/>
+                        <hr />
                         <h5 className="header">Images</h5>
                         <NumberField {...{ object: this.props.settings, field: 'dpiBitmap', setAttrs: setSettingsAttrs, description: 'Bitmap DPI', units: 'dpi', info: Info(<p className="help-block">
                                     Default DPI setting to be used for imported bitmaps.
                                     </p>,"DPI Default") }} />
-                        <hr/>
+                        <hr />
                         <h5 className="header">Filenames</h5>
                         <TextField {...{ object: this.props.settings, field: 'gcodeFilename', setAttrs: setSettingsAttrs, description: 'Gcode file name', info: Info(<p className="help-block">
                             Supports <em>strftime()</em> alike date/time formatting; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
@@ -419,6 +419,12 @@ class Settings extends React.Component {
                             Increasing this can improve gcode generation performance when working with with lots of individual operations.<br/>
                             This is applied per operation, indvidual operations are <em>not</em> threaded and will not benefit from this option.<br/>
                             </p>,"Gcode Generation Threads"), units: '' }} />
+                        <hr />
+                        <TextField {...{ object: this.props.settings, field: 'gcodeHeader', setAttrs: setSettingsAttrs, description: 'Gcode Header', info: Info(<p className="help-block">
+                            Text here will be placed in a commented (;) block at the start of the gcode.<br/>
+                            The keywords <em><strong>$VERSION</strong></em> and <em><strong>$PROFILE</strong></em> will be replaced by the LaserWeb version and selected machine profile.<br/>
+                            You can use <em>strftime()</em> alike date/time formattingi to add a timestamp; see <a href="https://thdoan.github.io/strftime/" target="_blank"><strong>this page</strong></a> for more.<br/>
+                            </p>,"Gcode Identification"), rows: 5, style: { resize: "vertical", fontFamily: "monospace, monospace" } }} />
                     </SettingsPanel>
 
                     <SettingsPanel collapsible header="Application" eventKey="4" bsStyle="info" errors={this.state.errors}>

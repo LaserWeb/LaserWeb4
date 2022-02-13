@@ -18,6 +18,7 @@
 import { getLaserRasterGcodeFromOp, getLaserRasterMergeGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
 import { humanFileSize } from './helpers';
+import { strftime } from './strftime'//
 
 
 import { GlobalStore } from '../index'
@@ -61,6 +62,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     const workers = [];
     let jobIndex = 0;
 
+    let fullGcode = "";
     let startCode = "";
     let endCode = "";
     let laserOps = false;
@@ -208,8 +210,23 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
-        let fullGcode = '';
         let elapsed=(new Date().getTime()-starttime)/1000;
+
+        // process and prepend the header
+        if (settings.gcodeHeader.length > 0) {
+            let header = settings.gcodeHeader.split(/\r\n|\r|\n/g);
+            for (let i = 0; i < header.length; i++)
+            {
+                let line = header[i].replace("$VERSION", settings.__version)
+                    .replace("$PROFILE", settings.__selectedProfile);
+                if (line.length > 0) {
+                    fullGcode += '; ' + strftime(line) + "\r\n";
+                } else {
+                    fullGcode += "\r\n";
+                }
+            }
+            fullGcode += "\r\n";
+        }
         if (laserOps && millOps) {
             showAlert('<span className="help-block">Warning: Mixed operation types detected.</span><br/>Mixing laser and mill/lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want.',"warning");
         }
@@ -217,7 +234,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         if (gcode.join() === "" ) {
             showAlert("Empty Gcode! Either there was an error during generation or the user cancelled generation.", "warning");
         } else {
-            fullGcode = startCode + gcode.join('\r\n') + endCode;
+            fullGcode += startCode + gcode.join('\r\n') + endCode;
             showAlert("Generated Gcode size: " + fullGcode.length + " (" + humanFileSize(fullGcode.length) + ")", "info");
         }
         done(fullGcode);
