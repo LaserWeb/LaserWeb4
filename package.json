@@ -8,8 +8,9 @@
     "start-app": "webpack-dev-server --progress --open",
     "start-prod": "webpack-dev-server -p --progress --open",
     "start": "npm-run-all -p -r start-app start-server",
-    "bundle-dev": "webpack --mode development --progress ",
     "bundle-prod": "webpack --mode production --progress ",
+    "bundle-dev": "webpack --mode development --progress ",
+    "watch-dev": "webpack --mode development --progress --watch ",
     "build-docs": "jsdoc -c ./jsdoc.json",
     "installdev": "git submodule init && git submodule update --remote && npm install && npm update lw.comm-server",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
