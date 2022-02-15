@@ -61,7 +61,7 @@ import Toggle from 'react-toggle'
                     <dt><Icon name="github"/> <a href="https://github.com/LaserWeb">LaserWeb Github Organisation</a></dt>
                     <dd><small>- developer community</small></dd><p/>
                   </dl>
-                <h4>Creators</h4>
+                <h4>Former Developers</h4>
                   <dl>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/101442607030198502072">Todd Fleming</a>&nbsp;<a target="_blank" href="https://paypal.me/tbfleming"><Icon name="paypal"/></a></dt>
                     <dd><small>- G-Code Generation, 3D viewer, Simulator</small></dd><p/>
@@ -71,17 +71,17 @@ import Toggle from 'react-toggle'
                     <dd><small>- Support + User Interface</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/+ArielYahni">Ariel Yahni</a></dt>
                     <dd><small>- Beta testing</small></dd><p/>
-                  </dl>
-                <h4>Recent Developers</h4>
-                  <dl>
-                    <dt><Icon name="user"/> <a href="https://plus.google.com/+ClaudioPrezzi">Claudio Prezzi</a>&nbsp;<a target="_blank" href="https://paypal.me/cprezzi"><Icon name="paypal"/></a></dt>
-                    <dd><small>- Communications server, documentation</small></dd>
-                    <dd><small>- Maintenance of both the software and the community for many years</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://plus.google.com/113562432484049167641">Jorge Robles</a>&nbsp;<a target="_blank" href="https://paypal.me/JorgeDredd"><Icon name="paypal"/></a></dt>
                     <dd><small>- Settings modules, UI tweaks, Workspace Export</small></dd><p/>
+                  </dl>
+                <h4>Current Developers</h4>
+                  <dl>
+                    <dt><Icon name="user"/> <a href="https://forum.makerforums.info/u/cprezzi">Claudio Prezzi</a>&nbsp;<a target="_blank" href="https://paypal.me/cprezzi"><Icon name="paypal"/></a></dt>
+                    <dd><small>- Communications server, documentation</small></dd>
+                    <dd><small>- Maintenance of both the software and the community for many years</small></dd><p/>
                     <dt><Icon name="user"/> <a href="https://www.easytarget.org/">Owen Carter</a></dt>
                     <dd><small>- v4.1 Frontend improvements, build and packaging maintenance</small></dd>
-                    <dd><small>- Currently looking for interesting work; find me on <a target="_blank" href="https://www.linkedin.com/in/easytarget/">LinkedIn&nbsp;<Icon name="linkedin-square"/></a></small></dd><p/>
+                    <dd><small>- Currently looking for interesting work.<br/>find me on <a target="_blank" href="https://www.linkedin.com/in/easytarget/"><Icon name="linkedin-square"/>&nbsp;LinkedIn</a> or via <a target="_blank" href="https://forum.makerforums.info/u/easytarget">MakerForums</a></small></dd><p/>
                   </dl>
 
                 <div>If you would like to assist with the future development of Laserweb please find us on <a target="_blank" href="https://github.com/LaserWeb"><Icon name="github"/>&nbsp;GitHub</a>; we are especially looking for contributors with strong Javascript, React and Redux skills to help with core architecture upgrades</div>
