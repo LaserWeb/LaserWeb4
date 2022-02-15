@@ -18,6 +18,9 @@ import React from 'react'
 import { connect } from 'react-redux'
 import ReactDOM from 'react-dom';
 
+import '../styles/simbar.css';
+
+
 import { GlobalStore } from '..';
 import { setCameraAttrs, zoomArea } from '../actions/camera'
 import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, removeDocumentSelected, cloneDocumentSelected } from '../actions/document';
@@ -56,6 +59,8 @@ import { LiveJogging } from './jog'
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
 import { arucoProcess } from '../lib/omr.js';
+import { humanFileSize } from '../lib/helpers';
+import convert from 'color-convert'
 
 function calcCamera({ viewportWidth, viewportHeight, fovy, near, far, eye, center, up, showPerspective, machineX, machineY }) {
     let perspective;
@@ -80,7 +85,7 @@ const MINOR_GRID_SPACING = 10;
 const CROSSHAIR = 5
 
 class LightenMachineBounds {
-    draw(drawCommands, { perspective, view, x, y, width, height }) {
+    draw(drawCommands, { perspective, view, x, y, width, height, bedColor }) {
         if (!this.triangles || this.x !== x || this.y !== y || this.width !== width || this.height !== height) {
             this.x = x;
             this.y = y;
@@ -94,12 +99,12 @@ class LightenMachineBounds {
             ];
             this.triangles = new Float32Array(a);
         }
-        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: [1, 1, 1, 1], transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
+        drawCommands.basic2d({ perspective, view, position: this.triangles, offset: 0, count: this.triangles.length / 2, color: bedColor, transform2d: [1, 0, 0, 1, 0, 0], primitive: drawCommands.gl.TRIANGLES });
     }
 };
 
 class Grid {
-    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING }) {
+    draw(drawCommands, { perspective, view, width, height, major = MAJOR_GRID_SPACING, minor = MINOR_GRID_SPACING, xcolor, ycolor }) {
         if (!this.maingrid || !this.origin || this.width !== width || this.height !== height) {
             this.width = width;
             this.height = height;
@@ -140,25 +145,27 @@ class Grid {
         drawCommands.basic({ perspective, view, position: this.maingrid, offset: 0, count: this.maincount, color: [0.7, 0.7, 0.7, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Gray grid
         drawCommands.basic({ perspective, view, position: this.darkgrid, offset: 0, count: this.darkcount, color: [0.5, 0.5, 0.5, 0.95], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // dark grid
 
-        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [0.6, 0, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Red
-        drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [0, 0.8, 0, 1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES }); // Green
+        let rgbx = [...convert.hex.rgb(xcolor)];
+        let rgby = [...convert.hex.rgb(ycolor)];
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 0, count: 2, color: [rgbx[0]/255,rgbx[1]/255,rgbx[2]/255,1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES });
+        drawCommands.basic({ perspective, view, position: this.origin, offset: 2, count: 2, color: [rgby[0]/255,rgby[1]/255,rgby[2]/255,1], scale: [1, 1, 1], translate: [0, 0, 0], primitive: drawCommands.gl.LINES });
     }
 };
 
 function GridText(props) {
-    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height } = props;
+    let { minor = MINOR_GRID_SPACING, major = MAJOR_GRID_SPACING, width, height, xcolor, ycolor } = props;
     let size = Math.min(major / 3, 10)
     let a = [];
     for (let x = major; x <= width; x += major) {
-        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(x)} />);
-        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: '#CC0000' }} label={String(-x)} />);
+        a.push(<Text3d key={'x' + x} x={x} y={-5} size={size} style={{ color: xcolor }} label={String(x)} />);
+        a.push(<Text3d key={'x' + -x} x={-x} y={-5} size={size} style={{ color: xcolor }} label={String(-x)} />);
     }
-    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: '#CC0000' }}>X</Text3d>);
+    a.push(<Text3d key="x-label" x={width + 15} y={0} size={size} style={{ color: xcolor }}>X</Text3d>);
     for (let y = major; y <= height; y += major) {
-        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: '#00CC00' }} label={String(y)} />);
-        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: '#00CC00' }} label={String(-y)} />);
+        a.push(<Text3d key={'y' + y} x={-10} y={y} size={size} style={{ color: ycolor }} label={String(y)} />);
+        a.push(<Text3d key={'y' + -y} x={-10} y={-y} size={size} style={{ color: ycolor }} label={String(-y)} />);
     }
-    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: '#00CC00' }}>Y</Text3d>);
+    a.push(<Text3d key="y-label" x={0} y={height + 15} size={size} style={{ color: ycolor }}>Y</Text3d>);
     return <div>{a}</div>;
 }
 
@@ -204,7 +211,7 @@ class FloatingControls extends React.Component {
             drag: this.props.settings.uiFcDrag
         }
     }
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
 
         this.linkScaleChanged = e => {
             this.setState({ linkScale: e.target.checked });
@@ -455,7 +462,8 @@ class FloatingControls extends React.Component {
                                 <td rowSpan={2}>
                                     &#x2511;<br /><input type="checkbox" checked={this.state.linkScale} onChange={this.linkScaleChanged} tabIndex="10" /><br />&#x2519;
                                 </td>
-                                <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="number" step="any" tabIndex="10" /><br />
+                                <td rowSpan={2}><Input value={round(this.state.degrees)} onChangeValue={this.setDegrees} type="angle" step="any" tabIndex="10" />
+                                    <span style={{ fontSize: '120%', fontWeight: 'bold' }}>&nbsp;&deg;</span><br />
                                     <ButtonGroup>
                                         <Button bsSize="xsmall" onClick={e => this.rotate(e, false)} bsStyle="info"><Icon fw name="rotate-left"  /></Button>
                                         <Button bsSize="xsmall" onClick={e => this.rotate(e, true )} bsStyle="info"><Icon fw name="rotate-right" /></Button>
@@ -676,7 +684,7 @@ class WorkspaceContent extends React.Component {
         this.drawSelDocsState = {};
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.pointers = [];
         this.lightenMachineBounds = new LightenMachineBounds();
         this.grid = new Grid();
@@ -764,10 +772,14 @@ class WorkspaceContent extends React.Component {
             }
 
             gl.viewport(0, 0, canvas.width, canvas.height);
-            if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary)
-                gl.clearColor(.8, .8, .8, 1);
-            else
-                gl.clearColor(1, 1, 1, 1);
+            if (this.props.settings.showMachine || this.props.settings.machineAEnabled && this.props.workspace.showRotary) {
+                let rgb = [...convert.hex.rgb(this.props.settings.workSpaceColor)];
+                gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
+            } else {
+                let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
+                gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
+            }
+
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
@@ -788,8 +800,9 @@ class WorkspaceContent extends React.Component {
 
         if (this.props.settings.showMachine) {
             gl.clearDepth(1);
+            let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
             this.lightenMachineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
+		perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight, bedColor: [rgb[0]/255,rgb[1]/255,rgb[2]/255,1]
             });
             gl.clearDepth(1);
         }
@@ -799,6 +812,8 @@ class WorkspaceContent extends React.Component {
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
             minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
             major: Math.max(this.props.settings.toolGridMajorSpacing,1),
+            xcolor: this.props.settings.toolGridXColor,
+            ycolor: this.props.settings.toolGridYColor,
         });
         if (this.props.settings.showMachine)
             this.machineBounds.draw(this.drawCommands, {
@@ -818,7 +833,7 @@ class WorkspaceContent extends React.Component {
             gl.blendFunc(gl.ONE, gl.ONE);
             this.props.laserPreview.draw(
                 this.drawCommands, this.camera.perspective, this.camera.view, this.props.settings.machineBeamDiameter,
-                this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
             gl.blendEquation(gl.FUNC_ADD);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
@@ -826,15 +841,15 @@ class WorkspaceContent extends React.Component {
             let draw = () => {
                 this.props.gcodePreview.draw(
                     this.drawCommands, this.camera.perspective, this.camera.view,
-                    this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                    this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
             };
             cacheDrawing(draw, this.drawGcodeState, {
                 drawCommands: this.drawCommands,
                 width: canvas.width, height: canvas.height,
                 perspective: this.camera.perspective, view: this.camera.view,
-                g0Rate: this.props.workspace.g0Rate,
+                g0Rate: this.props.settings.simG0Rate,
                 simTime: this.props.workspace.simTime,
-                rotaryDiameter: this.props.workspace.rotaryDiameter,
+                rotaryDiameter: this.props.settings.machineAAxisDiameter,
                 arrayVersion: this.props.gcodePreview.arrayVersion,
             });
         }
@@ -864,8 +879,8 @@ class WorkspaceContent extends React.Component {
             if (this.props.workspace.showGcode || this.props.workspace.showLaser) {
                 minX = Math.min(minX, this.props.gcodePreview.minX - this.props.settings.machineBeamDiameter);
                 maxX = Math.max(maxX, this.props.gcodePreview.maxX + this.props.settings.machineBeamDiameter);
-                minY = Math.min(minY, this.props.gcodePreview.minY + this.props.gcodePreview.minA * this.props.workspace.rotaryDiameter * Math.PI / 360 - this.props.settings.machineBeamDiameter);
-                maxY = Math.max(maxY, this.props.gcodePreview.maxY + this.props.gcodePreview.maxA * this.props.workspace.rotaryDiameter * Math.PI / 360 + this.props.settings.machineBeamDiameter);
+                minY = Math.min(minY, this.props.gcodePreview.minY + this.props.gcodePreview.minA * this.props.settings.machineAAxisDiameter * Math.PI / 360 - this.props.settings.machineBeamDiameter);
+                maxY = Math.max(maxY, this.props.gcodePreview.maxY + this.props.gcodePreview.maxA * this.props.settings.machineAAxisDiameter * Math.PI / 360 + this.props.settings.machineBeamDiameter);
             }
         }
 
@@ -884,16 +899,17 @@ class WorkspaceContent extends React.Component {
             this.rotaryFrameBuffer.resize(this.props.width, this.props.height);
 
         this.drawCommands.useFrameBuffer(this.rotaryFrameBuffer, () => {
-            gl.clearColor(1, 1, 1, 1);
+            let rgb = [...convert.hex.rgb(this.props.settings.workBedColor)];
+            gl.clearColor(rgb[0]/255,rgb[1]/255,rgb[2]/255,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             let perspective = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
             let sx = 2 / (maxX - minX);
-            let sy = 2 / Math.PI / this.props.workspace.rotaryDiameter;
+            let sy = 2 / Math.PI / this.props.settings.machineAAxisDiameter;
             let band = (minY, maxY, f) => {
                 let n = 0;
-                for (let i = Math.floor(minY / Math.PI / this.props.workspace.rotaryDiameter); ; ++i) {
-                    let y = i * Math.PI * this.props.workspace.rotaryDiameter;
+                for (let i = Math.floor(minY / Math.PI / this.props.settings.machineAAxisDiameter); ; ++i) {
+                    let y = i * Math.PI * this.props.settings.machineAAxisDiameter;
                     if (y >= maxY)
                         break;
                     let view = [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, -minX * sx - 1, -y * sy - 1, 0, 1];
@@ -913,7 +929,7 @@ class WorkspaceContent extends React.Component {
                             gl.blendFunc(gl.ONE, gl.ONE);
                             this.props.laserPreview.draw(
                                 this.drawCommands, perspective, view, this.props.settings.machineBeamDiameter,
-                                this.props.settings.gcodeSMaxValue, this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                                this.props.settings.gcodeSMaxValue, this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
                             gl.blendEquation(gl.FUNC_ADD);
                             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                         });
@@ -925,7 +941,7 @@ class WorkspaceContent extends React.Component {
                         view => {
                             this.props.gcodePreview.draw(
                                 this.drawCommands, perspective, view,
-                                this.props.workspace.g0Rate, this.props.workspace.simTime, this.props.workspace.rotaryDiameter);
+                                this.props.settings.simG0Rate, this.props.workspace.simTime, this.props.settings.machineAAxisDiameter);
                         });
                 }
             }
@@ -937,16 +953,14 @@ class WorkspaceContent extends React.Component {
             width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight,
             minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1),
             major: Math.max(this.props.settings.toolGridMajorSpacing,1),
+            xcolor: this.props.settings.toolGridXColor,
+            ycolor: this.props.settings.toolGridYColor,
         });
-        if (this.props.settings.showMachine)
-            this.machineBounds.draw(this.drawCommands, {
-                perspective: this.camera.perspective, view: this.camera.view, x: machineX, y: machineY, width: this.props.settings.machineWidth, height: this.props.settings.machineHeight,
-            });
 
-        if (this.props.workspace.rotaryDiameter > 0) {
+        if (this.props.settings.machineAAxisDiameter > 0) {
             gl.enable(gl.DEPTH_TEST);
             this.cylImageMesh = this.cylImageMesh || new CylImageMesh();
-            this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.workspace.rotaryDiameter, 360, this.rotaryFrameBuffer.texture);
+            this.cylImageMesh.draw(this.drawCommands, this.camera.perspective, this.camera.view, minX, maxX, this.props.settings.machineAAxisDiameter, 360, this.rotaryFrameBuffer.texture);
             gl.disable(gl.DEPTH_TEST);
         }
 
@@ -958,7 +972,7 @@ class WorkspaceContent extends React.Component {
         this.__updating = true;
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setCamera(nextProps);
     }
 
@@ -1042,7 +1056,7 @@ class WorkspaceContent extends React.Component {
     zoom(pageX, pageY, amount) {
         let r = ReactDOM.findDOMNode(this.canvas).getBoundingClientRect();
         let camera = this.props.camera;
-        let newFovy = Math.max(.1, Math.min(Math.PI - .1, camera.fovy * amount));
+        let newFovy = Math.max(.02, Math.min(Math.PI - .02, camera.fovy * amount));
         let oldScale = vec3.distance(camera.eye, camera.center) * Math.tan(camera.fovy / 2) / (r.height / 2);
         let newScale = vec3.distance(camera.eye, camera.center) * Math.tan(newFovy / 2) / (r.height / 2);
         let dx = Math.round(pageX - (r.left + r.right) / 2) * (newScale - oldScale);
@@ -1235,6 +1249,7 @@ class WorkspaceContent extends React.Component {
             nextProps.settings.machineWidth !== this.props.settings.machineWidth || nextProps.settings.machineHeight !== this.props.settings.machineHeight ||
             nextProps.settings.machineBottomLeftX !== this.props.settings.machineBottomLeftX || nextProps.settings.machineBottomLeftY !== this.props.settings.machineBottomLeftY ||
             nextProps.settings.toolGridWidth !== this.props.settings.toolGridWidth || nextProps.settings.toolGridHeight !== this.props.settings.toolGridHeight ||
+            nextProps.settings.toolGridXColor !== this.props.settings.toolGridXColor || nextProps.settings.toolGridYColor !== this.props.settings.toolGridYColor ||
             nextProps.workspace.workOffsetX !== this.props.workspace.workOffsetX || nextProps.workspace.workOffsetY !== this.props.workspace.workOffsetY ||
             nextProps.documents !== this.props.documents ||
             nextProps.camera !== this.props.camera ||
@@ -1261,7 +1276,7 @@ class WorkspaceContent extends React.Component {
                             ref={this.setCanvas} />
                     </div>
                     <Dom3d className="workspace-content workspace-overlay" camera={this.camera} width={this.props.width} height={this.props.height} settings={this.props.settings}>
-                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: this.props.settings.toolGridMinorSpacing, major: this.props.settings.toolGridMajorSpacing }} />
+                        <GridText {...{ width: this.props.settings.toolGridWidth, height: this.props.settings.toolGridHeight, minor: Math.max(this.props.settings.toolGridMinorSpacing,0.1), major: Math.max(this.props.settings.toolGridMajorSpacing,1), xcolor: this.props.settings.toolGridXColor, ycolor: this.props.settings.toolGridYColor }} />
                     </Dom3d>
                 </Pointable>
 
@@ -1284,18 +1299,21 @@ WorkspaceContent = connect(
 )(withDocumentCache(WorkspaceContent));
 
 class Workspace extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.gcodePreview = new GcodePreview();
         this.laserPreview = new LaserPreview();
         this.setSimTime = e => {
             let { workspace } = this.props;
-            if (e.target.value >= this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate - .00001)
+            if (e.target.value >= this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate - .00001)
                 this.props.dispatch(setWorkspaceAttrs({ simTime: 1e10 }));
             else
                 this.props.dispatch(setWorkspaceAttrs({ simTime: +e.target.value }));
         };
         this.zoomMachine = this.zoomMachine.bind(this);
         this.zoomDoc = this.zoomDoc.bind(this);
+        this.zoomGcode = this.zoomGcode.bind(this);
+        this.toggleControls = this.toggleControls.bind(this);
+        this.showControls = true;
     }
 
     zoomMachine() {
@@ -1340,31 +1358,82 @@ class Workspace extends React.Component {
             }
         }
 
-        if (found)
-            this.props.dispatch(zoomArea(bounds.x1, bounds.y1, bounds.x2, bounds.y2));
+        if (found) {
+            let marginX = (bounds.x2 - bounds.x1) / 50;
+            let marginY = (bounds.y2 - bounds.y1) / 50;
+            this.props.dispatch(zoomArea(bounds.x1 - marginX, bounds.y1 - marginY, bounds.x2 + marginX, bounds.y2 + marginY));
+        }
+    }
+
+    zoomGcode() {
+        if (this.gcodePreview.array) {
+            let marginX = (this.gcodePreview.maxX - this.gcodePreview.minX) / 50;
+            let marginY = (this.gcodePreview.maxY - this.gcodePreview.minY) / 50;
+            this.props.dispatch(zoomArea(this.gcodePreview.minX - marginX, this.gcodePreview.minY - marginY, this.gcodePreview.maxX + marginX, this.gcodePreview.maxY + marginY));
+        }
+    }
+
+
+    updateSimDetails() {
+        let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
+        let simSummary = 'No Gcode loaded'
+        let codeSize = this.gcode.length;
+        if (totalSecs > 0) {
+            let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
+            let secs = totalSecs % 60;
+            let mins = Math.floor(totalSecs / 60) % 60;
+            let hrs = Math.floor(totalSecs / 3600);
+            let duty = Math.floor(activeSecs / totalSecs * 100);
+            let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
+            let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
+            if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
+            else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
+            simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
+            simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + this.gcodePreview.moves;
+        } else if (codeSize > 0) {
+            simSummary = "Analysis failed. No tool operations. Check code before using. " + humanFileSize(codeSize)
+        }
+        // CommandHistory.write(simSummary, CommandHistory.INFO);
+        $('#gcode-info-panel').html(simSummary.replace(/\. /g, '\n'));
+    }
+
+    toggleControls() {
+        this.showControls = !this.showControls;
+        if (this.showControls) {
+            $('#workspace-controls').css('height','fit-content');
+            $('#analyse-button').css('display','inline-block');
+        $('#command-history').css('display','block');
+        } else {
+            $('#workspace-controls').css('height','42px');
+            $('#analyse-button').css('display','none');
+            $('#command-history').css('display','none');
+        }
     }
 
     render() {
-        let { camera, gcode, workspace, settings, setG0Rate, setRotaryDiameter, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setRasterPreview, enableVideo } = this.props;
+        let { camera, gcode, workspace, settings, setShowPerspective, setShowGcode, setShowLaser, setShowDocuments, setShowRotary, setShowWebcam, setRasterPreview, enableVideo } = this.props;
         if (this.gcode !== gcode) {
             this.gcode = gcode;
             let parsedGcode = parseGcode(gcode);
             this.gcodePreview.setParsedGcode(parsedGcode);
             this.laserPreview.setParsedGcode(parsedGcode);
+            this.updateSimDetails();
+            workspace.simTime = 1e10;
         }
         return (
             <div id="workspace" className="full-height" style={this.props.style}>
                 <SetSize id="workspace-top">
                     <WorkspaceContent gcodePreview={this.gcodePreview} laserPreview={this.laserPreview} />
                 </SetSize>
-                <div id="workspace-controls">
+                <div id="workspace-controls" style={{ height: 'fit-content' }}>
                     <div style={{ display: 'flex' }}>
-                        <table>
+                        <table style={{ flex: 'none' }}>
                             <tbody>
-                                <tr>
+                                <tr style={{ height: '42px'}} >
                                     <td colSpan='2'>
-                                        <button className='btn btn-default' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
-                                        <button className='btn btn-default' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
+                                        <button className='btn btn-default' style={{ paddingLeft: '0.1em', paddingRight: '0.1em' }}title='Show/Hide the workspace options, analyser and console' onClick={this.toggleControls}><i className="fa fa-fw fa-bars"></i></button>
+                                        <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Machine Bed' onClick={this.zoomMachine}><i className="fa fa-fw fa-search"></i>Mach</button>
+                                        <button className='btn btn-default' style={{ marginLeft: '4px' }} title='Scale view to Loaded Documents' onClick={this.zoomDoc}><i className="fa fa-fw fa-search"></i>Doc</button>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1376,7 +1445,7 @@ class Workspace extends React.Component {
                                     <td><input checked={workspace.showGcode} onChange={setShowGcode} type="checkbox" /></td>
                                 </tr>
                                 <tr>
-                                    <td>Show Laser</td>
+                                    <td>Show Tool</td>
                                     <td><input checked={workspace.showLaser} onChange={setShowLaser} type="checkbox" /></td>
                                 </tr>
                                 <tr>
@@ -1389,36 +1458,41 @@ class Workspace extends React.Component {
                                         <td><input checked={workspace.showRotary} onChange={setShowRotary} type="checkbox" /></td>
                                     </tr>
                                 }
-                                <tr>
-                                    <td>Show Webcam</td>
-                                    <td><input checked={workspace.showWebcam} disabled={!enableVideo} onChange={setShowWebcam} type="checkbox" /></td>
-                                </tr>
+                                {enableVideo &&
+                                    <tr>
+                                        <td>Show Webcam</td>
+                                        <td><input checked={workspace.showWebcam} onChange={setShowWebcam} type="checkbox" /></td>
+                                    </tr>
+                                }
                                 <tr>
                                     <td>Show Raster Preview</td>
                                     <td><input checked={workspace.showRasterPreview} onChange={setRasterPreview} type="checkbox" /></td>
                                 </tr>
                             </tbody>
                         </table>
-                        <table style={{ marginLeft: 10 }}>
+                        <table style={{ marginLeft: '4px', height: "fit-content"}}>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div className='input-group'>
-                                            <span className='input-group-addon'>Simulator</span>
-                                            <input style={{ width: '250px' }} class='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / workspace.g0Rate} is glyphicon="transfer" />
-                                        </div>
-                                        <div className='input-group'>
-                                            <span className='input-group-addon'>Sim G0 Feed</span>
-                                            <Input style={{ width: '85px' }} className='form-control' value={workspace.g0Rate} onChangeValue={setG0Rate} type="number" step="any" />
-                                            <span className='input-group-addon'>mm/min</span>
-                                        </div>
-                                        {settings.machineAEnabled &&
-                                            <div className='input-group'>
-                                                <span className='input-group-addon'>Sim Rotary Diameter</span>
-                                                <Input style={{ width: '85px' }} className='form-control' value={workspace.rotaryDiameter} onChangeValue={setRotaryDiameter} type="number" step="any" />
-                                                <span className='input-group-addon'>mm</span>
+                                {(this.gcode.length > 0) &&
+                                    <tr style={{ height: '42px'}} >
+                                        <td>
+                                            <button className='btn btn-default' title='Scale view to current Gcode' onClick={this.zoomGcode}><i className="fa fa-fw fa-search"></i>Gcode</button>
+                                        </td>
+                                    </tr>
+                                }
+                                {(this.gcode.length > 0) &&
+                                    <tr>
+                                        <td colSpan="2">
+                                            <div className='simbar'>
+                                                <input style={{ width: this.props.settings.simBarWidth + 'em' }} className='form-control' value={workspace.simTime} onChange={this.setSimTime} type="range" step="any" max={this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate} glyphicon="transfer" />
                                             </div>
-                                        }
+                                        </td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colSpan="2">
+                                        <pre  style={{ padding: '9px 10px 5px 10px', fontSize: '90%', backgroundColor: 'inherit' }} className='help-block' id='gcode-info-panel'>
+                                            No Gcode loaded
+                                        </pre>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1427,7 +1501,7 @@ class Workspace extends React.Component {
                     </div>
                 </div>
 
-                <VideoPort width={320} height={240} enabled={enableVideo && workspace.showWebcam} draggable="parent" useCanvas={this.props.settings.toolVideoOMR} canvasProcess={this.props.settings.toolVideoOMR ? arucoProcess: null} />
+                <VideoPort width={320} enabled={enableVideo && workspace.showWebcam} draggable="parent" useCanvas={this.props.settings.toolVideoOMR} canvasProcess={this.props.settings.toolVideoOMR ? arucoProcess: null} />
                 <ImagePort width={320} height={240} enabled={workspace.showRasterPreview} draggable="parent" />
 
             </div>
@@ -1438,8 +1512,6 @@ Workspace = connect(
     state => ({ camera: state.camera, gcode: state.gcode.content, workspace: state.workspace, settings: state.settings, enableVideo: ((state.settings.toolVideoDevice !== null) || (!!state.settings.toolWebcamUrl)) }),
     dispatch => ({
         dispatch,
-        setG0Rate: v => dispatch(setWorkspaceAttrs({ g0Rate: v })),
-        setRotaryDiameter: v => dispatch(setWorkspaceAttrs({ rotaryDiameter: v })),
         setShowPerspective: e => dispatch(setCameraAttrs({ showPerspective: e.target.checked })),
         setShowGcode: e => dispatch(setWorkspaceAttrs({ showGcode: e.target.checked })),
         setShowLaser: e => dispatch(setWorkspaceAttrs({ showLaser: e.target.checked })),

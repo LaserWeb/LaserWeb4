@@ -98,7 +98,7 @@ export function getLaserCutGcode(props) {
 
         if (useBlower) {
             if (useBlower.blowerOn) {
-                gcode += `\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
+                gcode += `${useBlower.blowerOn}; Enable Air assist\r\n`;
             }
         }
 
@@ -151,7 +151,7 @@ export function getLaserCutGcode(props) {
 
         if (useBlower) {
             if (useBlower.blowerOff) {
-                gcode += `\r\n ${useBlower.blowerOff}; Disable Air assist\r\n`;
+                gcode += `${useBlower.blowerOff}; Disable Air assist\r\n`;
             }
         }
 

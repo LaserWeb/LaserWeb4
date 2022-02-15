@@ -86,9 +86,9 @@ export class ImagePort extends React.Component {
 
         let ops = this.props.data.operations.find((op) => ((op.id === this.props.data.currentOperation) && op.type.match(/Raster/gi)));
 
-        if (!ops) 
+        if (!ops)
             return false;
-        
+
         let documents = this.props.data.documents
             .filter(d => (ops.documents.includes(d.id)))
             .filter(d => (d.selected))
@@ -125,16 +125,16 @@ export class ImagePort extends React.Component {
         let canvas = <canvas ref={c => { this.canvas = c }} className="ImagePort"/>;
 
         if (this.props.draggable) {
-            return <Rnd ref={c => { this.rnd = c; }}
-                initial={{
-                    width: this.props.width || 320,
-                    height: this.props.height || 240
+            return <Rnd style={{ zIndex: 10001 }}
+                ref={c => { this.rnd = c; }}
+                default={{
+                    width: this.props.width || 320
                 }}
                 minWidth={160} minHeight={120}
                 maxWidth={800} maxHeight={600}
                 lockAspectRatio={true}
-                bounds={this.props.draggable}
-                zIndex={10001}>{canvas}</Rnd>
+                bounds={this.props.draggable}>
+                {canvas}</Rnd>
         } else {
             return <div>{canvas}</div>;
         }
@@ -174,7 +174,6 @@ export class ImageEditorButton extends React.Component {
         this.handleClick.bind(this)
         this.onModKey.bind(this)
         this.offModKey.bind(this)
-        this.state = {}
         this.__mounted=false;
     }
 
@@ -200,8 +199,6 @@ export class ImageEditorButton extends React.Component {
         document.removeEventListener('keyup', this.offModKey.bind(this))
     }
 
-
-
     handleClick(e) {
         if (e.shiftKey) {
             e.preventDefault();
@@ -211,12 +208,15 @@ export class ImageEditorButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         if (this.state.shiftKey) className += ' btn-warning'
         return (
             <Button bsStyle={this.props.bsStyle||'primary'} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{this.props.children}
-                <ImageEditor show={this.state.showModal} onHide={closeModal}  />
+                <ImageEditor show={this.state.showModal} onHide={closeModal} />
             </Button>
         )
     }
@@ -239,7 +239,7 @@ function checkRange(min, max) {
 function EnumInput(opts, def) {
     if (Array.isArray(opts))
         opts = Object.assign( ...opts.map(i=>({[i]:i})) )
-    
+
     return function({ op, field, onChangeValue, ...rest }){
         return <select value={op[field.name]}  onChange={e => onChangeValue(e.target.value)}>
             {Object.entries(opts).map((e, i)=>(<option key={i} value={e[0]}>{e[1]}</option>))}
@@ -291,7 +291,7 @@ class ImageEditor extends React.Component
                 optcurve: true,         // potrace
                 alphamax: 1,            // potrace
                 opttolerance: 0.2,      // potrace
-            }, 
+            },
             filters: {
                 smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
                 brightness: 0,          // lw.raster-to-gcode: Image brightness [-255 to +255]
@@ -334,13 +334,13 @@ class ImageEditor extends React.Component
             let svg=Potrace.getSVG(1)
             let blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
             let url = window.URL.createObjectURL(blob)
-            this.trace.onload=function(){ 
+            this.trace.onload=function(){
                 this.setState({working:false})
                 window.URL.revokeObjectURL(url);
             }.bind(this)
             this.trace.src=url;
-            this.setState({svg: svg.replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{ 
-                return `width="${wpx.toFixed(3)}mm" height="${hpx.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `} 
+            this.setState({svg: svg.replace(/width="([^\"]+)" height="([^\"]+)"/gi, (str,w,h)=>{
+                return `width="${wpx.toFixed(3)}mm" height="${hpx.toFixed(3)}mm" viewBox="0 0 ${wpx} ${hpx}" `}
             )})
         }.bind(this))
     }
@@ -367,7 +367,7 @@ class ImageEditor extends React.Component
                 .catch((e) => {
                     console.error(e)
                 })
-        
+
     }
 
     handleDownload(e){
@@ -381,7 +381,7 @@ class ImageEditor extends React.Component
         let documents = this.props.data.documents
             .filter(d => (d.selected))
 
-        
+
         clearTimeout(this.timeout)
         this.timeout=setTimeout(function(){
             if (documents.length) {
@@ -394,24 +394,24 @@ class ImageEditor extends React.Component
                 }.bind(this))
             }
         }.bind(this),200)
-        
-            
-       
+
+
+
     }
 
     render()
     {
-        
+
         return <ImageEditorModal modal={{ show: this.props.show, onHide: this.props.onHide }}
                 header="Image Editor"
                 footer={this.state.working? "Working...." : (<div>
                     <Button bsStyle="warning" onClick={e=>this.handleFilters(e)}><Icon name="warning"/> Modify source image</Button>
-                    <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button> 
-                    <Button bsStyle="info" onClick={e=>this.handleDownload(e)} disabled={!this.state.svg}><Icon name="download"/> Download</Button>    
+                    <Button onClick={e=>this.handleTrace(e)}><Icon name="eye"/> Preview Trace</Button>
+                    <Button bsStyle="info" onClick={e=>this.handleDownload(e)} disabled={!this.state.svg}><Icon name="download"/> Download</Button>
                     <Button bsStyle="success" onClick={e=>this.handleNew(e)} disabled={!this.state.svg}><Icon name="send"/> Create vector</Button>
-                    
+
                 </div>)}
-                    
+
             >
             <div className="trace-image">
                 <div className="showroom checker">
@@ -438,7 +438,7 @@ class ImageEditor extends React.Component
                     </div>
                 </div>
             </div>
-            
+
             </ImageEditorModal>
     }
 }

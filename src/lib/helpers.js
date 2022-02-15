@@ -16,12 +16,10 @@ export function appendExt(filename, ext) {
 
 export function openDataWindow(data, mimetype='text/plain;charset=utf-8', target="data")
 {
-        let blob = new Blob([data], {type: mimetype});
-        let reader = new FileReader();
-            reader.onloadend = function(e) {
-                window.open(reader.result,target);
-            }
-            reader.readAsDataURL(blob);
+    var file = new Blob([data], { type: mimetype });
+    var fileURL = URL.createObjectURL(file);
+    var win = window.open();
+    win.document.write('<title>LaserWeb</title><iframe id="gcode" src="' + fileURL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>')
 }
 
 export function isObject(item) {
@@ -63,12 +61,21 @@ export function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }
 
+export function humanFileSize(size) {
+    var i = size == 0 ? 0 : Math.floor( Math.log(size) / Math.log(1024) );
+    return ( size / Math.pow(1024, i) ).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+};
+
+export const roundToPrecision = (value, decimals) => {
+  const pow = Math.pow(10, decimals);
+  return Math.round((value + Number.EPSILON) * pow) / pow;
+};
 
 export const captureConsole = () => {
-  
+
   window.__capture=window.console;
   let captures=[];
-  
+
   window.console = {
     log(...args){
       captures.push({method:"log",args})
@@ -91,10 +98,10 @@ export const captureConsole = () => {
     window.console = window.__capture;
     if (keys === true) keys=['log','warn','error','info']
     if (keys.length){
-      
+
       captures.forEach(item => {
         if (keys.includes(item.method)) {
-          window.console[item.method].apply(null, item.args) 
+          window.console[item.method].apply(null, item.args)
         }
       })
     }

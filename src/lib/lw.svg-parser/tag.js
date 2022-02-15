@@ -108,6 +108,12 @@ class Tag {
             y += this.point.y
         }
 
+        // Reduce to SVG resolution
+        // Not currently needed since the cuting path processor closes the paths when it processes them into segments
+        // x = roundToPrecision(x,svgPrecision);
+        // y = roundToPrecision(y,svgPrecision);
+        // to implement this the value of settings.svgPrecision would need to be passed to the function somehow.
+
         // Add current point
         this.path.addPoint(x, y)
 

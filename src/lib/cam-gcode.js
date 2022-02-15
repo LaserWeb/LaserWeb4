@@ -4,12 +4,12 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -17,6 +17,9 @@
 
 import { getLaserRasterGcodeFromOp, getLaserRasterMergeGcodeFromOp } from './cam-gcode-raster'
 import { rawPathsToClipperPaths, union, xor } from './mesh';
+import { humanFileSize } from './helpers';
+import { strftime } from './strftime'//
+
 
 import { GlobalStore } from '../index'
 
@@ -25,7 +28,7 @@ import queue from 'queue';
 import hhmmss from 'hhmmss';
 
 export const expandHookGCode = (operation) =>{
-    let state = GlobalStore().getState(); 
+    let state = GlobalStore().getState();
     let macros = state.settings.macros || {};
     let op=Object.assign({},operation)
     let hooks = Object.keys(op).filter(i=>i.match(/^hook/gi))
@@ -52,16 +55,27 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
     QE.timeout = 3600 * 1000;
     QE.concurrency = settings.gcodeConcurrency || 1;
 
+    console.log('Concurrency: ' + QE.concurrency)
+
     const gcode = Array(operations.length);
     const gauge = Array(operations.length*2).fill(0)
     const workers = [];
     let jobIndex = 0;
 
+    let fullGcode = "";
+    let startCode = "";
+    let endCode = "";
+    let laserOps = false;
+    let millOps = false;
+
+    console.log('Queueing ' + operations.length + ' operation(s)');
+
     for (let opIndex = 0; opIndex < operations.length; ++opIndex) {
         let op = expandHookGCode(operations[opIndex]);
 
-        const jobDone = (g, cb) => { 
-            if (g !== false) { gcode[opIndex]=g; };  cb();
+        const jobDone = (g, cb) => {
+            if (g !== "") { gcode[opIndex]=g;};
+            cb();
         }
 
         let invokeWebWorker = (ww, props, cb, jobIndex) => {
@@ -83,7 +97,6 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 }
             }
             workers.push(peasant)
-            
             peasant.postMessage(props)
 
         }
@@ -96,7 +109,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 let filteredDocIds = [];
                 let docsWithImages = [];
 
-                let preflightWorker = require('worker-loader!./workers/cam-preflight.js');
+                let preflightWorker = require('./workers/cam-preflight.worker.js');
                 let preflight = new preflightWorker()
                 preflight.onmessage = (e) => {
                     let data = e.data;
@@ -126,30 +139,44 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         }
 
         if (op.enabled) QE.push((cb) => {
-            console.log(op.type + "->" + jobIndex)
+            console.log('Queueing Preflight: ' + op.type + "->" + opIndex);
             preflightPromise(settings, documents, opIndex, op, workers)
                 .then((preflight) => {
                     let { geometry, openGeometry, tabGeometry, filteredDocIds, docsWithImages } = preflight;
-
+                    console.log('Queueing Worker: ' + op.type + "->" + opIndex);
                     if (op.type === 'Laser Cut' || op.type === 'Laser Cut Inside' || op.type === 'Laser Cut Outside' || op.type === 'Laser Fill Path') {
-
-                        invokeWebWorker(require('worker-loader!./workers/cam-lasercut.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
+                        invokeWebWorker(require('./workers/cam-lasercut.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type === 'Laser Raster') {
-
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages, showAlert, (gcode)=>{jobDone(gcode,cb)}, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type === 'Laser Raster Merge') {
-
+                        laserOps = true;
+                        if (startCode === "") startCode = settings.gcodeStart;
+                        if (endCode === "") endCode = settings.gcodeEnd;
                         getLaserRasterMergeGcodeFromOp(settings, documentCacheHolder, opIndex, op, filteredDocIds, showAlert, (gcode) => { jobDone(gcode, cb) }, progress, jobIndex, QE.chunk, workers);
 
                     } else if (op.type.substring(0, 5) === 'Mill ') {
-
-                        invokeWebWorker(require('worker-loader!./workers/cam-mill.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        millOps = true;
+                        if (startCode === "") startCode = settings.gcodeMillStart;
+                        if (endCode === "") endCode = settings.gcodeMillEnd;
+                        if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
+                        if (endCode === "") endCode = settings.gcodeEnd;
+                        invokeWebWorker(require('./workers/cam-mill.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else if (op.type.substring(0, 6) === 'Lathe ') {
-
-                        invokeWebWorker(require('worker-loader!./workers/cam-lathe.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
+                        millOps = true;
+                        if (startCode === "") startCode = settings.gcodeMillStart;
+                        if (endCode === "") endCode = settings.gcodeMillEnd;
+                        if (startCode === "") startCode = settings.gcodeStart;  // fallback if mill specific code not defined
+                        if (endCode === "") endCode = settings.gcodeEnd;
+                        invokeWebWorker(require('./workers/cam-lathe.worker.js'), { settings, opIndex, op, geometry, openGeometry, tabGeometry }, cb, jobIndex)
 
                     } else {
                         showAlert("Unknown operation " + op.type, 'warning')
@@ -172,6 +199,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         jobIndex++
         let p = parseInt(jobIndex * QE.chunk)
         progress(p);
+        console.log('Completed a Worker: ' + jobIndex + ' of ' + QE.total);
     })
     QE.on('end', () => {
         workers.forEach((ww) => {
@@ -182,15 +210,36 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
-        let ellapsed=(new Date().getTime()-starttime)/1000;
-        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
-        done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
+        let elapsed=(new Date().getTime()-starttime)/1000;
+
+        // process and prepend the header
+        if (settings.gcodeHeader.length > 0) {
+            let header = settings.gcodeHeader.split(/\r\n|\r|\n/g);
+            for (let i = 0; i < header.length; i++)
+            {
+                let line = header[i].replace("$VERSION", settings.__version)
+                    .replace("$PROFILE", settings.__selectedProfile);
+                if (line.length > 0) {
+                    fullGcode += '; ' + strftime(line) + "\r\n";
+                } else {
+                    fullGcode += "\r\n";
+                }
+            }
+            fullGcode += "\r\n";
+        }
+        if (laserOps && millOps) {
+            showAlert('<span className="help-block">Warning: Mixed operation types detected.</span><br/>Mixing laser and mill/lathe operations in the same job is not recommended; only use the generated code if you understand the consequences and are sure this is what you want.',"warning");
+        }
+        showAlert("Gcode generation complete, elapsed: " + hhmmss(elapsed) + String(Number(elapsed-Math.floor(elapsed)).toFixed(3)).substr(1), "info");
+        if (gcode.join() === "" ) {
+            showAlert("Empty Gcode! Either there was an error during generation or the user cancelled generation.", "warning");
+        } else {
+            fullGcode += startCode + gcode.join('\r\n') + endCode;
+            showAlert("Generated Gcode size: " + fullGcode.length + " (" + humanFileSize(fullGcode.length) + ")", "info");
+        }
+        done(fullGcode);
     })
-
-
 
     return QE;
 
 } // getGcode
-
-

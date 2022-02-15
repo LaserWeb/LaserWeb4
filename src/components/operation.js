@@ -16,7 +16,7 @@
 import React from 'react'
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDocument, setOperationAttrs, clearOperations, spreadOperationField, operationLatheTurnAdd, operationLatheTurnRemove, operationLatheTurnSetAttrs } from '../actions/operation';
 import { selectDocument } from '../actions/document'
@@ -84,11 +84,11 @@ function RangeInput(minValue, maxValue) {
 
 function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: ',', clearable: true }, connector) {
     if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
-    return connect(connector)(React.createClass({
-        render: function () {
+    return connect(connector)(class extends React.Component {
+        render() {
             return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{ ...opts }} />
         }
-    }))
+    });
 
 }
 
@@ -127,7 +127,7 @@ function ColorBox(v) {
 }
 
 class FilterInput extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChange = this.onChange.bind(this);
     }
 
@@ -179,7 +179,7 @@ function NoOperationsError(props) {
 }
 
 class Field extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChangeValue = this.onChangeValue.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onFocus = this.onFocus.bind(this);
@@ -211,7 +211,7 @@ class Field extends React.Component {
             error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
 
         let Ctx = field.contextMenu;
-        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "2px dashed blue", cursor: "context-menu" }}>{field.label}</span></Ctx>) : field.label;
+        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{field.label}</span></Ctx>) : field.label;
 
         if (justControl) {
             return (
@@ -239,7 +239,7 @@ class Field extends React.Component {
 
         return (
             <GetBounds Type="tr">
-                <th width="30%">{label}</th>
+                <th width="50%">{label}</th>
                 <td>
                     <Input
                         {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
@@ -252,7 +252,7 @@ class Field extends React.Component {
 };
 
 class Doc extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.remove = e => {
             this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.isTab, this.props.id));
         }
@@ -360,11 +360,11 @@ const ifUseA = {
 };
 
 const checkZHeight = {
-    check: (v, settings) => settings.machineZEnabled && v && !isNaN(v),
+    check: (v, settings) => settings.machineZEnabled && !isNaN(v),
     error: (v, settings, op) => {
         if (!op.type.match(/^Laser/)) return false;
         if (!settings.machineZEnabled) return 'Laser Z Stage must be enabled';
-        return 'Has to be a number'
+        return 'Has to be a number';
     }
 }
 
@@ -379,6 +379,13 @@ const ifUseBlower = {
     condition: (op, settings) => {
         if (!op.type.match(/^Laser/)) return false;
         return settings.machineBlowerEnabled
+    }
+};
+
+const ifUseFluid = {
+    condition: (op, settings) => {
+        if (!op.type.match(/^Mill/) && !op.type.match(/^Lathe/)) return false;
+        return settings.machineFluidEnabled
     }
 };
 
@@ -472,14 +479,14 @@ const FieldContextMenu = (id = uuidv4()) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
-        return <div title="Right click or press long to popup context menu"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
+        return <div title="Right click or long press for options"><ContextMenuTrigger id={id} holdToDisplay={1000}>{children}</ContextMenuTrigger>{ctx}</div>
     }
 }
 
 export const OPERATION_LATHE_TURN_FIELDS = {
-    startDiameter: { name: 'startDiameter', label: 'Start Diameter', input: NumberInput, style: { width: 80 }, ...checkLatheTurn },
-    endDiameter: { name: 'endDiameter', label: 'End Diameter', input: NumberInput, style: { width: 80 } },
-    length: { name: 'length', label: 'Length', input: NumberInput, style: { width: 80 } },
+    startDiameter: { name: 'startDiameter', label: 'Start Diameter', input: NumberInput, style: { width: 80 }, ...checkLatheTurn, contextMenu: FieldContextMenu() },
+    endDiameter: { name: 'endDiameter', label: 'End Diameter', input: NumberInput, style: { width: 80 }, contextMenu: FieldContextMenu() },
+    length: { name: 'length', label: 'Length', input: NumberInput, style: { width: 80 }, contextMenu: FieldContextMenu() },
 };
 
 export const OPERATION_FIELDS = {
@@ -487,51 +494,54 @@ export const OPERATION_FIELDS = {
 
     filterFillColor: { name: 'filterFillColor', label: 'Filter Fill', units: '', input: FilterInput },
     filterStrokeColor: { name: 'filterStrokeColor', label: 'Filter Stroke', units: '', input: FilterInput },
-    direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput },
+    direction: { name: 'direction', label: 'Direction', units: '', input: DirectionInput, contextMenu: FieldContextMenu() },
 
     laserPower: { name: 'laserPower', label: 'Laser Power', units: '%', input: NumberInput, ...checkPercent, contextMenu: FieldContextMenu() },
-    laserPowerRange: { name: 'laserPowerRange', label: 'Laser Power Range', units: '%', input: RangeInput(0, 100), ...checkRange(0, 100) },
+    laserPowerMin: { name: 'laserPowerMin', label: 'Laser Power Min', units: '%', input: NumberInput, ...checkRange(0, 100), contextMenu: FieldContextMenu() },
+    laserPowerMax: { name: 'laserPowerMax', label: 'Laser Power Max', units: '%', input: NumberInput, ...checkRange(0, 100), contextMenu: FieldContextMenu() },
     laserDiameter: { name: 'laserDiameter', label: 'Laser Diameter', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
     lineDistance: { name: 'lineDistance', label: 'Line Distance', units: 'mm', input: NumberInput, ...checkPositive, contextMenu: FieldContextMenu() },
-    lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput },
-    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkToolDiameter },
-    toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle },
+    lineAngle: { name: 'lineAngle', label: 'Line Angle', units: 'deg', input: NumberInput, contextMenu: FieldContextMenu() },
+    toolDiameter: { name: 'toolDiameter', label: 'Tool Diameter', units: 'mm', input: NumberInput, ...checkToolDiameter, contextMenu: FieldContextMenu() },
+    toolAngle: { name: 'toolAngle', label: 'Tool Angle', units: 'deg', input: NumberInput, ...checkToolAngle, contextMenu: FieldContextMenu() },
 
     margin: { name: 'margin', label: 'Margin', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu() },
     passes: { name: 'passes', label: 'Passes', units: '', input: NumberInput, ...checkPositiveInt, contextMenu: FieldContextMenu() },
-    cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput },
-    stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver },
+    cutWidth: { name: 'cutWidth', label: 'Final Cut Width', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu() },
+    stepOver: { name: 'stepOver', label: 'Step Over', units: '%', input: NumberInput, ...checkStepOver, contextMenu: FieldContextMenu() },
     passDepth: { name: 'passDepth', label: 'Pass Depth', units: 'mm', input: NumberInput, ...checkPassDepth, ...ifUseZ, contextMenu: FieldContextMenu() },
-    millRapidZ: { name: 'millRapidZ', label: 'Rapid Z', units: 'mm', input: NumberInput },
-    millStartZ: { name: 'millStartZ', label: 'Start Z', units: 'mm', input: NumberInput, ...checkMillStartZ },
-    millEndZ: { name: 'millEndZ', label: 'End Z', units: 'mm', input: NumberInput, ...checkMillEndZ },
-    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: StringInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
-    segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0 },
-    ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput },
+    millRapidZ: { name: 'millRapidZ', label: 'Rapid Z', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu() },
+    millStartZ: { name: 'millStartZ', label: 'Start Z', units: 'mm', input: NumberInput, ...checkMillStartZ, contextMenu: FieldContextMenu() },
+    millEndZ: { name: 'millEndZ', label: 'End Z', units: 'mm', input: NumberInput, ...checkMillEndZ, contextMenu: FieldContextMenu() },
+    startHeight: { name: 'startHeight', label: 'Start Height', units: 'mm', input: NumberInput, contextMenu: FieldContextMenu(), ...checkZHeight, ...ifUseZ },
+    segmentLength: { name: 'segmentLength', label: 'Segment', units: 'mm', input: NumberInput, ...checkGE0, contextMenu: FieldContextMenu() },
+    ramp: { name: 'ramp', label: 'Ramp Plunge', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },
 
-    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z') },
+    plungeRate: { name: 'plungeRate', label: 'Plunge Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('Z'), contextMenu: FieldContextMenu() },
     cutRate: { name: 'cutRate', label: 'Cut Rate', units: 'mm/min', input: NumberInput, ...checkFeedRateRange('XY'), contextMenu: FieldContextMenu() },
-    toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S') },
+    toolSpeed: { name: 'toolSpeed', label: 'Tool Speed (0=Off)', units: 'rpm', input: NumberInput, ...checkFeedRateRange('S'), contextMenu: FieldContextMenu() },
 
     useA: { name: 'useA', label: 'Use A Axis', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },
-    aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA },
+    aAxisDiameter: { name: 'aAxisDiameter', label: 'A Diameter', units: 'mm', input: NumberInput, ...checkPositive, ...ifUseA, contextMenu: FieldContextMenu() },
 
     useBlower: { name: 'useBlower', label: 'Use Air Assist', units: '', input: ToggleInput, ...ifUseBlower, contextMenu: FieldContextMenu() },
+    useFluid: { name: 'useFluid', label: 'Use Fluid Assist', units: '', input: ToggleInput, ...ifUseFluid, contextMenu: FieldContextMenu() },
 
-    smoothing: { name: 'smoothing', label: 'Smoothing', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Smoothing the input image ?
+    smoothing: { name: 'smoothing', label: 'Smoothing', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },  // lw.raster-to-gcode: Smoothing the input image ?
     brightness: { name: 'brightness', label: 'Brightness', units: '', input: NumberInput, ...checkRange(-255, 255) },   // lw.raster-to-gcode: Image brightness [-255 to +255]
     contrast: { name: 'contrast', label: 'Contrast', units: '', input: NumberInput, ...checkRange(-255, 255) },         // lw.raster-to-gcode: Image contrast [-255 to +255]
     gamma: { name: 'gamma', label: 'Gamma', units: '', input: NumberInput, ...checkRange(0, 7.99) },                    // lw.raster-to-gcode: Image gamma correction [0.01 to 7.99]
     grayscale: { name: 'grayscale', label: 'Grayscale', units: '', input: GrayscaleInput },                             // lw.raster-to-gcode: Graysale algorithm [none, average, luma, luma-601, luma-709, luma-240, desaturation, decomposition-[min|max], [red|green|blue]-chanel]
     shadesOfGray: { name: 'shadesOfGray', label: 'Shades', units: '', input: NumberInput, ...checkRange(2, 256) },      // lw.raster-to-gcode: Number of shades of gray [2-256]
     invertColor: { name: 'invertColor', label: 'Invert Color', units: '', input: ToggleInput },                         // lw.raster-to-gcode
-    trimLine: { name: 'trimLine', label: 'Trim Pixels', units: '', input: ToggleInput },                                // lw.raster-to-gcode: Trim trailing white pixels
-    joinPixel: { name: 'joinPixel', label: 'Join Pixels', units: '', input: ToggleInput },                              // lw.raster-to-gcode: Join consecutive pixels with same intensity
-    burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput },                               // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
+    trimLine: { name: 'trimLine', label: 'Trim Pixels', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },                                // lw.raster-to-gcode: Trim trailing white pixels
+    joinPixel: { name: 'joinPixel', label: 'Join Pixels', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },  // lw.raster-to-gcode: Join consecutive pixels with same intensity
+    burnWhite: { name: 'burnWhite', label: 'Burn White', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },   // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: { name: 'verboseGcode', label: 'Verbose GCode', units: '', input: ToggleInput },                      // lw.raster-to-gcode: Output verbose GCode (print each commands)
-    diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-    dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput },                                   // lw.raster-to-gcode: Go diagonally (increase the distance between points)
-    overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0 },               // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
+    vertical: { name: 'vertical', label: 'Vertical', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },       // lw.raster-to-gcode: Go Vertically or reverse diagonally
+    diagonal: { name: 'diagonal', label: 'Diagonal', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },       // lw.raster-to-gcode: Go diagonally (increase the distance between points)
+    dithering: { name: 'dithering', label: 'Dithering', units: '', input: ToggleInput, contextMenu: FieldContextMenu() },     // lw.raster-to-gcode: dither image
+    overScan: { name: 'overScan', label: 'Over Scan', units: 'mm', input: NumberInput, ...checkGE0, contextMenu: FieldContextMenu() },  // lw.raster-to-gcode: This feature add some extra white space before and after each line. This leaves time to reach the feed rate before starting to engrave and can prevent over burning the edges of the raster.
 
     latheToolBackSide: { name: 'latheToolBackSide', label: 'Tool Back Side', input: ToggleInput },
     latheRapidToDiameter: { name: 'latheRapidToDiameter', label: 'Rapid To Diameter', units: 'mm', input: NumberInput, ...checkPositive },
@@ -575,25 +585,25 @@ export const OPERATION_TYPES = {
     'Laser Fill Path': { allowTabs: false, tabFields: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'lineDistance', 'lineAngle', 'laserPower', 'margin', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useA', 'aAxisDiameter', 'useBlower', ...OPERATION_GROUPS.Macros.fields] },
     'Laser Raster': {
         allowTabs: false, tabFields: false, fields: [
-            'name', 'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            'name', 'laserPowerMin', 'laserPowerMax', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'vertical', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
     'Laser Raster Merge': {
         allowTabs: false, tabFields: false, fields: [
             'name', 'filterFillColor', 'filterStrokeColor',
-            'laserPowerRange', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
-            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
+            'laserPowerMin', 'laserPowerMax', 'laserDiameter', 'passes', 'passDepth', 'startHeight', 'cutRate', 'useBlower',
+            'trimLine', 'joinPixel', 'burnWhite', 'verboseGcode', 'vertical', 'diagonal', 'overScan', 'useA', 'aAxisDiameter',
             ...OPERATION_GROUPS.Filters.fields, ...OPERATION_GROUPS.Macros.fields
         ]
     },
-    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
-    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'millRapidZ', 'millStartZ', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'hookOperationStart', 'hookOperationEnd'] },
-    'Lathe Conv Face/Turn': { skipDocs: true, tabFields: false, fields: ['name', 'latheToolBackSide', 'latheRapidToDiameter', 'latheRapidToZ', 'latheStartZ', 'latheRoughingFeed', 'latheRoughingDepth', 'latheFinishFeed', 'latheFinishDepth', 'latheFinishExtraPasses', 'latheFace', 'latheFaceEndDiameter', 'latheTurnAdd', 'latheTurns', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Pocket': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'stepOver', 'segmentLength', 'plungeRate', 'cutRate', 'useFluid', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'toolDiameter', 'segmentLength', 'plungeRate', 'cutRate', 'useFluid', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Inside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'useFluid', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill Cut Outside': { allowTabs: true, tabFields: true, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'margin', 'toolSpeed', 'millRapidZ', 'millStartZ', 'millEndZ', 'passDepth', 'cutWidth', 'toolDiameter', 'stepOver', 'plungeRate', 'cutRate', 'useFluid', 'segmentLength', 'ramp', 'hookOperationStart', 'hookOperationEnd'] },
+    'Mill V Carve': { allowTabs: false, fields: ['name', 'filterFillColor', 'filterStrokeColor', 'direction', 'toolAngle', 'millRapidZ', 'millStartZ', 'toolSpeed', 'passDepth', 'segmentLength', 'plungeRate', 'cutRate', 'useFluid', 'hookOperationStart', 'hookOperationEnd'] },
+    'Lathe Conv Face/Turn': { skipDocs: true, tabFields: false, fields: ['name', 'latheToolBackSide', 'latheRapidToDiameter', 'latheRapidToZ', 'latheStartZ', 'latheRoughingFeed', 'latheRoughingDepth', 'latheFinishFeed', 'latheFinishDepth', 'useFluid', 'latheFinishExtraPasses', 'latheFace', 'latheFaceEndDiameter', 'latheTurnAdd', 'latheTurns', 'hookOperationStart', 'hookOperationEnd'] },
 };
 
 const groupFields = (ofields) => {
@@ -645,7 +655,7 @@ const traverseDocumentTypes = (ids, documents) => {
 
 class Operation extends React.Component {
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.setType = e => this.props.dispatch(setOperationAttrs({ type: e.target.value }, this.props.op.id));
         this.setTypeString = e => this.props.dispatch(setOperationAttrs({ type: e }, this.props.op.id));
         this.toggleExpanded = e => this.props.dispatch(setOperationAttrs({ expanded: !this.props.op.expanded }, this.props.op.id));
@@ -662,7 +672,7 @@ class Operation extends React.Component {
         this.operationGroups = groupFields(OPERATION_TYPES[this.props.op.type].fields)
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
 
         if (nextProps.op.documents.length !== this.documentsCount) {
             this.documentsCount = nextProps.op.documents.length
@@ -743,7 +753,7 @@ class Operation extends React.Component {
                         <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
                             <table style={{ width: '100%', border: '2px dashed #ccc' }}>
                                 <thead>
-                                    <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small><br /><small>to add to existing operation</small></center></td></tr>
+                                    <tr><td colSpan='3'><center><small>Drag additional Document(s) here</small></center></td></tr>
                                 </thead>
                                 <tbody style={{ display: op._docs_visible ? 'block' : 'none' }}>
                                     {op.documents.map(id => {
@@ -757,6 +767,20 @@ class Operation extends React.Component {
                         </div>
                     </div>
                 );
+              else rows.push(
+                    <div key="nodocs" style={{ display: 'table-row' }}>
+                      <div style={leftStyle} />
+                      <div style={{ display: 'table-cell' }} />
+                      <div style={{ display: 'table-cell', whiteSpace: 'normal' }}>
+                          <table style={{ width: '100%', border: '2px dashed #ccc' }}>
+                              <thead>
+                                  <tr><td colSpan='3'><center><small>This operation does not use a Document source</small></center></td></tr>
+                              </thead>
+                          </table>
+                      </div>
+                    </div>
+                );
+
             rows.push(
                 <div key="attrs" style={{ display: 'table-row' }}>
                     <div style={leftStyle} />
@@ -880,8 +904,9 @@ class Operations extends React.Component {
         }
         return (
             <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '20px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
-                    <b>Drag document(s) here to add</b>
+                <div style={{ backgroundColor: '#eee', padding: '8px 16px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
+                    <span style={{ paddingRight: '1em' }} className="fa fa-fw fa-plus"></span>
+                    <b>Drag documents here from the list above</b>
                     <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
                 </div>
                 <OperationToolbar />

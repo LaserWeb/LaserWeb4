@@ -20,7 +20,7 @@ import Capture from './capture';
 import { splitterSetSize } from '../actions/splitters'
 
 class Splitter extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.mouseDown = this.mouseDown.bind(this);
         this.touchStart = this.touchStart.bind(this);
         this.mouseMove = this.mouseMove.bind(this);

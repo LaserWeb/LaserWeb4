@@ -4,6 +4,8 @@ import { compose, applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { createLogger } from 'redux-logger';
 
+import { alert } from './components/laserweb'
+
 import persistState, {mergePersistedState} from 'redux-localstorage'
 import adapter from 'redux-localstorage/lib/adapters/localStorage';
 import filter from 'redux-localstorage-filter';
@@ -32,6 +34,18 @@ const storage = compose(
 const globalstoreMiddleWare =  store => next => action => {
   next({ ...action, getState: store.getState });
 };
+
+// Prevent drag-n-drop into main window.
+window.addEventListener("dragover",function(e){
+  e = e || event;
+  e.preventDefault();
+},false);
+window.addEventListener("drop",function(e){
+  e = e || event;
+  e.preventDefault();
+  alert("Please use the <span class='fa fa-fw fa-folder-open'></span><strong>Add Document</strong> button in the files tab to import documents into LaserWeb")
+},false);
+
 
 export const getDebug = () =>{
     return window.localStorage.getItem(DEBUG_KEY)==='true';

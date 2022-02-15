@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { PanelGroup, Panel, ProgressBar} from 'react-bootstrap';
 
 import { setSettingsAttrs } from '../actions/settings';
-import { setWorkspaceAttrs } from '../actions/workspace';
+import { xOffset, yOffset } from './com';
 
 import CommandHistory from './command-history';
 
@@ -72,7 +72,7 @@ class Jog extends React.Component {
             isPlaying: playing,
             isPaused: paused,
             isM0: m0,
-            
+
             machineZEnabled: machineZEnabled,
             machineAEnabled: machineAEnabled,
 
@@ -106,19 +106,19 @@ class Jog extends React.Component {
         ]
         if (machineZEnabled){
             this.bindings=[
-                ...this.bindings,    
+                ...this.bindings,
                 [['ctrl+alt+up',toolUseNumpad?'numadd':undefined],this.jogZUp.bind(this)],
                 [['ctrl+alt+down',toolUseNumpad?'numsubtract':undefined],this.jogZDown.bind(this)]
             ]
         }
         if (machineAEnabled){
             this.bindings=[
-                ...this.bindings,   
+                ...this.bindings,
                 [['ctrl+alt+left',toolUseNumpad?'nummultiply':undefined],this.jogAplus.bind(this)],
                 [['ctrl+alt+right',toolUseNumpad?'numdivide':undefined],this.jogAminus.bind(this)]
             ]
         }
-        
+
     }
 
     componentDidMount()
@@ -148,7 +148,7 @@ class Jog extends React.Component {
                         let jogS =  Math.floor(Math.max(Math.abs(x), Math.abs(y))*jogF);
                         jogTo(jogX, jogY, undefined, true, jogS);
                     }
-                    
+
                 }.bind(this));
                 this.gamepad.on('hold','stick_axis_right',function(e){
                     let now=new Date();
@@ -167,7 +167,7 @@ class Jog extends React.Component {
                     }
                 }.bind(this));
             } else {
-                this.gamepad.resume(); 
+                this.gamepad.resume();
             }
         } else {
             if (this.gamepad) {
@@ -345,7 +345,7 @@ class Jog extends React.Component {
         let feedrate, mult = 1;
         if (units == 'mm/s') mult = 60;
         feedrate = jQuery('#jogfeedxy').val() * mult;
-        
+
         let bounds=this.getGcodeBounds(this.props.gcode)
         let power = this.props.settings.gcodeCheckSizePower / 100 * this.props.settings.gcodeSMaxValue;
         let moves = `
@@ -358,43 +358,57 @@ class Jog extends React.Component {
             G1 X` + bounds.xMin + ` Y` + bounds.yMin + `\n
             G90\n`;
 
-        console.warn(moves)
+        console.log('Sending check size Gcode:\n' + moves)
         runCommand(moves)
-        
     }
 
-    componentWillReceiveProps(props)
+    UNSAFE_componentWillReceiveProps(props)
     {
         this.checkGcodeBounds(props.gcode);
     }
 
     getGcodeBounds(gcode,decimals=3) {
-            let yMin=Number.MIN_VALUE, yMax=Number.MAX_VALUE, xMin=Number.MIN_VALUE, xMax=Number.MAX_VALUE;
+            let xMin=Number.MAX_VALUE, xMax=-Number.MAX_VALUE, yMin=Number.MAX_VALUE, yMax=-Number.MAX_VALUE
+            let movementFound=false
             let parsed=chunk(parseGcode(gcode),9);
                 parsed.forEach(([g,x,y])=>{
                     if (g && (x || y)){
-                        yMin=parseFloat(Math.max(yMin, y)).toFixed(decimals)
-                        xMin=parseFloat(Math.max(xMin, x)).toFixed(decimals)
-                        yMax=parseFloat(Math.min(yMax, y)).toFixed(decimals)
-                        xMax=parseFloat(Math.min(xMax, x)).toFixed(decimals)
+                        movementFound=true;
+                        if (x < xMin) xMin = x;
+                        if (x > xMax) xMax = x;
+                        if (y < yMin) yMin = y;
+                        if (y > yMax) yMax = y;
                     }
-                }) 
+                })
 
-            let bounds={xMin: Math.min(xMin,xMax), xMax: Math.max(xMin,xMax), yMin:Math.min(yMin,yMax) , yMax:Math.max(yMin,yMax)}
-                
-            return bounds
+            let bounds={xMin: parseFloat(xMin).toFixed(decimals), xMax: parseFloat(xMax).toFixed(decimals), yMin: parseFloat(yMin).toFixed(decimals) , yMax: parseFloat(yMax).toFixed(decimals)}
 
+            if (movementFound) {
+              console.log('Gcode bounds: Xmin= ' + bounds.xMin + ', Xmax= ' + bounds.xMax + ', Ymin= ' + bounds.yMin + ', Ymax= ' + bounds.yMax)
+              return bounds;
+            }
+            else return;
     }
 
-    checkGcodeBounds(gcode){
-        let bounds=this.getGcodeBounds(gcode)
-        let {settings} = this.props
-        if (bounds && (
-            (bounds.xMax >settings.machineWidth) || (bounds.xMin < 0) ||
-            (bounds.yMax > settings.machineHeight) || (bounds.yMin < 0))) {
-                CommandHistory.warn("Warning: Gcode out of machine bounds, can lead to running work halt")
+    checkGcodeBounds(gcode,decimals=3){
+        let bounds=this.getGcodeBounds(gcode,decimals);
+        let {settings} = this.props;
+
+        let minWorkspaceX = settings.machineBottomLeftX - xOffset;
+        let maxWorkspaceX = settings.machineBottomLeftX + settings.machineWidth - xOffset;
+        let minWorkspaceY = settings.machineBottomLeftY - yOffset;
+        let maxWorkspaceY = settings.machineBottomLeftY + settings.machineHeight - yOffset;
+
+        if (bounds && xOffset && yOffset) {
+            if ((bounds.xMin < minWorkspaceX) || (bounds.xMax > maxWorkspaceX) || (bounds.yMin < minWorkspaceY) || (bounds.yMax > maxWorkspaceY)) {
+                CommandHistory.write("Warning! Gcode out of machine bounds, can lead to running work halt." +
+                               "<br/>  Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax +
+                               "<br/>Machine bounds: Xmin= " + parseFloat(minWorkspaceX).toFixed(decimals) + ", Xmax= " + parseFloat(maxWorkspaceX).toFixed(decimals) + ", Ymin= " + parseFloat(minWorkspaceY).toFixed(decimals) + ", Ymax= " + parseFloat(maxWorkspaceY).toFixed(decimals), CommandHistory.DANGER);
                 this.setState({'warnings':"Warning: Gcode out of machine bounds, can lead to running work halt"});
+            } else {
+                CommandHistory.write("Gcode bounds: Xmin= " + bounds.xMin + ", Xmax= " + bounds.xMax + ", Ymin= " + bounds.yMin + ", Ymax= " + bounds.yMax, CommandHistory.INFO);
             }
+        }
     }
 
     laserTest() {
@@ -508,8 +522,8 @@ class Jog extends React.Component {
 
         return (
             <div style={{ paddingTop: 6 }} >
-                        <span className="badge badge-default badge-notify" title="Items in Queue" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
-                        <span className="badge badge-default badge-notify" title="Items in Queue" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
+                        <span className="badge badge-default badge-notify" title="Machine Status" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
+                        <span className="badge badge-default badge-notify" title="Job details, based on gcode lines completed and queued" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
                         <div id="mPosition" className="well well-sm" style={{ marginBottom: 7}}>
                             <div id="rX" className="drolabel">X:</div>
                             <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
@@ -971,7 +985,7 @@ export class LiveJogging extends React.Component {
         return liveJoggingState.active && !liveJoggingState.disabled;
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         liveJoggingState = { active: nextProps.active, hasHomed: nextProps.hasHomed, disabled: nextProps.disabled };
     }
 

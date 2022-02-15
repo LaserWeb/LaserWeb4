@@ -68,7 +68,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
         let raster = '';
 
         let firstMove = gc.find((line)=>{
-            return line.match(/^G[0-1]\s+[XYZ]/gi);
+            return line.match(/^G[0-1]\s+[XYZA]/gi);
         })
 
         for (let line of gc) {
@@ -96,13 +96,19 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOn) {
-                    g += `\r\n` + settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
+                    g += settings.machineBlowerGcodeOn + '; Enable Air assist\r\n';
                 }
             }
 
             if (firstMove) {
                 g+= `\r\n; First Move\r\n`;
-                g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'')+'\r\n';
+                if (op.useA) {
+                  g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'').replace(/Y(\s*-?[0-9\.]{1,})/gi, (str,float)=>{
+                      return "A"+(parseFloat(float)*axisAFactor).toFixed(3)
+                  }) + '\r\n';
+                } else {
+                  g+= firstMove.replace(/^G[0-1]/gi,'G0').replace(/S[0\.]+/gi,'') + '\r\n';
+                }
             }
 
             if (settings.machineZEnabled) {
@@ -127,7 +133,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
 
             if (op.useBlower) {
                 if (settings.machineBlowerGcodeOff) {
-                    g += `\r\n` + settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
+                    g += settings.machineBlowerGcodeOff + '; Disable Air assist\r\n';
                 }
             }
 
@@ -191,7 +197,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     ppi: { x: settings.dpiBitmap, y: settings.dpiBitmap},
                     toolDiameter: op.laserDiameter,
                     beamRange: { min: 0, max: settings.gcodeSMaxValue },
-                    beamPower: op.laserPowerRange, //Go go power rangeR!
+                    beamPower: { min: op.laserPowerMin, max: op.laserPowerMax },
                     rapidRate: false,
                     feedRate,
                     offsets: {
@@ -202,6 +208,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                     joinPixel: op.joinPixel,
                     burnWhite: op.burnWhite,
                     verboseG: op.verboseGcode,
+                    vertical: op.vertical,
                     diagonal: op.diagonal,
                     overscan: op.overScan,
                     gcodeGenerator : settings.gcodeGenerator,
@@ -231,7 +238,7 @@ export function getLaserRasterGcodeFromOp(settings, opIndex, op, docsWithImages,
                             pixels: rtg.pixels
                         }
 
-                        let rasterWorker = require('worker-loader!./workers/cam-raster.js')
+                        let rasterWorker = require('./workers/cam-raster.worker.js')
                         let r2g = new rasterWorker();
                         r2g.onmessage = function (event) {
                             if (event.data.event === 'onDone') {

@@ -92,7 +92,7 @@ function linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn) {
 // error message and returns null if there's a problem.
 function elementToLinearSnapPaths(element, minNumSegments, minSegmentLength, alertFn) {
     let path = null;
-    let Snap = require('snapsvg');
+    let Snap = require('snapsvg-cjs');
     let snapElement = Snap(element);
 
     if (snapElement.type == 'path')
@@ -171,7 +171,7 @@ export function elementToRawPaths(element, pxPerInch, minNumSegments, minSegment
 // Result is in mm. Returns multiple paths. Converts curves.
 // Calls alertFn with an error message and returns null if there's a problem.
 export function pathStrToRawPaths(str, pxPerInch, minNumSegments, minSegmentLength, alertFn) {
-    let Snap = require('snapsvg');
+    let Snap = require('snapsvg-cjs');
     let path = Snap.parsePathString(str);
     path = Snap.path.toCubic(path);
     path = linearizeSnapPath(path, minNumSegments, minSegmentLength, alertFn);

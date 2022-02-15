@@ -1,5 +1,3 @@
-import 'webrtc-adapter';
-
 import queue from 'queue';
 
 export const DEFAULT_VIDEO_RESOLUTION = "720p(HD)";

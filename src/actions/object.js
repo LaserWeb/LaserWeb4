@@ -1,6 +1,6 @@
 // TODO: need a better name than 'object'. Some name that's pretty general.
 
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 // Set attributes on an object.
 //

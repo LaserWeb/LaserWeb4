@@ -15,7 +15,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Snap from 'snapsvg';
+import Snap from 'snapsvg-cjs';
 
 const hide = [
     'LaserCut',
@@ -58,7 +58,7 @@ const types = {
 };
 
 export class OperationDiagram extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         fetch('cnctoolpath.svg')
             .then(resp => resp.text())
             .then(content => {
