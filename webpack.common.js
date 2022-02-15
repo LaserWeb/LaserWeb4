@@ -5,7 +5,6 @@ var src_path = path.resolve('./src');
 var dist_path = path.resolve('./dist');
 
 module.exports = {
-    mode: 'development',
     context: src_path,
     entry: [
         'babel-polyfill', './index.js'

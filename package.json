@@ -1,18 +1,14 @@
 {
   "name": "laserweb",
-  "version": "4.0.999",
+  "version": "4.1.0",
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
-    "start-server": "node node_modules/lw.comm-server/server.js",
-    "start-app": "webpack-dev-server --progress --open",
-    "start-prod": "webpack-dev-server -p --progress --open",
-    "start": "npm-run-all -p -r start-app start-server",
-    "bundle-prod": "webpack --mode production --progress ",
-    "bundle-dev": "webpack --mode development --progress ",
+    "start-prod": "webpack serve --progress --open --config webpack.prod.js",
+    "start-dev": "webpack serve --progress --open --config webpack.dev.js",
+    "bundle-prod": "webpack --progress --config webpack.prod.js",
+    "bundle-dev": "webpack --progress --config webpack.dev.js",
     "watch-dev": "webpack --mode development --progress --watch ",
-    "build-docs": "jsdoc -c ./jsdoc.json",
-    "installdev": "git submodule init && git submodule update --remote && npm install && npm update lw.comm-server",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
   },
   "repository": {
@@ -32,7 +28,8 @@
     "João Matos <joao@tritao.eu>",
     "Todd Fleming <jscut.org>",
     "Jorge Robles <jorge.diego.robles@gmail.com>",
-    "Claudio Prezzi <cprezzi@comsulting.ch>"
+    "Claudio Prezzi <cprezzi@comsulting.ch>",
+    "Owen Carter <owen.carter@gmail.com>"
   ],
   "license": "AGPL-3.0",
   "bugs": {
@@ -102,6 +99,8 @@
     "vex-js": "^4.1.0",
     "web-cam-cpp": "git+https://github.com/LaserWeb/web-cam-cpp.git",
     "webpack": "^5.67.0",
+    "webpack-dev-server": "^4.7.4",
+    "webpack-merge": "^5.8.0",
     "worker-loader": "^3.0.8",
     "xregexp": "^5.1.0"
   },
