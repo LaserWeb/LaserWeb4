@@ -8,7 +8,7 @@
     "start-dev": "webpack serve --progress --open --config webpack.dev.js",
     "bundle-prod": "webpack --progress --config webpack.prod.js",
     "bundle-dev": "webpack --progress --config webpack.dev.js",
-    "watch-dev": "webpack --mode development --progress --watch ",
+    "watch-dev": "webpack --progress --watch --config webpack.dev.js",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
   },
   "repository": {
