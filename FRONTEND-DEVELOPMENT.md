@@ -1,12 +1,25 @@
-# Machine Prep
+# LaserWeb4 Frontend Developers HowTo & Guide
+This guide is aimed at anybody wishing to contribute to LaserWeb4 frontend development. It shows how to setup a development machine, and how to build the Fontend using webpack (+ webpack devserver).
 
-Note; this log was generated on a Pi4 4Gb running from a SSD. However, I also test on a Pi3 Model B+. I principally develop on a x64 machine running Fedora35 with node16/npm8.
+The Frontend is highly integrated with the backend `lw.comm-server`, which serves the Frontend via HTTP and has firmware-aware routines for many control actions (jogging, etc).
+* The frontend itself is delivered as a self-contained java webapp in a folder that is deployed into the comm-server, or run standalone. 
+* Building and deploying `lw.comm-server` is not covered here. (TODO: Link to relevant docs for this)
+
+## Machine Prep
+This is still a WIP!
 
 For support please go to the MakerForums at: https://forum.makerforums.info/c/laserweb-cncweb/
 
+### Supported systems
+The basic requirement is Node >= 12, and npm >= 7.
+
+However; the 'real' requirement is node 16; several of the modules we use sitll work with Node12, but no longer formally support it and can be expected to fail sometime in the future.
+
+I use Fedora 35, node 16 and npm 8 on a fast laptop as my primary development environment, but I test and deploy my previews on a Pi 4 running Bullseye.
+
 These Instructions should work for all Pi 3 and 4 models running the Buster and Bullseye releases. Also see the [wiki](https://github.com/LaserWeb/lw.comm-server/wiki/Manual-Installation-(RasPi)) page about Pi installation for more info and notes on how to run LaserWeb4 as a service.
 
-## Machines running Bullseye
+## Raspbian/Debian Bullseye
 This is nice and easy; node 12 is part of the RPI OS release.
 
     pi@lwserver:~ $ uname -a
@@ -35,7 +48,7 @@ This is nice and easy; node 12 is part of the RPI OS release.
     pi@lwserver:~ $ npm -v
     7.5.2
 
-## Machines running Buster
+## Raspbian/Debian running Buster
 Unfortunately, Node 12 is not part of the RPI OS release (Node 10 is the standard, but we are not compatible with that) and so we need to use node 12 from nodesource.org
 
     pi@buster:~ $ uname -a
@@ -111,24 +124,24 @@ The results end up in the `dist` folder of the repo
     pi@lwserver:~/LaserWeb4 $ npm run bundle-dev
 
 The results of the build will go into the `./dist` folder in the repo.
-* You can serve them directly from there with `python3 -m http.server 8000` (& connect to port 8000 in your browser)
-* You can 'clean' the `dist` folder with `rm * && git checkout .`
+* You can serve them directly from there with `python3 -m http.server 8000` and connect to port 8000 in your browser
+* You can 'clean' the `dist` folder with `cd dist && rm * && git checkout .` (TODO: npm run clean-dist)
 
 ## CI
 WebPack allows handy ways of continuously integrating/building your local code.
 
     pi@lwserver:~/LaserWeb4 $ npm run watch-dev
 
-Will continually and quickly re-build LW4 to the `dist` folder but:
+Will continually and quickly re-build LW4 to the `dist` folder but I prefer:
 
     pi@lwserver:~/LaserWeb4 $ npm run start-dev
 
 * This is great; it builds the app, then serves it on a local port (8080 by default)
-* It then monitors the repo and fast re-builds as needed when you modify files.
+* It then monitors the repo and fast re-builds as needed when you modify files
 * The served app is restarted whenever it rebuilds, and errors get shown in the browser as well as the cli
 
 ## Production Builds
-Production builds (`npm run bundle-prod`) are smaller & faster, but slower to compile, and lacking debug mappings etc) they are intended to be used during releasing/deployment and are not of much interest here unless you are planning on releasing
+Production builds (`npm run bundle-prod`) are smaller & faster, but slower to compile, and lack debug mappings etc. They are intended to be used during releasing/deployment and are not of much interest here unless you are planning on releasing
 
 # Notes:
 
