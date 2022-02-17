@@ -1,5 +1,6 @@
 # Machine Prep
-Note; this log was generated on a Pi4 4Gb running from a SSD. However, I also test on a Pi3 Model B+ and a Pi3 Model A.
+
+Note; this log was generated on a Pi4 4Gb running from a SSD. However, I also test on a Pi3 Model B+. I principally develop on a x64 machine running Fedora35 with node16/npm8.
 
 For support please go to the MakerForums at: https://forum.makerforums.info/c/laserweb-cncweb/
 
@@ -69,11 +70,6 @@ We will ensure some required tools are in place, then run the setup script from 
     pi@buster:~ $ npm -v
     6.14.15
 
-    we also need an extra Node package not included by npm6 by standard
-    pi@buster:~ $ npm install ip
-    + ip@1.1.5
-    ... and more info about npm package states
-
 # Download the repos from GitHub
 These repos are somewhat large, the clone operations may be slow
 
@@ -88,7 +84,6 @@ These repos are somewhat large, the clone operations may be slow
     pi@lwserver:~ $ cd LaserWeb4/
     pi@lwserver:~/LaserWeb4 $ git branch
     * dev-es6
-    Here we are double-checking we are on 'dev-es6'; the current default branch.
 
     Now we must initilise and update the LW4 submodules
     pi@lwserver:~/LaserWeb4 $ git submodule init
@@ -101,73 +96,45 @@ These repos are somewhat large, the clone operations may be slow
     Submodule path 'src/data/lw.machines': checked out '685d9de193400a7bcf35d921eda21e4bedfbdc7b'
     Submodule path 'src/data/lw.materials': checked out 'dce9f9ae104030e192a9716f095988dc33c0c0cd'
 
-## Build LaserWeb4
-First we build laserweb4 and it's dependencies, then we create a new bundle for exporting to the comm-server
+## Build LaserWeb4 frontend
+First we install laserweb4's dependencies
 
-    pi@lwserver:~/lw.comm-server $ cd ~/LaserWeb4/
+    pi@lwserver:~ $ cd ~/LaserWeb4/
 
     pi@lwserver:~/LaserWeb4 $ npm install
-    ... lots of output
-    On my Pi3B+ this takes: 11m13s, on my Pi4/4Gb+ssd this takes: 4m02s
-    On a first run approximately 130Mb of packages will be downloaded and cached
 
+If you have failures here the first thing to do is 'reset' the package lock with `rm package-list.json` and trying again.
 
-
-## Generate a distribution (aka Bundle) the server build
+## Build and Generate a distribution (aka Bundle) the frontend build
 The results end up in the `dist` folder of the repo
 
     pi@lwserver:~/LaserWeb4 $ npm run bundle-dev
-    ... lots of output
-    On my Pi3B+ this takes: 2m19.803s, on my Pi4/4Gb+ssd this takes: 1m07s
-    No additional data is downloaded for this
 
-## Copy bundle into lw.comms.server
-This is done from within the lw.comm-server, it expects to find the new bundle in ../LaserWeb4
+The results of the build will go into the `./dist` folder in the repo.
+* You can serve them directly from there with `python3 -m http.server 8000` (& connect to port 8000 in your browser)
+* You can 'clean' the `dist` folder with `rm * && git checkout .`
 
-    pi@lwserver:~/LaserWeb4 $ cd ../lw.comm-server/
-    pi@lwserver:~/lw.comm-server $ npm run update_frontend
-    ... lots of output
+## CI
+WebPack allows handy ways of continuously integrating/building your local code.
 
-# Run the result
+    pi@lwserver:~/LaserWeb4 $ npm run watch-dev
 
-    pi@lwserver:~/lw.comm-server $ node server
+Will continually and quickly re-build LW4 to the `dist` folder but:
 
-    ***************************************************************
-            ---- LaserWeb Comm Server 4.1.000 ----
-    ***************************************************************
-      Use  http://127.0.1.1:8000 to connect this server.
+    pi@lwserver:~/LaserWeb4 $ npm run start-dev
 
-    * Updates:
-      Remember to check the commit log on
-      https://github.com/LaserWeb/lw.comm-server/commits/master
-      regularly, to know about updates and fixes, and then when ready
-      update accordingly by running git pull
+* This is great; it builds the app, then serves it on a local port (8080 by default)
+* It then monitors the repo and fast re-builds as needed when you modify files.
+* The served app is restarted whenever it rebuilds, and errors get shown in the browser as well as the cli
 
-    * Support:
-      If you need help / support, come over to
-      https://forum.makerforums.info/c/laserweb-cncweb/78
-    ***************************************************************
-
-    App connected! (id=0)
-    INFO: Requesting Server Config
-
-# Use
-Browse to http://lwserver:8000/ from the target workstation
-
-# Updating:
-Pull the updates in using git
-    pi@lwserver:~/lw.comm-server $ cd ~/LaserWeb4/
-    pi@lwserver:~/LaserWeb4 $ git pull
-    Already up to date.
-If any updates show up you can then re-run the Build steps again to obtain them.
+## Production Builds
+Production builds (`npm run bundle-prod`) are smaller & faster, but slower to compile, and lacking debug mappings etc) they are intended to be used during releasing/deployment and are not of much interest here unless you are planning on releasing
 
 # Notes:
-## Lots of Warnings in builds
-The lw.comm-server and LaserWeb4 `npm` builds generate a lot of warnings and depreciation notices. As of the time of this document (12 Aug 2020) none of these resulted in a failure, but they deo look quite ominous.
 
-If you are a JS/Node developer looking for a challenge, this would be a good target for some assistance in the project.
+## Not the end
+I'm still working on this... I want to add an architecture overview, style and contributing guide. I intend to have a seperate 'releasing' guide that references this.
 
 ## Caveat for Pi3 model A (and Pi2's ?)
-I have successfully followed these instructions on my 'real' target system; which is a Pi3+ model A; with only 512Mb of memory it struggled to complete the npm builds, but was successful in the end and serves LW4 very well.
+You can no longer build the frontend with a Pi3+ model A; with only 512Mb of memory it cannot compile without encountering out of memory errors.
 
-The trick on low memory systems is that the `npm` actions fail due to low memory. But this is because npm uses a lot of memory while building, and doesnt free it up during the build. Repeatedly re-starting the build after such failures generally allows `npm` to eventually complete. The main LaserWeb4 build took four restarts, each time getting further through the build process until the final reatart was successful.
