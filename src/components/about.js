@@ -79,9 +79,9 @@ import Toggle from 'react-toggle'
                     <dt><Icon name="user"/> <a href="https://forum.makerforums.info/u/cprezzi">Claudio Prezzi</a>&nbsp;<a target="_blank" href="https://paypal.me/cprezzi"><Icon name="paypal"/></a></dt>
                     <dd><small>- Communications server, documentation</small></dd>
                     <dd><small>- Maintenance of both the software and the community for many years</small></dd><p/>
-                    <dt><Icon name="user"/> <a href="https://www.easytarget.org/">Owen Carter</a></dt>
+                    <dt><Icon name="user"/> <a href="https://forum.makerforums.info/u/easytarget">Owen Carter</a>&nbsp;<a target="_blank" href="https://paypal.me/easytargetorg"><Icon name="paypal"/></a></dt>
                     <dd><small>- v4.1 Frontend improvements, build and packaging maintenance</small></dd>
-                    <dd><small>- Currently looking for interesting work.<br/>find me on <a target="_blank" href="https://www.linkedin.com/in/easytarget/"><Icon name="linkedin-square"/>&nbsp;LinkedIn</a> or via <a target="_blank" href="https://forum.makerforums.info/u/easytarget">MakerForums</a></small></dd><p/>
+                    <dd><small>- Currently looking for interesting work.<br/>find me on <a target="_blank" href="https://www.linkedin.com/in/easytarget/"><Icon name="linkedin-square"/>&nbsp;LinkedIN</a></small></dd><p/>
                   </dl>
 
                 <div>If you would like to assist with the future development of Laserweb please find us on <a target="_blank" href="https://github.com/LaserWeb"><Icon name="github"/>&nbsp;GitHub</a>; we are especially looking for contributors with strong Javascript, React and Redux skills to help with core architecture upgrades</div>
