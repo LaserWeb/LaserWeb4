@@ -1234,7 +1234,6 @@ class WorkspaceContent extends React.Component {
     }
 
     wheel(e) {
-        e.preventDefault();
         this.zoom(e.pageX, e.pageY, Math.exp(e.deltaY / 2000));
     }
 
