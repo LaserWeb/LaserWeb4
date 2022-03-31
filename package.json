@@ -4,11 +4,14 @@
   "description": "LaserWeb",
   "main": "./src/index.js",
   "scripts": {
-    "start-prod": "webpack serve --progress --open --config webpack.prod.js",
+    "start-server": "node node_modules/lw.comm-server/server.js",
     "start-dev": "webpack serve --progress --open --config webpack.dev.js",
-    "bundle-prod": "webpack --progress --config webpack.prod.js",
+    "start-prod": "webpack serve --progress --open --config webpack.prod.js",
+    "start": "npm-run-all -p -r start-dev start-server",
     "bundle-dev": "webpack --progress --config webpack.dev.js",
+    "bundle-prod": "webpack --progress --config webpack.prod.js",
     "watch-dev": "webpack --progress --watch --config webpack.dev.js",
+    "watch-prod": "webpack --progress --watch --config webpack.prod.js",
     "golive": "git checkout gh-pages && git pull && git merge dev-es6 && npm run bundle-dev && git add dist && git commit -m regen && git push && git checkout dev-es6"
   },
   "repository": {
@@ -68,6 +71,7 @@
     "keyboardjs": "^2.6.4",
     "lw.canvas-filters": "git+https://github.com/LaserWeb/lw.canvas-filters.git",
     "lw.canvas-grid": "git+https://github.com/LaserWeb/lw.canvas-grid.git",
+    "lw.comm-server": "git+https://github.com/LaserWeb/lw.comm-server.git",
     "lw.raster-to-gcode": "git+https://github.com/LaserWeb/lw.raster-to-gcode.git",
     "lw.svg-curves": "^0.1.0",
     "lw.svg-path": "^0.1.0",
