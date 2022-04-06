@@ -220,7 +220,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
                 let line = header[i].replace("$VERSION", settings.__version)
                     .replace("$PROFILE", settings.__selectedProfile);
                 if (line.length > 0) {
-                    fullGcode += '; ' + strftime(line) + "\r\n";
+                    fullGcode += "; " + strftime(line) + "\r\n";
                 } else {
                     fullGcode += "\r\n";
                 }
@@ -232,6 +232,7 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
         }
         showAlert("Gcode generation complete, elapsed: " + hhmmss(elapsed) + String(Number(elapsed-Math.floor(elapsed)).toFixed(3)).substr(1), "info");
         if (gcode.join() === "" ) {
+            fullGcode = "";
             showAlert("Empty Gcode! Either there was an error during generation or the user cancelled generation.", "warning");
         } else {
             fullGcode += startCode + gcode.join('\r\n') + endCode;
