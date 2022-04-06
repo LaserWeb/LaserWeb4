@@ -1374,19 +1374,28 @@ class Workspace extends React.Component {
 
 
     updateSimDetails() {
-        let totalSecs = Math.floor((this.gcodePreview.g1Time + this.gcodePreview.g0Dist / this.props.settings.simG0Rate) * 60);
+        let totalSecs = (this.gcodePreview.g1Time + (this.gcodePreview.g0Dist / this.props.settings.simG0Rate)) * 60;
         let simSummary = 'No Gcode loaded'
         let codeSize = this.gcode.length;
         if (totalSecs > 0) {
-            let activeSecs = Math.floor(this.gcodePreview.g1Time * 60);
-            let secs = totalSecs % 60;
+            let secs = Math.floor(totalSecs) % 60;
+            if (totalSecs < 1) {
+                secs = Number(totalSecs.toFixed(2));
+            } else if (totalSecs < 60) {
+                secs = Number(totalSecs.toFixed(1));
+            }
             let mins = Math.floor(totalSecs / 60) % 60;
             let hrs = Math.floor(totalSecs / 3600);
-            let duty = Math.floor(activeSecs / totalSecs * 100);
+            let duty = Math.floor((this.gcodePreview.g1Time * 60) / totalSecs * 100);
             let xsize = this.gcodePreview.maxX - this.gcodePreview.minX;
             let ysize = this.gcodePreview.maxY - this.gcodePreview.minY;
-            if (hrs > 0) simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
-            else simSummary = 'Estimated run time: ' + mins + 'm, '+ secs + 's. Tool duty cycle: ' + duty + '%. ';
+            if (hrs > 0) {
+                simSummary = 'Estimated run time: ' + hrs + 'h, ' + mins + 'm. Tool duty cycle: ' + duty + '%. ';
+            } else if (mins > 0) {
+                simSummary = 'Estimated run time: ' + mins + 'm, '  + secs + 's. Tool duty cycle: ' + duty + '%. ';
+            } else {
+                simSummary = 'Estimated run time: ' + secs + 's. Tool duty cycle: ' + duty + '%. ';
+            }
             simSummary += 'Size: ' + xsize.toFixed(2) + ' x ' + ysize.toFixed(2) + ' mm. ';
             simSummary += "Code: " + humanFileSize(codeSize) + ", Moves: " + this.gcodePreview.moves;
         } else if (codeSize > 0) {
