@@ -22,8 +22,8 @@ Docker user targets:
 - dev
 - test
 
-You can run the release version of the app in Docker using the commands below.
-- build release image:
+You can run the `dev` version of the app in Docker using the commands below.
+- build `dev` image:
 ```sh
 docker build --target dev -t laserweb:dev .
 ```
