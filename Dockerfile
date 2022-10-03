@@ -27,15 +27,6 @@ FROM dependencies AS test
 RUN  npm run test
 
 #
-# ---- Release ----
-FROM base AS release
-WORKDIR /usr/src/app
-# copy production node_modules
-COPY --from=dependencies /usr/src/app/node_modules node_modules
-# define CMD
-CMD [ "npm", "run", "start-server" ]
-
-#
 # ---- Dev ----
 FROM dependencies AS dev
 RUN npm install && npm install -g nodemon
