@@ -1,0 +1,24 @@
+FROM node:10-alpine AS base
+
+WORKDIR /app
+
+COPY . .
+
+RUN apk add --no-cache make gcc g++ python python3 linux-headers udev git
+RUN git config --global url."https://github.com".insteadOf "ssh://git@github.com"
+RUN npm set progress=false && npm config set depth 0
+RUN npm ci
+
+#
+# ---- Release ----
+FROM node:10-alpine
+
+ENV ENV="production"
+ENV NODE_ENV="production"
+
+WORKDIR /app
+COPY --from=base /app ./
+
+EXPOSE 8000
+
+CMD [ "npm", "run", "start-server" ]
