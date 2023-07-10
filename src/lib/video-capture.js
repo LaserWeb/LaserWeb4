@@ -230,7 +230,7 @@ export class VideoCapture {
     }
 
     scan(deviceId, resolutionId, callback) {
-        console.log("scanning media devices")
+        console.log("Hello scanning media devices")
         this.isReady = false;
         this.getDevices((devices) => {
             console.log("devices found:" + JSON.stringify(devices))
