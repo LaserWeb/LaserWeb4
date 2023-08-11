@@ -182,8 +182,8 @@ export function getGcode(settings, documents, operations, documentCacheHolder, s
 
     QE.start((err) => {
         progress(100)
-        let ellapsed=(new Date().getTime()-starttime)/1000;
-        showAlert("Ellapsed: "+hhmmss(ellapsed)+String(Number(ellapsed-Math.floor(ellapsed)).toFixed(3)).substr(1),"info");
+        let elapsed=(new Date().getTime()-starttime)/1000;
+        showAlert("Elapsed: "+hhmmss(elapsed)+String(Number(elapsed-Math.floor(elapsed)).toFixed(3)).substr(1),"info");
         done(settings.gcodeStart + gcode.join('\r\n') + settings.gcodeEnd);
     })
 
