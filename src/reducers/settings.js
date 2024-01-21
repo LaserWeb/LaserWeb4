@@ -135,7 +135,8 @@ export const SETTINGS_INITIALSTATE = {
     gcodeCurvePrecision: 0.1,
 
     comServerVersion: 'not connected',
-    comServerIP: 'localhost:8000',
+    comServerIP: (typeof location.host === 'undefined') ? 'localhost:8000' : location.host,
+    comServerSecure: (typeof location.protocol === 'undefined') ? false : (location.protocol === 'https:'),
     comServerConnect: false,
     comInterfaces: [],
     comPorts: [],
