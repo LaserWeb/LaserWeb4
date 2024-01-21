@@ -68,9 +68,10 @@ class Com extends React.Component {
         let that = this;
         let {settings, dispatch} = this.props;
         let server = settings.comServerIP;
+        let protocol = settings.comServerSecure ? 'wss:' : 'ws:';
         CommandHistory.write('Connecting to Server @ ' + server, CommandHistory.INFO);
         //console.log('Connecting to Server ' + server);
-        socket = io('ws://' + server);
+        socket = io(protocol + '//' + server);
 
         socket.on('connect', function(data) {
             serverConnected = true;
@@ -508,6 +509,9 @@ class Com extends React.Component {
                 <PanelGroup>
                     <Panel collapsible header="Server Connection" bsStyle="primary" eventKey="1" defaultExpanded={false}>
                         <TextField {...{ object: settings, field: 'comServerIP', setAttrs: setSettingsAttrs, description: 'Server IP' }} />
+			<div className="toggleField">
+                            <ToggleField {...{ object: settings, field: 'comServerSecure', setAttrs: setSettingsAttrs, description: 'Secure connection' }} />
+                        </div>
                         <ButtonGroup>
                             <Button id="connectS" bsClass="btn btn-xs btn-info" onClick={(e)=>{this.handleConnectServer(e)}}><Icon name="share" /> Connect</Button>
                             <Button id="disconnectS" bsClass="btn btn-xs btn-danger" onClick={(e)=>{this.handleDisconnectServer(e)}}><Glyphicon glyph="trash" /> Disconnect</Button>
