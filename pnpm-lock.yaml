@@ -133,32 +133,32 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
       react:
-        specifier: ^16.14.0
-        version: 16.14.0
+        specifier: ^18.3.1
+        version: 18.3.1
       react-bootstrap:
         specifier: ^0.31.2
-        version: 0.31.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 0.31.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-contextmenu:
         specifier: ^2.11.0
-        version: 2.14.0(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 2.14.0(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-dom:
-        specifier: ^16.14.0
-        version: 16.14.0(react@16.14.0)
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       react-draggable:
         specifier: ^4.4.4
-        version: 4.5.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 4.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-redux:
         specifier: ^5.1.1
-        version: 5.1.2(react@16.14.0)(redux@3.7.2)
+        version: 5.1.2(react@18.3.1)(redux@3.7.2)
       react-rnd:
         specifier: ^8.0.2
-        version: 8.0.2(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 8.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-select:
         specifier: ^1.3.0
-        version: 1.3.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 1.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-toggle:
         specifier: ^4.1.1
-        version: 4.1.2(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 4.1.2(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       redux:
         specifier: ^3.7.2
         version: 3.7.2
@@ -1794,9 +1794,6 @@ packages:
   jquery@3.6.0:
     resolution: {integrity: sha512-JVzAR/AjBvVt2BmYhxRCSYysDsPcssdmTFnzyLEts9qNwmjmu4JTAMYubEfwVOSwpQ1I1sKKFcxhZCI2buerfw==}
 
-  js-tokens@3.0.2:
-    resolution: {integrity: sha512-RjTcuD4xjtthQkaWH7dFlH85L+QaVtSoOyGdZ3g6HFhS9dFNDfLyqgm2NFe2X6cQpeFmt0452FJjFG5UameExg==}
-
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -2203,10 +2200,10 @@ packages:
       react: ^0.14.0 || ^15.0.0 || ^16.0.1
       react-dom: ^0.14.0 || ^15.0.0 || ^16.0.1
 
-  react-dom@16.14.0:
-    resolution: {integrity: sha512-1gCeQXDLoIqMgqD3IO2Ah9bnf0w9kzhwN5q4FGnHZ67hBm9yePzB5JJAIQCc8x3pFnNlwFq4RidZggNAAkzWWw==}
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
-      react: ^16.14.0
+      react: ^18.3.1
 
   react-draggable@3.0.5:
     resolution: {integrity: sha512-qo76q6+pafyGllbmfc+CgWfOkwY9v3UoJa3jp6xG2vdsRY8uJTN1kqNievLj0uVNjEqCvZ0OFiEBxlAJNj3OTg==}
@@ -2262,8 +2259,8 @@ packages:
       react: '>= 15.3.0 < 18'
       react-dom: '>= 15.3.0 < 18'
 
-  react@16.14.0:
-    resolution: {integrity: sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==}
+  react@18.3.1:
+    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
@@ -2357,8 +2354,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  scheduler@0.19.1:
-    resolution: {integrity: sha512-n/zwRWRYSUj0/3g/otKDRPMh6qv2SYMWNq85IEa8iZyAv8od9zDYpGSnpBEjNgcMNq6Scbu5KfIPxNF72R/2EA==}
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
   schema-utils@3.3.0:
     resolution: {integrity: sha512-pN/yOAvcC+5rQ5nERGuwrjLlYvLTbCibnZ1I7B1LaiAz9BRBlE9GMgE/eqV30P7aJQUf7Ddimy/RsbYO/GrVGg==}
@@ -4640,8 +4637,6 @@ snapshots:
 
   jquery@3.6.0: {}
 
-  js-tokens@3.0.2: {}
-
   js-tokens@4.0.0: {}
 
   jsesc@3.1.0: {}
@@ -4714,7 +4709,7 @@ snapshots:
 
   loose-envify@1.4.0:
     dependencies:
-      js-tokens: 3.0.2
+      js-tokens: 4.0.0
 
   lru-cache@5.1.1:
     dependencies:
@@ -4946,9 +4941,9 @@ snapshots:
 
   process-nextick-args@2.0.1: {}
 
-  prop-types-extra@1.1.1(react@16.14.0):
+  prop-types-extra@1.1.1(react@18.3.1):
     dependencies:
-      react: 16.14.0
+      react: 18.3.1
       react-is: 16.13.1
       warning: 4.0.3
 
@@ -4998,7 +4993,7 @@ snapshots:
 
   re-resizable@4.7.1: {}
 
-  react-bootstrap@0.31.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-bootstrap@0.31.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       babel-runtime: 6.26.0
       classnames: 2.3.1
@@ -5006,102 +5001,98 @@ snapshots:
       invariant: 2.2.4
       keycode: 2.2.1
       prop-types: 15.8.0
-      prop-types-extra: 1.1.1(react@16.14.0)
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      react-overlays: 0.7.4(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      uncontrollable: 4.1.0(react@16.14.0)
+      prop-types-extra: 1.1.1(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-overlays: 0.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      uncontrollable: 4.1.0(react@18.3.1)
       warning: 3.0.0
 
-  react-contextmenu@2.14.0(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-contextmenu@2.14.0(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       classnames: 2.3.1
       object-assign: 4.1.1
       prop-types: 15.8.1
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-dom@16.14.0(react@16.14.0):
+  react-dom@18.3.1(react@18.3.1):
     dependencies:
       loose-envify: 1.4.0
-      object-assign: 4.1.1
-      prop-types: 15.8.0
-      react: 16.14.0
-      scheduler: 0.19.1
+      react: 18.3.1
+      scheduler: 0.23.2
 
-  react-draggable@3.0.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-draggable@3.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       classnames: 2.3.1
       prop-types: 15.8.0
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-draggable@4.5.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-draggable@4.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       clsx: 2.1.1
       prop-types: 15.8.1
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-input-autosize@2.2.2(react@16.14.0):
+  react-input-autosize@2.2.2(react@18.3.1):
     dependencies:
       prop-types: 15.8.0
-      react: 16.14.0
+      react: 18.3.1
 
   react-is@16.13.1: {}
 
   react-lifecycles-compat@3.0.4: {}
 
-  react-overlays@0.7.4(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-overlays@0.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       classnames: 2.3.1
       dom-helpers: 3.4.0
       prop-types: 15.8.0
-      prop-types-extra: 1.1.1(react@16.14.0)
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
+      prop-types-extra: 1.1.1(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       warning: 3.0.0
 
-  react-redux@5.1.2(react@16.14.0)(redux@3.7.2):
+  react-redux@5.1.2(react@18.3.1)(redux@3.7.2):
     dependencies:
       '@babel/runtime': 7.16.5
       hoist-non-react-statics: 3.3.2
       invariant: 2.2.4
       loose-envify: 1.4.0
       prop-types: 15.8.0
-      react: 16.14.0
+      react: 18.3.1
       react-is: 16.13.1
       react-lifecycles-compat: 3.0.4
       redux: 3.7.2
 
-  react-rnd@8.0.2(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-rnd@8.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       re-resizable: 4.7.1
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      react-draggable: 3.0.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-draggable: 3.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tslib: 1.9.3
 
-  react-select@1.3.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-select@1.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       classnames: 2.3.1
       prop-types: 15.8.0
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      react-input-autosize: 2.2.2(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-input-autosize: 2.2.2(react@18.3.1)
 
-  react-toggle@4.1.2(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-toggle@4.1.2(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       classnames: 2.3.1
       prop-types: 15.8.1
-      react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react@16.14.0:
+  react@18.3.1:
     dependencies:
       loose-envify: 1.4.0
-      object-assign: 4.1.1
-      prop-types: 15.8.0
 
   readable-stream@2.3.8:
     dependencies:
@@ -5196,10 +5187,9 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  scheduler@0.19.1:
+  scheduler@0.23.2:
     dependencies:
       loose-envify: 1.4.0
-      object-assign: 4.1.1
 
   schema-utils@3.3.0:
     dependencies:
@@ -5453,10 +5443,10 @@ snapshots:
       media-typer: 0.3.0
       mime-types: 2.1.35
 
-  uncontrollable@4.1.0(react@16.14.0):
+  uncontrollable@4.1.0(react@18.3.1):
     dependencies:
       invariant: 2.2.4
-      react: 16.14.0
+      react: 18.3.1
 
   undici-types@7.24.6: {}
 
