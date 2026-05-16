@@ -33,7 +33,7 @@ import { getGenerator } from "./action2gcode/gcode-generator";
 //      gcodeToolOff:  Laser off (may be empty)
 //      gcodeSMaxValue: Max S value
 export function getLaserCutGcode(props) {
-    let { paths, generator, scale, offsetX, offsetY, decimal, cutFeed, laserPower, passes,
+    let { paths, generator, scale, offsetX, offsetY, decimal, cutFeed, laserPower, laserHasIntensity, passes,
         useA, aAxisDiameter,
         tabGeometry, gcodeToolOn, gcodeToolOff,
         gcodeLaserIntensity, gcodeLaserIntensitySeparateLine, gcodeSMinValue, gcodeSMaxValue,
@@ -98,7 +98,7 @@ export function getLaserCutGcode(props) {
 
         if (useBlower) {
             if (useBlower.blowerOn) {
-                gcode += `\r\n ${useBlower.blowerOn}; Enable Air assist\r\n`;
+                gcode += `${useBlower.blowerOn}; Enable Air assist\r\n`;
             }
         }
 
@@ -126,15 +126,14 @@ export function getLaserCutGcode(props) {
                     gcode += `; Pass Z Height ${zHeight}mm (Offset: ${useZ.offsetZ}mm)\r\n`;
                     gcode += 'G0 Z' + zHeight.toFixed(decimal) + '\r\n\r\n';
                 }
-
                 gcode += generator.toolOn(gcodeToolOn, {i:laserOnS});
 
                 for (let i = 1; i < selectedPath.length; ++i) {
-                    if (i == 1 && gcodeLaserIntensitySeparateLine)
+                    if (i == 1 && gcodeLaserIntensitySeparateLine && laserHasIntensity)
                         gcode += laserOnS + '\n';
                     let action = convertPoint(selectedPath[i], false);
                     //gcode += convertPoint(selectedPath[i], false);
-                    if (i == 1 && !gcodeLaserIntensitySeparateLine)
+                    if (i == 1 && !gcodeLaserIntensitySeparateLine && laserHasIntensity)
                         action.i = laserOnS;
                         //gcode += ' ' + laserOnS;
                     if (i == 1 && !useA)
@@ -151,7 +150,7 @@ export function getLaserCutGcode(props) {
 
         if (useBlower) {
             if (useBlower.blowerOff) {
-                gcode += `\r\n ${useBlower.blowerOff}; Disable Air assist\r\n`;
+                gcode += `${useBlower.blowerOff}; Disable Air assist\r\n`;
             }
         }
 
@@ -237,6 +236,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         "\r\n; Paths:        " + camPaths.length +
         "\r\n; Passes:       " + op.passes +
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
+        (settings.machineLaserHasIntensity ? "" : "\r\n; Laser intensity output (S) disabled in settings") +
         "\r\n;\r\n";
 
     if (op.hookOperationStart.length) gcode += op.hookOperationStart;
@@ -252,6 +252,7 @@ export function getLaserCutGcodeFromOp(settings, opIndex, op, geometry, openGeom
         decimal: 2,
         cutFeed: op.cutRate * feedScale,
         laserPower: op.laserPower,
+        laserHasIntensity: settings.machineLaserHasIntensity,
         passes: op.passes,
         useA: op.useA,
         useZ: settings.machineZEnabled ? {

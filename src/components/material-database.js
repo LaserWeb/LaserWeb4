@@ -32,7 +32,12 @@ import { cast } from '../lib/helpers'
 import { AllowCapture } from './capture'
 import Splitter from './splitter'
 
-import { alert, prompt, confirm, vex } from './laserweb';
+import { alert, prompt, confirm } from './laserweb';
+
+var vex = require('vex-js')
+import 'vex-js/dist/css/vex.css';
+import 'vex-js/dist/css/vex-theme-os.css';
+
 
 import '../styles/material-database.css'
 
@@ -45,20 +50,15 @@ export const MATERIALDATABASE_VALIDATION_RULES = {
 
 
 export function ValidateMaterial(bool = true, rules = MATERIALDATABASE_VALIDATION_RULES, data = null) {
-
     if (!data)
         data = Object.assign({}, GlobalStore().getState().materialdatabase)
-
     let check = new Validator(data, rules);
-
     if (bool)
         return check.passes();
-
     return check;
 }
 
 function MaterialModal({ modal, className, header, footer, children, ...rest }) {
-
     return (
         <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
             <Modal.Header closeButton>
@@ -68,10 +68,8 @@ function MaterialModal({ modal, className, header, footer, children, ...rest }) 
                 {children}
             </Modal.Body>
             {footer ? <Modal.Footer>{footer}</Modal.Footer> : undefined}
-
         </Modal>
     )
-
 }
 
 let shouldShow = (operation, filter) => {
@@ -79,9 +77,7 @@ let shouldShow = (operation, filter) => {
         return true;
     if (filter === "*" || operation.machine_profile === null)
         return true;
-
     return filter.split(",").includes(operation.machine_profile)
-
 }
 
 
@@ -204,10 +200,10 @@ class GroupsPane extends React.Component {
                     </div>
                     <div className="listing">
                         {this.props.items.map((item, i) => {
-                            return <heading id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
+                            return <div id={item.id} key={i} onClick={(e) => this.props.onMaterialSelected(item.id)} className={(this.props.itemId == item.id) ? 'active' : undefined}>
                                 <h5 title={item._locked ? "This grouping is locked. Will be reset on next application start." : undefined} >{item.name} {item._locked===true ? <Icon name="lock" /> : (item._locked===false ? <Icon name="gift" /> : undefined)}</h5>
                                 <small>{item.notes}</small>
-                            </heading>
+                            </div>
                         })}
                     </div>
 
@@ -493,18 +489,18 @@ export class Details extends React.Component {
         this.state = { open: this.props.open || false }
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.open !== undefined)
             this.setState({ ...this.state, open: nextProps.open || this.state.open })
     }
 
     render() {
         return <div className={"details " + (this.props.className ? this.props.className : "")} style={this.props.style}>
-            <heading>
+            <h5>
 
                 <div className="summary" onClick={() => this.setState({ open: !this.state.open })}><Icon name={this.state.open ? 'chevron-up' : 'chevron-down'} />&nbsp;{this.props.handler}</div>
                 {this.props.header}
-            </heading>
+            </h5>
             <Collapse in={this.state.open}>
                 <div className="content">{this.props.children}</div>
             </Collapse>
@@ -558,10 +554,10 @@ class MaterialDatabasePicker extends React.Component {
                 <div className="materialPicker">
                     {this.props.groups.map((item, i) => {
                         return <section key={i}>
-                            <heading>
+                            <h5>
                                 <h4>{item.name}</h4>
                                 <small>{item.notes}</small>
-                            </heading>
+                            </h5>
 
                             {item.presets.map((op, j) => {
                                 if (shouldShow(op, this.state.selectedProfile)) {
@@ -662,7 +658,11 @@ export class MaterialDatabaseButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
 
         return (
             <Button bsStyle="primary" block onClick={() => this.setState({ showModal: true })}>{this.props.children}<MaterialDatabaseEditor show={this.state.showModal} onHide={closeModal} /></Button>
@@ -759,7 +759,11 @@ export class MaterialPickerButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         //if (this.state.shiftKey) className += ' btn-warning'
         return (
@@ -807,7 +811,7 @@ export class MaterialSaveButton extends React.Component {
         e.preventDefault();
         this.handleNewPreset(this.props.operation)
     }
-    
+
     handleNewPreset(operation) {
         let opts = this.props.groups.filter(group=>(!group._locked)).map((group)=>{ return {label: group.name, value: group.name}})
         choose("Operation grouping?", opts, DEFAULT_GROUPING_NAME, (grouping) => {
@@ -820,7 +824,11 @@ export class MaterialSaveButton extends React.Component {
     }
 
     render() {
-        let closeModal = () => this.setState({ showModal: false });
+        //let closeModal = () => this.setState({ showModal: false });
+        let closeModal = (e) => {
+            if (e) { e.stopPropagation()};
+            this.setState({ showModal: false });
+        }
         let className = this.props.className;
         //if (this.state.shiftKey) className += ' btn-warning'
         return (

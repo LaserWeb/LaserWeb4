@@ -149,7 +149,7 @@ export default class CommandHistory extends React.Component {
 
     render() {
         return (
-            <div className="commandHistory" style={this.props.style}>
+            <div id="command-history" className="commandHistory" style={this.props.style}>
                 <div ref="code" className="code"></div>
                 <div className="form">
                     <Icon name="terminal" fw={true} />

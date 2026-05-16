@@ -14,7 +14,7 @@ import convert from 'color-convert'
 
 // <input> for text and number fields
 export class Input extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onChange = this.onChange.bind(this);
         this.setInput = this.setInput.bind(this);
     }
@@ -55,7 +55,7 @@ export class Input extends React.Component {
 };
 
 class TooltipFormGroup extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.handleBlur = this.handleBlur.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
         this.setState({ hasFocus: false })
@@ -102,7 +102,7 @@ export class NumberField extends React.Component {
             <Input Component={FormControl} type="number" onChangeValue={v => dispatch(setAttrs({ [field]: v }, object.id))} value={object[field]} {...rest} />
             {errors ? <FormControl.Feedback /> : undefined}
             {units ? <InputGroup.Addon>{units}</InputGroup.Addon> : undefined}
-            
+
         </InputGroup>;
 
 
@@ -114,14 +114,14 @@ export class NumberField extends React.Component {
 }
 
 export function TextField({object, field, description, units = "", setAttrs, dispatch, labelAddon, info, ...rest}) {
-    if (labelAddon !== false) 
+    if (labelAddon !== false)
         labelAddon = true;
     let isTextArea = typeof (rest.rows) != "undefined";
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let tooltip = <Tooltip id={"toolip_" + field} >{errors}</Tooltip>;
     let input = <InputGroup style={{ width: "100%" }}>
-    
+
         {(!isTextArea && labelAddon!==false) ? (<InputGroup.Addon>{description}{info}</InputGroup.Addon>) : undefined}
         {(!isTextArea) ? (
             <FormControl
@@ -147,7 +147,7 @@ export function TextField({object, field, description, units = "", setAttrs, dis
 
 }
 
-/* 
+/*
     formats ["a","b"] as [{label:"a",value:"a"... }]
     formats { "a": "b", "c":"d"} as [{label:"a", value: "b"},{label:"c":value:"d"}]
     keeps   [{label:"a", value:"b"}]
@@ -165,7 +165,7 @@ function selectOptions(arr) {
             }
         })
     }
-    return result; 
+    return result;
 }
 export class SelectField extends React.Component {
 
@@ -207,7 +207,7 @@ export function ToggleField({object, field, description, units = "", setAttrs, d
 
 }
 
-export function QuadrantField({object, field, description, setAttrs, dispatch, ...rest}) {
+export function QuadrantField({object, field, description, setAttrs, dispatch, info, ...rest}) {
     let hasErrors = typeof (rest.errors) !== "undefined" && rest.errors !== null && typeof (rest.errors[field]) !== "undefined";
     let errors = hasErrors ? rest.errors[field].join(". ") : null; delete rest.errors;
     let radios = ["TL", "TR", "C", "BL", "BR"];
@@ -228,7 +228,7 @@ export function QuadrantField({object, field, description, setAttrs, dispatch, .
     }
 
     let input = <div>
-        <label>{description}</label>
+        <label>{description}</label> {info}
         <svg className="quadrantField" width="65" height="65">
             <path className="bkg" d="M52.8,62.9H10.5c-5.5,0-10-4.5-10-10V10.5c0-5.5,4.5-10,10-10h42.3c5.5,0,10,4.5,10,10v42.3 C62.9,58.4,58.4,62.9,52.8,62.9z" />
             <g className={areaClass('TL')} onClick={onClick('TL')}><circle cx="11.8" cy="11.8" r="9.8" /><path id="XMLID_37_" d="M12.1,9.2h-1.7v7.4H8.5V9.2H6.7V7.4h5.5V9.2z" /><path id="XMLID_39_" d="M12.9,16.6V7.4h1.9v7.4h2.7v1.7H12.9z" /></g>
@@ -326,7 +326,7 @@ export class InputRangeField extends React.Component {
         let state = Object.assign(this.state, { [key]: parseFloat(v) })
             state.min = Math.max(Math.min(this.props.maxValue, state.min), this.props.minValue)
             state.max = Math.max(Math.min(this.props.maxValue, state.max), this.props.minValue)
-       
+
         this.props.onChangeValue(state);
         this.setState(state)
     }
@@ -338,7 +338,7 @@ export class InputRangeField extends React.Component {
                 this.props.onChangeValue(state);
                 this.setState(state)
         }
-            
+
     }
 
     render() {
@@ -368,30 +368,43 @@ export function Info(content,title='Help',alignment='right', trigger="focus") {
 export class ColorPicker extends React.Component{
     constructor(props){
         super(props)
-        this.state={color:"#000000"}
+	if (this.props.color) {
+            this.state={color: this.props.color}
+        } else {
+            this.state={color:"#000000"}
+        }
         this.handleClick=this.handleClick.bind(this)
     }
     handleClick(modifiers) {
         if (this.props.onClick) {
-            if (modifiers.shiftKey) 
+            if (modifiers.shiftKey)
                 return this.props.onClick(null)
 
             let value;
             switch(this.props.to){
-                default:{
-                    value=[...convert.hex.rgb(this.state.color),1]
-                }
+                case  "rgba":
+                    // Use float decimal (0-1) for rgb values because WebGL uses that
+                    let rgb = convert.hex.rgb(this.state.color);
+                    value=[rgb[0]/255, rgb[1]/255, rgb[2]/255, 1]
+                    break;
+                case "hex":
+                default:
+                    value=this.state.color
             }
             this.props.onClick(value)
         }
     }
     render(){
-        return <div className={"btn-colorPicker "+(this.props.disabled?"disabled":"")}>
-            <ModButton bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
-                <Icon name={this.props.icon} />
-                <Icon name={this.props.icon} data-event="shiftKey" data-eventClassName='btn-danger' />
-            </ModButton>
-            <input disabled={this.props.disabled} type="color" value={this.state.color} onChange={e=>this.setState({color: e.target.value})}/>
+        // Shift Modifier is not used in LW at present
+        //    <ModButton bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
+        //        <Icon name={this.props.icon} /></span>
+        //        <Icon name={this.props.icon} data-event="shiftKey" data-eventClassName='btn-danger' />
+        //    </ModButton>
+        return <div style={this.props.style} className={"btn-colorPicker "+(this.props.disabled?"disabled":"")}>
+            <Button bsSize="xsmall" disabled={this.props.disabled}  bsStyle={this.props.bsStyle} onClick={this.handleClick}>
+                <span title="Apply selected color"><Icon name={this.props.icon} /></span>
+            </Button>
+            <input title="Select a color" disabled={this.props.disabled} type="color" value={this.state.color} onChange={e=>this.setState({color: e.target.value})}/>
         </div>
     }
 }
@@ -410,13 +423,13 @@ export class ModButton extends React.Component {
     onModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
         if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
-        
+
     }
 
     offModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
         if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
-        
+
     }
 
     componentDidMount() {
@@ -441,7 +454,7 @@ export class ModButton extends React.Component {
         let child= this.props.children.filter(c=>(!c.props['data-event'] || events.includes(c.props['data-event']))).slice().pop();
         let className = this.props.className;
             if (child.props['data-eventClassName']) className += ' '+child.props['data-eventClassName']
-        
+
         return (
             <Button disabled={this.props.disabled} bsStyle={this.props.bsStyle} bsSize={this.props.bsSize || 'small'} className={className} onClick={(e) => this.handleClick(e)}>{child}</Button>
         )
@@ -456,7 +469,7 @@ export class SearchButton extends React.Component {
         this.state={search: this.props.search}
     }
 
-    componentWillReceiveProps(nextProps)
+    UNSAFE_componentWillReceiveProps(nextProps)
     {
         this.setState({search: nextProps.search})
     }
@@ -474,6 +487,6 @@ export class SearchButton extends React.Component {
         </FormGroup></Popover>
 
         return <OverlayTrigger trigger="click" placement={this.props.placement || "top"} overlay={pop}><Button bsStyle={this.props.bsStyle} bsSize={this.props.bsSize}>{this.props.children}</Button></OverlayTrigger>
-        
+
     }
 }

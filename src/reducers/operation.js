@@ -2,7 +2,7 @@
 
 import { getParentIds, object, objectArray } from '../reducers/object'
 
-import arrayMove from 'array-move'
+import {arrayMoveImmutable} from 'array-move'
 
 import { GlobalStore } from '../index';
 
@@ -18,7 +18,9 @@ export const OPERATION_INITIALSTATE = {
     filterStrokeColor: null,
     direction: 'Conventional',
     laserPower: 100,
-    laserPowerRange: { min: 0, max: 100 },
+    laserPowerMin: 0,
+    laserPowerMax: 100,
+    laserPowerCutoff: 0,
     laserDiameter: 0,
     toolDiameter: 0,
     lineDistance: 0,
@@ -29,7 +31,7 @@ export const OPERATION_INITIALSTATE = {
     toolSpeed: 0,
     stepOver: 40,
     passDepth: 0,
-    startHeight: '',
+    startHeight: 0,
     millRapidZ: 0,
     millStartZ: 0,
     millEndZ: 0,
@@ -43,6 +45,7 @@ export const OPERATION_INITIALSTATE = {
     useA: false,
     aAxisDiameter: 0,
     useBlower: false,
+    useFluid: false,
     smoothing: false,       // lw.raster-to-gcode: Smoothing the input image ?
     brightness: 0,          // lw.raster-to-gcode: Image brightness [-255 to +255]
     contrast: 0,            // lw.raster-to-gcode: Image contrast [-255 to +255]
@@ -54,6 +57,7 @@ export const OPERATION_INITIALSTATE = {
     joinPixel: true,        // lw.raster-to-gcode: Join consecutive pixels with same intensity
     burnWhite: true,        // lw.raster-to-gcode: [true = G1 S0 | false = G0] on inner white pixels
     verboseGcode: false,    // lw.raster-to-gcode: Output verbose GCode (print each commands)
+    vertical: false,        // lw.raster-to-gcode: Go vertically / reverse diagonal
     diagonal: false,        // lw.raster-to-gcode: Go diagonally (increase the distance between points)
     dithering: false,       // lw.raster-to-gcode: Floyd Steinberg dithering
     latheToolBackSide: false,
@@ -91,8 +95,14 @@ export const OPERATION_DEFAULTS = (state) => {
     if (!state) state = GlobalStore().getState()
     return {
         laserDiameter: state.settings.machineBeamDiameter,
+        lineDistance: state.settings.machineBeamDiameter,
+        burnWhite: state.settings.machineBurnWhite,
         useBlower: state.settings.machineBlowerEnabled,
-        startHeight: isFinite(state.settings.machineZStartHeight) ? state.settings.machineZStartHeight : '',
+        useFluid: state.settings.machineFluidEnabled,
+        millRapidZ: state.settings.machineRapidZ,
+        startHeight: state.settings.machineZStartHeight,
+        aAxisDiameter: state.settings.machineAAxisDiameter,
+        segmentLength:  state.settings.gcodeSegmentLength,
     }
 }
 
@@ -137,7 +147,7 @@ export const operations = (state, action) => {
                 newIndex = 0;
             if (newIndex > state.length - 1)
                 newIndex = state.length - 1;
-            return arrayMove(state.slice(), index, newIndex);
+            return arrayMoveImmutable(state.slice(), index, newIndex);
         case 'OPERATION_SET_ATTRS':
             if (action.payload.attrs.expanded)
                 state = state.map(op => ({ ...op, expanded: op.id === action.payload.id }));

@@ -43,7 +43,7 @@ class MarlinGenerator extends AbstractGenerator{
   move(prefix, params){
     let gcode = "";
 
-    if(params.hasOwnProperty("s")){
+    if(params.hasOwnProperty("s") && this.settings.laserHasIntensity){
       if(this.settings.gcodeToolOn.indexOf("$INTENSITY") > -1){
         gcode += `${this.settings.gcodeToolOn.split("$INTENSITY").join(this.settings.gcodeLaserIntensity+params.s)}\r\n`;
       }else{

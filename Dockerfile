@@ -1,36 +1,57 @@
 #
 # ---- Base Node ----
-FROM node:10-alpine AS base
+FROM node:16-bullseye AS base
 # set working directory
 WORKDIR /usr/src/app
-
-# copy project file
-COPY package*.json ./
+# Set up Apt, install build tooling and udev
+RUN apt update
+RUN apt install -y build-essential udev
+# Upgrade npm and set node options
+RUN npm install -g npm
+RUN npm set progress=false
+# Set the port the container serves on
 EXPOSE 8000
-# copy app sources
-COPY . .
+
+#
+# ---- comm-server ----
+FROM base AS comm-server
+# Run npm install and add nodemon + lw comm server from Git
+#  (Currently use --force to allow for broken deps, this should be removed once the dep tree is fixed
+RUN npm install -g nodemon && npm install --force lw.comm-server@git+https://github.com/LaserWeb/lw.comm-server.git
+
+# ---- Release ----
+# This will use the git head version of lw.comm-server + the LW app version bundled with that.
+#  it DOES NOT build and serve the version of LaserWeb in this repo
+#
+FROM comm-server AS release
+WORKDIR /usr/src/app
+# define CMD
+CMD [ "node", "node_modules/lw.comm-server/server.js"]
 
 #
 # ---- Dependencies ----
 FROM base AS dependencies
-RUN apk add --no-cache make gcc g++ python python3 linux-headers udev git
-RUN git config --global url."https://github.com".insteadOf "ssh://git@github.com"
 # install node packages
-RUN npm set progress=false && npm config set depth 0
-RUN npm ci
+# Run npm install and add nodemon + lw comm server from Git
+#  (Currently use --force to allow for broken deps, this should be removed once the dep tree is fixed
+# copy app sources
+COPY . .
+RUN npm -force install && npm install --force lw.comm-server@git+https://github.com/LaserWeb/lw.comm-server.git
 
 #
-# ---- Test ----
-# run linters, setup and tests
-FROM dependencies AS test
-#RUN  npm run lint && npm run setup && npm run test
-RUN  npm run test
+# ---- Bash (helpful for debug) ----
+FROM dependencies AS bash
+WORKDIR /usr/src/app
+# define CMD
+CMD [ "bash" ]
 
 #
 # ---- Dev ----
 FROM dependencies AS dev
-RUN npm install && npm install -g nodemon
-# copy production node_modules
-COPY --from=dependencies /usr/src/app/node_modules node_modules
+WORKDIR /usr/src/app
+# Bundle the development build
+RUN npm run bundle-dev
+# Install into lw-comm-server
+RUN rm -rfv node_modules/lw.comm-server/app/* && cp -prv dist/* node_modules/lw.comm-server/app/
 # define CMD
-CMD [ "npm", "run", "start-server" ]
+CMD [ "node", "node_modules/lw.comm-server/server.js"]

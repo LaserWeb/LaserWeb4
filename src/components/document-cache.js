@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
@@ -34,11 +36,11 @@ export class DocumentCacheHolder extends React.Component {
         return { documentCacheHolder: this };
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.setDocuments(this.props.documents);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setDocuments(nextProps.documents);
     }
 
@@ -157,9 +159,9 @@ export class DocumentCacheHolder extends React.Component {
             </div >
         );
     }
-};
+}
 DocumentCacheHolder.childContextTypes = {
-    documentCacheHolder: React.PropTypes.any,
+    documentCacheHolder: PropTypes.any,
 };
 
 export function withDocumentCache(Component) {
@@ -171,7 +173,7 @@ export function withDocumentCache(Component) {
         }
     };
     Wrapper.contextTypes = {
-        documentCacheHolder: React.PropTypes.any,
+        documentCacheHolder: PropTypes.any,
     };
     return Wrapper;
 }

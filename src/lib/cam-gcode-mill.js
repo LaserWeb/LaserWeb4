@@ -36,7 +36,7 @@ import { mmToClipperScale, offset, rawPathsToClipperPaths, union } from './mesh'
 //      tabZ:           Z position over tabs (required if tabGeometry is not empty) (gcode units)
 export function getMillGcode(props) {
     let { paths, ramp, scale, useZ, offsetX, offsetY, decimal, topZ, botZ, safeZ, passDepth,
-        plungeFeed, cutFeed, tabGeometry, tabZ, toolSpeed } = props;
+        plungeFeed, cutFeed, tabGeometry, tabZ, toolSpeed, useFluid } = props;
 
     let plungeFeedGcode = ' F' + plungeFeed;
     let cutFeedGcode = ' F' + cutFeed;
@@ -114,6 +114,10 @@ export function getMillGcode(props) {
                 if (selectedPath.length === 0)
                     continue;
 
+                if (useFluid && useFluid.fluidOn) {
+                    gcode += `${useFluid.fluidOn}; Enable Fluid assist\r\n`;
+                }
+
                 if (!useZ) {
                     let selectedZ;
                     if (selectedIndex & 1)
@@ -177,6 +181,9 @@ export function getMillGcode(props) {
             if (useZ)
                 break;
         } // while (finishedZ > botZ)
+        if (useFluid && useFluid.fluidOff) {
+            gcode += `${useFluid.fluidOff}; Disable Fluid assist\r\n`;
+        }
         gcode += retractGcode;
     } // pathIndex
 
@@ -270,6 +277,7 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         "\r\n; Pass Depth:   " + op.passDepth +
         "\r\n; Plunge rate:  " + op.plungeRate + ' ' + settings.toolFeedUnits +
         "\r\n; Cut rate:     " + op.cutRate + ' ' + settings.toolFeedUnits +
+        "\r\n; Fluid:        " + op.useFluid +
         "\r\n;\r\n";
 
     if (op.hookOperationStart.length) gcode += op.hookOperationStart;
@@ -279,6 +287,10 @@ export function getMillGcodeFromOp(settings, opIndex, op, geometry, openGeometry
         ramp: op.ramp,
         scale: 1 / mmToClipperScale,
         useZ: op.type === 'Mill V Carve',
+        useFluid: op.useFluid ? {
+            fluidOn: settings.machineFluidGcodeOn,
+            fluidOff: settings.machineFluidGcodeOff,
+        } : false,
         offsetX: 0,
         offsetY: 0,
         decimal: 3,

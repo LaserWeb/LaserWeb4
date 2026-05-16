@@ -39,7 +39,7 @@ export function selectedDocuments(documents) {
 }
 
 class DocumentLabel extends React.Component {
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);

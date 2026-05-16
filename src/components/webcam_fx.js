@@ -170,7 +170,7 @@ export class Coordinator extends React.Component {
             this.props.onStop(this.state.position)
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setState({ position: nextProps.position.map(parseFloat) })
     }
 
@@ -229,7 +229,7 @@ export class PerspectiveWebcam extends React.Component {
             this.props.onStop(this.state);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setState({ ...nextProps.perspective })
     }
 
@@ -326,7 +326,7 @@ export class VideoControls extends React.Component {
             this.props.onChange(state);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         let { width, height } = getSizeByVideoResolution(nextProps.videoHeight, nextProps.resolution)
         this.setState({
             lens: nextProps.lens,

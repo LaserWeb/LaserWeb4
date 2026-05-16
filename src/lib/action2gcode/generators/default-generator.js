@@ -60,7 +60,7 @@ class DefaultGenerator extends AbstractGenerator{
     if(params.hasOwnProperty("i"))
       gcode += ` ${params.i}`;
 
-    if(params.hasOwnProperty("s"))
+    if(params.hasOwnProperty("s") && this.settings.laserHasIntensity)
       gcode += ` S${params.s}`;
 
     if(params.hasOwnProperty("f"))

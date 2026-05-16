@@ -4,6 +4,7 @@
 
 body, html, .full-height {
     height: 100%;
+    background-color: #F8F8F8;
 }
 
 /*Hack for smaller inputs / selects in BS */
@@ -89,7 +90,11 @@ body, html, .full-height {
 }
 
 .floating-controls input[type="number"] {
-    width: 54px;
+    width: 5em;
+}
+
+.floating-controls input[type="angle"] {
+    width: 3em;
 }
 
 .origin-controls button {
@@ -191,10 +196,12 @@ body, html, .full-height {
 }
 
 .form-group .input-group-addon ,
-.form-group label, h5.header { text-transform: uppercase; font-size: smaller; }
+.form-group label, h5.header { text-transform: uppercase; font-size: smaller; padding: 4px 8px; }
 h5.header {font-weight: bold}
 
 .form-control-feedback {margin-left: -36px; display:inline-block; right:auto}
+
+.has-feedback .form-control {padding-right: 12px}
 
 .form-compact .form-group {
   font-size: 0.8em;
@@ -653,7 +660,7 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 }
 .trace-image .controls {display:flex; flex-direction: row; align-items: flex-start;}
 .trace-image .controls > div {
-     width: 50%; 
+     width: 50%;
 }
 .trace-image .controls > div + div { padding: 0 5px}
 .trace-image .controls > div > div {display: flex; flex-direction: row; align-items: flex-start; align-content: flex-start}
@@ -665,20 +672,20 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 
 .checker {
     background-image:
-      -moz-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%), 
+      -moz-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
       -moz-linear-gradient(-45deg, rgba(0,0,0,0.1) 25%, transparent 25%),
       -moz-linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.1) 75%),
       -moz-linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.1) 75%);
     background-image:
-      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)), 
+      -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)),
       -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, rgba(0,0,0,0.1)), color-stop(.25, transparent)),
       -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1))),
       -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, rgba(0,0,0,0.1)));
 
     -moz-background-size:50px 50px;
     background-size:50px 50px;
-    -webkit-background-size:50px 51px; 
-    
+    -webkit-background-size:50px 51px;
+
     background-position:0 0, 25px 0, 25px -25px, 0px 25px;
 }
 
@@ -693,12 +700,12 @@ canvas.ImagePort {width: 100%; height:100%; background:#ffffff; pointer-events:'
 .btn-toolbar-default {background-color: #eee; padding: 2px}
 .btn-colorPicker {display:inline-flex; align-items: top }
 .btn-colorPicker .btn {border-right:none}
-.btn-colorPicker input[type="color"] {margin: 0 2px 0 0}
+.btn-colorPicker input[type="color"] {margin: 0 2px 0 0; width: 36px;}
 
 .releases > div {
 
      max-height: 10em; width: 98%;
      overflow-y: auto;
-     padding: 0.5em; margin: 1em 0 1em 0; border: 1px solid green; 
+     padding: 0.5em; margin: 1em 0 1em 0; border: 1px solid green;
      border-radius: 5px
 }
