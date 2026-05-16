@@ -50,6 +50,47 @@ $('body').on('keyup', function (ev) {
 
 let liveJoggingState = { hasHomed: false, active: false, disabled: true }
 
+function Divider() {
+    return <li role="separator" className="divider"></li>;
+}
+
+function DropdownAction({ id, icon, onClick, children }) {
+    return  <li id={id}><a href="#" onClick={onClick}><i className={`fa fa-fw fa-${icon}`} aria-hidden="true"></i>{children}</a></li>;
+}
+
+function DropdownHeader({ icon, children }) {
+    return <li role="presentation" className="dropdown-header"><i className={`fa fa-fw fa-${icon}`} aria-hidden="true"></i>{children}</li>;
+}
+
+function AxisControl({ jogRef, axis, canMax, color }) {
+    let axisLower = axis.toLowerCase();
+
+    return <>
+        <div id={`r${axis}`} className="drolabel">{axis}:</div>
+        <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
+            <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: color }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span className="fa-stack fa-1x">
+                    <i className="fa fa-caret-down fa-stack-1x"></i>
+                </span>
+            </button>
+            <ul className="dropdown-menu">
+                <DropdownHeader icon="hand-o-down"><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</DropdownHeader>
+                <DropdownAction id={`${axis}ProbeMin`} icon="arrow-up" onClick={() => jogRef.probe(`${axisLower}-`)}>Probe {axis} Min</DropdownAction>
+                {canMax ? <DropdownAction id={`${axis}ProbeMax`} icon="arrow-down" onClick={() => jogRef.probe(axisLower)}>Probe {axis} Max</DropdownAction> : null}
+                <Divider />
+                <DropdownHeader icon="crop"><b>Work Coordinates</b></DropdownHeader>
+                <DropdownAction id={`home${axis}`} icon="home" onClick={() => jogRef.home(axisLower)}>Home {axis} Axis</DropdownAction>
+                <DropdownAction id={`zero${axis}`} icon="crosshairs" onClick={() => jogRef.setZero(axisLower)}>Set {axis} Axis Zero</DropdownAction>
+                <Divider />
+                <DropdownHeader icon="arrows"><b>Move</b></DropdownHeader>
+                <DropdownAction id={`goto${axis}Zero`} icon="play" onClick={() => jogRef.gotoZero(axisLower)}>G0 to {axis}0</DropdownAction>
+            </ul>
+        </div>
+        <div id={`m${axis}`} className="droPos" style={{ marginRight: 0, backgroundColor: color }}>0.00</div><div className="droUnit" style={{ backgroundColor: color }}> mm</div>
+        <br />
+    </>;
+}
+
 /**
  * Jog component.
  *
@@ -525,104 +566,10 @@ class Jog extends React.Component {
                         <span className="badge badge-default badge-notify" title="Machine Status" id="machineStatus" style={{ marginRight: 5 }}>Not Connected</span>
                         <span className="badge badge-default badge-notify" title="Job details, based on gcode lines completed and queued" id="queueCnt" style={{ marginRight: 5 }}>Queued: 0</span>
                         <div id="mPosition" className="well well-sm" style={{ marginBottom: 7}}>
-                            <div id="rX" className="drolabel">X:</div>
-                            <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#ffdbdb' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span className="fa-stack fa-1x">
-                                        <i className="fa fa-caret-down fa-stack-1x"></i>
-                                    </span>
-                                </button>
-                                <ul className="dropdown-menu">
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                    <li id="XProbeMin"><a href="#" onClick={(e) => { this.probe('x-') }}><i className="fa fa-fw fa-arrow-right" aria-hidden="true"></i>Probe X Min</a></li>
-                                    <li id="XProbeMax"><a href="#" onClick={(e) => { this.probe('x') }}><i className="fa fa-fw fa-arrow-left" aria-hidden="true"></i>Probe X Max</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                    <li id="homeX"><a href="#" onClick={(e) => { this.home('x') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home X Axis</a></li>
-                                    <li id="zeroX"><a href="#" onClick={(e) => { this.setZero('x') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set X Axis Zero</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoXZero"><a href="#" onClick={(e) => { this.gotoZero('x') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to X0</a></li>
-                                </ul>
-                            </div>
-                            <div id="mX" className="droPos" style={{ marginRight: 0, backgroundColor: '#ffdbdb' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#ffdbdb' }}> mm</div>
-                            <br />
-
-                            <div id="rY" className="drolabel">Y:</div>
-                            <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbffdf' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span className="fa-stack fa-1x">
-                                        <i className="fa fa-caret-down fa-stack-1x"></i>
-                                    </span>
-                                </button>
-                                <ul className="dropdown-menu">
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                    <li id="YProbeMin"><a href="#" onClick={(e) => { this.probe('y-') }}><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe Y Min</a></li>
-                                    <li id="YProbeMax"><a href="#" onClick={(e) => { this.probe('y') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Y Max</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                    <li id="homeY"><a href="#" onClick={(e) => { this.home('y') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Y Axis</a></li>
-                                    <li id="zeroY"><a href="#" onClick={(e) => { this.setZero('y') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Y Axis Zero</a></li>
-                                    <li role="separator" className="divider"></li>
-                                    <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                    <li id="gotoYZero"><a href="#" onClick={(e) => { this.gotoZero('y') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Y0</a></li>
-                                </ul>
-                            </div>
-                            <div id="mY" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbffdf' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbffdf' }}> mm</div>
-                            <br />
-
-                            {machineZEnabled && (
-                                <div>
-                                    <div id="rZ" className="drolabel">Z:</div>
-                                    <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                        <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#dbe8ff' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-caret-down fa-stack-1x"></i>
-                                            </span>
-                                        </button>
-                                        <ul className="dropdown-menu">
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                            <li id="ZProbeMin"><a href="#" onClick={(e) => { this.probe('z-') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe Z Min</a></li>
-                                            <li role="separator" className="divider"></li>
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                            <li id="homeZ"><a href="#" onClick={(e) => { this.home('z') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home Z Axis</a></li>
-                                            <li id="zeroZ"><a href="#" onClick={(e) => { this.setZero('z') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set Z Axis Zero</a></li>
-                                            <li role="separator" className="divider"></li>
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                            <li id="gotoZZero"><a href="#" onClick={(e) => { this.gotoZero('z') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to Z0</a></li>
-                                        </ul>
-                                    </div>
-                                    <div id="mZ" className="droPos" style={{ marginRight: 0, backgroundColor: '#dbe8ff' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#dbe8ff' }}> mm</div>
-                                    <br />
-                                </div>
-                            )}
-
-                            {machineAEnabled && (
-                                <div>
-                                    <div id="rA" className="drolabel">A:</div>
-                                    <div className="btn-group dropdown" style={{ marginLeft: -3 }}>
-                                        <button id="" type="button" className="btn btn-sm btn-default" style={{ padding: 2, top: -3, backgroundColor: '#fffbcf' }} data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <span className="fa-stack fa-1x">
-                                                <i className="fa fa-caret-down fa-stack-1x"></i>
-                                            </span>
-                                        </button>
-                                        <ul className="dropdown-menu">
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-hand-o-down" aria-hidden="true"></i><b>Probe Stock</b><br />NB: Manually jog to ensure other<br />axes are clear first</li>
-                                            <li id="AProbeMin"><a href="#" onClick={(e) => { this.probe('a-') }}><i className="fa fa-fw fa-arrow-up" aria-hidden="true"></i>Probe A Min</a></li>
-                                            <li id="AProbeMax"><a href="#" onClick={(e) => { this.probe('a') }}><i className="fa fa-fw fa-arrow-down" aria-hidden="true"></i>Probe A Max</a></li>
-                                            <li role="separator" className="divider"></li>
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-crop" aria-hidden="true"></i><b>Work Coordinates</b></li>
-                                            <li id="homeA"><a href="#" onClick={(e) => { this.home('a') }}><i className="fa fa-fw fa-home" aria-hidden="true"></i>Home A Axis</a></li>
-                                            <li id="zeroA"><a href="#" onClick={(e) => { this.setZero('a') }}><i className="fa fa-fw fa-crosshairs" aria-hidden="true"></i>Set A Axis Zero</a></li>
-                                            <li role="separator" className="divider"></li>
-                                            <li role="presentation" className="dropdown-header"><i className="fa fa-fw fa-arrows" aria-hidden="true"></i><b>Move</b></li>
-                                            <li id="gotoAZero"><a href="#" onClick={(e) => { this.gotoZero('a') }}><i className="fa fa-fw fa-play" aria-hidden="true"></i>G0 to A0</a></li>
-                                        </ul>
-                                    </div>
-                                    <div id="mA" className="droPos" style={{ marginRight: 0, backgroundColor: '#fffbcf' }}>0.00</div><div className="droUnit" style={{ backgroundColor: '#fffbcf' }}> mm</div>
-                                    <br />
-                                </div>
-                            )}
+                            <AxisControl jogRef={this} axis="X" canMax={true} color="#ffdbdb" />
+                            <AxisControl jogRef={this} axis="Y" canMax={true} color="#dbffdf" />
+                            {machineZEnabled ? <AxisControl jogRef={this} axis="Z" canMax={false} color="#dbe8ff" /> : null}
+                            {machineAEnabled ? <AxisControl jogRef={this} axis="A" canMax={true} color="#fffbcf" /> : null}
 
                             <div id="overrides">
                                 <div className="drolabel">F:</div>
