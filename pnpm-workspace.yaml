@@ -1,0 +1,5 @@
+allowBuilds:
+  '@serialport/bindings': true
+  core-js: false
+  core-js-pure: false
+  node-hid: true
