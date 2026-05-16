@@ -17,30 +17,18 @@ importers:
       json-stringify-safe:
         specifier: ^5.0.1
         version: 5.0.1
-      markdown-loader:
-        specifier: ^8.0.0
-        version: 8.0.0(webpack@5.106.2)
       object.omit:
         specifier: ^3.0.0
         version: 3.0.0
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
-      script-loader:
-        specifier: ^0.7.2
-        version: 0.7.2
       snapsvg-cjs:
         specifier: ^0.0.6
         version: 0.0.6(eve@0.5.4)
-      string-loader:
-        specifier: 0.0.1
-        version: 0.0.1
       vex-dialog:
         specifier: ^1.1.0
         version: 1.1.0
-      webpack-cli:
-        specifier: ^4.9.2
-        version: 4.10.0(webpack-dev-server@4.15.2)(webpack@5.106.2)
     devDependencies:
       ajv:
         specifier: ^8.9.0
@@ -141,6 +129,9 @@ importers:
       lw.svg-path:
         specifier: ^0.1.0
         version: 0.1.0
+      markdown-loader:
+        specifier: ^8.0.0
+        version: 8.0.0(webpack@5.106.2)
       marked:
         specifier: ^4.0.10
         version: 4.3.0
@@ -195,6 +186,9 @@ importers:
       redux-logger:
         specifier: ^3.0.6
         version: 3.0.6
+      script-loader:
+        specifier: ^0.7.2
+        version: 0.7.2
       sillyname:
         specifier: ^0.1.0
         version: 0.1.0
@@ -204,6 +198,9 @@ importers:
       socket.io-client:
         specifier: ^4.4.1
         version: 4.8.3
+      string-loader:
+        specifier: 0.0.1
+        version: 0.0.1
       style-loader:
         specifier: ^3.3.1
         version: 3.3.4(webpack@5.106.2)
@@ -225,6 +222,9 @@ importers:
       webpack:
         specifier: ^5.67.0
         version: 5.106.2(postcss@8.5.14)(webpack-cli@4.10.0)
+      webpack-cli:
+        specifier: ^4.9.2
+        version: 4.10.0(webpack-dev-server@4.15.2)(webpack@5.106.2)
       webpack-dev-server:
         specifier: ^4.7.4
         version: 4.15.2(webpack-cli@4.10.0)(webpack@5.106.2)

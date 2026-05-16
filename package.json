@@ -103,19 +103,19 @@
     "webpack-dev-server": "^4.7.4",
     "webpack-merge": "^5.8.0",
     "worker-loader": "^3.0.8",
-    "xregexp": "^5.1.0"
+    "xregexp": "^5.1.0",
+    "webpack-cli": "^4.9.2",
+    "markdown-loader": "^8.0.0",
+    "string-loader": "0.0.1",
+    "script-loader": "^0.7.2"
   },
   "dependencies": {
     "bootstrap-range-input": "^1.0.0",
     "dxf": "^4.6.1",
     "json-stringify-safe": "^5.0.1",
-    "markdown-loader": "^8.0.0",
     "object.omit": "^3.0.0",
     "prop-types": "^15.8.1",
-    "script-loader": "^0.7.2",
     "snapsvg-cjs": "^0.0.6",
-    "string-loader": "0.0.1",
-    "vex-dialog": "^1.1.0",
-    "webpack-cli": "^4.9.2"
+    "vex-dialog": "^1.1.0"
   }
 }
