@@ -7,7 +7,7 @@ var dist_path = path.resolve('./dist');
 module.exports = {
     context: src_path,
     entry: [
-        'babel-polyfill', './index.js'
+        '@babel/polyfill', './index.js'
     ],
     output: {
         path: dist_path,
@@ -20,8 +20,7 @@ module.exports = {
             use: [{
                 loader: 'babel-loader',
                 options: {
-                    presets: ['react'],
-                    plugins: ['transform-es2015-destructuring', 'transform-es2015-parameters', 'transform-object-rest-spread', 'transform-es2015-modules-commonjs']
+                    presets: ['@babel/preset-env', '@babel/preset-react']
                 }
             }],
         },
