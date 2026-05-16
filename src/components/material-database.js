@@ -34,10 +34,7 @@ import Splitter from './splitter'
 
 import { alert, prompt, confirm } from './laserweb';
 
-var vex = require('vex-js')
-import 'vex-js/dist/css/vex.css';
-import 'vex-js/dist/css/vex-theme-os.css';
-
+var vex = require('../lib/vex')
 
 import '../styles/material-database.css'
 

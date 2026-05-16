@@ -6,5 +6,7 @@ module.exports = merge(common, {
     devtool: 'source-map',
     devServer: {
         static: './dist',
+        // TODO: Enable once HMR can work reliably; it currently seems to break on LaserWeb's use of features (soft-)deprecated in React 17/18
+        hot: false
     },
 });
