@@ -231,6 +231,64 @@ class Cam extends React.Component {
     }
 };
 
+async function readWithReader(file, method) {
+    let reader = new FileReader();
+
+    return new Promise((resolve, _reject) => {
+        reader.addEventListener("load", () => resolve(reader.result));
+        reader[method](file);
+    });
+}
+
+async function loadSVG(file) {
+    let contents = await readWithReader(file, "readAsText");
+
+    const release = captureConsole(); // TODO: Why is this necessary?
+    let parser = new Parser({});
+    
+    try {
+        let tags = await parser.parse(contents);
+        let captures = release(true);
+        let warns = captures.filter(i => i.method == 'warn');
+        let errors = captures.filter(i => i.method == 'errors');
+
+        if (warns.length) { CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!", warns, 2); }
+        if (errors.length) { CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", errors, 3); }
+
+        await imageTagPromise(tags); // REFACTOR: Give this a clearer name
+        return { parser, tags };
+    } catch (error) {
+        release(true);
+        CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", String(e), 3);
+        console.error(e);
+    }
+}
+
+async function loadDXF(file) {
+    let helper = new dxfHelper(await readWithReader(file, "readAsText"));
+    let dxfTree = helper.toPolylines();
+    return dxfTree;
+}
+
+async function loadImage(file) {
+    let url = await readWithReader(file, "readAsDataURL");
+
+    try {
+        let image = await promisedImage(url);
+        return [ url, image ];
+    } catch (error) {
+        console.log('error:', error);
+    }
+}
+
+async function loadGcode(file) {
+    return await readWithReader(file, "readAsText");
+}
+
+async function loadDefault(file) {
+    return await readWithReader(file, "readAsDataURL");
+}
+
 Cam = connect(
     state => ({
         settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
@@ -250,76 +308,16 @@ Cam = connect(
         loadDocument: (e, modifiers = {}) => {
             // TODO: report errors
             for (let file of e.target.files) {
-                let reader = new FileReader;
                 if (file.name.substr(-4) === '.svg') {
-                    reader.onload = () => {
-                        const release = captureConsole()
-
-                        //console.log('CAM.js: loadDocument: SVG constructing Parser');
-                        let parser = new Parser({});
-                        parser.parse(reader.result)
-                            .then((tags) => {
-                                let captures = release(true);
-                                let warns = captures.filter(i => i.method == 'warn')
-                                let errors = captures.filter(i => i.method == 'errors')
-                                if (warns.length)
-                                    CommandHistory.dir("The file has minor issues. Please check document is correctly loaded!", warns, 2)
-                                if (errors.length)
-                                    CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", errors, 3)
-
-                                //console.log('loadDocument: imageTagPromise');
-                                imageTagPromise(tags).then((tags) => {
-                                    //console.log('loadDocument: SVG: dispatch:');
-                                    //console.log(':: file: ', file);
-                                    //console.log(':: parser: ', parser);
-                                    //console.log(':: tag: ', tags );
-                                    //console.log(':: modifiers: ', modifiers );
-                                    dispatch(loadDocument(file, { parser, tags }, modifiers));
-                                })
-                            })
-                            .catch((e) => {
-                                //console.log('loadDocument: catch:', e);
-                                release(true);
-                                CommandHistory.dir("The file has serious issues. If you think is not your fault, report to LW dev team attaching the file.", String(e), 3)
-                                console.error(e)
-                            })
-
-                    }
-                    //console.log('loadDocument: readAsText');
-                    reader.readAsText(file);
-                }
-                else if (file.name.substr(-4).toLowerCase() === '.dxf') {
-                    reader.onload = () => {
-                        var helper = new dxfHelper(reader.result);
-                        var dxfTree = helper.toPolylines();
-                        // console.log('Imported dfxTree:');
-                        // console.log(dxfTree);
-                        //console.log('loadDocument: DXF: dispatch:');
-                        //console.log(':: file: ', file);
-                        //console.log(':: dxfTree: ', dxfTree );
-                        //console.log(':: modifiers: ', modifiers );
-                        dispatch(loadDocument(file, dxfTree, modifiers));
-                    }
-                    reader.readAsText(file);
-                }
-                else if (file.type.substring(0, 6) === 'image/') {
-
-                    reader.onload = () => {
-                        promisedImage(reader.result)
-                            .then((img) => {
-                                dispatch(loadDocument(file, reader.result, modifiers, img));
-                            })
-                            .catch(e => console.log('error:', e))
-                    }
-                    reader.readAsDataURL(file);
+                    loadSVG(file).then(({ parser, tags }) => dispatch(loadDocument(file, { parser, tags }, modifiers)));
+                } else if (file.name.substr(-4).toLowerCase() === '.dxf') {
+                    loadDXF(file).then((dxfTree) => dispatch(loadDocument(file, dxfTree, modifiers)));
+                } else if (file.type.substring(0, 6) === 'image/') {
+                    loadImage(file).then(([ url, image ]) => dispatch(loadDocument(file, url, modifiers, image)));
                 } else if (file.name.match(/\.(nc|gc|gcode)$/gi)) {
-                    let reader = new FileReader;
-                    reader.onload = () => dispatch(setGcode(reader.result));
-                    reader.readAsText(file);
-                }
-                else {
-                    reader.onload = () => dispatch(loadDocument(file, reader.result, modifiers));
-                    reader.readAsDataURL(file);
+                    loadGcode(file).then((gcode) => dispatch(setGcode(gcode)));
+                } else {
+                    loadDefault(file).then((url) => dispatch(loadDocument(file, url, modifiers)));
                 }
             }
         },
