@@ -1,3 +1,26 @@
+/* HACK: This is a temporary fix to suppress the hundreds of "warnings"
+ * (frustratingly actually logged as errors for some reason) that React
+ * emits because of us using an old version of react-bootstrap. As newer
+ * versions of react-bootstrap change the components available to us, we
+ * can't reasonably upgrade it until the UI code has been sufficiently
+ * deduplicated to make it practical to replace these components.
+ * 
+ * Therefore, to retain a semblance of a usable browser console, we're
+ * just going to ignore these errors for now.
+ * 
+ * FIXME: Actually do that react-bootstrap upgrade. It is really needed. */
+let consoleError_ = console.error;
+console.error = function (... args) {
+    if (!args[0]?.includes("ReactDOM.unstable_renderSubtreeIntoContainer() is no longer supported in React 18.")) {
+        consoleError_.call(console, ... args);
+    } else {
+        /* We do still log it as a compact warning, to ensure that this
+         * issue doesn't get overlooked in the long term. Developers can
+         * filter out all warnings in their browser console anyway. */
+        console.warn(`(... ReactDOM.unstable_renderSubtreeIntoContainer() warning suppressed ...)`);
+    }
+}
+
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { compose, applyMiddleware, createStore } from 'redux';
