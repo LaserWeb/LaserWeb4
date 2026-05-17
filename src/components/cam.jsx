@@ -16,8 +16,7 @@
 import { Helper as dxfHelper} from 'dxf';
 import Parser from '../lib/lw.svg-parser/parser';
 import React from 'react'
-import ReactDOM from 'react-dom'
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs, cloneDocumentSelected, selectDocuments, colorDocumentSelected, removeDocumentSelected, selectDocumentsByColor } from '../actions/document';
 
@@ -37,7 +36,7 @@ import { ApplicationSnapshotToolbar } from './settings';
 
 import { Button, ButtonToolbar, ButtonGroup, ProgressBar, Alert } from 'react-bootstrap'
 import Icon from './font-awesome'
-import { alert, prompt, confirm } from './laserweb'
+import { prompt, confirm } from './laserweb'
 
 import CommandHistory from './command-history'
 import { FileField, Info, ColorPicker, SearchButton } from './forms'
@@ -52,31 +51,33 @@ function NoDocumentsError(props) {
     let { settings, documents, operations, camBounds } = props;
 
     if (documents.length === 0 && (operations.length === 0 || !settings.toolCreateEmptyOps)) {
-        return <GetBounds Type="span"><Error operationsBounds={camBounds} message='Click here to begin' /></GetBounds>;
+        return <GetBounds Type="span">
+            <Error operationsBounds={camBounds} message='Click here to begin' />
+        </GetBounds>;
     } else {
         return <span />;
     }
 }
 
-function GcodeProgress({ gcoding, onStop }) {
+function GcodeProgress({ onStop }) {
+    let gcoding = useSelector((state) => state.gcode.gcoding);
+
     return <div style={{ display: "flex", flexDirection: "row" }}>
         <ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{ flexGrow: 1, marginBottom: "0px" }} />
         <Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o" /></Button>
     </div>;
 }
 
-GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
+export function CAMValidator({ noneOnSuccess, className, style }) {
+    let documents = useSelector((state) => state.documents.length);
 
-export class CAMValidator extends React.Component {
-    render() {
-        let { noneOnSuccess, documents, className, style } = this.props;
-        let errors = (!documents) ? "Add files to begin" : undefined
-        if (noneOnSuccess && !errors) return null;
-        return <span className={className} title={errors ? errors : "Good to go!"} style={style}><Icon name={errors ? 'warning' : 'check'} /></span>
-    }
+    let errors = (!documents) ? "Add files to begin" : undefined
+    if (noneOnSuccess && !errors) { return null; }
+    
+    return <span className={className} title={errors ?? "Good to go!"} style={style}>
+        <Icon name={errors ? 'warning' : 'check'} />
+    </span>;
 }
-
-CAMValidator = connect((state) => { return { documents: state.documents.length } })(CAMValidator)
 
 let __interval;
 
