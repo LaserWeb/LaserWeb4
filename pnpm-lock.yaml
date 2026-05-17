@@ -148,7 +148,7 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1
       react-bootstrap:
-        specifier: ^0.31.2
+        specifier: ^0.31.5
         version: 0.31.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-contextmenu:
         specifier: ^2.11.0
@@ -160,8 +160,8 @@ importers:
         specifier: ^4.4.4
         version: 4.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-redux:
-        specifier: ^5.1.1
-        version: 5.1.2(react@18.3.1)(redux@3.7.2)
+        specifier: ^7.2.9
+        version: 7.2.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-rnd:
         specifier: ^8.0.2
         version: 8.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -782,6 +782,10 @@ packages:
     resolution: {integrity: sha512-TXWihFIS3Pyv5hzR7j6ihmeLkZfrXGxAr5UfSl8CHf+6q/wpiYDkUau0czckpYG8QmnCIuPpdLtuA9VmuGGyMA==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/runtime@7.29.2':
+    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/template@7.28.6':
     resolution: {integrity: sha512-YA6Ma2KsCdGb+WC6UpBVFJGXL58MDA6oyONbjyF/+5sBgxY/dwkhLogbMT2GXXyU84/IhRw/2D1Os1B/giz+BQ==}
     engines: {node: '>=6.9.0'}
@@ -1075,6 +1079,11 @@ packages:
   '@types/express@4.17.25':
     resolution: {integrity: sha512-dVd04UKsfpINUnK0yBoYHDF3xu7xVH4BuDotC/xGuycx4CgbP48X/KF/586bcObxT0HENHXEU8Nqtu6NR+eKhw==}
 
+  '@types/hoist-non-react-statics@3.3.7':
+    resolution: {integrity: sha512-PQTyIulDkIDro8P+IHbKCsw7U2xxBYflVzW/FgWdCAePD9xGSidgA76/GeJ6lBKoblyhf9pBY763gbrN+1dI8g==}
+    peerDependencies:
+      '@types/react': '*'
+
   '@types/http-errors@2.0.5':
     resolution: {integrity: sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==}
 
@@ -1095,6 +1104,12 @@ packages:
 
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
+
+  '@types/react-redux@7.1.34':
+    resolution: {integrity: sha512-GdFaVjEbYv4Fthm2ZLvj1VSCedV7TqE5y1kNwnjSdBOTXuRSgowux6J8TAct15T3CKBr63UMk+2CO7ilRhyrAQ==}
+
+  '@types/react@19.2.14':
+    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
 
   '@types/retry@0.12.2':
     resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
@@ -1499,6 +1514,9 @@ packages:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
     engines: {node: '>=4'}
     hasBin: true
+
+  csstype@3.2.3:
+    resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
   data-view-buffer@1.0.2:
     resolution: {integrity: sha512-EmKO5V3OLXh1rtK2wgXRansaK1/mtVdTUEiEI0W8RkvgT05kfxaH29PliLnpLP73yYO6142Q72QNa8Wx/A5CqQ==}
@@ -2695,8 +2713,8 @@ packages:
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
-  react-lifecycles-compat@3.0.4:
-    resolution: {integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==}
+  react-is@17.0.2:
+    resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
   react-overlays@0.7.4:
     resolution: {integrity: sha512-7vsooMx3siLAuEfTs8FYeP/lAORWWFXTO8PON3KgX0Htq1Oa+po6ioSjGyO0/GO5CVSMNhpWt6V2opeexHgBuQ==}
@@ -2704,11 +2722,17 @@ packages:
       react: ^0.14.9 || >=15.3.0
       react-dom: ^0.14.9 || >=15.3.0
 
-  react-redux@5.1.2:
-    resolution: {integrity: sha512-Ns1G0XXc8hDyH/OcBHOxNgQx9ayH3SPxBnFCOidGKSle8pKihysQw2rG/PmciUQRoclhVBO8HMhiRmGXnDja9Q==}
+  react-redux@7.2.9:
+    resolution: {integrity: sha512-Gx4L3uM182jEEayZfRbI/G11ZpYdNAnBs70lFVMNdHJI76XYtR+7m0MN+eAs7UHBPhWXcnFPaS+9owSCJQHNpQ==}
     peerDependencies:
-      react: ^0.14.0 || ^15.0.0-0 || ^16.0.0-0
-      redux: ^2.0.0 || ^3.0.0 || ^4.0.0-0
+      react: ^16.8.3 || ^17 || ^18
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
 
   react-rnd@8.0.2:
     resolution: {integrity: sha512-1dWf1x0pkVIvn4eoYyuO64YvBFDk76UxL7L63QgjRjYWt6q/JnHN7F7hvBwTdyHUslqehocdIvUp4JLYmI2lWA==}
@@ -2759,6 +2783,9 @@ packages:
 
   redux@3.7.2:
     resolution: {integrity: sha512-pNqnf9q1hI5HHZRBkj3bAngGZW/JMCmexDlOxw4XagXY2o1327nHH54LoTjiPJ0gizoqPDRqWyX/00g0hD6w+A==}
+
+  redux@4.2.1:
+    resolution: {integrity: sha512-LAUYz4lc+Do8/g7aeRa8JkyDErK6ekstQaqWQrNRW//MY1TvCEpMtpTWvlQ+FPbWCx+Xixu/6SHt5N0HR+SB4w==}
 
   reflect-metadata@0.2.2:
     resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
@@ -4111,6 +4138,8 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.13.9
 
+  '@babel/runtime@7.29.2': {}
+
   '@babel/template@7.28.6':
     dependencies:
       '@babel/code-frame': 7.29.0
@@ -4486,6 +4515,11 @@ snapshots:
       '@types/qs': 6.15.1
       '@types/serve-static': 1.15.10
 
+  '@types/hoist-non-react-statics@3.3.7(@types/react@19.2.14)':
+    dependencies:
+      '@types/react': 19.2.14
+      hoist-non-react-statics: 3.3.2
+
   '@types/http-errors@2.0.5': {}
 
   '@types/http-proxy@1.17.17':
@@ -4503,6 +4537,17 @@ snapshots:
   '@types/qs@6.15.1': {}
 
   '@types/range-parser@1.2.7': {}
+
+  '@types/react-redux@7.1.34':
+    dependencies:
+      '@types/hoist-non-react-statics': 3.3.7(@types/react@19.2.14)
+      '@types/react': 19.2.14
+      hoist-non-react-statics: 3.3.2
+      redux: 4.2.1
+
+  '@types/react@19.2.14':
+    dependencies:
+      csstype: 3.2.3
 
   '@types/retry@0.12.2': {}
 
@@ -4972,6 +5017,8 @@ snapshots:
       webpack: 5.106.2(postcss@8.5.14)(webpack-cli@7.0.2)
 
   cssesc@3.0.0: {}
+
+  csstype@3.2.3: {}
 
   data-view-buffer@1.0.2:
     dependencies:
@@ -6269,7 +6316,7 @@ snapshots:
 
   react-is@16.13.1: {}
 
-  react-lifecycles-compat@3.0.4: {}
+  react-is@17.0.2: {}
 
   react-overlays@0.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -6281,17 +6328,17 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       warning: 3.0.0
 
-  react-redux@5.1.2(react@18.3.1)(redux@3.7.2):
+  react-redux@7.2.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      '@babel/runtime': 7.16.5
+      '@babel/runtime': 7.29.2
+      '@types/react-redux': 7.1.34
       hoist-non-react-statics: 3.3.2
-      invariant: 2.2.4
       loose-envify: 1.4.0
-      prop-types: 15.8.0
+      prop-types: 15.8.1
       react: 18.3.1
-      react-is: 16.13.1
-      react-lifecycles-compat: 3.0.4
-      redux: 3.7.2
+      react-is: 17.0.2
+    optionalDependencies:
+      react-dom: 18.3.1(react@18.3.1)
 
   react-rnd@8.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -6358,6 +6405,10 @@ snapshots:
       lodash-es: 4.17.21
       loose-envify: 1.4.0
       symbol-observable: 1.2.0
+
+  redux@4.2.1:
+    dependencies:
+      '@babel/runtime': 7.29.2
 
   reflect-metadata@0.2.2: {}
 
