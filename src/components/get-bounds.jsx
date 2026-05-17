@@ -13,85 +13,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import PropTypes from 'prop-types';
+import React, { createContext, useContext } from 'react';
+import useBounds from '../hooks/use-bounds';
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+let boundsContext = createContext();
+export { boundsContext };
 
-export class GetBounds extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-        };
+// FIXME(REFACTOR): This currently uses two entirely separate mechanisms to pass down bounds; prop injection and context. Need to reconcile these into one.
+export function GetBounds({ Type, setBoundsProp, children, ... rest }) {
+    let [ boundsRef, bounds ] = useBounds();
+    
+    if (setBoundsProp) {
+        rest.bounds = bounds;
     }
 
-    componentDidMount() {
-        this.mounted = true;
-        let f = () => {
-            if (!this.mounted)
-                return;
-            let rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
-            let newState = {
-                left: rect.left,
-                top: rect.top,
-                right: rect.right,
-                bottom: rect.bottom,
-            };
-            if (newState.left !== this.state.left || newState.top !== this.state.top || newState.right !== this.state.right || newState.bottom !== this.state.bottom)
-                this.setState(newState);
-            requestAnimationFrame(f);
-        };
-        f();
-    }
-
-    componentWillUnmount() {
-        this.mounted = false;
-    }
-
-    getChildContext() {
-        return { bounds: this.state };
-    }
-
-    render() {
-        let {Type, setBoundsProp, children, ...rest} = this.props;
-        if (setBoundsProp)
-            rest.bounds = this.state;
-        return (
-            <Type {...rest}>
-                {children}
-            </Type>
-        );
-    }
+    /* NOTE: If the Type is a component, the component is responsible for internally attaching the `ref` to the appropriate DOM node */
+    return <boundsContext.Provider value={bounds}>
+        <Type ref={boundsRef} {... rest}>
+            {children}
+        </Type>
+    </boundsContext.Provider>;
 }
-GetBounds.childContextTypes = {
-    bounds: PropTypes.any,
-};
 
 export function withGetBounds(Component) {
-    class Wrapper extends React.Component {
-        render() {
-            return (
-                <GetBounds {...this.props } Type={Component} setBoundsProp={true}>
-                    {this.props.children}
-                </GetBounds>
-            );
-        }
+    return function LocalBoundsInjectionWrapper(props) {
+        /* This also passes in `children`, since that's just another prop */
+        return <GetBounds {... props} Type={Component} setBoundsProp={true} />;
     };
-    return Wrapper;
 }
 
 export function withStoredBounds(Component) {
-    class Wrapper extends React.Component {
-        render() {
-            return <Component {...this.props} bounds={this.context.bounds} />;
-        }
+    return function ContextBoundsInjectionWrapper(props) {
+        let bounds = useContext(boundsContext);
+        
+        return <Component {... props} bounds={bounds} />;
     };
-    Wrapper.contextTypes = {
-        bounds: PropTypes.any,
-    };
-    return Wrapper;
 }

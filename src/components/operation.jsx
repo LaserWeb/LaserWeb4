@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import React from 'react'
-import { connect } from 'react-redux';
+import React, { useCallback } from 'react'
+import { connect, useDispatch, useSelector } from 'react-redux';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +23,7 @@ import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
 import { Input, InputRangeField } from './forms';
-import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds';
+import { GetBounds } from './get-bounds';
 import { selectedDocuments } from './document'
 
 import Toggle from 'react-toggle';
@@ -42,6 +42,7 @@ import { SETTINGS_INITIALSTATE } from '../reducers/settings'
 
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import "../styles/context-menu.css";
+import useBounds from '../hooks/use-bounds';
 
 function StringInput(props) {
     let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest } = props;
@@ -155,10 +156,9 @@ class FilterInput extends React.Component {
     }
 }
 
-export function Error(props) {
-    let { bounds, operationsBounds, message } = props;
+export function Error({ bounds, operationsBounds, message }) {
     return (
-        <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top }}>
+        <div className="error-bubble-clip" style={{ left: operationsBounds.right, top: operationsBounds.top /*top: 0*/, bottom: 0 }}>
             <div style={{ height: operationsBounds.bottom - operationsBounds.top }}>
                 <div className='error-bubble' style={{ top: (bounds.top + bounds.bottom) / 2 - operationsBounds.top }}>
                     <div className='error-bubble-arrow' />
@@ -168,88 +168,92 @@ export function Error(props) {
         </div>
     );
 }
-Error = withStoredBounds(Error);
 
-function NoOperationsError(props) {
-    let { documents, operations, operationsBounds } = props;
-    if (documents.length && !operations.length)
-        return <GetBounds Type="span"><Error operationsBounds={operationsBounds} message='Drag Documents(s) Here' /></GetBounds>;
-    else
+function NoOperationsError({ documents, operations, operationsBounds }) {
+    let [ boundsRef, bounds ] = useBounds();
+
+    if (documents.length && !operations.length) {
+        return <span ref={boundsRef}>
+            <Error bounds={bounds} operationsBounds={operationsBounds} message='Drag Documents(s) Here' />
+        </span>;
+    } else {
         return <span />;
+    }
 }
 
-class Field extends React.Component {
-    UNSAFE_componentWillMount() {
-        this.onChangeValue = this.onChangeValue.bind(this);
-        this.onChange = this.onChange.bind(this);
-        this.onFocus = this.onFocus.bind(this);
-    }
+function Field({ op, field, operationsBounds, fillColors, strokeColors, settings, justControl, parent, index, setAttrs, selected }) {
+    let dispatch = useDispatch();
 
-    onChangeValue(v) {
-        let { op, field, setAttrs } = this.props;
-        if (op[field.name] !== v)
-            this.props.dispatch(setAttrs({ [field.name]: v }, op.id));
-    }
-
-    onChange(e) {
-        this.onChangeValue(e.target.value);
-    }
-
-    onFocus(e) {
-        if (!this.props.selected)
-            this.props.dispatch(setCurrentOperation(this.props.op.id));
-    }
-
-    render() {
-        let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, justControl, parent, index } = this.props;
-        let Input = field.input;
-        let { units, wide, style } = field;
-        let error;
-        if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s')
-            units = settings.toolFeedUnits;
-        if (field.check && !field.check(op[field.name], settings, op, parent, index))
-            error = <Error operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
-
-        let Ctx = field.contextMenu;
-        let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{field.label}</span></Ctx>) : field.label;
-
-        if (justControl) {
-            return (
-                <GetBounds Type="div">
-                    <Input
-                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                        onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
-                    {error}
-                </GetBounds>
-            );
+    let onFocus = useCallback(() => {
+        if (!selected) {
+            dispatch(setCurrentOperation(op.id));
         }
+    }, [ dispatch, selected, op ]);
 
-        if (wide) {
-            return (
-                <GetBounds Type="tr">
-                    <td colSpan="3">
-                        <Input
-                            {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                            onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
-                    </td>
-                    <td>{units}{error}</td>
-                </GetBounds>
-            );
+    let onChangeValue = useCallback((v) => {
+        if (op[field.name] !== v) {
+            dispatch(setAttrs({ [field.name]: v }, op.id));
         }
+    }, [ dispatch, field, op, setAttrs ]);
 
+    let onChange = useCallback((e) => {
+        onChangeValue(e.target.value);
+    }, [ onChangeValue ]);
+
+    let [ boundsRef, bounds ] = useBounds();
+
+    let Input = field.input;
+    let { units, wide, style } = field;
+    let error;
+    if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s') {
+        units = settings.toolFeedUnits;
+    }
+    if (field.check && !field.check(op[field.name], settings, op, parent, index)) {
+        error = <Error bounds={bounds} operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
+    }
+
+    let Ctx = field.contextMenu;
+    let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{field.label}</span></Ctx>) : field.label;
+
+    if (justControl) {
         return (
-            <GetBounds Type="tr">
-                <th width="50%">{label}</th>
-                <td>
-                    <Input
-                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                        onChange={this.onChange} onChangeValue={this.onChangeValue} onFocus={this.onFocus} />
-                </td>
-                <td>{units}{error}</td>
-            </GetBounds>
+            <div ref={boundsRef}>
+                <Input
+                    bounds={bounds}
+                    {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                    onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
+                {error}
+            </div>
         );
     }
-};
+
+    if (wide) {
+        return (
+            <tr ref={boundsRef}>
+                <td colSpan="3">
+                    <Input
+                        bounds={bounds}
+                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                        onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
+                </td>
+                <td>{units}{error}</td>
+            </tr>
+        );
+    }
+
+    return (
+        <tr ref={boundsRef}>
+            <th width="50%">{label}</th>
+            <td>
+                <Input
+                    bounds={bounds}
+                    {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
+                    onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
+            </td>
+            <td>{units}{error}</td>
+        </tr>
+    );
+}
 
 class Doc extends React.Component {
     UNSAFE_componentWillMount() {
@@ -876,59 +880,64 @@ class Operation extends React.Component {
 
         return <div className={"operation-row " + (op.enabled ? "" : "disabled")} >{rows}</div>;
     }
-}; // Operation
+} // Operation
 
-Operation = withStoredBounds(Operation);
+export function Operations({ style }) {
+    let operations = useSelector((state) => state.operations);
+    let currentOperation = useSelector((state) => state.currentOperation);
+    let documents = useSelector((state) => state.documents);
+    let settings = useSelector((state) => state.settings);
+    let dispatch = useDispatch();
 
-class Operations extends React.Component {
-    render() {
-        let { operations, currentOperation, documents, dispatch, bounds, settings } = this.props;
-        let fillColors = [];
-        let strokeColors = [];
-        let addColor = (colors, color) => {
-            let value = JSON.stringify(color);
-            if (!colors.find(c => c.value === value))
-                colors.push({ value: value, color: color });
+    let [ boundsRef, bounds ] = useBounds();
+    let [ operationsBoundsRef, operationsBounds ] = useBounds();
+
+    let fillColors = [];
+    let strokeColors = [];
+    let addColor = (colors, color) => {
+        let value = JSON.stringify(color);
+        if (!colors.find(c => c.value === value)) {
+            colors.push({ value: value, color: color });
         }
-        for (let doc of documents) {
-            if (doc.rawPaths) {
-                if (hasClosedRawPaths(doc.rawPaths))
-                    addColor(fillColors, doc.fillColor);
-                addColor(strokeColors, doc.strokeColor);
-            }
-        }
-        for (let op of operations) {
-            if (op.filterFillColor)
-                addColor(fillColors, op.filterFillColor);
-            if (op.filterStrokeColor)
-                addColor(strokeColors, op.filterStrokeColor);
-        }
-        return (
-            <div style={this.props.style}>
-                <div style={{ backgroundColor: '#eee', padding: '8px 16px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
-                    <span style={{ paddingRight: '1em' }} className="fa fa-fw fa-plus"></span>
-                    <b>Drag documents here from the list above</b>
-                    <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
-                </div>
-                <OperationToolbar />
-                <GetBounds Type={'div'} className="operations" style={{ height: "100%", overflowY: "auto" }} >
-                    {operations.map(o =>
-                        <Operation
-                            key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
-                            fillColors={fillColors} strokeColors={strokeColors} settings={settings}
-                            dispatch={dispatch} />
-                    )}
-                </GetBounds>
-            </div >
-        );
     }
-};
+    for (let doc of documents) {
+        if (doc.rawPaths) {
+            if (hasClosedRawPaths(doc.rawPaths)) {
+                addColor(fillColors, doc.fillColor);
+            }
 
-Operations = connect(
-    ({ operations, currentOperation, documents, settings }) => ({ operations, currentOperation, documents, settings }),
-)(withGetBounds(Operations));
-export { Operations };
+            addColor(strokeColors, doc.strokeColor);
+        }
+    }
+    for (let op of operations) {
+        if (op.filterFillColor) {
+            addColor(fillColors, op.filterFillColor);
+        }
 
+        if (op.filterStrokeColor) {
+            addColor(strokeColors, op.filterStrokeColor);
+        }
+    }
+    
+    return (
+        <div ref={boundsRef} style={style}>
+            <div style={{ backgroundColor: '#eee', padding: '8px 16px', border: '3px dashed #ccc', marginBottom: 5 }} data-operation-id="new">
+                <span style={{ paddingRight: '1em' }} className="fa fa-fw fa-plus"></span>
+                <b>Drag documents here from the list above</b>
+                <NoOperationsError operationsBounds={bounds} documents={documents} operations={operations} />
+            </div>
+            <OperationToolbar />
+            <div ref={operationsBoundsRef} className="operations" style={{ height: "100%", overflowY: "auto" }} >
+                {operations.map(o =>
+                    <Operation
+                        key={o.id} op={o} selected={currentOperation === o.id} documents={documents}
+                        fillColors={fillColors} strokeColors={strokeColors} settings={settings}
+                        dispatch={dispatch} bounds={operationsBounds} />
+                )}
+            </div>
+        </div >
+    );
+}
 
 class OperationToolbar extends React.Component {
 
