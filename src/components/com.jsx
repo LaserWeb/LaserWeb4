@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button, Glyphicon } from 'react-bootstrap';
 
 import { Input, TextField, NumberField, ToggleField, SelectField, Info } from './forms';
-import { runStatus } from './jog.js';
+import { runStatus } from './jog';
 import { setSettingsAttrs } from '../actions/settings';
 import { setComAttrs } from '../actions/com';
 import { setWorkspaceAttrs } from '../actions/workspace';

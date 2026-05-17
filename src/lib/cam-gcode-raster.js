@@ -3,7 +3,7 @@ import { DrawCommands } from '../draw-commands'
 import { DOCUMENT_INITIALSTATE } from '../reducers/document'
 import RasterToGcode from './lw.raster2gcode/raster-to-gcode';
 import queue from 'queue'
-import { promisedImage } from '../components/image-filters.js';
+import { promisedImage } from '../components/image-filters';
 import { getGenerator } from "./action2gcode/gcode-generator"
 
 const getImageBounds=(t,w,h)=>{

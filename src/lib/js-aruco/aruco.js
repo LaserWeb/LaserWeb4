@@ -26,7 +26,7 @@ References:
   http://www.uco.es/investiga/grupos/ava/node/26
 */
 
-import CV from './cv.js';
+import CV from './cv';
 
 var AR = AR || {};
 

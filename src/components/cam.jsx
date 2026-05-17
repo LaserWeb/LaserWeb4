@@ -25,13 +25,13 @@ import { setGcode, generatingGcode } from '../actions/gcode';
 import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
 import { withDocumentCache } from './document-cache'
-import { GetBounds, withGetBounds } from './get-bounds.js';
+import { GetBounds, withGetBounds } from './get-bounds';
 import { Operations, Error } from './operation';
 import { OperationDiagram } from './operation-diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile, appendExt, openDataWindow, captureConsole, humanFileSize } from '../lib/helpers';
-import { strftime } from '../lib/strftime.js'
+import { strftime } from '../lib/strftime'
 import { ValidateSettings } from '../reducers/settings';
 import { ApplicationSnapshotToolbar } from './settings';
 

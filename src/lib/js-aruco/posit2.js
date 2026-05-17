@@ -26,7 +26,7 @@ References:
   Andrew Kirillow
   http://www.aforgenet.com/articles/posit/
 */
-import SVD from './svd.js';
+import SVD from './svd';
 
 var POS = POS || {};
 

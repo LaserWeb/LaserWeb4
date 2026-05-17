@@ -6,7 +6,7 @@ import { PanelGroup, Panel, Tooltip } from 'react-bootstrap';
 import Icon from './font-awesome'
 
 import { addMacro, removeMacro, setMacro, fireMacroById } from '../actions/macros'
-import { runCommand } from './com.js';
+import { runCommand } from './com';
 
 import { Button, FormControl, ButtonGroup, ButtonToolbar } from 'react-bootstrap'
 

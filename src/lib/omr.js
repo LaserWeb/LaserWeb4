@@ -1,5 +1,5 @@
-import AR from './js-aruco/aruco.js';
-import POS from './js-aruco/posit2.js';
+import AR from './js-aruco/aruco';
+import POS from './js-aruco/posit2';
 
 const DEFAULT_MODEL_SIZE = 20
 

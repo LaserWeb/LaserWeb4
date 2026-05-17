@@ -27,7 +27,7 @@ import { selectDocument, toggleSelectDocument, transform2dSelectedDocuments, rem
 import { setWorkspaceAttrs } from '../actions/workspace';
 import { setSettingsAttrs } from '../actions/settings';
 
-import { runCommand, jogTo } from './com.js';
+import { runCommand, jogTo } from './com';
 
 import { withDocumentCache } from './document-cache'
 import { Dom3d, Text3d } from './dom3d';
@@ -36,13 +36,13 @@ import { GcodePreview } from '../draw-commands/GcodePreview'
 import { CylImageMesh } from '../draw-commands/imageMesh'
 import { LaserPreview } from '../draw-commands/LaserPreview'
 import { convertOutlineToThickLines } from '../draw-commands/thick-lines'
-import { Input } from './forms.js';
+import { Input } from './forms';
 import SetSize from './setsize';
 import { dist } from '../lib/cam';
 import { parseGcode } from '../lib/tmpParseGcode';
 import Pointable from '../lib/Pointable';
 import { clamp } from '../lib/helpers'
-import { objectHasMatchingFields, sameArrayContent } from '../lib/util.js';
+import { objectHasMatchingFields, sameArrayContent } from '../lib/util';
 
 import CommandHistory from './command-history'
 
@@ -58,7 +58,7 @@ import { LiveJogging } from './jog'
 
 import { keyboardLogger, bindKeys, unbindKeys } from './keyboard'
 
-import { arucoProcess } from '../lib/omr.js';
+import { arucoProcess } from '../lib/omr';
 import { humanFileSize } from '../lib/helpers';
 import convert from 'color-convert'
 

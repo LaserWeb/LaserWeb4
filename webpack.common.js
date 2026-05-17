@@ -7,15 +7,28 @@ var dist_path = path.resolve('./dist');
 module.exports = {
     context: src_path,
     entry: [
-        '@babel/polyfill', './index.js'
+        '@babel/polyfill', './index.jsx'
     ],
     output: {
         path: dist_path,
         filename: 'index.js'
     },
+    resolve: {
+        extensions: [ '...', '.jsx' ]
+    },
     module: {
         rules: [{
             test: /\.js$/,
+            exclude: /node_modules/,
+            use: [{
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env']
+                }
+            }],
+        },
+        {
+            test: /\.jsx$/,
             exclude: /node_modules/,
             use: [{
                 loader: 'babel-loader',

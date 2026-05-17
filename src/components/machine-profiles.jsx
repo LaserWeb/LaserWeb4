@@ -12,7 +12,7 @@ import Icon from './font-awesome';
 
 import { alert, prompt, confirm} from './laserweb';
 
-import CommandHistory from '../components/command-history'
+import CommandHistory from './command-history'
 import { validate } from '../reducers/material-database'
 
 class MachineProfile extends React.Component {

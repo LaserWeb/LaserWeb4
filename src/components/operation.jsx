@@ -22,8 +22,8 @@ import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDoc
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
-import { Input, InputRangeField } from './forms.js';
-import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds.js';
+import { Input, InputRangeField } from './forms';
+import { GetBounds, withGetBounds, withStoredBounds } from './get-bounds';
 import { selectedDocuments } from './document'
 
 import Toggle from 'react-toggle';
