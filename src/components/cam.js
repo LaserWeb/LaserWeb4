@@ -50,14 +50,19 @@ export const DOCUMENT_FILETYPES = '.png,.jpg,.jpeg,.bmp,.gcode,.g,.svg,.dxf,.tap
 
 function NoDocumentsError(props) {
     let { settings, documents, operations, camBounds } = props;
-    if (documents.length === 0 && (operations.length === 0 || !settings.toolCreateEmptyOps))
+
+    if (documents.length === 0 && (operations.length === 0 || !settings.toolCreateEmptyOps)) {
         return <GetBounds Type="span"><Error operationsBounds={camBounds} message='Click here to begin' /></GetBounds>;
-    else
+    } else {
         return <span />;
+    }
 }
 
 function GcodeProgress({ gcoding, onStop }) {
-    return <div style={{ display: "flex", flexDirection: "row" }}><ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{ flexGrow: 1, marginBottom: "0px" }} /><Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o" /></Button></div>
+    return <div style={{ display: "flex", flexDirection: "row" }}>
+        <ProgressBar now={gcoding.percent} active={gcoding.enable} label={`${gcoding.percent}%`} style={{ flexGrow: 1, marginBottom: "0px" }} />
+        <Button onClick={onStop} bsSize="xs" bsStyle="danger"><Icon name="hand-paper-o" /></Button>
+    </div>;
 }
 
 GcodeProgress = connect((state) => { return { gcoding: state.gcode.gcoding } })(GcodeProgress)
@@ -288,10 +293,28 @@ async function loadDefault(file) {
 
 Cam = connect(
     state => ({
-        settings: state.settings, documents: state.documents, operations: state.operations, currentOperation: state.currentOperation, gcode: state.gcode.content, gcoding: state.gcode.gcoding, dirty: state.gcode.dirty, panes: state.panes,
-        saveGcode: (e) => { prompt('Save as', strftime(state.settings.gcodeFilename), (file) => { if (file !== null) sendAsFile(appendExt(file, state.settings.gcodeExtension), state.gcode.content) }, !e.shiftKey) },
-        viewGcode: (e) => { if (state.gcode.content.length < 1048576) { openDataWindow(state.gcode.content); }
-            else {confirm("Size: " + humanFileSize(state.gcode.content.length) + ", viewing very large files can negatively affect browser performance. Are you sure?",  (data) => { if (data) openDataWindow(state.gcode.content); }, e.shiftKey) }},
+        settings: state.settings,
+        documents: state.documents,
+        operations: state.operations,
+        currentOperation: state.currentOperation,
+        gcode: state.gcode.content,
+        gcoding: state.gcode.gcoding,
+        dirty: state.gcode.dirty,
+        panes: state.panes,
+        saveGcode: (e) => {
+            prompt('Save as', strftime(state.settings.gcodeFilename), (file) => {
+                if (file !== null) sendAsFile(appendExt(file, state.settings.gcodeExtension), state.gcode.content)
+            }, !e.shiftKey)
+        },
+        viewGcode: (e) => {
+            if (state.gcode.content.length < 1048576) {
+                openDataWindow(state.gcode.content);
+            } else {
+                confirm("Size: " + humanFileSize(state.gcode.content.length) + ", viewing very large files can negatively affect browser performance. Are you sure?",  (data) => {
+                    if (data) openDataWindow(state.gcode.content);
+                }, e.shiftKey)
+            }
+        },
     }),
     dispatch => ({
         dispatch,
