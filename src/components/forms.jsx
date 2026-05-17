@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
@@ -12,26 +12,29 @@ import Icon from './font-awesome';
 
 import convert from 'color-convert'
 
-// <input> for text and number fields
+function convertInputValue(type, value) {
+    // FIXME(REFACTOR): These conversions look fragile and non-obvious, and should probably be improved
+    if (type === "number") {
+        return +value || 0;
+    } else {
+        return value + '';
+    }
+}
+
+// <input> for text and number fields 
 export class Input extends React.Component {
     UNSAFE_componentWillMount() {
         this.onChange = this.onChange.bind(this);
         this.setInput = this.setInput.bind(this);
-    }
-
-    convert(value) {
-        if (this.props.type === 'number')
-            return +value || 0;
-        else
-            return value + '';
+        this.ref = createRef();
     }
 
     setInput() {
-        ReactDOM.findDOMNode(this).value = this.convert(this.props.value);
+        this.ref.current.value = convertInputValue(this.props.type, this.props.value);
     }
 
     onChange(e) {
-        this.props.onChangeValue(this.convert(e.target.value));
+        this.props.onChangeValue(convertInputValue(this.props.type, e.target.value));
     }
 
     componentDidMount() {
@@ -39,20 +42,19 @@ export class Input extends React.Component {
     }
 
     componentDidUpdate() {
-        let v = this.convert(this.props.value);
-        let node = ReactDOM.findDOMNode(this);
-        if (this.convert(node.value) != v)
+        let v = convertInputValue(this.props.type, this.props.value);
+        let node = this.ref.current;
+        if (convertInputValue(this.props.type, node.value) != v) {
             node.value = v;
+        }
     }
 
     render() {
         let {Component, value, onChangeValue, ...rest} = this.props;
-        if (Component)
-            return <Component {...rest} onChange={this.onChange} onBlur={this.setInput} />;
-        else
-            return <input {...rest} onChange={this.onChange} onBlur={this.setInput} />;
+        let EffectiveComponent = Component ?? "input";
+        return <EffectiveComponent {...rest} ref={this.ref} onChange={this.onChange} onBlur={this.setInput} />;
     }
-};
+}
 
 class TooltipFormGroup extends React.Component {
     UNSAFE_componentWillMount() {
