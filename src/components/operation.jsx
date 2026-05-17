@@ -22,7 +22,7 @@ import { removeOperation, moveOperation, setCurrentOperation, operationRemoveDoc
 import { selectDocument } from '../actions/document'
 import { addOperation } from '../actions/operation'
 import { hasClosedRawPaths } from '../lib/mesh';
-import { Input, InputRangeField } from './forms';
+import { Input } from './forms';
 import { GetBounds } from './get-bounds';
 import { selectedDocuments } from './document'
 
@@ -31,7 +31,7 @@ import { isObject, getDescendantProp } from '../lib/helpers';
 
 import { MaterialPickerButton, MaterialSaveButton } from './material-database'
 
-import { ButtonToolbar, Button, ButtonGroup } from 'react-bootstrap';
+import { ButtonToolbar, Button } from 'react-bootstrap';
 import Icon from './font-awesome'
 
 import { Details } from './material-database'
@@ -45,20 +45,24 @@ import "../styles/context-menu.css";
 import useBounds from '../hooks/use-bounds';
 
 function StringInput(props) {
+    // eslint-disable-next-line no-unused-vars
     let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest } = props;
     let value = op[field.name];
     return <Input value={value !== undefined ? value : ''}  {...rest } />;
 }
 
 function NumberInput(props) {
+    // eslint-disable-next-line no-unused-vars
     let { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest } = props;
     return <Input type='number' step='any' value={op[field.name]}   {...rest } />;
 }
 
 function EnumInput(opts, def) {
-    if (Array.isArray(opts))
+    if (Array.isArray(opts)) {
         opts = Object.assign(...opts.map(i => ({ [i]: i })))
+    }
 
+    // eslint-disable-next-line no-unused-vars
     return function ({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest }) {
         return <select value={op[field.name]}  {...rest} >
             {Object.entries(opts).map((e, i) => (<option key={i} value={e[0]}>{e[1]}</option>))}
@@ -69,22 +73,16 @@ function EnumInput(opts, def) {
 const DirectionInput = EnumInput(['Conventional', 'Climb']);
 const GrayscaleInput = EnumInput(['none', 'average', 'luma', 'luma-601', 'luma-709', 'luma-240', 'desaturation', 'decomposition-min', 'decomposition-max', 'red-chanel', 'green-chanel', 'blue-chanel']);
 
-function CheckboxInput({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, dispatch, ...rest }) {
-    return <input {...rest} checked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} type="checkbox" />
-}
-
+// eslint-disable-next-line no-unused-vars
 function ToggleInput({ op, field, onChangeValue, operationsBounds, fillColors, strokeColors, settings, className = "scale75", dispatch, ...rest }) {
     return <Toggle id={"toggle_" + op.id + "_" + field} defaultChecked={op[field.name]} onChange={e => onChangeValue(e.target.checked)} className={className} />
 }
 
-function RangeInput(minValue, maxValue) {
-    return ({ op, field, onChangeValue, dispatch, ...rest }) => {
-        return <InputRangeField maxValue={maxValue} minValue={minValue} value={op[field.name]} onChangeValue={value => onChangeValue(value)} />
-    }
-}
-
 function TagInput(statekey, opts = { multi: true, simpleValue: true, delimiter: ',', clearable: true }, connector) {
-    if (!connector) connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
+    if (!connector) {
+        connector = (state) => { return { options: Object.entries(getDescendantProp(state, statekey)).map(i => { return { label: i[1].label, value: i[0] } }) } }
+    }
+
     return connect(connector)(class extends React.Component {
         render() {
             return <Select options={this.props.options} value={this.props.op[this.props.field.name]} onChange={e => this.props.onChangeValue(e)} {...{ ...opts }} />
@@ -100,8 +98,9 @@ function ButtonInput(args) {
 function TableInput({ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch }) {
     let { name, fields, remove } = field;
     let array = op[name];
-    if (!array.length)
+    if (!array.length) {
         return null;
+    }
     return <div style={{ display: 'inline-block' }}><table><tbody>
         <tr>{Object.entries(fields).map(f => <th key={f[1].name} style={{ paddingRight: 10 }}>{f[1].label}</th>)}</tr>
         {array.map((item, index) => <tr key={item.id}>
@@ -479,7 +478,7 @@ const checkLatheTurn = {
 };
 
 const FieldContextMenu = (id = uuidv4()) => {
-    return ({ children, dispatch, op, field, settings }) => {
+    return ({ children, dispatch, op, field }) => {
         let ctx = <ContextMenu id={id}>
             <MenuItem onClick={e => dispatch(spreadOperationField(op.id, field.name))}>Copy to all Ops</MenuItem>
         </ContextMenu>
@@ -750,7 +749,7 @@ class Operation extends React.Component {
             </GetBounds>
         ];
         if (op.expanded) {
-            if (!OPERATION_TYPES[op.type].skipDocs)
+            if (!OPERATION_TYPES[op.type].skipDocs) {
                 rows.push(
                     <div key="docs" style={{ display: 'table-row' }} data-operation-id={op.id}>
                         <div style={leftStyle} />
@@ -772,7 +771,8 @@ class Operation extends React.Component {
                         </div>
                     </div>
                 );
-              else rows.push(
+            } else {
+                rows.push(
                     <div key="nodocs" style={{ display: 'table-row' }}>
                       <div style={leftStyle} />
                       <div style={{ display: 'table-cell' }} />
@@ -785,6 +785,7 @@ class Operation extends React.Component {
                       </div>
                     </div>
                 );
+            }
 
             rows.push(
                 <div key="attrs" style={{ display: 'table-row' }}>

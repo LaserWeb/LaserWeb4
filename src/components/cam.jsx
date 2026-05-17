@@ -339,4 +339,5 @@ async function loadDefault(file) {
     return await readWithReader(file, "readAsDataURL");
 }
 
+// FIXME(REFACTOR): Duplicate export
 export default Cam;

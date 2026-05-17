@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import Rnd from 'react-rnd';
 import { canvasFilters } from '../lib/lw.raster2gcode/canvas-filters';
-import { OPERATION_GROUPS, OPERATION_FIELDS } from './operation';
+import { OPERATION_GROUPS } from './operation';
 import { getSubset } from 'redux-localstorage-filter';
 
-import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
+import { Modal, Button } from 'react-bootstrap'
 import Toggle from "react-toggle";
 import { Input } from './forms'
 import Potrace from '../lib/potrace/potrace'
@@ -17,8 +17,6 @@ import Parser from '../lib/lw.svg-parser/parser';
 
 import { sendAsFile } from '../lib/helpers'
 import { confirm } from './laserweb'
-
-import { mat2d } from 'gl-matrix'
 
 export const promisedImage = (path) => {
     return new Promise(resolve => {
@@ -34,18 +32,22 @@ export const imageTagPromise = (tags) => {
     return new Promise(resolve => {
         let images = [];
         const walker = (tag) => {
-            if (tag.name === 'image')
+            if (tag.name === 'image') {
                 images.push(tag);
-            if (tag.children)
+            }
+
+            if (tag.children) {
                 tag.children.forEach(t => walker(t))
+            }
         }
 
         const consumer = () => {
             if (images.length) {
                 let tag = images.shift()
                 let dataURL = tag.element.getAttribute('xlink:href')
-                if (dataURL.substring(0, 5) !== 'data:')
+                if (dataURL.substring(0, 5) !== 'data:') {
                     return consumer();
+                }
                 let image = new Image();
                 image.onload = () => { tag.naturalWidth = image.naturalWidth; tag.naturalHeight = image.naturalHeight; consumer() }
                 image.src = dataURL;
@@ -86,8 +88,9 @@ export class ImagePort extends React.Component {
 
         let ops = this.props.data.operations.find((op) => ((op.id === this.props.data.currentOperation) && op.type.match(/Raster/gi)));
 
-        if (!ops)
+        if (!ops) {
             return false;
+        }
 
         let documents = this.props.data.documents
             .filter(d => (ops.documents.includes(d.id)))
@@ -179,12 +182,16 @@ export class ImageEditorButton extends React.Component {
 
     onModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
-        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+        if (this.__mounted) {
+            this.setState({ shiftKey, metaKey, ctrlKey })
+        }
     }
 
     offModKey(e) {
         let { shiftKey, metaKey, ctrlKey } = e
-        if (this.__mounted) this.setState({ shiftKey, metaKey, ctrlKey })
+        if (this.__mounted) {
+            this.setState({ shiftKey, metaKey, ctrlKey })
+        }
     }
 
     componentDidMount() {
