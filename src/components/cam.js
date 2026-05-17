@@ -105,9 +105,6 @@ class Cam extends React.Component {
             );
             return QE;
         }
-
-        this.generateGcode.bind(this)
-        this.stopGcode.bind(this)
     }
 
     generateGcode(e) {
