@@ -25,7 +25,7 @@ import { resetWorkspace } from '../actions/laserweb';
 import { Documents } from './document';
 import { documentCacheContext } from './document-cache'
 import { Operations, Error } from './operation';
-import { OperationDiagram } from './operation-diagram';
+import { OperationDiagram } from './operation/diagram';
 import Splitter from './splitter';
 import { getGcode } from '../lib/cam-gcode';
 import { sendAsFile, appendExt, openDataWindow, captureConsole, humanFileSize } from '../lib/helpers';
