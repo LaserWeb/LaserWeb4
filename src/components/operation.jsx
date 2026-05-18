@@ -181,7 +181,10 @@ function NoOperationsError({ documents, operations, operationsBounds }) {
 }
 
 function Field({ op, field, operationsBounds, fillColors, strokeColors, settings, justControl, parent, index, setAttrs, selected }) {
+    let { units, wide, style, check, contextMenu, name, error, label } = field;
+
     let dispatch = useDispatch();
+    let [ boundsRef, bounds ] = useBounds();
 
     let onFocus = useCallback(() => {
         if (!selected) {
@@ -190,95 +193,87 @@ function Field({ op, field, operationsBounds, fillColors, strokeColors, settings
     }, [ dispatch, selected, op ]);
 
     let onChangeValue = useCallback((v) => {
-        if (op[field.name] !== v) {
-            dispatch(setAttrs({ [field.name]: v }, op.id));
+        if (name !== v) {
+            dispatch(setAttrs({ [name]: v }, op.id));
         }
-    }, [ dispatch, field, op, setAttrs ]);
+    }, [ dispatch, name, op, setAttrs ]);
 
     let onChange = useCallback((e) => {
         onChangeValue(e.target.value);
     }, [ onChangeValue ]);
 
-    let [ boundsRef, bounds ] = useBounds();
-
-    let Input = field.input;
-    let { units, wide, style } = field;
-    let error;
     if (units === 'mm/min' && settings.toolFeedUnits === 'mm/s') {
         units = settings.toolFeedUnits;
     }
-    if (field.check && !field.check(op[field.name], settings, op, parent, index)) {
-        error = <Error bounds={bounds} operationsBounds={operationsBounds} message={(typeof field.error == 'function') ? field.error(op[field.name], settings, op, parent, index) : field.error} />;
-    }
 
-    let Ctx = field.contextMenu;
-    let label = (Ctx) ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{field.label}</span></Ctx>) : field.label;
+    let errorElement = (check != null && !check(op[name], settings, op, parent, index))
+        ? <Error bounds={bounds} operationsBounds={operationsBounds} message={(typeof error == 'function') ? error(op[name], settings, op, parent, index) : error} />
+        : null;
+
+    let Ctx = contextMenu;
+    let labelElement = (Ctx != null)
+        ? (<Ctx {...{ dispatch, op, field, settings }}><span style={{ borderBottom: "1px dotted darkgray", cursor: "copy" }}>{label}</span></Ctx>)
+        : label;
+
+    let Input = field.input;
+    let forwardedProps = { op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style };
+    let inputElement = <Input {... forwardedProps} bounds={bounds} onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />;
 
     if (justControl) {
         return (
             <div ref={boundsRef}>
-                <Input
-                    bounds={bounds}
-                    {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                    onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
-                {error}
+                {inputElement}
+                {errorElement}
             </div>
         );
-    }
-
-    if (wide) {
+    } else if (wide) {
         return (
             <tr ref={boundsRef}>
                 <td colSpan="3">
-                    <Input
-                        bounds={bounds}
-                        {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                        onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
+                    {inputElement}
                 </td>
-                <td>{units}{error}</td>
+                <td>{units}{errorElement}</td>
+            </tr>
+        );
+    } else {
+        return (
+            <tr ref={boundsRef}>
+                <th width="50%">{labelElement}</th>
+                    <td>
+                        {inputElement}
+                    </td>
+                <td>{units}{errorElement}</td>
             </tr>
         );
     }
+}
 
+function Doc({ documents, op, id, isTab }) {
+    let dispatch = useDispatch();
+
+    let docStyle = {
+        userSelect: 'none', cursor: 'pointer',
+        textDecoration: 'bold', color: '#FFF',
+        paddingLeft: 5, paddingRight: 5, paddingBottom: 3,
+        backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2
+    };
+    
     return (
-        <tr ref={boundsRef}>
-            <th width="50%">{label}</th>
-            <td>
-                <Input
-                    bounds={bounds}
-                    {...{ op, field, operationsBounds, fillColors, strokeColors, settings, dispatch, style }}
-                    onChange={onChange} onChangeValue={onChangeValue} onFocus={onFocus} />
+        <tr>
+            <td style={{ width: '100%', whiteSpace: 'nowrap' }}>
+                └ <a style={docStyle} onClick={() => { dispatch(selectDocument(id)) }}>
+                    {documents.find(d => d.id === id).name}
+                </a>
             </td>
-            <td>{units}{error}</td>
+            <td>
+                <button className="btn btn-default btn-xs" onClick={() => dispatch(operationRemoveDocument(op.id, isTab, id))}>
+                    <i className="fa fa-trash" />
+                </button>
+            </td>
+            <td style={{ paddingLeft: 15 }} />
         </tr>
     );
 }
-
-class Doc extends React.Component {
-    UNSAFE_componentWillMount() {
-        this.remove = e => {
-            this.props.dispatch(operationRemoveDocument(this.props.op.id, this.props.isTab, this.props.id));
-        }
-    }
-
-    render() {
-        let { op, documents, id } = this.props;
-        return (
-            <tr>
-                <td style={{ width: '100%', whiteSpace: 'nowrap' }}>
-                    └ <a style={{ userSelect: 'none', cursor: 'pointer', textDecoration: 'bold', color: '#FFF', paddingLeft: 5, paddingRight: 5, paddingBottom: 3, backgroundColor: '#337AB7', border: '1px solid', borderColor: '#2e6da4', borderRadius: 2 }} onClick={(e) => { this.props.dispatch(selectDocument(id)) }}>{documents.find(d => d.id === id).name}</a>
-                </td>
-                <td>
-                    <button className="btn btn-default btn-xs" onClick={this.remove}>
-                        <i className="fa fa-trash"></i>
-                    </button>
-                </td>
-                <td style={{ paddingLeft: 15 }} ></td>
-            </tr>
-        );
-    }
-}
-Doc = connect()(Doc);
 
 const checkPositive = {
     check: v => v > 0,
