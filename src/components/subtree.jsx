@@ -1,5 +1,3 @@
-import React from 'react'
-
 // props:
 //      objects:        objects in forest
 //      object:         root

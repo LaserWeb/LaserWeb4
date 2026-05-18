@@ -46,7 +46,7 @@ import { objectHasMatchingFields, sameArrayContent } from '../lib/util';
 
 import CommandHistory from './command-history'
 
-import { Button, ButtonToolbar, ButtonGroup } from 'react-bootstrap'
+import { Button, ButtonGroup } from 'react-bootstrap'
 import Icon from './font-awesome'
 
 import Draggable from 'react-draggable';

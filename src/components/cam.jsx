@@ -15,7 +15,7 @@
 
 import { Helper as dxfHelper} from 'dxf';
 import Parser from '../lib/lw.svg-parser/parser';
-import React, { useCallback, useContext, useRef } from 'react'
+import { useCallback, useContext, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 
 import { loadDocument, setDocumentAttrs, cloneDocumentSelected, selectDocuments, colorDocumentSelected, removeDocumentSelected, selectDocumentsByColor } from '../actions/document';
@@ -95,7 +95,7 @@ export function Cam() {
     let documentCacheHolder = useContext(documentCacheContext);
     let [ boundsRef, bounds ] = useBounds();
     let generationRef = useRef();
-    let [ filter, setFilter ] = React.useState();
+    let [ filter, setFilter ] = useState();
 
     let saveGcode = useCallback((e) => {
         prompt('Save as', strftime(settings.gcodeFilename), (file) => {

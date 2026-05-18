@@ -1,6 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
-import { connect, dispatch } from 'react-redux'
+import { connect } from 'react-redux'
 import {
     addGroup, setGroupAttrs, deleteGroup, toggleGroupView, toggleGroupEdit,
     addPreset, deletePreset, setPresetAttrs, togglePresetEdit,
@@ -11,7 +10,7 @@ import {
 
 import { OPERATION_FIELDS, OPERATION_TYPES } from './operation'
 
-import { Modal, Button, ButtonToolbar, ButtonGroup, FormControl, ControlLabel, FormGroup, PanelGroup, Panel, Collapse, InputGroup } from 'react-bootstrap'
+import { Modal, Button, ButtonToolbar, FormControl, ControlLabel, FormGroup, PanelGroup, Collapse, InputGroup } from 'react-bootstrap'
 import { FileField } from './forms'
 
 import Icon from './font-awesome';

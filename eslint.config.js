@@ -8,7 +8,8 @@ module.exports = [
 		},
 		rules: {
 			indent: "off",
-			semi: "off"
+			semi: "off",
+			"react/react-in-jsx-scope": "off"
 		}
 	}
 ];

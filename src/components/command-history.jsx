@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom'
 
 import Icon from './font-awesome';
 import Splitter from './splitter'
-import { Button, Label } from 'react-bootstrap'
-import { dispatch, connect } from 'react-redux';
+import { Button } from 'react-bootstrap'
+import { connect } from 'react-redux';
 
 import { isObject } from '../lib/helpers';
 

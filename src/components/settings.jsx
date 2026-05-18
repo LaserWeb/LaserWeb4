@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 
 import stringify from 'json-stringify-pretty-compact';
@@ -15,7 +14,7 @@ import { MaterialDatabaseButton } from './material-database';
 import { Macros } from './macros'
 
 import { NumberField, TextField, ToggleField, QuadrantField, FileField, CheckBoxListField, SelectField, InputRangeField, ColorPicker, Info } from './forms';
-import { PanelGroup, Panel, Tooltip, OverlayTrigger, FormControl, InputGroup, ControlLabel, FormGroup, ButtonGroup, Label, Collapse, Badge, ButtonToolbar, Button } from 'react-bootstrap';
+import { PanelGroup, Panel, Label, Collapse, Button } from 'react-bootstrap';
 import Icon from './font-awesome';
 
 import { VideoDeviceField, VideoPort, VideoResolutionField, ArucoMarker } from './webcam';

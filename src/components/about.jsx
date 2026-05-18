@@ -4,7 +4,7 @@
  */
 
 // React
-import React, { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { ButtonToolbar, Button } from 'react-bootstrap'
 import Icon from './font-awesome'
@@ -154,7 +154,7 @@ function Lifesaver() {
 }
 
 function Releases() {
-    let [ release, setRelease ] = React.useState();
+    let [ release, setRelease ] = useState();
     
     useEffect(() => {
         // FIXME(REFACTOR): Proper mechanism for async data fetching, with error handling?

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import useBounds from '../hooks/use-bounds';
 
 let boundsContext = createContext();

@@ -14,8 +14,6 @@ import '../styles/index.css'
 import '../styles/resizer.css';
 import 'bootstrap-range-input/dist/css/bootstrap-range-input.min.css'
 
-import ReactDOM from 'react-dom'
-
 // React/Redux
 import React from 'react'
 import { connect } from 'react-redux'

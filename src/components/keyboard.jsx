@@ -1,6 +1,4 @@
 import React from 'react'
-import { connect } from 'react-redux'
-import ReactDOM from 'react-dom';
 import keyboardJS from 'keyboardjs'
 
 export const keyboardLogger = keyboardJS;

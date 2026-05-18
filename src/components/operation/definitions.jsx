@@ -1,4 +1,3 @@
-import React from 'react'
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import { v4 as uuidv4 } from 'uuid';
 

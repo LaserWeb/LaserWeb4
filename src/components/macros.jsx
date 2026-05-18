@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ReactDOM from 'react-dom';
-import { PanelGroup, Panel, Tooltip } from 'react-bootstrap';
 
 import Icon from './font-awesome'
 
