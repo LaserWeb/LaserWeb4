@@ -11,6 +11,9 @@ importers:
       bootstrap-range-input:
         specifier: ^1.0.0
         version: 1.0.0
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
       dxf:
         specifier: ^4.6.1
         version: 4.7.0
@@ -1419,6 +1422,9 @@ packages:
 
   classnames@2.3.1:
     resolution: {integrity: sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==}
+
+  classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
 
   clipper-lib@6.4.2:
     resolution: {integrity: sha512-knglhjQX5ihNj/XCIs6zCHrTemdvHY3LPZP9XB2nq2/3igyYMFueFXtfp84baJvEE+f8pO1ZS4UVeEgmLnAprQ==}
@@ -4932,6 +4938,8 @@ snapshots:
   classlist-polyfill@1.2.0: {}
 
   classnames@2.3.1: {}
+
+  classnames@2.5.1: {}
 
   clipper-lib@6.4.2: {}
 

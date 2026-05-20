@@ -12,6 +12,7 @@
 let consoleError_ = console.error;
 console.error = function (... args) {
     if (!args[0]?.includes("ReactDOM.unstable_renderSubtreeIntoContainer() is no longer supported in React 18.")) {
+    // if (!args[0]?.startsWith("Warning: ")) {
         consoleError_.call(console, ... args);
     } else {
         /* We do still log it as a compact warning, to ensure that this
