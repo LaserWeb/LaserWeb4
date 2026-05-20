@@ -83,7 +83,9 @@ const middlewares=[];
 if (getDebug()) middlewares.push(createLogger({ collapsed: true }))
 middlewares.push(globalstoreMiddleWare)
 
-const middleware = compose(
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+const middleware = composeEnhancers(
   applyMiddleware(...middlewares),
   persistState(storage, LOCALSTORAGE_KEY),
 );
