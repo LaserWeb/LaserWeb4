@@ -142,7 +142,13 @@ function PaneToolbar({ caption, children }) {
     </div>;
 }
 
-function PaneGroups({ style, itemId, onMaterialSelected }) {
+function IconButton({ type, size, icon, caption, onClick, ... rest }) {
+    return <Button onClick={onClick} bsSize={size ?? "xs"} bsStyle={type} {... rest}>
+        <Icon name={icon} />
+        {(caption != null) ? ` ${caption}` : null}
+    </Button>;
+}
+
     let dispatch = useDispatch();
     let items = useSelector((state) => state.materialDatabase);
 
@@ -160,8 +166,8 @@ function PaneGroups({ style, itemId, onMaterialSelected }) {
         <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
             <div className="full-height innerPane">
                 <PaneToolbar caption="Groupings">
-                    <Button onClick={() => dispatch(addGroup())} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
-                    <Button onClick={() => confirmDeleteGroup(itemId)} bsSize="xs" bsStyle="danger" disabled={itemId ? false : true}><Icon name="trash" /> Delete</Button>
+                <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addGroup())} />
+                <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(itemId)} disabled={itemId == null} />
                 </PaneToolbar>
                 <div className="listing">
                     {items.map((item, i) => {
