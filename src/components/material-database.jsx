@@ -116,17 +116,13 @@ function MaterialDatabaseEditor({ show, onHide }) {
         <FileField onChange={(e) => uploadDatabase(e.target.files[0], uploadMaterialDatabase)}><Button bsStyle="danger"><Icon name="upload" /></Button></FileField>
     </ButtonToolbar>;
 
-    // FIXME: Probably a lot of these dispatches can be done from directly within subcomponents?
     return (
         <MaterialModal modal={{ show: show, onHide: onHide }} className='full-width' header="Material Database" footer={footer}>
             <MaterialMachineProfile profiles={profiles} selected={selected} onChange={(value) => setSelected(value)} />
 
             <AllowCapture className="paneSizer" >
-                <div className="paneContainer materialsDatabase" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                    <PaneGroups style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
-                        onMaterialSelected={(id) => setMaterialId(id)}
-                        itemId={materialId}
-                    />
+                <div className="paneContainer materialsDatabase">
+                    <PaneGroups itemId={materialId} onMaterialSelected={(id) => setMaterialId(id)}/>
                     <PaneGroupDetails {... { item, groups, groupId: materialId }} />
                     <PaneGroupPresets {... { item, groupId: materialId, selectedProfile: selected }} />
                 </div>
@@ -137,8 +133,8 @@ function MaterialDatabaseEditor({ show, onHide }) {
 
 function PaneToolbar({ caption, children }) {
     return <div className="paneToolbar">
-        {caption != null ? <h5>{caption}</h5> : null}
-        {children}
+        <div className="caption">{caption != null ? <h5>{caption}</h5> : null}</div>
+        <div className="controls">{children}</div>
     </div>;
 }
 
@@ -149,6 +145,7 @@ function IconButton({ type, size, icon, caption, onClick, ... rest }) {
     </Button>;
 }
 
+function PaneGroups({ itemId, onMaterialSelected }) {
     let dispatch = useDispatch();
     let items = useSelector((state) => state.materialDatabase);
 
@@ -162,29 +159,28 @@ function IconButton({ type, size, icon, caption, onClick, ... rest }) {
         });
     }
 
-    return <div id="groupsPane" className="full-height" style={style}>
-        <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-            <div className="full-height innerPane">
-                <PaneToolbar caption="Groupings">
+    return <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
+        <div id="groupsPane" className="innerPane">
+            <PaneToolbar caption="Groupings">
                 <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addGroup())} />
                 <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(itemId)} disabled={itemId == null} />
-                </PaneToolbar>
-                <div className="listing">
-                    {items.map((item, i) => {
-                        // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
-                        let header = (item._locked)
-                            ? <h5 title="This grouping is locked. Will be reset on next application start.">{item.name} <Icon name="lock" /></h5>
-                            : <h5>{item.name} {(item._locked===false ? <Icon name="gift" /> : null)}</h5>;
+            </PaneToolbar>
+            <div className="listing">
+                {items.map((item, i) => {
+                    // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
+                    let header = (item._locked)
+                        ? <h5 title="This grouping is locked. Will be reset on next application start.">{item.name} <Icon name="lock" /></h5>
+                        : <h5>{item.name} {(item._locked===false ? <Icon name="gift" /> : null)}</h5>;
 
-                        return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(itemId == item.id) ? 'active' : undefined}>
-                            {header}
-                            <small>{item.notes}</small>
-                        </div>
-                    })}
-                </div>
+                    // FIXME(REFACTOR): 'active' style is currently broken and not visible, need to fix that
+                    return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(itemId == item.id) ? 'active' : undefined}>
+                        {header}
+                        <small>{item.notes}</small>
+                    </div>
+                })}
             </div>
-        </Splitter>
-    </div>
+        </div>
+    </Splitter>;
 }
 
 function PaneGroupDetails({ item, groups, groupId }) {
@@ -253,15 +249,12 @@ function PaneGroupDetails({ item, groups, groupId }) {
                     : <Button onClick={() => onGroupEdit(groupId)} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>}
             </PaneToolbar>
             {heading}
-            <PaneToolbar>
-                {/* FIXME(REFACTOR): This should probably not be a PaneToolbar? */}
-                <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
-            </PaneToolbar>
+            <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
         </>;
     }
 
     return <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-        <div className="full-height left innerPane">
+        <div className="left innerPane">
             {content}
         </div>
     </Splitter>;
@@ -284,7 +277,7 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
 
     if (item == null) {
         // FIXME(REFACTOR): Unclear error message, and logic doesn't seem correct either? Message always seems to show when no group is selected
-        return <div className="full-height right innerPane" style={{ width: "100%" }}>
+        return <div className="right innerPane">
             <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
                 { selectedProfile.length > 0 ? 'Presets not shown due machine profile filters' : null }
             </PanelGroup>
@@ -292,11 +285,11 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
     } else {
         let presets = item.presets.filter((operation) => shouldShow(operation, selectedProfile));
 
-        return <div className="full-height right innerPane" style={{ width: "100%" }}>
+        return <div className="right innerPane">
             <PaneToolbar caption="Presets">
                 <Button bsSize="xsmall" bsStyle="success" onClick={() => dispatch(addPreset(groupId))}><Icon name="plus" /> Add</Button>
             </PaneToolbar>
-            <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
+            <PanelGroup defaultActiveKey="0">
                 {presets.map((operation, i) => {
                     return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                         handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}

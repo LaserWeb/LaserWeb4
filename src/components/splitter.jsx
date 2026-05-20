@@ -15,6 +15,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux'
+const classNames = require("classnames");
 
 import Capture from './capture';
 import { splitterSetSize } from '../actions/splitters'
@@ -71,7 +72,7 @@ class Splitter extends React.Component {
         if (this.props.minSize && this.size<this.props.minSize)
             this.size = this.props.minSize
         return (
-            <div style={{ ...this.props.style, display: 'flex', flexDirection: this.props.split === 'horizontal' ? 'column' : 'row' }} className={this.props.className}>
+            <div style={{ ...this.props.style, display: 'flex', flexDirection: this.props.split === 'horizontal' ? 'column' : 'row' }} className={classNames("resizerWrapper", this.props.className)}>
                 {React.cloneElement(
                     this.props.children,
                     {
