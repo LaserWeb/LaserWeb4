@@ -245,8 +245,8 @@ function PaneGroupDetails({ item, groups, groupId }) {
         content = <>
             <PaneToolbar caption="Group">
                 {item.isEditable
-                    ? <Button onClick={() => onGroupEdit(groupId)} bsSize="xsmall" bsStyle="primary"><Icon name="floppy-o" /> Save</Button>
-                    : <Button onClick={() => onGroupEdit(groupId)} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>}
+                    ? <IconButton type="primary" icon="floppy-o" caption="Save" onClick={() => onGroupEdit(groupId)} />
+                    : <IconButton type="warning" icon="pencil" caption="Edit" onClick={() => onGroupEdit(groupId)} />}
             </PaneToolbar>
             {heading}
             <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
@@ -287,7 +287,7 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
 
         return <div className="right innerPane">
             <PaneToolbar caption="Presets">
-                <Button bsSize="xsmall" bsStyle="success" onClick={() => dispatch(addPreset(groupId))}><Icon name="plus" /> Add</Button>
+                <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addPreset(groupId))} />
             </PaneToolbar>
             <PanelGroup defaultActiveKey="0">
                 {presets.map((operation, i) => {
@@ -295,8 +295,8 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
                         handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                         header={<div>
                             {operation.isEditable
-                                ? <Button onClick={() => onPresetEdit(operation.id)} bsSize="xsmall" bsStyle="primary"><Icon name="floppy-o" /> Save</Button>
-                                : <Button onClick={() => onPresetEdit(operation.id)} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>}
+                                ? <IconButton type="primary" icon="floppy-o" caption="Save" onClick={() => onPresetEdit(operation.id)} />
+                                : <IconButton type="warning" icon="pencil" caption="Edit" onClick={() => onPresetEdit(operation.id)} />}
 
                             <Button onClick={() => { confirmDeletePreset(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
                         </div>} >
