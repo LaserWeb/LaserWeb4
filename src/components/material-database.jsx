@@ -91,35 +91,10 @@ function MaterialDatabaseEditor({ show, onHide }) {
     let groups = useSelector((state) => state.materialDatabase);
     let selectedProfile = useSelector((state) => state.settings.__selectedProfile ?? "*");
 
-    let [ materialId, setMaterialId ] = useState(null );
+    let [ materialId, setMaterialId ] = useState(null);
     let [ selected, setSelected ] = useState(selectedProfile);
 
-    function confirmDeleteGroup(id) {
-        // FIXME(REFACTOR): Unclear error message
-        confirm("Are you sure?", (accepted) => {
-            if (accepted) {
-                dispatch(deleteGroup(id));
-                setMaterialId(null);
-            }
-        });
-    }
-
-    function confirmDeletePreset(id) {
-        // FIXME(REFACTOR): Unclear error message
-        confirm("Are you sure?", (accepted) => {
-            if (accepted) {
-                dispatch(deletePreset(id));
-            }
-        });
-    }
-
-    function cloneGroupTemplate(fromId, toId) {
-        let source = getMaterialDbGroup(groups, fromId);
-
-        if (source != null) {
-            dispatch(setGroupAttrs(toId, { template: source.template }));
-        }
-    }
+    let item = getMaterialDbGroup(groups, materialId);
 
     function downloadDatabase(format) {
         if (format == 'json') {
@@ -147,40 +122,47 @@ function MaterialDatabaseEditor({ show, onHide }) {
             <MaterialMachineProfile profiles={profiles} selected={selected} onChange={(value) => setSelected(value)} />
 
             <AllowCapture className="paneSizer" >
-                <div className="paneContainer" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                    <GroupsPane style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
+                <div className="paneContainer materialsDatabase" style={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                    <PaneGroups style={{ flexGrow: 0, flexShrink: 0, position: 'relative' }}
                         onMaterialSelected={(id) => setMaterialId(id)}
                         itemId={materialId}
-                        onGroupAdd={() => dispatch(addGroup())}
-                        onGroupDelete={(id) => confirmDeleteGroup(id)}
                     />
-                    <GroupView style={{ flexGrow: 1 }}
-                        groupId={materialId} selectedProfile={selected}
-                        onGroupEdit={(id) => dispatch(toggleGroupEdit(id))}
-                        onGroupChange={(id, attrs) => dispatch(setGroupAttrs(id, attrs))}
-                        onPresetAdd={(id) => dispatch(addPreset(id))}
-                        onPresetChange={(id, attrs) => dispatch(setPresetAttrs(id, attrs))}
-                        onPresetDelete={(id) => confirmDeletePreset(id)}
-                        onPresetEdit={(id) => dispatch(togglePresetEdit(id))}
-                        onGroupTemplateClone={(fromId, toId) => cloneGroupTemplate(fromId, toId)}
-                    />
+                    <PaneGroupDetails {... { item, groups, groupId: materialId }} />
+                    <PaneGroupPresets {... { item, groupId: materialId, selectedProfile: selected }} />
                 </div>
             </AllowCapture>
         </MaterialModal>
     )
 }
 
-function GroupsPane({ style, itemId, onGroupAdd, onGroupDelete, onMaterialSelected }) {
+function PaneToolbar({ caption, children }) {
+    return <div className="paneToolbar">
+        {caption != null ? <h5>{caption}</h5> : null}
+        {children}
+    </div>;
+}
+
+function PaneGroups({ style, itemId, onMaterialSelected }) {
+    let dispatch = useDispatch();
     let items = useSelector((state) => state.materialDatabase);
+
+    function confirmDeleteGroup(id) {
+        // FIXME(REFACTOR): Unclear error message
+        confirm("Are you sure?", (accepted) => {
+            if (accepted) {
+                dispatch(deleteGroup(id));
+                onMaterialSelected(null);
+            }
+        });
+    }
 
     return <div id="groupsPane" className="full-height" style={style}>
         <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
             <div className="full-height innerPane">
-                <div className="paneToolbar">
-                    <h5>Groupings</h5>
-                    <Button onClick={() => onGroupAdd()} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
-                    <Button onClick={() => onGroupDelete(itemId)} bsSize="xs" bsStyle="danger" disabled={itemId ? false : true}><Icon name="trash" /> Delete</Button>
-                </div>
+                <PaneToolbar caption="Groupings">
+                    <Button onClick={() => dispatch(addGroup())} bsSize="xs" bsStyle="success"><Icon name="plus" /> Add</Button>
+                    <Button onClick={() => confirmDeleteGroup(itemId)} bsSize="xs" bsStyle="danger" disabled={itemId ? false : true}><Icon name="trash" /> Delete</Button>
+                </PaneToolbar>
                 <div className="listing">
                     {items.map((item, i) => {
                         // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
@@ -199,51 +181,24 @@ function GroupsPane({ style, itemId, onGroupAdd, onGroupDelete, onMaterialSelect
     </div>
 }
 
-function PresetActions({ disabled, groupId, groups, onCloneTo }) {
-    let [ selected, setSelected ] = useState();
+function PaneGroupDetails({ item, groups, groupId }) {
+    let dispatch = useDispatch();
+    let content = null;
 
-    return <FormGroup>
-        <InputGroup>
-            <InputGroup.Button>
-                <Button disabled={disabled} onClick={() => { onCloneTo(groupId, selected) }} bsStyle="success" title="Clones current template to other Group" ><Icon name="clone" /> Clone to</Button>
-            </InputGroup.Button>
-            <FormControl componentClass="select" placeholder="type" onChange={(e) => setSelected(e.target.value)} disabled={disabled}>
-                <option></option>
-                {groups.map((group, i) => {
-                    if (groupId !== group.id) {
-                        return <option key={i} value={group.id}>{group.name}</option>;
-                    }
-                })}
-            </FormControl>
+    function cloneGroupTemplate(fromId, toId) {
+        let source = getMaterialDbGroup(groups, fromId);
 
-        </InputGroup>
-    </FormGroup>;
-}
+        if (source != null) {
+            dispatch(setGroupAttrs(toId, { template: source.template }));
+        }
+    }
 
-function PresetsPaneToolbarGroup({ groupId, item, onGroupEdit }) {
-    return <div className="paneToolbar">
-        <h5>Group</h5>
-        <Button onClick={() => { onGroupEdit(groupId) }}
-            bsSize="xsmall" bsStyle={item.isEditable ? "primary" : "warning"} >
-            {item.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
-        </Button>
-    </div>;
-}
-
-function PresetsPaneToolbarPresets({ groupId, onPresetAdd }) {
-    return <div className="paneToolbar">
-        <h5>Presets</h5>
-        <Button bsSize="xsmall" bsStyle="success" onClick={(e) => { onPresetAdd(groupId) }}><Icon name="plus" /> Add</Button>
-    </div>;
-}
-
-function GroupView(props) {
-    let { style, groupId, selectedProfile, onGroupChange, onGroupEdit, onPresetAdd, onPresetChange, onPresetEdit, onPresetDelete } = props;
-    let groups = useSelector((state) => state.materialDatabase);
-    let item = getMaterialDbGroup(groups, groupId)
+    let onGroupEdit = (id) => dispatch(toggleGroupEdit(id));
+    let onGroupChange = (id, attrs) => dispatch(setGroupAttrs(id, attrs));
     
-    let heading, presets = [], leftToolbar, rightToolbar, actions;
-    if (item) {
+    if (item != null) {
+        let heading;
+
         if (item.isEditable) {
             heading = (<div className="operationHeading isEditable">
                 <fieldset>
@@ -285,38 +240,66 @@ function GroupView(props) {
             </div>)
         }
 
-
-        leftToolbar = <PresetsPaneToolbarGroup groupId={groupId} item={item} onGroupEdit={onGroupEdit} />
-        rightToolbar = <PresetsPaneToolbarPresets groupId={groupId} onPresetAdd={onPresetAdd} />
-        presets = item.presets;
-
-        actions = <div className="paneToolbar">
-            <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => onGroupTemplateClone(groupId, to)} />
-        </div>
-
+        content = <>
+            <PaneToolbar caption="Group">
+                {item.isEditable
+                    ? <Button onClick={() => onGroupEdit(groupId)} bsSize="xsmall" bsStyle="primary"><Icon name="floppy-o" /> Save</Button>
+                    : <Button onClick={() => onGroupEdit(groupId)} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>}
+            </PaneToolbar>
+            {heading}
+            <PaneToolbar>
+                {/* FIXME(REFACTOR): This should probably not be a PaneToolbar? */}
+                <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
+            </PaneToolbar>
+        </>;
     }
 
-    let __presets=presets.filter((operation,i)=>(shouldShow(operation, selectedProfile)))
+    return <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
+        <div className="full-height left innerPane">
+            {content}
+        </div>
+    </Splitter>;
+}
 
-    return <div className="full-height" id="operationsPane" style={style}>
+function PaneGroupPresets({ item, selectedProfile, groupId }) {
+    let dispatch = useDispatch();
 
-        <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-            <div className="full-height left innerPane" >{leftToolbar}{heading}{actions}</div>
-        </Splitter>
+    function confirmDeletePreset(id) {
+        // FIXME(REFACTOR): Unclear error message
+        confirm("Are you sure?", (accepted) => {
+            if (accepted) {
+                dispatch(deletePreset(id));
+            }
+        });
+    }
 
-        <div className="full-height right innerPane">
-            {rightToolbar}
+    let onPresetChange = (id, attrs) => dispatch(setPresetAttrs(id, attrs));
+    let onPresetEdit = (id) => dispatch(togglePresetEdit(id));
+
+    if (item == null) {
+        // FIXME(REFACTOR): Unclear error message, and logic doesn't seem correct either? Message always seems to show when no group is selected
+        return <div className="full-height right innerPane" style={{ width: "100%" }}>
             <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
-                {__presets.map((operation, i) => {
+                { selectedProfile.length > 0 ? 'Presets not shown due machine profile filters' : null }
+            </PanelGroup>
+        </div>;
+    } else {
+        let presets = item.presets.filter((operation) => shouldShow(operation, selectedProfile));
+
+        return <div className="full-height right innerPane" style={{ width: "100%" }}>
+            <PaneToolbar caption="Presets">
+                <Button bsSize="xsmall" bsStyle="success" onClick={() => dispatch(addPreset(groupId))}><Icon name="plus" /> Add</Button>
+            </PaneToolbar>
+            <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
+                {presets.map((operation, i) => {
                     return <Details className={operation.isEditable ? "editable" : ""} key={i} open={operation.isEditable}
                         handler={<h4>{`${operation.name} (${operation.type})`} <div><small>{operation.notes}</small></div></h4>}
                         header={<div>
-                            <Button onClick={() => { onPresetEdit(operation.id) }}
-                                bsSize="xsmall" bsStyle={operation.isEditable ? "primary" : "warning"} >
-                                {operation.isEditable ? <span><Icon name="floppy-o" /> Save</span> : <span><Icon name="pencil" /> Edit</span>}
-                            </Button>
+                            {operation.isEditable
+                                ? <Button onClick={() => onPresetEdit(operation.id)} bsSize="xsmall" bsStyle="primary"><Icon name="floppy-o" /> Save</Button>
+                                : <Button onClick={() => onPresetEdit(operation.id)} bsSize="xsmall" bsStyle="warning"><Icon name="pencil" /> Edit</Button>}
 
-                            <Button onClick={() => { onPresetDelete(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
+                            <Button onClick={() => { confirmDeletePreset(operation.id) }} bsSize="xsmall" bsStyle="danger"><Icon name="trash" /> Delete</Button>
                         </div>} >
                         <PresetOperationSettings operation={operation} isEditable={operation.isEditable}
                             onCellChange={(id, attrs) => { onPresetChange(id, attrs) }}
@@ -327,10 +310,31 @@ function GroupView(props) {
                             caption="Parameters" />
                     </Details>
                 })}
-                { (!__presets.length && selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
+                { (!presets.length && selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
             </PanelGroup>
-        </div>
-    </div>
+        </div>;
+    }
+}
+
+function PresetActions({ disabled, groupId, groups, onCloneTo }) {
+    let [ selected, setSelected ] = useState();
+
+    return <FormGroup>
+        <InputGroup>
+            <InputGroup.Button>
+                <Button disabled={disabled} onClick={() => { onCloneTo(groupId, selected) }} bsStyle="success" title="Clones current template to other Group" ><Icon name="clone" /> Clone to</Button>
+            </InputGroup.Button>
+            <FormControl componentClass="select" placeholder="type" onChange={(e) => setSelected(e.target.value)} disabled={disabled}>
+                <option></option>
+                {groups.map((group, i) => {
+                    if (groupId !== group.id) {
+                        return <option key={i} value={group.id}>{group.name}</option>;
+                    }
+                })}
+            </FormControl>
+
+        </InputGroup>
+    </FormGroup>;
 }
 
 function PresetOperationSettings({ caption, operation, isEditable, onCellChange }) {
@@ -360,7 +364,7 @@ function PresetOperationSettings({ caption, operation, isEditable, onCellChange 
             <FormGroup>
                 <ControlLabel>Type</ControlLabel>
                 <FormControl componentClass="select" placeholder="type" value={operation.type} onChange={(e) => onCellChange(operation.id, { type: e.target.value })}>
-                    {Object.keys(OPERATION_TYPES).map((operationtion, i) => { return <operationtion key={i} value={operationtion}>{operationtion}</operationtion> })}
+                    {Object.keys(OPERATION_TYPES).map((operation, i) => { return <operation key={i} value={operation}>{operation}</operation> })}
                 </FormControl>
                 <FormControl.Feedback />
             </FormGroup>
