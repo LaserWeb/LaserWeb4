@@ -1,43 +1,35 @@
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
+
+import { Modal, Button, ButtonToolbar, FormControl, ControlLabel, FormGroup, PanelGroup, Collapse, InputGroup } from 'react-bootstrap';
+import Select from 'react-select';
+import Icon from './font-awesome';
+import Splitter from './splitter';
+import { FileField } from './forms';
+import { AllowCapture } from './capture'
+
+import stringify from 'json-stringify-pretty-compact';
+import Validator from 'validatorjs';
+import omit from 'object.omit';
+import vex from '../lib/vex';
+
 import {
     addGroup, setGroupAttrs, deleteGroup, toggleGroupView, toggleGroupEdit,
     addPreset, deletePreset, setPresetAttrs, togglePresetEdit,
     uploadMaterialDatabase, downloadMaterialDatabase,
     applyPreset, newPreset
-} from '../actions/material-database.js'
+} from '../actions/material-database.js';
 
-
-import { OPERATION_FIELDS, OPERATION_TYPES } from './operation'
-
-import { Modal, Button, ButtonToolbar, FormControl, ControlLabel, FormGroup, PanelGroup, Collapse, InputGroup } from 'react-bootstrap'
-import { FileField } from './forms'
-
-import Icon from './font-awesome';
-import stringify from 'json-stringify-pretty-compact';
-
-import { materialTreeToTabular, materialTabularToTree, arr2csv, csv2arr } from '../lib/material-database';
-
-import Select from 'react-select';
-
-import { FileStorage, LocalStorage } from '../lib/storages';
-
-import Validator from 'validatorjs';
-import { GlobalStore } from '../index';
-import omit from 'object.omit';
-
-import { cast } from '../lib/helpers'
-
-import { AllowCapture } from './capture'
-import Splitter from './splitter'
-
-import { alert, prompt, confirm } from './laserweb';
-import vex from '../lib/vex';
-
-import '../styles/material-database.css'
-
+import { OPERATION_FIELDS, OPERATION_TYPES } from './operation';
 import { DEFAULT_GROUPING_NAME } from '../reducers/material-database';
-import classNames from 'classnames'
+import { GlobalStore } from '../index';
+import { FileStorage, LocalStorage } from '../lib/storages';
+import { cast } from '../lib/helpers';
+import { materialTreeToTabular, materialTabularToTree, arr2csv, csv2arr } from '../lib/material-database';
+import { alert, prompt, confirm } from './laserweb';
+
+import '../styles/material-database.css';
 
 export const MATERIALDATABASE_VALIDATION_RULES = {
     thickness: 'numeric|min:0.1',
