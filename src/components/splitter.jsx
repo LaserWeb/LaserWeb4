@@ -20,6 +20,7 @@ const classNames = require("classnames");
 import Capture from './capture';
 import { splitterSetSize } from '../actions/splitters'
 
+// FIXME: This absolutely shouldn't be doing a whole Redux dispatch cycle on every single moved pixel (which includes persisting the store with the new position); but only once moving is completed
 class Splitter extends React.Component {
     UNSAFE_componentWillMount() {
         this.mouseDown = this.mouseDown.bind(this);

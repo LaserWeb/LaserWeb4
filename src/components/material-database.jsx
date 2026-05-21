@@ -122,13 +122,24 @@ function MaterialDatabaseEditor({ show, onHide }) {
 
             <AllowCapture className="paneSizer" >
                 <div className="paneContainer materialsDatabase">
-                    <PaneGroups itemId={materialId} onMaterialSelected={(id) => setMaterialId(id)}/>
-                    <PaneGroupDetails {... { item, groups, groupId: materialId }} />
-                    <PaneGroupPresets {... { item, groupId: materialId, selectedProfile: selected }} />
+                    <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }}>
+                        <Pane id="groupsPane"><PaneContentGroups itemId={materialId} onMaterialSelected={(id) => setMaterialId(id)}/></Pane>
+                    </Splitter>
+                    <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }}>
+                        <Pane className="left"><PaneContentGroupDetails {... { item, groups, groupId: materialId }} /></Pane>
+                    </Splitter>
+                    <Pane className="right"><PaneContentGroupPresets {... { item, groupId: materialId, selectedProfile: selected }} /></Pane>
                 </div>
             </AllowCapture>
         </MaterialModal>
     )
+}
+
+function Pane({ id, className, style, children }) {
+    /* NOTE: `style` must be passed through for Splitter to work; it injects props */
+    return <div id={id} className={classNames("innerPane", className)} style={style}>
+        {children}
+    </div>;
 }
 
 function PaneToolbar({ caption, children }) {
@@ -145,7 +156,7 @@ function IconButton({ type, size, icon, caption, onClick, ... rest }) {
     </Button>;
 }
 
-function PaneGroups({ itemId, onMaterialSelected }) {
+function PaneContentGroups({ itemId, onMaterialSelected }) {
     let dispatch = useDispatch();
     let items = useSelector((state) => state.materialDatabase);
 
@@ -159,33 +170,30 @@ function PaneGroups({ itemId, onMaterialSelected }) {
         });
     }
 
-    return <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-        <div id="groupsPane" className="innerPane">
-            <PaneToolbar caption="Groupings">
-                <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addGroup())} />
-                <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(itemId)} disabled={itemId == null} />
-            </PaneToolbar>
-            <div className="listing">
-                {items.map((item, i) => {
-                    // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
-                    let header = (item._locked)
-                        ? <h5 title="This grouping is locked. Will be reset on next application start.">{item.name} <Icon name="lock" /></h5>
-                        : <h5>{item.name} {(item._locked===false ? <Icon name="gift" /> : null)}</h5>;
+    return <>
+        <PaneToolbar caption="Groupings">
+            <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addGroup())} />
+            <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(itemId)} disabled={itemId == null} />
+        </PaneToolbar>
+        <div className="listing">
+            {items.map((item, i) => {
+                // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
+                let header = (item._locked)
+                    ? <h5 title="This grouping is locked. Will be reset on next application start.">{item.name} <Icon name="lock" /></h5>
+                    : <h5>{item.name} {(item._locked===false ? <Icon name="gift" /> : null)}</h5>;
 
-                    // FIXME(REFACTOR): 'active' style is currently broken and not visible, need to fix that
-                    return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(itemId == item.id) ? 'active' : undefined}>
-                        {header}
-                        <small>{item.notes}</small>
-                    </div>
-                })}
-            </div>
+                // FIXME(REFACTOR): 'active' style is currently broken and not visible, need to fix that
+                return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(itemId == item.id) ? 'active' : undefined}>
+                    {header}
+                    <small>{item.notes}</small>
+                </div>
+            })}
         </div>
-    </Splitter>;
+    </>;
 }
 
-function PaneGroupDetails({ item, groups, groupId }) {
+function PaneContentGroupDetails({ item, groups, groupId }) {
     let dispatch = useDispatch();
-    let content = null;
 
     function cloneGroupTemplate(fromId, toId) {
         let source = getMaterialDbGroup(groups, fromId);
@@ -242,7 +250,7 @@ function PaneGroupDetails({ item, groups, groupId }) {
             </div>)
         }
 
-        content = <>
+        return <>
             <PaneToolbar caption="Group">
                 {item.isEditable
                     ? <IconButton type="primary" icon="floppy-o" caption="Save" onClick={() => onGroupEdit(groupId)} />
@@ -252,15 +260,9 @@ function PaneGroupDetails({ item, groups, groupId }) {
             <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
         </>;
     }
-
-    return <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }} >
-        <div className="left innerPane">
-            {content}
-        </div>
-    </Splitter>;
 }
 
-function PaneGroupPresets({ item, selectedProfile, groupId }) {
+function PaneContentGroupPresets({ item, selectedProfile, groupId }) {
     let dispatch = useDispatch();
 
     function confirmDeletePreset(id) {
@@ -277,15 +279,13 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
 
     if (item == null) {
         // FIXME(REFACTOR): Unclear error message, and logic doesn't seem correct either? Message always seems to show when no group is selected
-        return <div className="right innerPane">
-            <PanelGroup defaultActiveKey="0" style={{ overflow: 'auto', flexGrow: 10 }}>
-                { selectedProfile.length > 0 ? 'Presets not shown due machine profile filters' : null }
-            </PanelGroup>
-        </div>;
+        return <PanelGroup defaultActiveKey="0">
+            { selectedProfile.length > 0 ? 'Presets not shown due machine profile filters' : null }
+        </PanelGroup>;
     } else {
         let presets = item.presets.filter((operation) => shouldShow(operation, selectedProfile));
 
-        return <div className="right innerPane">
+        return <>
             <PaneToolbar caption="Presets">
                 <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addPreset(groupId))} />
             </PaneToolbar>
@@ -311,7 +311,7 @@ function PaneGroupPresets({ item, selectedProfile, groupId }) {
                 })}
                 { (!presets.length && selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
             </PanelGroup>
-        </div>;
+        </>;
     }
 }
 
