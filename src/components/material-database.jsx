@@ -46,6 +46,26 @@ export function ValidateMaterial(resultOnly = true, rules = MATERIALDATABASE_VAL
     }
 }
 
+function selectGroupFromMaterialDatabase(state, id) {
+    return state.find((group) => group.id === id);
+}
+
+function selectPresetFromMaterialDatabase(state, id) {
+    for (let group of state) {
+        for (let preset of group.presets) {
+            if (preset.id === id) {
+                return preset;
+            }
+        }
+    }
+
+    return null; /* No matches */
+}
+
+let selectProfileFilter = (state) => state.settings.__selectedProfile ?? "*"; // NOTE: Comma-separated list or * for 'everything'
+let selectGroups = (state) => state.materialDatabase;
+let selectGroup = (groupID) => (state) => selectGroupFromMaterialDatabase(state.materialDatabase, groupID);
+
 function MaterialModal({ modal, className, header, footer, children, ...rest }) {
     return (
         <Modal show={modal.show} onHide={modal.onHide} bsSize="large" aria-labelledby="contained-modal-title-lg" className={className}>
@@ -60,7 +80,8 @@ function MaterialModal({ modal, className, header, footer, children, ...rest }) 
     )
 }
 
-function shouldShow(operation, filter) {
+// FIXME(REFACTOR): Probably turn this into a selector (from materialDatabase?) instead
+function matchOperationAgainstProfileFilter(operation, filter) {
     if (filter == null || filter === "*" || operation.machine_profile == null) {
         return true;
     } else {
@@ -80,13 +101,11 @@ function MaterialMachineProfile({ selected, onChange, label = "Profile Filter" }
 function MaterialDatabaseEditor({ show, onHide }) {
     let dispatch = useDispatch();
     let profiles = useSelector((state) => state.profiles);
-    let groups = useSelector((state) => state.materialDatabase);
-    let selectedProfile = useSelector((state) => state.settings.__selectedProfile ?? "*");
+    let groups = useSelector(selectGroups);
+    let profileFilter = useSelector(selectProfileFilter);
 
-    let [ materialId, setMaterialId ] = useState(null);
-    let [ selected, setSelected ] = useState(selectedProfile);
-
-    let item = getMaterialDbGroup(groups, materialId);
+    let [ groupID, setGroupID ] = useState(null);
+    let [ selectedProfileFilter, setSelectedProfileFilter ] = useState(profileFilter);
 
     function downloadDatabase(format) {
         if (format == 'json') {
@@ -110,17 +129,17 @@ function MaterialDatabaseEditor({ show, onHide }) {
 
     return (
         <MaterialModal modal={{ show: show, onHide: onHide }} className='full-width' header="Material Database" footer={footer}>
-            <MaterialMachineProfile profiles={profiles} selected={selected} onChange={(value) => setSelected(value)} />
+            <MaterialMachineProfile profiles={profiles} selected={selectedProfileFilter} onChange={(value) => setSelectedProfileFilter(value)} />
 
             <AllowCapture className="paneSizer" >
                 <div className="paneContainer materialsDatabase">
                     <Splitter split="vertical" initialSize={300} splitterId="groupsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }}>
-                        <Pane id="groupsPane"><PaneContentGroups itemId={materialId} onMaterialSelected={(id) => setMaterialId(id)}/></Pane>
+                        <Pane id="groupsPane"><PaneContentGroups groupID={groupID} onMaterialSelected={(id) => setGroupID(id)}/></Pane>
                     </Splitter>
                     <Splitter split="vertical" initialSize={300} splitterId="operationsPane" resizerStyle={{ marginLeft: 2, marginRight: 2 }}>
-                        <Pane className="left"><PaneContentGroupDetails {... { item, groups, groupId: materialId }} /></Pane>
+                        <Pane className="left"><PaneContentGroupDetails groupID={groupID} /></Pane>
                     </Splitter>
-                    <Pane className="right"><PaneContentGroupPresets {... { item, groupId: materialId, selectedProfile: selected }} /></Pane>
+                    <Pane className="right"><PaneContentGroupPresets groupID={groupID} profileFilter={selectedProfileFilter} /></Pane>
                 </div>
             </AllowCapture>
         </MaterialModal>
@@ -148,9 +167,9 @@ function IconButton({ type, size, icon, caption, onClick, ... rest }) {
     </Button>;
 }
 
-function PaneContentGroups({ itemId, onMaterialSelected }) {
+function PaneContentGroups({ groupID, onMaterialSelected }) {
     let dispatch = useDispatch();
-    let items = useSelector((state) => state.materialDatabase);
+    let groups = useSelector(selectGroups);
 
     function confirmDeleteGroup(id) {
         // FIXME(REFACTOR): Unclear error message
@@ -165,17 +184,17 @@ function PaneContentGroups({ itemId, onMaterialSelected }) {
     return <>
         <PaneToolbar caption="Groupings">
             <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addGroup())} />
-            <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(itemId)} disabled={itemId == null} />
+            <IconButton type="danger" icon="trash" caption="Delete" onClick={() => confirmDeleteGroup(groupID)} disabled={groupID == null} />
         </PaneToolbar>
         <div className="listing">
-            {items.map((item, i) => {
+            {groups.map((item, i) => {
                 // FIXME(REFACTOR): It looks like item._locked is repurposed to also indicate an included preset (giftbox icon) by setting it to `false`? That should really be a separate field for clarity.
                 let header = (item._locked)
                     ? <h5 title="This grouping is locked. Will be reset on next application start.">{item.name} <Icon name="lock" /></h5>
                     : <h5>{item.name} {(item._locked===false ? <Icon name="gift" /> : null)}</h5>;
 
                 // FIXME(REFACTOR): 'active' style is currently broken and not visible, need to fix that
-                return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(itemId == item.id) ? 'active' : undefined}>
+                return <div id={item.id} key={i} onClick={() => onMaterialSelected(item.id)} className={(groupID == item.id) ? 'active' : undefined}>
                     {header}
                     <small>{item.notes}</small>
                 </div>
@@ -184,24 +203,26 @@ function PaneContentGroups({ itemId, onMaterialSelected }) {
     </>;
 }
 
-function PaneContentGroupDetails({ item, groups, groupId }) {
+function PaneContentGroupDetails({ groupID }) {
     let dispatch = useDispatch();
+    let groups = useSelector(selectGroups);
+    let group = useSelector(selectGroup(groupID));
+
+    let onGroupEdit = (id) => dispatch(toggleGroupEdit(id));
+    let onGroupChange = (id, attrs) => dispatch(setGroupAttrs(id, attrs));
 
     function cloneGroupTemplate(fromId, toId) {
-        let source = getMaterialDbGroup(groups, fromId);
+        let source = selectGroupFromMaterialDatabase(groups, fromId);
 
         if (source != null) {
             dispatch(setGroupAttrs(toId, { template: source.template }));
         }
     }
-
-    let onGroupEdit = (id) => dispatch(toggleGroupEdit(id));
-    let onGroupChange = (id, attrs) => dispatch(setGroupAttrs(id, attrs));
     
-    if (item != null) {
+    if (group != null) {
         let heading;
 
-        if (item.isEditable) {
+        if (group.isEditable) {
             heading = (<div className="operationHeading isEditable">
                 <fieldset>
                     <legend>Grouping</legend>
@@ -209,53 +230,54 @@ function PaneContentGroupDetails({ item, groups, groupId }) {
                         <ControlLabel>Name</ControlLabel>
                         <FormControl
                             type="text"
-                            value={item.name}
+                            value={group.name}
                             placeholder="Name of the Operation Group"
-                            onChange={(e) => { onGroupChange(groupId, { name: e.target.value }) }}
+                            onChange={(e) => { onGroupChange(groupID, { name: e.target.value }) }}
                         />
                         <FormControl.Feedback />
                     </FormGroup>
 
                     <FormGroup>
                         <ControlLabel>Notes</ControlLabel>
-                        <FormControl componentClass="textarea" placeholder="notes" value={item.notes} onChange={(e) => { onGroupChange(groupId, { notes: e.target.value }) }} />
+                        <FormControl componentClass="textarea" placeholder="notes" value={group.notes} onChange={(e) => { onGroupChange(groupID, { notes: e.target.value }) }} />
                         <FormControl.Feedback />
                     </FormGroup>
                 </fieldset>
                 <fieldset>
                     <legend>Default Template</legend>
 
-                    <PresetOperationSettings operation={item.template} caption="Settings" isEditable={true}
-                        onCellChange={(id, attrs) => { onGroupChange(groupId, { template: attrs }) }} />
+                    <PresetOperationSettings operation={group.template} caption="Settings" isEditable={true}
+                        onCellChange={(id, attrs) => { onGroupChange(groupID, { template: attrs }) }} />
 
-                    <PresetOperationParameters operation={item.template} caption="Parameters" isEditable={true}
-                        onCellChange={(id, attrs) => { onGroupChange(groupId, { template: attrs }) }} />
+                    <PresetOperationParameters operation={group.template} caption="Parameters" isEditable={true}
+                        onCellChange={(id, attrs) => { onGroupChange(groupID, { template: attrs }) }} />
 
                 </fieldset>
             </div>)
         } else {
             heading = (<div className="operationHeading">
-                <h3>{item.name}</h3>{item.notes ? (<p>{item.notes}</p>) : undefined}
+                <h3>{group.name}</h3>{group.notes ? (<p>{group.notes}</p>) : undefined}
 
-                <PresetOperationSettings operation={item.template} caption="Settings" />
-                <PresetOperationParameters operation={item.template} caption="Parameters" />
+                <PresetOperationSettings operation={group.template} caption="Settings" />
+                <PresetOperationParameters operation={group.template} caption="Parameters" />
             </div>)
         }
 
         return <>
             <PaneToolbar caption="Group">
-                {item.isEditable
-                    ? <IconButton type="primary" icon="floppy-o" caption="Save" onClick={() => onGroupEdit(groupId)} />
-                    : <IconButton type="warning" icon="pencil" caption="Edit" onClick={() => onGroupEdit(groupId)} />}
+                {group.isEditable
+                    ? <IconButton type="primary" icon="floppy-o" caption="Save" onClick={() => onGroupEdit(groupID)} />
+                    : <IconButton type="warning" icon="pencil" caption="Edit" onClick={() => onGroupEdit(groupID)} />}
             </PaneToolbar>
             {heading}
-            <PresetActions groups={groups} groupId={groupId} disabled={item.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupId, to)} />
+            <PresetActions groupId={groupID} disabled={group.isEditable} onCloneTo={(from, to) => cloneGroupTemplate(groupID, to)} />
         </>;
     }
 }
 
-function PaneContentGroupPresets({ item, selectedProfile, groupId }) {
+function PaneContentGroupPresets({ profileFilter, groupID }) {
     let dispatch = useDispatch();
+    let group = useSelector(selectGroup(groupID));
 
     function confirmDeletePreset(id) {
         // FIXME(REFACTOR): Unclear error message
@@ -269,17 +291,18 @@ function PaneContentGroupPresets({ item, selectedProfile, groupId }) {
     let onPresetChange = (id, attrs) => dispatch(setPresetAttrs(id, attrs));
     let onPresetEdit = (id) => dispatch(togglePresetEdit(id));
 
-    if (item == null) {
+    if (group == null) {
         // FIXME(REFACTOR): Unclear error message, and logic doesn't seem correct either? Message always seems to show when no group is selected
+        // Is it even possible for profileFilter length to be 0, now that it defaults to *?
         return <PanelGroup defaultActiveKey="0">
-            { selectedProfile.length > 0 ? 'Presets not shown due machine profile filters' : null }
+            { profileFilter.length > 0 ? 'Presets not shown due machine profile filters' : null }
         </PanelGroup>;
     } else {
-        let presets = item.presets.filter((operation) => shouldShow(operation, selectedProfile));
+        let presets = group.presets.filter((operation) => matchOperationAgainstProfileFilter(operation, profileFilter));
 
         return <>
             <PaneToolbar caption="Presets">
-                <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addPreset(groupId))} />
+                <IconButton type="success" icon="plus" caption="Add" onClick={() => dispatch(addPreset(groupID))} />
             </PaneToolbar>
             <PanelGroup defaultActiveKey="0">
                 {presets.map((operation, i) => {
@@ -301,13 +324,14 @@ function PaneContentGroupPresets({ item, selectedProfile, groupId }) {
                             caption="Parameters" />
                     </Details>
                 })}
-                { (!presets.length && selectedProfile.length) ? 'Presets not shown due machine profile filters':undefined }
+                { (!presets.length && profileFilter.length) ? 'Presets not shown due machine profile filters':undefined }
             </PanelGroup>
         </>;
     }
 }
 
-function PresetActions({ disabled, groupId, groups, onCloneTo }) {
+function PresetActions({ disabled, groupId, onCloneTo }) {
+    let groups = useSelector(selectGroups);
     let [ selected, setSelected ] = useState();
 
     return <FormGroup>
@@ -457,15 +481,15 @@ function explainOperation(op) {
 }
 
 function MaterialDatabasePicker({ show, onHide, types, onApplyPreset }) {
-    let activeProfile = useSelector((state) => state.settings.__selectedProfile ?? "*");
-    let groups = useSelector((state) => state.materialDatabase);
+    let profileFilter = useSelector(selectProfileFilter);
+    let groups = useSelector(selectGroups);
 
-    let [ selectedProfile, setSelectedProfile ] = useState(activeProfile);
+    let [ selectedProfileFilter, setSelectedProfileFilter ] = useState(profileFilter);
 
     return (
         <MaterialModal modal={{ show: show, onHide: onHide }}
             header="Operation Presets">
-            <MaterialMachineProfile selected={selectedProfile} onChange={(value) => { setSelectedProfile(value) }} />
+            <MaterialMachineProfile selected={selectedProfileFilter} onChange={(value) => { setSelectedProfileFilter(value) }} />
             <div className="materialPicker">
                 {groups.map((item, i) => {
                     return <section key={i}>
@@ -475,7 +499,7 @@ function MaterialDatabasePicker({ show, onHide, types, onApplyPreset }) {
                         </h5>
 
                         {item.presets.map((op, j) => {
-                            if (shouldShow(op, selectedProfile)) {
+                            if (matchOperationAgainstProfileFilter(op, selectedProfileFilter)) {
                                 let disabled= (types && !types.includes(op.type)) || !types;
                                 return <Details key={j}
                                     handler={<div className="handler"><strong>{op.name}</strong><small>{op.type}</small></div>}
@@ -514,22 +538,6 @@ export function MaterialDatabaseButton({ children }) {
     )
 }
 
-function getMaterialDbGroup(state, id) {
-    return state.find((group) => group.id === id);
-}
-
-function getMaterialDbPreset(state, id) {
-    for (let group of state) {
-        for (let preset of group.presets) {
-            if (preset.id === id) {
-                return preset;
-            }
-        }
-    }
-
-    return null; /* No matches */
-}
-
 // TODO(REFACTOR): Why does the callback default to console.log?
 function choose(message, options, value, callback = console.log.bind(console)) {
     let optionElements = options
@@ -564,11 +572,11 @@ function choose(message, options, value, callback = console.log.bind(console)) {
 const REMOVE_PRESET_KEYS = new Set([ 'id', 'documents' ]);
 
 export function MaterialPickerButton({ className, types, children, onApplyPreset }) {
-    let groups = useSelector((state) => state.materialDatabase);
+    let groups = useSelector(selectGroups);
     let [ showModal, setShowModal ] = useState(false);
     
     function handleApplyPreset(operationId) {
-        let operation = getMaterialDbPreset(groups, operationId);
+        let operation = selectPresetFromMaterialDatabase(groups, operationId);
         let params = omit(operation.params, (value, key) => value != null && !REMOVE_PRESET_KEYS.has(key));
 
         onApplyPreset(operation.type, params);
@@ -590,7 +598,7 @@ export function MaterialPickerButton({ className, types, children, onApplyPreset
 
 export function MaterialSaveButton({ className, types, children, operation }) {
     let dispatch = useDispatch();
-    let groups = useSelector((state) => state.materialDatabase);
+    let groups = useSelector(selectGroups);
     let [ showModal, setShowModal ] = useState(false);
     
     function handleNewPreset() {
