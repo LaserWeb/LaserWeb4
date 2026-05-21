@@ -9,12 +9,7 @@ Releases are made available on https://github.com/LaserWeb/LaserWeb4-Binaries/
 For more documentation, go to the [Wiki](https://github.com/LaserWeb/LaserWeb4/wiki) or our website https://laserweb.yurl.ch
 
 ## Docker
-
-- run image:
-```sh
-docker run -device=/dev/ttyUSB0 -p 8000:8000 joesantos/laserweb:latest
-```
-- connect to app: http://localhost:8000
+See the separate [Docker Guide](DOCKER.md).
 
 ### Development
 
@@ -51,11 +46,12 @@ Note: Ever changing. See the Issues tab above for details.
 | Grbl > v1.1f (ATmega328)  | Yes        | Good                |   Great      | Yes - improvements                |
 | Grbl-Mega (ATmega2560)    | Yes        | Good                |   Great      | Yes - improvements                |
 | Grbl-LPC (LPC176x)        | Yes        | Great               |   Great      | Yes - improvements                |
-| Grbl_ESP32 (ESP32)        | Yes        | Great               |   Great      | Yes - improvements                |
+| Grbl_ESP32 (ESP32)        | Yes        | Great               |   Great      | No  - Superseded by FluuidNC      |
+| FluidNC (ESP32)           | Yes        | Great               |   Great      | Yes - improvements                |
 | Smoothieware              | Yes *      | Okayish             |   Okayish    | Yes - improvements                |
 | TinyG                     | Yes        | Unknown             |   Good       | Yes - improvements                |
-| Marlin                    | Yes        | Unknown             |   No         | Yes - improvements                | 
-| MarlinKimbra              | Yes        | Unknown             |   No         | Yes - improvements                | 
+| Marlin                    | Yes        | Unknown             |   No         | Yes - improvements                |
+| MarlinKimbra              | Yes        | Unknown             |   No         | Yes - improvements                |
 | Repetier                  | Yes        | Unknown             |   No         | Yes - improvements                |
 | RepRapFirmware            | Yes        | Unknown             |   Yes        | Yes - improvements                |
 
@@ -73,5 +69,6 @@ If you want to contribute, below are long standing community-requested enhanceme
 
 ## How to contribute ?
 
-Details on [https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute](https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute)
+To set up a development environment see the [Developer HowTo](FRONTEND-DEVELOPMENT.md) in the repo.
+Further details are on [https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute](https://github.com/LaserWeb/LaserWeb4/wiki/How-to-Contribute)
 

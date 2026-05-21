@@ -27,7 +27,7 @@ References:
   http://www.cfar.umd.edu/~daniel/daniel_papersfordownload/CoplanarPts.pdf
 */
 
-import SVD from './svd.js';
+import SVD from './svd';
 
 var POS = POS || {};
 

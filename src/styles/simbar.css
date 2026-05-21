@@ -1,0 +1,95 @@
+/* Styling for the range slider used for simulator bar */
+
+.simbar input[type=range] {
+  height: 32px;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 100%;
+}
+.simbar input[type=range]:focus {
+  outline: none;
+}
+
+.simbar input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 0px 0px 0px #000000;
+  background: #DEDEDE;
+  border-radius: 25px;
+  border: 0px solid #8A8A8A;
+}
+.simbar input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #828282;
+  border: 1px solid #8A8A8A;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+  background: #DEDEDE;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -10px;
+}
+.simbar input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #DEDEDE;
+}
+
+.simbar input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 0px 0px 0px #000000;
+  background: #DEDEDE;
+  border-radius: 25px;
+  border: 0px solid #8A8A8A;
+}
+.simbar input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #828282;
+  border: 1px solid #8A8A8A;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+  background: #DEDEDE;
+  cursor: pointer;
+}
+
+.simbar input[type=range]::-ms-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  animate: 0.2s;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+.simbar input[type=range]::-ms-fill-lower {
+  background: #DEDEDE;
+  border: 0px solid #8A8A8A;
+  border-radius: 50px;
+  box-shadow: 0px 0px 0px #000000;
+}
+.simbar input[type=range]::-ms-fill-upper {
+  background: #DEDEDE;
+  border: 0px solid #8A8A8A;
+  border-radius: 50px;
+  box-shadow: 0px 0px 0px #000000;
+}
+.simbar input[type=range]::-ms-thumb {
+  margin-top: 1px;
+  box-shadow: 1px 1px 1px #828282;
+  border: 1px solid #8A8A8A;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+  background: #DEDEDE;
+  cursor: pointer;
+}
+.simbar input[type=range]:focus::-ms-fill-lower {
+  background: #DEDEDE;
+}
+.simbar input[type=range]:focus::-ms-fill-upper {
+  background: #DEDEDE;
+}
+
